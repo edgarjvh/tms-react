@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { connect } from 'react-redux';
 import classnames from 'classnames';
+import $ from 'jquery';
 import './../../styles/customersPage.css';
-import axios from 'axios';
 
 import { setCustomers, setSelectedCustomer } from './../../actions';
+
+import PanelContainer from './../PanelContainer';
+import CustomerSearchPanel from './panels/CustomerSearchPanel';
 
 function CustomersPage(props) {
     const [customer, setCustomer] = useState(props.selectedCustomer);
@@ -15,28 +18,61 @@ function CustomersPage(props) {
     const [automaticEmailsTo, setAutomaticEmailsTo] = useState('');
     const [automaticEmailsCc, setAutomaticEmailsCc] = useState('');
     const [automaticEmailsBcc, setAutomaticEmailsBcc] = useState('');
+    const [panels, setPanels] = useState([
+        {
+            name: 'customer-search',
+            component: <CustomerSearchPanel />
+        }
+    ]);
+
+    const setInitialValues = (clearCode = true) => {
+        setSelectedContact({});
+        setCustomer({ code: clearCode ? '' : customer.code });
+        setSelectedContact({});
+        setSelectedNote({});
+        setContactSearch({});
+        setShowingContactList(true);
+        setAutomaticEmailsTo('');
+        setAutomaticEmailsCc('');
+        setAutomaticEmailsBcc('');
+
+        props.setSelectedCustomer(customer);
+    }
 
     const searchCustomerByCode = (e) => {
-        if(e.target.value.trim() !== ''){
-            axios.post(props.serverUrl + '/customers', {
-                code: e.target.value.trim().toLowerCase()
-            }).then(res => {
-                
-            });
-        }
-    } 
+        if (e.target.value.trim() !== '') {
 
-    const validateCustomerForSaving = () => { 
+            $.post(props.serverUrl + '/customers', {
+                code: e.target.value.toLowerCase()
+            }).then(res => {
+                if (res.result === 'OK') {
+                    if (res.customers.length > 0) {
+                        props.setSelectedCustomer(res.customers[0]);
+                        setCustomer(res.customers[0]);
+                    } else {
+                        setInitialValues(false);
+                    }
+                } else {
+                    setInitialValues(false);
+                }
+            });
+        } else {
+            setInitialValues(false);
+        }
+    }
+
+    const validateCustomerForSaving = () => {
 
     }
     const validateContactForSaving = () => { }
     const validateAutomaticEmailsForSaving = () => { }
     const validateHoursForSaving = () => { }
-
+    
     return (
         <div className="customers-main-container" style={{
             borderRadius: props.scale === 1 ? 0 : '20px'
         }}>
+            <PanelContainer panels={panels} />
             <div className="fields-container">
                 <div className="fields-container-row">
                     <div className="fields-container-col">
@@ -46,12 +82,12 @@ function CustomersPage(props) {
                                 <div className="form-title">Customer</div>
                                 <div className="top-border top-border-middle"></div>
                                 <div className="form-buttons">
-                                    <div className="mochi-button">
+                                    <div className="mochi-button" onClick={() => { }}>
                                         <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                         <div className="mochi-button-base">Search</div>
                                         <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
                                     </div>
-                                    <div className="mochi-button">
+                                    <div className="mochi-button" onClick={setInitialValues}>
                                         <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                         <div className="mochi-button-base">Clear</div>
                                         <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
@@ -65,57 +101,57 @@ function CustomersPage(props) {
                                     <input type="text" placeholder="Code" maxLength="8"
                                         onBlur={searchCustomerByCode}
                                         onChange={e => setCustomer({ ...customer, code: e.target.value })}
-                                        value={customer.code_number === 0 ? customer.code : customer.code + customer.code_number} />
+                                        value={(customer.code_number || 0) === 0 ? (customer.code || '') : customer.code + customer.code_number} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Name" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, name: e.target.value })} value={customer.name} />
+                                    <input type="text" placeholder="Name" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, name: e.target.value })} value={customer.name || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Address 1" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, address1: e.target.value })} value={customer.address1} />
+                                    <input type="text" placeholder="Address 1" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, address1: e.target.value })} value={customer.address1 || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Address 2" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, address2: e.target.value })} value={customer.address2} />
+                                    <input type="text" placeholder="Address 2" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, address2: e.target.value })} value={customer.address2 || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="City" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, city: e.target.value })} value={customer.city} />
+                                    <input type="text" placeholder="City" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, city: e.target.value })} value={customer.city || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-state">
-                                    <input type="text" placeholder="State" maxLength="2" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, state: e.target.value })} value={customer.state} />
+                                    <input type="text" placeholder="State" maxLength="2" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, state: e.target.value })} value={customer.state || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-zip-code">
-                                    <input type="text" placeholder="Postal Code" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, zip: e.target.value })} value={customer.zip} />
+                                    <input type="text" placeholder="Postal Code" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, zip: e.target.value })} value={customer.zip || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Contact Name" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, contact_name: e.target.value })} value={customer.contact_name} />
+                                    <input type="text" placeholder="Contact Name" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, contact_name: e.target.value })} value={customer.contact_name || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-phone">
-                                    <input type="text" placeholder="Contact Phone" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, contact_phone: e.target.value })} value={customer.contact_phone} />
+                                    <input type="text" placeholder="Contact Phone" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, contact_phone: e.target.value })} value={customer.contact_phone || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-phone-ext">
-                                    <input type="text" placeholder="Ext" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, ext: e.target.value })} value={customer.ext} />
+                                    <input type="text" placeholder="Ext" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, ext: e.target.value })} value={customer.ext || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="E-Mail" style={{ textTransform: 'lowercase' }} onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, email: e.target.value })} value={customer.email} />
+                                    <input type="text" placeholder="E-Mail" style={{ textTransform: 'lowercase' }} onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, email: e.target.value })} value={customer.email || ''} />
                                 </div>
                             </div>
                         </div>
@@ -151,57 +187,57 @@ function CustomersPage(props) {
                                     <input type="text" placeholder="Code" maxLength="8"
                                         onBlur={validateCustomerForSaving}
                                         onChange={e => setCustomer({ ...customer, mailing_code: e.target.value })}
-                                        value={customer.mailing_code_number === 0 ? customer.mailing_code : customer.mailing_code + customer.mailing_code_number} />
+                                        value={(customer.mailing_code_number || 0) === 0 ? (customer.mailing_code || '') : customer.mailing_code + customer.mailing_code_number} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Name" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, mailing_name: e.target.value })} value={customer.mailing_name} />
+                                    <input type="text" placeholder="Name" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, mailing_name: e.target.value })} value={customer.mailing_name || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Address 1" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, mailing_address1: e.target.value })} value={customer.mailing_address1} />
+                                    <input type="text" placeholder="Address 1" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, mailing_address1: e.target.value })} value={customer.mailing_address1 || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Address 2" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, mailing_address2: e.target.value })} value={customer.mailing_address2} />
+                                    <input type="text" placeholder="Address 2" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, mailing_address2: e.target.value })} value={customer.mailing_address2 || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="City" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, mailing_city: e.target.value })} value={customer.mailing_city} />
+                                    <input type="text" placeholder="City" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, mailing_city: e.target.value })} value={customer.mailing_city || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-state">
-                                    <input type="text" placeholder="State" maxLength="2" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, mailing_state: e.target.value })} value={customer.mailing_state} />
+                                    <input type="text" placeholder="State" maxLength="2" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, mailing_state: e.target.value })} value={customer.mailing_state || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-zip-code">
-                                    <input type="text" placeholder="Postal Code" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, mailing_zip: e.target.value })} value={customer.mailing_zip} />
+                                    <input type="text" placeholder="Postal Code" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, mailing_zip: e.target.value })} value={customer.mailing_zip || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Contact Name" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, mailing_contact_name: e.target.value })} value={customer.mailing_contact_name} />
+                                    <input type="text" placeholder="Contact Name" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, mailing_contact_name: e.target.value })} value={customer.mailing_contact_name || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-phone">
-                                    <input type="text" placeholder="Contact Phone" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, mailing_contact_phone: e.target.value })} value={customer.mailing_contact_phone} />
+                                    <input type="text" placeholder="Contact Phone" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, mailing_contact_phone: e.target.value })} value={customer.mailing_contact_phone || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-phone-ext">
-                                    <input type="text" placeholder="Ext" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, mailing_ext: e.target.value })} value={customer.mailing_ext} />
+                                    <input type="text" placeholder="Ext" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, mailing_ext: e.target.value })} value={customer.mailing_ext || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="E-Mail" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, mailing_email: e.target.value })} value={customer.mailing_email} />
+                                    <input type="text" placeholder="E-Mail" onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, mailing_email: e.target.value })} value={customer.mailing_email || ''} />
                                 </div>
                             </div>
                         </div>
@@ -209,7 +245,7 @@ function CustomersPage(props) {
                         <div className="form-borderless-box" style={{ width: '170px', marginLeft: '10px', }}>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Bill To" readOnly={true} onBlur={validateCustomerForSaving} onChange={e => setCustomer({ ...customer, mailing_bill_to: e.target.value })} value={customer.mailing_bill_to} />
+                                    <input type="text" placeholder="Bill To" readOnly={true} onChange={e => setCustomer({ ...customer, mailing_bill_to: e.target.value })} value={customer.mailing_bill_to || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
@@ -308,25 +344,25 @@ function CustomersPage(props) {
 
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="First Name" onBlur={validateContactForSaving} onChange={e => setSelectedContact({ ...selectedContact, first_name: e.target.value })} value={selectedContact.first_name} />
+                                    <input type="text" placeholder="First Name" onBlur={validateContactForSaving} onChange={e => setSelectedContact({ ...selectedContact, first_name: e.target.value })} value={selectedContact.first_name || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Last Name" onBlur={validateContactForSaving} onChange={e => setSelectedContact({ ...selectedContact, last_name: e.target.value })} value={selectedContact.last_name} />
+                                    <input type="text" placeholder="Last Name" onBlur={validateContactForSaving} onChange={e => setSelectedContact({ ...selectedContact, last_name: e.target.value })} value={selectedContact.last_name || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container" style={{ width: '50%' }}>
-                                    <input type="text" placeholder="Phone" onBlur={validateContactForSaving} onChange={e => setSelectedContact({ ...selectedContact, phone_work: e.target.value })} value={selectedContact.phone_work} />
+                                    <input type="text" placeholder="Phone" onBlur={validateContactForSaving} onChange={e => setSelectedContact({ ...selectedContact, phone_work: e.target.value })} value={selectedContact.phone_work || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div style={{ width: '50%', display: 'flex', justifyContent: 'space-between' }}>
                                     <div className="input-box-container input-phone-ext">
-                                        <input type="text" placeholder="Ext" onBlur={validateContactForSaving} onChange={e => setSelectedContact({ ...selectedContact, phone_ext: e.target.value })} value={selectedContact.phone_ext} />
+                                        <input type="text" placeholder="Ext" onBlur={validateContactForSaving} onChange={e => setSelectedContact({ ...selectedContact, phone_ext: e.target.value })} value={selectedContact.phone_ext || ''} />
                                     </div>
                                     <div className="input-toggle-container">
-                                        <input type="checkbox" id="cbox-customer-contacts-primary-btn" onChange={e => { setSelectedContact({ ...selectedContact, is_primary: e.target.checked ? 1 : 0 }); validateContactForSaving() }} checked={selectedContact.is_primary === 1} />
+                                        <input type="checkbox" id="cbox-customer-contacts-primary-btn" onChange={e => { setSelectedContact({ ...selectedContact, is_primary: e.target.checked ? 1 : 0 }); validateContactForSaving() }} checked={(selectedContact.is_primary || 0) === 1} />
                                         <label htmlFor="cbox-customer-contacts-primary-btn">
                                             <div className="label-text">Primary</div>
                                             <div className="input-toggle-btn"></div>
@@ -337,11 +373,11 @@ function CustomersPage(props) {
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="E-Mail" onBlur={validateContactForSaving} onChange={e => setSelectedContact({ ...selectedContact, email_work: e.target.value })} value={selectedContact.email_work} />
+                                    <input type="text" placeholder="E-Mail" onBlur={validateContactForSaving} onChange={e => setSelectedContact({ ...selectedContact, email_work: e.target.value })} value={selectedContact.email_work || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Notes" onBlur={validateContactForSaving} onChange={e => setSelectedContact({ ...selectedContact, notes: e.target.value })} value={selectedContact.notes} />
+                                    <input type="text" placeholder="Notes" onBlur={validateContactForSaving} onChange={e => setSelectedContact({ ...selectedContact, notes: e.target.value })} value={selectedContact.notes || ''} />
                                 </div>
                             </div>
                         </div>
@@ -360,7 +396,7 @@ function CustomersPage(props) {
                             <div className="form-row">
                                 <div className="input-box-container grow" style={{ display: 'flex' }}>
                                     {
-                                        customer.automatic_emails.automatic_emails_to.split(' ').map((item, index) => {
+                                        (customer.automatic_emails?.automatic_emails_to || '').split(' ').map((item, index) => {
                                             if (item.trim() !== '') {
                                                 let textToShow = item;
 
@@ -406,14 +442,14 @@ function CustomersPage(props) {
                                 <div className="input-toggle-container">
                                     <input type="checkbox" id="cbox-automatic-emails-booked-load-btn"
                                         onChange={e => {
-                                            let automatic_emails = customer.automatic_emails;
+                                            let automatic_emails = (customer.automatic_emails || {});
                                             automatic_emails.automatic_emails_booked_load = e.target.checked ? 1 : 0;
                                             setCustomer({
                                                 ...customer, automatic_emails: automatic_emails
                                             });
                                             validateAutomaticEmailsForSaving();
                                         }}
-                                        checked={customer.automatic_emails.automatic_emails_booked_load === 1} />
+                                        checked={(customer.automatic_emails?.automatic_emails_booked_load || 0) === 1} />
                                     <label htmlFor="cbox-automatic-emails-booked-load-btn">
                                         <div className="label-text">Booked Load</div>
                                         <div className="input-toggle-btn"></div>
@@ -423,14 +459,14 @@ function CustomersPage(props) {
                                 <div className="input-toggle-container">
                                     <input type="checkbox" id="cbox-automatic-emails-check-calls-btn"
                                         onChange={e => {
-                                            let automatic_emails = customer.automatic_emails;
+                                            let automatic_emails = (customer.automatic_emails || {});
                                             automatic_emails.automatic_emails_check_calls = e.target.checked ? 1 : 0;
                                             setCustomer({
                                                 ...customer, automatic_emails: automatic_emails
                                             });
                                             validateAutomaticEmailsForSaving();
                                         }}
-                                        checked={customer.automatic_emails.automatic_emails_check_calls === 1} />
+                                        checked={(customer.automatic_emails?.automatic_emails_check_calls || 0) === 1} />
                                     <label htmlFor="cbox-automatic-emails-check-calls-btn">
                                         <div className="label-text">Check Calls</div>
                                         <div className="input-toggle-btn"></div>
@@ -441,7 +477,7 @@ function CustomersPage(props) {
                             <div className="form-row">
                                 <div className="input-box-container grow" style={{ display: 'flex' }}>
                                     {
-                                        customer.automatic_emails.automatic_emails_cc.split(' ').map((item, index) => {
+                                        (customer.automatic_emails?.automatic_emails_cc || '').split(' ').map((item, index) => {
                                             if (item.trim() !== '') {
                                                 let textToShow = item;
 
@@ -488,14 +524,14 @@ function CustomersPage(props) {
                                 <div className="input-toggle-container">
                                     <input type="checkbox" id="cbox-automatic-emails-carrier-arrival-shipper-btn"
                                         onChange={e => {
-                                            let automatic_emails = customer.automatic_emails;
+                                            let automatic_emails = (customer.automatic_emails || {});
                                             automatic_emails.automatic_emails_carrier_arrival_shipper = e.target.checked ? 1 : 0;
                                             setCustomer({
                                                 ...customer, automatic_emails: automatic_emails
                                             });
                                             validateAutomaticEmailsForSaving();
                                         }}
-                                        checked={customer.automatic_emails.automatic_emails_carrier_arrival_shipper === 1} />
+                                        checked={(customer.automatic_emails?.automatic_emails_carrier_arrival_shipper || 0) === 1} />
                                     <label htmlFor="cbox-automatic-emails-carrier-arrival-shipper-btn">
                                         <div className="label-text">Carrier Arrival Shipper</div>
                                         <div className="input-toggle-btn"></div>
@@ -505,14 +541,14 @@ function CustomersPage(props) {
                                 <div className="input-toggle-container">
                                     <input type="checkbox" id="cbox-automatic-emails-carrier-arrival-consignee-btn"
                                         onChange={e => {
-                                            let automatic_emails = customer.automatic_emails;
+                                            let automatic_emails = (customer.automatic_emails || {});
                                             automatic_emails.automatic_emails_carrier_arrival_consignee = e.target.checked ? 1 : 0;
                                             setCustomer({
                                                 ...customer, automatic_emails: automatic_emails
                                             });
                                             validateAutomaticEmailsForSaving();
                                         }}
-                                        checked={customer.automatic_emails.automatic_emails_carrier_arrival_consignee === 1} />
+                                        checked={(customer.automatic_emails?.automatic_emails_carrier_arrival_consignee || 0) === 1} />
                                     <label htmlFor="cbox-automatic-emails-carrier-arrival-consignee-btn">
                                         <div className="label-text">Carrier Arrival Consignee</div>
                                         <div className="input-toggle-btn"></div>
@@ -523,7 +559,7 @@ function CustomersPage(props) {
                             <div className="form-row">
                                 <div className="input-box-container grow" style={{ display: 'flex' }}>
                                     {
-                                        customer.automatic_emails.automatic_emails_bcc.split(' ').map((item, index) => {
+                                        (customer.automatic_emails?.automatic_emails_bcc || '').split(' ').map((item, index) => {
                                             if (item.trim() !== '') {
                                                 let textToShow = item;
 
@@ -569,14 +605,14 @@ function CustomersPage(props) {
                                 <div className="input-toggle-container">
                                     <input type="checkbox" id="cbox-automatic-emails-loaded-btn"
                                         onChange={e => {
-                                            let automatic_emails = customer.automatic_emails;
+                                            let automatic_emails = (customer.automatic_emails || {});
                                             automatic_emails.automatic_emails_loaded = e.target.checked ? 1 : 0;
                                             setCustomer({
                                                 ...customer, automatic_emails: automatic_emails
                                             });
                                             validateAutomaticEmailsForSaving();
                                         }}
-                                        checked={customer.automatic_emails.automatic_emails_loaded === 1} />
+                                        checked={(customer.automatic_emails?.automatic_emails_loaded || 0) === 1} />
                                     <label htmlFor="cbox-automatic-emails-loaded-btn">
                                         <div className="label-text">Loaded</div>
                                         <div className="input-toggle-btn"></div>
@@ -586,14 +622,14 @@ function CustomersPage(props) {
                                 <div className="input-toggle-container">
                                     <input type="checkbox" id="cbox-automatic-emails-empty-btn"
                                         onChange={e => {
-                                            let automatic_emails = customer.automatic_emails;
+                                            let automatic_emails = (customer.automatic_emails || {});
                                             automatic_emails.automatic_emails_empty = e.target.checked ? 1 : 0;
                                             setCustomer({
                                                 ...customer, automatic_emails: automatic_emails
                                             });
                                             validateAutomaticEmailsForSaving();
                                         }}
-                                        checked={customer.automatic_emails.automatic_emails_empty === 1} />
+                                        checked={(customer.automatic_emails?.automatic_emails_empty || 0) === 1} />
                                     <label htmlFor="cbox-automatic-emails-empty-btn">
                                         <div className="label-text">Empty</div>
                                         <div className="input-toggle-btn"></div>
@@ -684,43 +720,43 @@ function CustomersPage(props) {
                                     <div className="contact-search-box">
                                         <div className="form-row">
                                             <div className="input-box-container grow">
-                                                <input type="text" placeholder="First Name" onChange={e => setContactSearch({ ...contactSearch, first_name: e.target.value })} value={contactSearch.first_name} />
+                                                <input type="text" placeholder="First Name" onChange={e => setContactSearch({ ...contactSearch, first_name: e.target.value })} value={contactSearch.first_name || ''} />
                                             </div>
                                             <div className="form-h-sep"></div>
                                             <div className="input-box-container grow">
-                                                <input type="text" placeholder="Last Name" onChange={e => setContactSearch({ ...contactSearch, last_name: e.target.value })} value={contactSearch.last_name} />
+                                                <input type="text" placeholder="Last Name" onChange={e => setContactSearch({ ...contactSearch, last_name: e.target.value })} value={contactSearch.last_name || ''} />
                                             </div>
                                         </div>
                                         <div className="form-v-sep"></div>
                                         <div className="form-row">
                                             <div className="input-box-container grow">
-                                                <input type="text" placeholder="Address 1" onChange={e => setContactSearch({ ...contactSearch, address1: e.target.value })} value={contactSearch.address1} />
+                                                <input type="text" placeholder="Address 1" onChange={e => setContactSearch({ ...contactSearch, address1: e.target.value })} value={contactSearch.address1 || ''} />
                                             </div>
                                         </div>
                                         <div className="form-v-sep"></div>
                                         <div className="form-row">
                                             <div className="input-box-container grow">
-                                                <input type="text" placeholder="Address 2" onChange={e => setContactSearch({ ...contactSearch, address2: e.target.value })} value={contactSearch.address2} />
+                                                <input type="text" placeholder="Address 2" onChange={e => setContactSearch({ ...contactSearch, address2: e.target.value })} value={contactSearch.address2 || ''} />
                                             </div>
                                         </div>
                                         <div className="form-v-sep"></div>
                                         <div className="form-row">
                                             <div className="input-box-container grow">
-                                                <input type="text" placeholder="City" onChange={e => setContactSearch({ ...contactSearch, city: e.target.value })} value={contactSearch.city} />
+                                                <input type="text" placeholder="City" onChange={e => setContactSearch({ ...contactSearch, city: e.target.value })} value={contactSearch.city || ''} />
                                             </div>
                                             <div className="form-h-sep"></div>
                                             <div className="input-box-container input-state">
-                                                <input type="text" placeholder="State" maxLength="2" onChange={e => setContactSearch({ ...contactSearch, state: e.target.value })} value={contactSearch.state} />
+                                                <input type="text" placeholder="State" maxLength="2" onChange={e => setContactSearch({ ...contactSearch, state: e.target.value })} value={contactSearch.state || ''} />
                                             </div>
                                             <div className="form-h-sep"></div>
                                             <div className="input-box-container grow">
-                                                <input type="text" placeholder="Phone (Work/Mobile/Fax)" onChange={e => setContactSearch({ ...contactSearch, phone: e.target.value })} value={contactSearch.phone} />
+                                                <input type="text" placeholder="Phone (Work/Mobile/Fax)" onChange={e => setContactSearch({ ...contactSearch, phone: e.target.value })} value={contactSearch.phone || ''} />
                                             </div>
                                         </div>
                                         <div className="form-v-sep"></div>
                                         <div className="form-row">
                                             <div className="input-box-container grow">
-                                                <input type="text" placeholder="E-Mail" style={{ textTransform: 'lowercase' }} onChange={e => setContactSearch({ ...contactSearch, email: e.target.value })} value={contactSearch.email} />
+                                                <input type="text" placeholder="E-Mail" style={{ textTransform: 'lowercase' }} onChange={e => setContactSearch({ ...contactSearch, email: e.target.value })} value={contactSearch.email || ''} />
                                             </div>
                                         </div>
                                     </div>
@@ -753,23 +789,23 @@ function CustomersPage(props) {
                                     <div className="input-box-container ">
                                         <input type="text" placeholder="Open" maxLength="4"
                                             onChange={e => {
-                                                let hours = customer.hours;
+                                                let hours = (customer.hours || {});
                                                 hours.hours_open = e.target.value;
                                                 setCustomer({ ...customer, hours: hours });
                                                 validateHoursForSaving();
                                             }}
-                                            value={customer.hours.hours_open} />
+                                            value={(customer.hours?.hours_open || '')} />
                                     </div>
                                     <div className="form-h-sep"></div>
                                     <div className="input-box-container ">
                                         <input type="text" placeholder="Close" maxLength="4"
                                             onChange={e => {
-                                                let hours = customer.hours;
+                                                let hours = (customer.hours || {});
                                                 hours.hours_close = e.target.value;
                                                 setCustomer({ ...customer, hours: hours });
                                                 validateHoursForSaving();
                                             }}
-                                            value={customer.hours.hours_close} />
+                                            value={(customer.hours?.hours_close || '')} />
                                     </div>
                                 </div>
                             </div>
@@ -786,23 +822,23 @@ function CustomersPage(props) {
                                     <div className="input-box-container ">
                                         <input type="text" placeholder="Open" maxLength="4"
                                             onChange={e => {
-                                                let hours = customer.hours;
+                                                let hours = (customer.hours || {});
                                                 hours.delivery_hours_open = e.target.value;
                                                 setCustomer({ ...customer, hours: hours });
                                                 validateHoursForSaving();
                                             }}
-                                            value={customer.hours.delivery_hours_open} />
+                                            value={(customer.hours?.delivery_hours_open || '')} />
                                     </div>
                                     <div className="form-h-sep"></div>
                                     <div className="input-box-container ">
                                         <input type="text" placeholder="Close" maxLength="4"
                                             onChange={e => {
-                                                let hours = customer.hours;
+                                                let hours = (customer.hours || {});
                                                 hours.delivery_hours_close = e.target.value;
                                                 setCustomer({ ...customer, hours: hours });
                                                 validateHoursForSaving();
                                             }}
-                                            value={customer.hours.delivery_hours_close} />
+                                            value={(customer.hours?.delivery_hours_close || '')} />
                                     </div>
                                 </div>
                             </div>
