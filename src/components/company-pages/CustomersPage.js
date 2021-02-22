@@ -3,6 +3,8 @@ import { connect } from 'react-redux';
 import classnames from 'classnames';
 import $ from 'jquery';
 import './../../styles/customersPage.css';
+import { useSpring, animated } from 'react-spring';
+import moment from 'moment';
 
 import {
     setCustomers,
@@ -19,8 +21,11 @@ import {
 } from './../../actions';
 
 import PanelContainer from './../PanelContainer';
+import CustomerModal from './CustomerModal';
 
 function CustomersPage(props) {
+    const modalTransitionProps = useSpring({ opacity: (props.selectedNote.id !== undefined || props.selectedDirection.id !== undefined) ? 1 : 0 });
+
     const setInitialValues = (clearCode = true) => {
         props.setSelectedContact({});
         props.setSelectedNote({});
@@ -149,7 +154,109 @@ function CustomersPage(props) {
     }
     const validateContactForSaving = () => { }
     const validateAutomaticEmailsForSaving = () => { }
-    const validateHoursForSaving = () => { }
+    
+    const validateHoursForSaving = (e, name) => { 
+        let formatted = getFormattedHours(e.target.value);
+        let hours = {...props.selectedCustomer.hours || {}, customer_id: props.selectedCustomer.id};
+
+        if (name === 'hours open'){
+            hours.hours_open = formatted;            
+        }
+        if (name === 'hours close'){
+            hours.hours_close = formatted;
+        }
+        if (name === 'delivery hours open'){
+            hours.delivery_hours_open = formatted;
+        }
+        if (name === 'delivery hours close'){
+            hours.delivery_hours_close = formatted;
+        }
+
+        $.post(props.serverUrl + '/saveCustomerHours', hours).then(async res => {
+            if (res.result === 'OK'){
+                await props.setSelectedCustomer({...props.selectedCustomer, hours: res.customer_hours});
+            }
+        })        
+    }
+
+    const getFormattedHours = (hour) => {
+        let formattedHour = hour;
+
+        try {
+            
+            if (moment(hour.trim(), 'HH:mm').format('HH:mm') === hour.trim()) {
+                formattedHour = moment(hour.trim(), 'HH:mm').format('HHmm');
+            }
+    
+            if (moment(hour.trim(), 'H:mm').format('H:mm') === hour.trim()) {
+                formattedHour = moment(hour.trim(), 'H:mm').format('HHmm');
+            }
+    
+            if (moment(hour.trim(), 'Hmm').format('Hmm') === hour.trim()) {
+                formattedHour = moment(hour.trim(), 'Hmm').format('HHmm');
+            }
+    
+            if (moment(hour.trim(), 'hh:mm a').format('hh:mm a') === hour.trim()) {
+                formattedHour = moment(hour.trim(), 'hh:mm a').format('HHmm');
+            }
+    
+            if (moment(hour.trim(), 'h:mm a').format('h:mm a') === hour.trim()) {
+                formattedHour = moment(hour.trim(), 'h:mm a').format('HHmm');
+            }
+    
+            if (moment(hour.trim(), 'hh:mma').format('hh:mma') === hour.trim()) {
+                formattedHour = moment(hour.trim(), 'hh:mma').format('HHmm');
+            }
+    
+            if (moment(hour.trim(), 'h:mma').format('h:mma') === hour.trim()) {
+                formattedHour = moment(hour.trim(), 'h:mma').format('HHmm');
+            }
+    
+            if (moment(hour.trim(), 'hhmm a').format('hhmm a') === hour.trim()) {
+                formattedHour = moment(hour.trim(), 'hhmm a').format('HHmm');
+            }
+    
+            if (moment(hour.trim(), 'hmm a').format('hmm a') === hour.trim()) {
+                formattedHour = moment(hour.trim(), 'hmm a').format('HHmm');
+            }
+    
+            if (moment(hour.trim(), 'hhmma').format('hhmma') === hour.trim()) {
+                formattedHour = moment(hour.trim(), 'hhmma').format('HHmm');
+            }
+    
+            if (moment(hour.trim(), 'hmma').format('hmma') === hour.trim()) {
+                formattedHour = moment(hour.trim(), 'hmma').format('HHmm');
+            }
+    
+            if (moment(hour.trim(), 'H').format('H') === hour.trim()) {
+                formattedHour = moment(hour.trim(), 'H').format('HHmm');
+            }
+    
+            if (moment(hour.trim(), 'HH').format('HH') === hour.trim()) {
+                formattedHour = moment(hour.trim(), 'HH').format('HHmm');
+            }
+    
+            if (moment(hour.trim(), 'h a').format('h a') === hour.trim()) {
+                formattedHour = moment(hour.trim(), 'h a').format('HHmm');
+            }
+    
+            if (moment(hour.trim(), 'hh a').format('hh a') === hour.trim()) {
+                formattedHour = moment(hour.trim(), 'hh a').format('HHmm');
+            }
+    
+            if (moment(hour.trim(), 'ha').format('ha') === hour.trim()) {
+                formattedHour = moment(hour.trim(), 'ha').format('HHmm');
+            }
+    
+            if (moment(hour.trim(), 'hha').format('hha') === hour.trim()) {
+                formattedHour = moment(hour.trim(), 'hha').format('HHmm');
+            }
+        } catch (e) {
+            console.log(e);
+        }        
+
+        return formattedHour;
+    } 
 
     return (
         <div className="customers-main-container" style={{
@@ -878,23 +985,23 @@ function CustomersPage(props) {
 
                                 <div className="form-row" style={{ justifyContent: 'space-around' }}>
                                     <div className="input-box-container ">
-                                        <input type="text" placeholder="Open" maxLength="4"
+                                        <input type="text" placeholder="Open"
+                                            onBlur={(e) => validateHoursForSaving(e, 'hours open')}
                                             onChange={e => {
                                                 let hours = (props.selectedCustomer.hours || {});
                                                 hours.hours_open = e.target.value;
                                                 props.setSelectedCustomer({ ...props.selectedCustomer, hours: hours });
-                                                validateHoursForSaving();
                                             }}
                                             value={(props.selectedCustomer.hours?.hours_open || '')} />
                                     </div>
                                     <div className="form-h-sep"></div>
                                     <div className="input-box-container ">
-                                        <input type="text" placeholder="Close" maxLength="4"
+                                        <input type="text" placeholder="Close"
+                                            onBlur={(e) => validateHoursForSaving(e, 'hours close')}
                                             onChange={e => {
                                                 let hours = (props.selectedCustomer.hours || {});
                                                 hours.hours_close = e.target.value;
                                                 props.setSelectedCustomer({ ...props.selectedCustomer, hours: hours });
-                                                validateHoursForSaving();
                                             }}
                                             value={(props.selectedCustomer.hours?.hours_close || '')} />
                                     </div>
@@ -911,23 +1018,23 @@ function CustomersPage(props) {
 
                                 <div className="form-row" style={{ justifyContent: 'space-around' }}>
                                     <div className="input-box-container ">
-                                        <input type="text" placeholder="Open" maxLength="4"
+                                        <input type="text" placeholder="Open"
+                                            onBlur={(e) => validateHoursForSaving(e, 'delivery hours open')}
                                             onChange={e => {
                                                 let hours = (props.selectedCustomer.hours || {});
                                                 hours.delivery_hours_open = e.target.value;
                                                 props.setSelectedCustomer({ ...props.selectedCustomer, hours: hours });
-                                                validateHoursForSaving();
                                             }}
                                             value={(props.selectedCustomer.hours?.delivery_hours_open || '')} />
                                     </div>
                                     <div className="form-h-sep"></div>
                                     <div className="input-box-container ">
-                                        <input type="text" placeholder="Close" maxLength="4"
+                                        <input type="text" placeholder="Close"
+                                            onBlur={(e) => validateHoursForSaving(e, 'delivery hours close')}
                                             onChange={e => {
                                                 let hours = (props.selectedCustomer.hours || {});
                                                 hours.delivery_hours_close = e.target.value;
                                                 props.setSelectedCustomer({ ...props.selectedCustomer, hours: hours });
-                                                validateHoursForSaving();
                                             }}
                                             value={(props.selectedCustomer.hours?.delivery_hours_close || '')} />
                                     </div>
@@ -945,7 +1052,7 @@ function CustomersPage(props) {
                                 <div className="form-title">Notes</div>
                                 <div className="top-border top-border-middle"></div>
                                 <div className="form-buttons">
-                                    <div className="mochi-button">
+                                    <div className="mochi-button" onClick={() => props.setSelectedNote({ id: 0, customer_id: props.selectedCustomer.id })}>
                                         <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                         <div className="mochi-button-base">Add note</div>
                                         <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
@@ -981,7 +1088,7 @@ function CustomersPage(props) {
                                 <div className="form-title">Directions</div>
                                 <div className="top-border top-border-middle"></div>
                                 <div className="form-buttons">
-                                    <div className="mochi-button">
+                                    <div className="mochi-button" onClick={() => props.setSelectedDirection({ id: 0, customer_id: props.selectedCustomer.id })}>
                                         <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                         <div className="mochi-button-base">Add direction</div>
                                         <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
@@ -1061,6 +1168,16 @@ function CustomersPage(props) {
                 </div>
             </div>
 
+            {
+                props.selectedNote.id !== undefined &&
+                <animated.div style={modalTransitionProps}><CustomerModal type='note' isEditable={false} isDeletable={false} isAdding={props.selectedNote.id === 0} /></animated.div>
+
+            }
+
+            {
+                props.selectedDirection.id !== undefined &&
+                <animated.div style={modalTransitionProps}><CustomerModal type='direction' isEditable={true} isDeletable={true} isAdding={props.selectedDirection.id === 0} /></animated.div>
+            }
 
         </div>
     )
