@@ -207,12 +207,11 @@ select:focus {
 .main-panel-container {
   position: absolute;
   height: 100%;
-  width: 85%;
-  background-color: rosybrown;
+  width: 70%;
   top: 0;
   bottom: 0;
   right: 0;
-  transform: translateX(100%);
+  transform: translateX(0);
   z-index: 1;
   border-radius: 45px 0 0 0;
 }
@@ -226,12 +225,23 @@ select:focus {
   background: -webkit-radial-gradient(center, ellipse cover, #ffffff 0%, #e5e5e5 100%);
   background: radial-gradient(ellipse at center, #ffffff 0%, #e5e5e5 100%);
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#e5e5e5', GradientType=1);
-  position: relative;
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  transition: left linear 0.3s;
+  left: 110%;
+}
+.main-panel-container .panel .panel-content {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
   padding-left: 45px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  position: relative;
 }
-.main-panel-container .panel .drag-handler {
+.main-panel-container .panel .panel-content .drag-handler {
   position: absolute;
   left: 0;
   height: 100%;
@@ -239,7 +249,7 @@ select:focus {
   border-top-left-radius: 45px;
   cursor: grab;
 }
-.main-panel-container .panel .drag-handler:hover {
+.main-panel-container .panel .panel-content .drag-handler:hover {
   /* Permalink - use to edit and share this gradient: https://colorzilla.com/gradient-editor/#ffffff+0,f6f6f6+47,ededed+100;White+3D+%231 */
   background: #ffffff;
   /* Old browsers */
@@ -252,7 +262,7 @@ select:focus {
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#ededed', GradientType=1);
   /* IE6-9 */
 }
-.main-panel-container .panel .close-btn {
+.main-panel-container .panel .panel-content .close-btn {
   position: absolute;
   right: 25px;
   top: 10px;
@@ -261,28 +271,20 @@ select:focus {
   transition: all ease 0.3s;
   color: #000000;
 }
-.main-panel-container .panel .close-btn:hover {
+.main-panel-container .panel .panel-content .close-btn:hover {
   color: rgba(0, 0, 0, 0.5);
 }
-.main-panel-container .panel .title {
+.main-panel-container .panel .panel-content .title {
   margin-top: 20px;
   font-family: "Mochi Light";
   font-size: 2.5rem;
   text-transform: uppercase;
 }
 .main-panel-container.hidden {
-  transform: translateX(100%);
-  -webkit-animation: hidingPanelContainer 0.3s;
-  -moz-animation: hidingPanelContainer 0.3s;
-  -o-animation: hidingPanelContainer 0.3s;
-  animation: hidingPanelContainer 0.3s;
+  display: none;
 }
 .main-panel-container.shown {
-  transform: translateX(0);
-  -webkit-animation: showingPanelContainer 0.3s;
-  -moz-animation: showingPanelContainer 0.3s;
-  -o-animation: showingPanelContainer 0.3s;
-  animation: showingPanelContainer 0.3s;
+  display: block;
 }
 @-webkit-keyframes showingPanelContainer {
   0% {

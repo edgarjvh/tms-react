@@ -3,22 +3,18 @@ import { connect } from 'react-redux';
 import classnames from 'classnames';
 import $ from 'jquery';
 import Draggable from 'react-draggable';
-import './../../../styles/panels/customerSearchPanel.css';
+import './../../../styles/panels/customerContactSearchPanel.css';
 import { setCustomerPanels } from './../../../actions/customersPageActions';
 
-function CustomerSearchPanel(props) {
+function CustomerContactSearchPanel(props) {
     const closePanelBtnClick = () => {
-        let index = props.panels.length - 1;
-
-        let panels = props.panels.map((panel, i) => {
-            if (panel.name === 'customer-search') {
-                index = i;
+        let panels = props.panels.map((panel) => {
+            if (panel.name === 'customer-contact-search') {
                 panel.isOpened = false;
             }
             return panel;
         });
 
-        panels.splice(0, 0, panels.splice(index, 1)[0]);
         props.setCustomerPanels(panels);
     }
 
@@ -28,6 +24,7 @@ function CustomerSearchPanel(props) {
             <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
             <div className="title">{props.title}</div>
         </div>
+
     )
 }
 
@@ -39,4 +36,4 @@ const mapStateToProps = state => {
 
 export default connect(mapStateToProps, {
     setCustomerPanels
-})(CustomerSearchPanel)
+})(CustomerContactSearchPanel)

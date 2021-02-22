@@ -66,9 +66,11 @@ select:focus {
 
       .mochi-button {
         margin: 0 2px;
+
         .mochi-button-decorator {
           font-size: 0.7rem;
         }
+
         .mochi-button-base {
           font-size: 0.7rem;
         }
@@ -79,6 +81,7 @@ select:focus {
         align-items: center;
         font-size: 0.7rem;
         margin: 0 2px;
+
         label {
           margin: 0 2px;
         }
@@ -120,28 +123,36 @@ select:focus {
 
 .input-box-container.input-code {
   width: 7.5rem;
+
   input {
     text-transform: uppercase !important;
   }
 }
+
 .input-box-container.hours {
   width: 5rem;
 }
+
 .input-box-container.input-state {
   width: 2.7rem;
+
   input {
     text-transform: uppercase !important;
   }
 }
+
 .input-box-container.input-phone-ext {
   width: 2.7rem;
 }
+
 .input-box-container.input-zip-code {
   width: 10.25rem;
 }
+
 .input-box-container.input-phone {
   width: 10.25rem;
 }
+
 .input-box-container.grow {
   flex-grow: 1;
 }
@@ -179,7 +190,7 @@ select:focus {
     display: none;
   }
 
-  input:checked ~ label {
+  input:checked~label {
     background-color: #ffb80d;
 
     .label-text {
@@ -239,112 +250,108 @@ select:focus {
 .main-panel-container {
   position: absolute;
   height: 100%;
-  width: 85%;
-  background-color: rosybrown;
+  width: 70%;
   top: 0;
   bottom: 0;
   right: 0;
-  transform: translateX(100%);
+  transform: translateX(0);
   z-index: 1;
   border-radius: 45px 0 0 0;
-  // overflow: hidden;
 
   .panel {
     width: 100%;
     height: 100%;
     border-radius: inherit;
     box-shadow: 0 0 5px 3px #4b4b4b;
-    // overflow: hidden;
     background: #ffffff;
-    background: -moz-radial-gradient(
-      center,
-      ellipse cover,
-      #ffffff 0%,
-      #e5e5e5 100%
-    );
-    background: -webkit-radial-gradient(
-      center,
-      ellipse cover,
-      #ffffff 0%,
-      #e5e5e5 100%
-    );
+    background: -moz-radial-gradient(center,
+        ellipse cover,
+        #ffffff 0%,
+        #e5e5e5 100%);
+    background: -webkit-radial-gradient(center,
+        ellipse cover,
+        #ffffff 0%,
+        #e5e5e5 100%);
     background: radial-gradient(ellipse at center, #ffffff 0%, #e5e5e5 100%);
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#e5e5e5', GradientType=1);
-    position: relative;
-    padding-left: 45px;
+    position: absolute;
     display: flex;
     flex-direction: column;
+    transition: left linear 0.3s;
+    left: 110%;
 
-    .drag-handler {
-      position: absolute;
-      left: 0;
+    .panel-content {
+      width: 100%;
       height: 100%;
-      width: 40px;
-      border-top-left-radius: 45px;     
-      cursor: grab;
-    }
+      border-radius: inherit;
+      padding-left: 45px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
 
-    .drag-handler:hover {
-      /* Permalink - use to edit and share this gradient: https://colorzilla.com/gradient-editor/#ffffff+0,f6f6f6+47,ededed+100;White+3D+%231 */
-      background: rgb(255, 255, 255); /* Old browsers */
-      background: -moz-linear-gradient(
-        left,
-        rgba(255, 255, 255, 1) 0%,
-        rgba(246, 246, 246, 1) 47%,
-        rgba(233, 233, 233, 1) 100%
-      ); /* FF3.6-15 */
-      background: -webkit-linear-gradient(
-        left,
-        rgba(255, 255, 255, 1) 0%,
-        rgba(246, 246, 246, 1) 47%,
-        rgba(233, 233, 233, 1) 100%
-      ); /* Chrome10-25,Safari5.1-6 */
-      background: linear-gradient(
-        to right,
-        rgba(255, 255, 255, 1) 0%,
-        rgba(246, 246, 246, 1) 47%,
-        rgba(233, 233, 233, 1) 100%
-      ); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-      filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#ededed',GradientType=1 ); /* IE6-9 */
-    }
+      .drag-handler {
+        position: absolute;
+        left: 0;
+        height: 100%;
+        width: 40px;
+        border-top-left-radius: 45px;
+        cursor: grab;
+      }
 
-    .close-btn {
-      position: absolute;
-      right: 25px;
-      top: 10px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all ease 0.3s;
-      color: rgba(0, 0, 0, 1);
-    }
+      .drag-handler:hover {
+        /* Permalink - use to edit and share this gradient: https://colorzilla.com/gradient-editor/#ffffff+0,f6f6f6+47,ededed+100;White+3D+%231 */
+        background: rgb(255, 255, 255);
+        /* Old browsers */
+        background: -moz-linear-gradient(left,
+            rgba(255, 255, 255, 1) 0%,
+            rgba(246, 246, 246, 1) 47%,
+            rgba(233, 233, 233, 1) 100%);
+        /* FF3.6-15 */
+        background: -webkit-linear-gradient(left,
+            rgba(255, 255, 255, 1) 0%,
+            rgba(246, 246, 246, 1) 47%,
+            rgba(233, 233, 233, 1) 100%);
+        /* Chrome10-25,Safari5.1-6 */
+        background: linear-gradient(to right,
+            rgba(255, 255, 255, 1) 0%,
+            rgba(246, 246, 246, 1) 47%,
+            rgba(233, 233, 233, 1) 100%);
+        /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#ededed', GradientType=1);
+        /* IE6-9 */
+      }
 
-    .close-btn:hover {
-      color: rgba(0, 0, 0, 0.5);
-    }
+      .close-btn {
+        position: absolute;
+        right: 25px;
+        top: 10px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all ease 0.3s;
+        color: rgba(0, 0, 0, 1);
+      }
 
-    .title {
-      margin-top: 20px;
-      font-family: "Mochi Light";
-      font-size: 2.5rem;
-      text-transform: uppercase;
+      .close-btn:hover {
+        color: rgba(0, 0, 0, 0.5);
+      }
+
+      .title {
+        margin-top: 20px;
+        font-family: "Mochi Light";
+        font-size: 2.5rem;
+        text-transform: uppercase;
+      }
     }
   }
 }
 
 .main-panel-container.hidden {
-  transform: translateX(100%);
-  -webkit-animation: hidingPanelContainer 0.3s;
-  -moz-animation: hidingPanelContainer 0.3s;
-  -o-animation: hidingPanelContainer 0.3s;
-  animation: hidingPanelContainer 0.3s;
+  display: none;
 }
 
 .main-panel-container.shown {
-  transform: translateX(0);
-  -webkit-animation: showingPanelContainer 0.3s;
-  -moz-animation: showingPanelContainer 0.3s;
-  -o-animation: showingPanelContainer 0.3s;
-  animation: showingPanelContainer 0.3s;
+  display: block;
 }
 
 @-webkit-keyframes showingPanelContainer {
