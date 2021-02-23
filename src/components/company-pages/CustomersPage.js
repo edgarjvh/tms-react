@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { connect } from 'react-redux';
 import classnames from 'classnames';
 import $ from 'jquery';
@@ -24,6 +24,20 @@ import PanelContainer from './../PanelContainer';
 import CustomerModal from './CustomerModal';
 
 function CustomersPage(props) {
+    const [popupItems, setPopupItems] = useState([]);
+    const popupItemsRef = useRef([]);
+
+    const popupContainerClasses = classnames({
+        'mochi-contextual-container': true,
+        'shown': popupItems.length > 0
+    });
+    const refAutomaticEmailsTo = useRef();
+    const refAutomaticEmailsCc = useRef();
+    const refAutomaticEmailsBcc = useRef();
+    const refPopup = useRef();
+    const refSelectedPopupItem = useRef();
+    var delayTimer;
+
     const modalTransitionProps = useSpring({ opacity: (props.selectedNote.id !== undefined || props.selectedDirection.id !== undefined) ? 1 : 0 });
 
     const setInitialValues = (clearCode = true) => {
@@ -35,6 +49,7 @@ function CustomersPage(props) {
         props.setAutomaticEmailsCc('');
         props.setAutomaticEmailsBcc('');
         props.setSelectedCustomer({ code: clearCode ? '' : props.selectedCustomer.code });
+        setPopupItems([]);
     }
 
     const searchCustomerByCode = (e) => {
@@ -153,110 +168,391 @@ function CustomersPage(props) {
 
     }
     const validateContactForSaving = () => { }
-    const validateAutomaticEmailsForSaving = () => { }
-    
-    const validateHoursForSaving = (e, name) => { 
-        let formatted = getFormattedHours(e.target.value);
-        let hours = {...props.selectedCustomer.hours || {}, customer_id: props.selectedCustomer.id};
 
-        if (name === 'hours open'){
-            hours.hours_open = formatted;            
+    const validateAutomaticEmailsForSaving = () => { 
+        $.post(props.serverUrl + '/saveAutomaticEmails', props.selectedCustomer.automatic_emails).then(res => {
+            if (res.result === 'OK'){
+                console.log(res);
+            }
+        });
+    }
+
+    const automaticEmailsOnKeyup = async (e, name) => {
+        if (props.automaticEmailsTo.trim() === '') {
+            window.clearTimeout(delayTimer);
+            setPopupItems([]);
         }
-        if (name === 'hours close'){
+    }
+
+    const automaticEmailsOnKeydown = async (e, name) => {
+        let key = e.keyCode || e.which;
+
+        let items = popupItems.map(i => i);
+
+        let selectedIndex = -1;
+
+        items.map((a, b) => {
+            if (a.selected) selectedIndex = b;
+            return true;
+        });
+
+        if (key === 37 || key === 38) {
+            e.preventDefault();
+            if (selectedIndex === -1) {
+                // items[0].selected = true;
+            } else {
+                items = items.map((a, b) => {
+                    if (selectedIndex === 0) {
+                        if (b === items.length - 1) {
+                            a.selected = true;
+                        } else {
+                            a.selected = false;
+                        }
+                    } else {
+                        if (b === selectedIndex - 1) {
+                            a.selected = true;
+                        } else {
+                            a.selected = false;
+                        }
+                    }
+                    return a;
+                });
+
+                await setPopupItems(items);
+
+                popupItemsRef.current.map((r, i) => {
+                    if (r && r.classList.contains('selected')) {
+                        r.scrollIntoView()
+                    }
+                    return true;
+                });
+            }
+        }
+
+        if (key === 39 || key === 40) {
+            e.preventDefault();
+            if (selectedIndex === -1) {
+                // items[0].selected = true;
+            } else {
+                items = items.map((a, b) => {
+                    if (selectedIndex === items.length - 1) {
+                        if (b === 0) {
+                            a.selected = true;
+                        } else {
+                            a.selected = false;
+                        }
+                    } else {
+                        if (b === selectedIndex + 1) {
+                            a.selected = true;
+                        } else {
+                            a.selected = false;
+                        }
+                    }
+                    return a;
+                });
+
+                await setPopupItems(items);
+
+                popupItemsRef.current.map((r, i) => {
+                    if (r && r.classList.contains('selected')) {
+                        r.scrollIntoView()
+                    }
+                    return true;
+                });
+            }
+        }        
+
+        
+
+        if (key === 13) {
+            await popupItems.map(async (item, index) => {
+                if (item.selected) {
+                    if (name === 'to') {
+                        await props.setAutomaticEmailsTo(item.email);
+                    }
+                    if (name === 'cc') {
+                        await props.setAutomaticEmailsCc(item.email);
+                    }
+                    if (name === 'bcc') {
+                        await props.setAutomaticEmailsBcc(item.email);
+                    }
+                }
+                return true;
+            });
+
+            await setPopupItems([]);
+        }
+
+        if (key === 9) {
+
+            if (props.selectedCustomer.id !== undefined) {
+                let automaticEmails = props.selectedCustomer.automatic_emails || { customer_id: props.selectedCustomer.id };
+                let tabNext = false;
+
+                switch (name) {
+                    case 'to':
+                        if (props.automaticEmailsTo.trim() !== '' && isEmailValid(props.automaticEmailsTo.trim())) {
+                            automaticEmails = { ...automaticEmails, automatic_emails_to: ((automaticEmails.automatic_emails_to || '') + ' ' + props.automaticEmailsTo.trim()).trim() };
+                            await props.setAutomaticEmailsTo('');
+                        } else {
+                            tabNext = props.automaticEmailsTo.trim() === '';
+                        }
+                        break;
+                    case 'cc':
+                        if (props.automaticEmailsCc.trim() !== '' && isEmailValid(props.automaticEmailsCc.trim())) {
+                            automaticEmails = { ...automaticEmails, automatic_emails_cc: ((automaticEmails.automatic_emails_cc || '') + ' ' + props.automaticEmailsCc.trim()).trim() };
+                            await props.setAutomaticEmailsCc('');
+                        } else {
+                            tabNext = props.automaticEmailsCc.trim() === '';
+                        }
+                        break;
+                    case 'bcc':
+                        if (props.automaticEmailsBcc.trim() !== '' && isEmailValid(props.automaticEmailsBcc.trim())) {
+                            automaticEmails = { ...automaticEmails, automatic_emails_bcc: ((automaticEmails.automatic_emails_bcc || '') + ' ' + props.automaticEmailsBcc.trim()).trim() };
+                            await props.setAutomaticEmailsBcc('');
+                        } else {
+                            tabNext = props.automaticEmailsBcc.trim() === '';
+                        }
+                        break;
+                    default:
+                        break;
+                }
+
+                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
+
+                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
+                    if (res.result === 'OK'){
+                        console.log(res);
+                    }
+                });
+
+                if (!tabNext) e.preventDefault();
+            } else {
+                await props.setAutomaticEmailsTo('');
+                await props.setAutomaticEmailsCc('');
+                await props.setAutomaticEmailsBcc('');
+            }
+
+        }
+
+    }
+
+    const automaticEmailsOnInput = async (e, name) => {
+        window.clearTimeout(delayTimer);
+        name === 'to' && props.setAutomaticEmailsTo(e.target.value);
+        name === 'cc' && props.setAutomaticEmailsCc(e.target.value);
+        name === 'bcc' && props.setAutomaticEmailsBcc(e.target.value);
+
+        if (props.selectedCustomer.id !== undefined) {
+
+            if (e.target.value.trim() === '') {
+                await setPopupItems([]);
+            } else {
+                delayTimer = window.setTimeout(() => {
+                    $.post(props.serverUrl + '/getContactsByEmailOrName', {
+                        email: e.target.value.trim(),
+                        customer_id: props.selectedCustomer.id
+                    }).then(async res => {
+                        const boundsTo = refAutomaticEmailsTo.current.getBoundingClientRect();
+                        const boundsCc = refAutomaticEmailsCc.current.getBoundingClientRect();
+                        const boundsBcc = refAutomaticEmailsBcc.current.getBoundingClientRect();
+
+                        const input = name === 'to' ? boundsTo : name === 'cc' ? boundsCc : boundsBcc;
+
+                        let popup = refPopup.current;
+
+                        const { innerWidth, innerHeight } = window;
+
+                        let screenWSection = innerWidth / 3;
+
+                        popup && popup.childNodes[0].classList.add('vertical');
+
+                        if ((innerHeight - 170 - 30) <= input.top) {
+                            popup && popup.childNodes[0].classList.add('above');
+                        }
+
+                        if ((innerHeight - 170 - 30) > input.top) {
+                            popup && popup.childNodes[0].classList.add('below');
+                            popup && (popup.style.top = (input.top + 10) + 'px');
+                        }
+
+                        if (input.left <= (screenWSection * 1)) {
+                            popup && popup.childNodes[0].classList.add('right');
+                            popup && (popup.style.left = input.left + 'px');
+
+                            if (input.width < 70) {
+                                popup && (popup.style.left = (input.left - 60 + (input.width / 2)) + 'px');
+
+                                if (input.left < 30) {
+                                    popup && popup.childNodes[0].classList.add('corner');
+                                    popup && (popup.style.left = (input.left + (input.width / 2)) + 'px');
+                                }
+                            }
+                        }
+
+                        if (input.left <= (screenWSection * 2)) {
+                            popup && (popup.style.left = (input.left - 100) + 'px');
+                        }
+
+                        if (input.left > (screenWSection * 2)) {
+                            popup && popup.childNodes[0].classList.add('left');
+                            popup && (popup.style.left = (input.left - 200) + 'px');
+
+                            if ((innerWidth - input.left) < 100) {
+                                popup && popup.childNodes[0].classList.add('corner');
+                                popup && (popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px');
+                            }
+                        }
+
+                        if (res.result === 'OK') {
+                            if (res.contacts.length > 0) {
+                                let items = []
+                                res.contacts.map((c, i) => {
+                                    let emailWork = c.email_work;
+                                    let emailPersonal = c.email_personal;
+                                    let emailOther = c.email_other;
+                                    let firstName = c.first_name;
+                                    let lastName = c.last_name;
+
+                                    let name = firstName + ' ' + lastName;
+
+                                    let email = emailWork.indexOf(e.target.value.trim()) > -1 ? emailWork :
+                                        emailPersonal.indexOf(e.target.value.trim()) ? emailPersonal : emailOther
+
+                                    if (email === '') {
+                                        email = emailWork !== '' ? emailWork :
+                                            emailPersonal !== '' ? emailPersonal : emailOther;
+                                    }
+
+                                    if (emailWork.trim() !== '' || emailPersonal.trim() !== '' || emailOther !== '') {
+                                        items.push({
+                                            name: name,
+                                            email: email,
+                                            selected: i === 0
+                                        });
+                                    }
+
+                                    return true;
+                                });
+
+                                await setPopupItems(e.target.value.trim() === '' ? [] : items);
+                            } else {
+                                await setPopupItems([]);
+                            }
+                        }
+                    });
+                }, 300);
+            }
+        }
+    }
+
+    const isEmailValid = (email) => {
+        let mailformat = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+        return email.match(mailformat);
+    }
+
+    const validateHoursForSaving = (e, name) => {
+        let formatted = getFormattedHours(e.target.value);
+        let hours = { ...props.selectedCustomer.hours || {}, customer_id: props.selectedCustomer.id };
+
+        if (name === 'hours open') {
+            hours.hours_open = formatted;
+        }
+        if (name === 'hours close') {
             hours.hours_close = formatted;
         }
-        if (name === 'delivery hours open'){
+        if (name === 'delivery hours open') {
             hours.delivery_hours_open = formatted;
         }
-        if (name === 'delivery hours close'){
+        if (name === 'delivery hours close') {
             hours.delivery_hours_close = formatted;
         }
 
         $.post(props.serverUrl + '/saveCustomerHours', hours).then(async res => {
-            if (res.result === 'OK'){
-                await props.setSelectedCustomer({...props.selectedCustomer, hours: res.customer_hours});
+            if (res.result === 'OK') {
+                await props.setSelectedCustomer({ ...props.selectedCustomer, hours: res.customer_hours });
             }
-        })        
+        })
     }
 
     const getFormattedHours = (hour) => {
         let formattedHour = hour;
 
         try {
-            
+
             if (moment(hour.trim(), 'HH:mm').format('HH:mm') === hour.trim()) {
                 formattedHour = moment(hour.trim(), 'HH:mm').format('HHmm');
             }
-    
+
             if (moment(hour.trim(), 'H:mm').format('H:mm') === hour.trim()) {
                 formattedHour = moment(hour.trim(), 'H:mm').format('HHmm');
             }
-    
+
             if (moment(hour.trim(), 'Hmm').format('Hmm') === hour.trim()) {
                 formattedHour = moment(hour.trim(), 'Hmm').format('HHmm');
             }
-    
+
             if (moment(hour.trim(), 'hh:mm a').format('hh:mm a') === hour.trim()) {
                 formattedHour = moment(hour.trim(), 'hh:mm a').format('HHmm');
             }
-    
+
             if (moment(hour.trim(), 'h:mm a').format('h:mm a') === hour.trim()) {
                 formattedHour = moment(hour.trim(), 'h:mm a').format('HHmm');
             }
-    
+
             if (moment(hour.trim(), 'hh:mma').format('hh:mma') === hour.trim()) {
                 formattedHour = moment(hour.trim(), 'hh:mma').format('HHmm');
             }
-    
+
             if (moment(hour.trim(), 'h:mma').format('h:mma') === hour.trim()) {
                 formattedHour = moment(hour.trim(), 'h:mma').format('HHmm');
             }
-    
+
             if (moment(hour.trim(), 'hhmm a').format('hhmm a') === hour.trim()) {
                 formattedHour = moment(hour.trim(), 'hhmm a').format('HHmm');
             }
-    
+
             if (moment(hour.trim(), 'hmm a').format('hmm a') === hour.trim()) {
                 formattedHour = moment(hour.trim(), 'hmm a').format('HHmm');
             }
-    
+
             if (moment(hour.trim(), 'hhmma').format('hhmma') === hour.trim()) {
                 formattedHour = moment(hour.trim(), 'hhmma').format('HHmm');
             }
-    
+
             if (moment(hour.trim(), 'hmma').format('hmma') === hour.trim()) {
                 formattedHour = moment(hour.trim(), 'hmma').format('HHmm');
             }
-    
+
             if (moment(hour.trim(), 'H').format('H') === hour.trim()) {
                 formattedHour = moment(hour.trim(), 'H').format('HHmm');
             }
-    
+
             if (moment(hour.trim(), 'HH').format('HH') === hour.trim()) {
                 formattedHour = moment(hour.trim(), 'HH').format('HHmm');
             }
-    
+
             if (moment(hour.trim(), 'h a').format('h a') === hour.trim()) {
                 formattedHour = moment(hour.trim(), 'h a').format('HHmm');
             }
-    
+
             if (moment(hour.trim(), 'hh a').format('hh a') === hour.trim()) {
                 formattedHour = moment(hour.trim(), 'hh a').format('HHmm');
             }
-    
+
             if (moment(hour.trim(), 'ha').format('ha') === hour.trim()) {
                 formattedHour = moment(hour.trim(), 'ha').format('HHmm');
             }
-    
+
             if (moment(hour.trim(), 'hha').format('hha') === hour.trim()) {
                 formattedHour = moment(hour.trim(), 'hha').format('HHmm');
             }
         } catch (e) {
             console.log(e);
-        }        
+        }
 
         return formattedHour;
-    } 
+    }
 
     return (
         <div className="customers-main-container" style={{
@@ -634,7 +930,14 @@ function CustomersPage(props) {
                                             }
                                         })
                                     }
-                                    <input type="text" placeholder="E-mail To" onBlur={validateAutomaticEmailsForSaving} onChange={e => setAutomaticEmailsTo(e.target.value)} value={props.automaticEmailsTo} />
+                                    <input type="text" placeholder="E-mail To"
+                                        ref={refAutomaticEmailsTo}
+                                        onKeyUp={(e) => { automaticEmailsOnKeyup(e, 'to') }}
+                                        onKeyDown={(e) => { automaticEmailsOnKeydown(e, 'to') }}
+                                        onInput={(e) => { automaticEmailsOnInput(e, 'to') }}
+                                        // onBlur={validateAutomaticEmailsForSaving}
+                                        onChange={(e) => { automaticEmailsOnInput(e, 'to') }}
+                                        value={props.automaticEmailsTo} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-toggle-container">
@@ -716,7 +1019,14 @@ function CustomersPage(props) {
                                         })
                                     }
 
-                                    <input type="text" placeholder="E-mail Cc" onBlur={validateAutomaticEmailsForSaving} onChange={e => setAutomaticEmailsCc(e.target.value)} value={props.automaticEmailsCc} />
+                                    <input type="text" placeholder="E-mail Cc"
+                                        ref={refAutomaticEmailsCc}
+                                        onKeyUp={(e) => { automaticEmailsOnKeyup(e, 'cc') }}
+                                        onKeyDown={(e) => { automaticEmailsOnKeydown(e, 'cc') }}
+                                        onInput={(e) => { automaticEmailsOnInput(e, 'cc') }}
+                                        // onBlur={validateAutomaticEmailsForSaving}
+                                        onChange={(e) => { automaticEmailsOnInput(e, 'cc') }}
+                                        value={props.automaticEmailsCc} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-toggle-container">
@@ -797,7 +1107,14 @@ function CustomersPage(props) {
                                             }
                                         })
                                     }
-                                    <input type="text" placeholder="E-mail Bcc" onBlur={validateAutomaticEmailsForSaving} onChange={e => setAutomaticEmailsBcc(e.target.value)} value={props.automaticEmailsBcc} />
+                                    <input type="text" placeholder="E-mail Bcc"
+                                        ref={refAutomaticEmailsBcc}
+                                        onKeyUp={(e) => { automaticEmailsOnKeyup(e, 'bcc') }}
+                                        onKeyDown={(e) => { automaticEmailsOnKeydown(e, 'bcc') }}
+                                        onInput={(e) => { automaticEmailsOnInput(e, 'bcc') }}
+                                        // onBlur={validateAutomaticEmailsForSaving}
+                                        onChange={(e) => { automaticEmailsOnInput(e, 'bcc') }}
+                                        value={props.automaticEmailsBcc} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-toggle-container">
@@ -1178,6 +1495,26 @@ function CustomersPage(props) {
                 props.selectedDirection.id !== undefined &&
                 <animated.div style={modalTransitionProps}><CustomerModal type='direction' isEditable={true} isDeletable={true} isAdding={props.selectedDirection.id === 0} /></animated.div>
             }
+
+            <div ref={refPopup} className={popupContainerClasses}>
+                <div className="mochi-contextual-popup">
+                    <div className="mochi-contextual-popup-content">
+                        <div className="mochi-contextual-popup-wrapper">
+                            {
+                                popupItems.map((item, index) => {
+                                    const itemClasses = classnames({
+                                        'mochi-contextual-popup-item': true,
+                                        'selected': item.selected
+                                    })
+                                    return (
+                                        <div key={index} ref={ref => popupItemsRef.current.push(ref)} className={itemClasses}>{item.name} (<b>{item.email}</b>)</div>
+                                    )
+                                })
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
 
         </div>
     )

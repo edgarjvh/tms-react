@@ -231,6 +231,7 @@
 }
 .mochi-button-base.wrap {
   white-space: normal !important;
+  text-align: center;
 }
 /* ButtonColors.css */
 .mochi-button-affirmative > .mochi-button-base,
@@ -784,7 +785,6 @@ textarea::-webkit-scrollbar-thumb:vertical {
   top: 0;
   left: 50%;
   z-index: 100;
-  display: none;
 }
 .mochi-contextual-popup-title {
   font-weight: bold;
@@ -882,7 +882,7 @@ textarea::-webkit-scrollbar-thumb:vertical {
   left: 34%;
   width: 71px;
   height: 20px;
-  background: transparent url(../img/contextual-popup-nubs/up.png) no-repeat;
+  background: transparent url('../img/contextual-popup-nubs/up.png') no-repeat;
 }
 /*nub near horizontal left*/
 .mochi-contextual-popup.vertical.right::after {
@@ -1003,7 +1003,7 @@ textarea::-webkit-scrollbar-thumb:vertical {
   top: 100%;
   left: 0%;
   margin-left: -2px;
-  background: transparent url(img/contextual-popup-nubs/bottom-left-corner-down.png) no-repeat;
+  background: transparent url(../img/contextual-popup-nubs/bottom-left-corner-down.png) no-repeat;
 }
 /*horizontal bottom corners*/
 .mochi-contextual-popup.left.low.corner {

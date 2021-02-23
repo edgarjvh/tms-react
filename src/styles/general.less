@@ -182,7 +182,8 @@ select:focus {
 }
 
 .input-toggle-container {
-  width: 5.8rem;
+  min-width: 5.8rem;
+  max-width: 5.8rem;
   max-height: 28.24px;
   min-height: 28.24px;
 
@@ -346,6 +347,29 @@ select:focus {
   }
 }
 
+.mochi-contextual-container{
+  display: none;
+  opacity: 0;
+  -webkit-animation: hidingPopup 0.1s;
+  -moz-animation: hidingPopup 0.1s;
+  -o-animation: hidingPopup 0.1s;
+  animation: hidingPopup 0.1s;
+  transition: left ease 0.2s, top ease 0.2s;
+
+  .mochi-contextual-popup-item.selected{
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+}
+
+.mochi-contextual-container.shown{
+  display: block;
+  opacity: 1;
+  -webkit-animation: showingPopup 0.1s;
+  -moz-animation: showingPopup 0.1s;
+  -o-animation: showingPopup 0.1s;
+  animation: showingPopup 0.1s;
+}
+
 .main-panel-container.hidden {
   display: none;
 }
@@ -431,5 +455,141 @@ select:focus {
 
   100% {
     transform: translateX(100%);
+  }
+}
+
+@-webkit-keyframes showingPopup {
+  0% {
+    display: none;
+    opacity: 0;
+  }
+
+  1% {
+    display: block;
+    opacity: 0;
+  }
+
+  100% {
+    display: block;
+    opacity: 1;
+  }
+}
+
+@-moz-keyframes showingPopup {
+  0% {
+    display: none;
+    opacity: 0;
+  }
+
+  1% {
+    display: block;
+    opacity: 0;
+  }
+
+  100% {
+    display: block;
+    opacity: 1;
+  }
+}
+
+@-o-keyframes showingPopup {
+  0% {
+    display: none;
+    opacity: 0;
+  }
+
+  1% {
+    display: block;
+    opacity: 0;
+  }
+
+  100% {
+    display: block;
+    opacity: 1;
+  }
+}
+
+@keyframes showingPopup {
+  0% {
+    display: none;
+    opacity: 0;
+  }
+
+  1% {
+    display: block;
+    opacity: 0;
+  }
+
+  100% {
+    display: block;
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes hidingPopup {
+  0% {
+    display: block;
+    opacity: 1;
+  }
+
+  99% {
+    display: block;
+    opacity: 0;
+  }
+
+  100% {
+    display: none;
+    opacity: 0;
+  }
+}
+
+@-moz-keyframes hidingPopup {
+  0% {
+    display: block;
+    opacity: 1;
+  }
+
+  99% {
+    display: block;
+    opacity: 0;
+  }
+
+  100% {
+    display: none;
+    opacity: 0;
+  }
+}
+
+@-o-keyframes hidingPopup {
+  0% {
+    display: block;
+    opacity: 1;
+  }
+
+  99% {
+    display: block;
+    opacity: 0;
+  }
+
+  100% {
+    display: none;
+    opacity: 0;
+  }
+}
+
+@keyframes hidingPopup {
+  0% {
+    display: block;
+    opacity: 1;
+  }
+
+  99% {
+    display: block;
+    opacity: 0;
+  }
+
+  100% {
+    display: none;
+    opacity: 0;
   }
 }

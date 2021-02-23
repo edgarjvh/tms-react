@@ -63,6 +63,14 @@
   font-weight: bold;
   font-style: oblique;
 }
+/* Text Colors */
+/* ---------------------------------------*/
+/* Background Colors */
+/* ---------------------------------------*/
+/* Disabled Opacity */
+/* ---------------------------------------*/
+/* Spinner */
+/* ---------------------------------------*/
 /* Prevent browser's default focus treatment (at least in Chrome) */
 :focus {
   outline: none;
@@ -155,6 +163,8 @@
   font-size: 1.5rem;
   line-height: 1.5rem;
   cursor: pointer;
+  display: flex;
+  align-items: center;
 }
 .mochi-button:focus {
   outline: none;
@@ -224,11 +234,16 @@
   white-space: nowrap;
   height: initial;
   text-transform: none;
+  text-align: center;
   -webkit-transition: letter-spacing 0.1s ease-in-out;
   -moz-transition: letter-spacing 0.1s ease-in-out;
   -o-transition: letter-spacing 0.1s ease-in-out;
   -ms-transition: letter-spacing 0.1s ease-in-out;
   transition: letter-spacing 0.1s ease-in-out;
+}
+.mochi-button-base.wrap {
+  white-space: normal !important;
+  text-align: center;
 }
 /* ButtonColors.css */
 .mochi-button-affirmative > .mochi-button-base,
@@ -880,7 +895,7 @@ textarea::-webkit-scrollbar-thumb:vertical {
   left: 34%;
   width: 71px;
   height: 20px;
-  background: transparent url(../img/contextual-popup-nubs/up.png) no-repeat;
+  background: transparent url('../img/contextual-popup-nubs/up.png') no-repeat;
 }
 /*nub near horizontal left*/
 .mochi-contextual-popup.vertical.right::after {
@@ -897,21 +912,21 @@ textarea::-webkit-scrollbar-thumb:vertical {
   top: 100%;
   width: 71px;
   height: 20px;
-  background: transparent url(../img/contextual-popup-nubs/down.png) no-repeat;
+  background: transparent url('../img/contextual-popup-nubs/down.png') no-repeat;
 }
 .mochi-contextual-popup.vertical.below.right::after {
   top: 0%;
   margin-top: -20px;
   width: 71px;
   height: 20px;
-  background: transparent url(../img/contextual-popup-nubs/up.png) no-repeat;
+  background: transparent url('../img/contextual-popup-nubs/up.png') no-repeat;
 }
 .mochi-contextual-popup.vertical.below.left::after {
   top: 0%;
   margin-top: -20px;
   width: 71px;
   height: 20px;
-  background: transparent url(../img/contextual-popup-nubs/up.png) no-repeat;
+  background: transparent url('../img/contextual-popup-nubs/up.png') no-repeat;
 }
 /****nub positioning for left/right popups****/
 /*vertically centered nub for popups on left of activator*/
@@ -920,7 +935,7 @@ textarea::-webkit-scrollbar-thumb:vertical {
   top: 35%;
   width: 20px;
   height: 71px;
-  background: transparent url(../img/contextual-popup-nubs/right.png) no-repeat;
+  background: transparent url('../img/contextual-popup-nubs/right.png') no-repeat;
 }
 /*nub near vertical top for popups on left of activator*/
 .mochi-contextual-popup.right.high::after {
@@ -938,7 +953,7 @@ textarea::-webkit-scrollbar-thumb:vertical {
   height: 71px;
   margin-left: -20px;
   top: 35%;
-  background: transparent url(../img/contextual-popup-nubs/left.png) no-repeat;
+  background: transparent url('../img/contextual-popup-nubs/left.png') no-repeat;
 }
 /*nub near vertical top for popups on right of activator*/
 .mochi-contextual-popup.left.high::after {
@@ -972,7 +987,7 @@ textarea::-webkit-scrollbar-thumb:vertical {
   margin-left: -30px;
   width: 71px;
   height: 20px;
-  background: transparent url(../img/contextual-popup-nubs/top-right-corner-up.png) no-repeat;
+  background: transparent url('../img/contextual-popup-nubs/top-right-corner-up.png') no-repeat;
 }
 .mochi-contextual-popup.vertical.below.right.corner::after {
   top: 0%;
@@ -981,7 +996,7 @@ textarea::-webkit-scrollbar-thumb:vertical {
   height: 20px;
   margin-left: -2px;
   margin-top: -14px;
-  background: transparent url(../img/contextual-popup-nubs/top-left-corner-up.png) no-repeat;
+  background: transparent url('../img/contextual-popup-nubs/top-left-corner-up.png') no-repeat;
 }
 /*vertical bottom corners*/
 .mochi-contextual-popup.left.above.corner {
@@ -995,13 +1010,13 @@ textarea::-webkit-scrollbar-thumb:vertical {
   margin-left: -30px;
   width: 71px;
   height: 20px;
-  background: transparent url(../img/contextual-popup-nubs/bottom-right-corner-down.png) no-repeat;
+  background: transparent url('../img/contextual-popup-nubs/bottom-right-corner-down.png') no-repeat;
 }
 .mochi-contextual-popup.vertical.right.above.corner::after {
   top: 100%;
   left: 0%;
   margin-left: -2px;
-  background: transparent url(img/contextual-popup-nubs/bottom-left-corner-down.png) no-repeat;
+  background: transparent url('../img/contextual-popup-nubs/bottom-left-corner-down.png') no-repeat;
 }
 /*horizontal bottom corners*/
 .mochi-contextual-popup.left.low.corner {
@@ -1015,13 +1030,13 @@ textarea::-webkit-scrollbar-thumb:vertical {
   left: 0%;
   margin-top: -30px;
   margin-left: -14px;
-  background: transparent url(../img/contextual-popup-nubs/bottom-left-corner-left.png) no-repeat;
+  background: transparent url('../img/contextual-popup-nubs/bottom-left-corner-left.png') no-repeat;
 }
 .mochi-contextual-popup.right.low.corner::after {
   top: 100%;
   left: 100%;
   margin-top: -30px;
-  background: transparent url(../img/contextual-popup-nubs/bottom-right-corner-right.png) no-repeat;
+  background: transparent url('../img/contextual-popup-nubs/bottom-right-corner-right.png') no-repeat;
 }
 /*horizontal top corners*/
 .mochi-contextual-popup.left.high.corner {
@@ -1035,13 +1050,13 @@ textarea::-webkit-scrollbar-thumb:vertical {
   left: 0%;
   margin-top: -2px;
   margin-left: -14px;
-  background: transparent url(../img/contextual-popup-nubs/top-left-corner-left.png) no-repeat;
+  background: transparent url('../img/contextual-popup-nubs/top-left-corner-left.png') no-repeat;
 }
 .mochi-contextual-popup.right.high.corner::after {
   top: 0%;
   left: 100%;
   margin-top: -2px;
-  background: transparent url(../img/contextual-popup-nubs/top-right-corner-right.png) no-repeat;
+  background: transparent url('../img/contextual-popup-nubs/top-right-corner-right.png') no-repeat;
 }
 /* ContextualPopupDecorator.css */
 .mochi-contextual-popup-decorator {
