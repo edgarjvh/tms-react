@@ -1,3 +1,3 @@
 export * from './systemActions';
-export * from './companyScreenActions';
-export * from './customersPageActions';
+export * from './companyActions';
+export * from './customersActions';

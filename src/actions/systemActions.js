@@ -1,5 +1,4 @@
 import {systemConstants} from './../constants';
-import axios from 'axios';
 
 export const setMainScreen = screen => {
     return {

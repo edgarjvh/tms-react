@@ -1,8 +1,8 @@
-import { systemConstants } from './../constants';
+import { faEnvelope } from '@fortawesome/free-regular-svg-icons';
+import { systemConstants } from '../constants';
 
 export const systemReducers = (state = {
-    serverUrl: 'http://localhost:8000',
-    // serverUrl: 'http://tmsserver.ddns.net',
+    serverUrl: process.env.NODE_ENV === 'production' ? process.env.REACT_APP_PRO_SERVER_URL : process.env.REACT_APP_DEV_SERVER_URL,
     mainScreen: 'company',
 
 }, action) => {

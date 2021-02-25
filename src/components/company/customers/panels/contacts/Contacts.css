@@ -1,0 +1,265 @@
+.contact-container {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+}
+.contact-container .contact-list-container {
+  width: 300px;
+  position: relative;
+  margin-right: 15px;
+  display: flex;
+  flex-direction: column;
+}
+.contact-container .contact-list-container .contact-list {
+  flex-grow: 1;
+  position: relative;
+  margin-bottom: 60px;
+}
+.contact-container .contact-list-container .contact-list .contact-list-wrapper {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+}
+.contact-container .contact-list-container .contact-list .contact-list-wrapper .letter-header {
+  font-size: 2.5rem;
+  font-family: 'Mochi Light';
+  margin: 20px 0 10px;
+  text-transform: uppercase;
+}
+.contact-container .contact-list-container .contact-list .contact-list-wrapper .row-contact:hover {
+  border-left: 2px solid transparent;
+}
+.contact-container .contact-list-container .contact-list .contact-list-wrapper .row-contact:hover .contact-avatar-container {
+  box-shadow: 0 0 5px 3px rgba(0, 0, 0, 0.7);
+}
+.contact-container .contact-list-container .contact-list .contact-list-wrapper .row-contact:hover .contact-avatar-container img {
+  transform: scale(1.1);
+}
+.contact-container .contact-list-container .contact-list .contact-list-wrapper .row-contact:hover .contact-data .contact-name {
+  color: #000000;
+}
+.contact-container .contact-list-container .contact-list .contact-list-wrapper .row-contact {
+  border-left: 0 solid transparent;
+  display: flex;
+  padding: 0 10px;
+  margin-bottom: 25px;
+  cursor: pointer;
+  transition: ease 0.3s, border linear 0.1s;
+}
+.contact-container .contact-list-container .contact-list .contact-list-wrapper .row-contact .contact-avatar-container {
+  border-radius: 50%;
+  overflow: hidden;
+  width: 60px;
+  height: 60px;
+  position: relative;
+  box-shadow: 0 0 3px 1px rgba(0, 0, 0, 0.5);
+  transition: ease 0.3s;
+}
+.contact-container .contact-list-container .contact-list .contact-list-wrapper .row-contact .contact-avatar-container img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  top: 0;
+  left: 0;
+  position: absolute;
+  transition: ease 0.3s;
+}
+.contact-container .contact-list-container .contact-list .contact-list-wrapper .row-contact .contact-data {
+  flex-grow: 1;
+  padding: 0 10px 0 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.contact-container .contact-list-container .contact-list .contact-list-wrapper .row-contact .contact-data .contact-name {
+  font-size: 0.9rem;
+  color: rgba(0, 0, 0, 0.7);
+  transition: ease 0.3s;
+  margin-bottom: 10px;
+}
+.contact-container .contact-list-container .contact-list .contact-list-wrapper .row-contact .contact-data .is-online {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background-color: transparent;
+  box-shadow: 0 0 3px 1px #000000;
+}
+.contact-container .contact-list-container .contact-list .contact-list-wrapper .row-contact .contact-data .is-online.is-online-on {
+  background-color: darkgreen;
+}
+.contact-container .contact-list-container .contact-list .contact-list-wrapper .row-contact .contact-data .is-online.is-online-off {
+  background-color: darkred;
+}
+.contact-container .contact-form {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  padding-top: 30px;
+  padding-left: 25px;
+  position: relative;
+}
+.contact-container .contact-form .contact-form-header {
+  display: flex;
+  margin-bottom: 15px;
+}
+.contact-container .contact-form .contact-form-header .contact-avatar-container {
+  width: 200px;
+  height: 200px;
+  border-radius: 50% 0 50% 50%;
+  position: relative;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 3px 1px rgba(0, 0, 0, 0.5);
+  margin-right: 20px;
+}
+.contact-container .contact-form .contact-form-header .contact-avatar-container .contact-avatar-wrapper {
+  overflow: hidden;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  border-radius: 50% 0 50% 50%;
+}
+.contact-container .contact-form .contact-form-header .contact-avatar-container .contact-avatar-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.contact-container .contact-form .contact-form-header .contact-avatar-container .avatar-buttons {
+  position: absolute;
+  top: -20px;
+  right: 0;
+  z-index: 1;
+}
+.contact-container .contact-form .contact-form-header .contact-avatar-container .avatar-buttons span {
+  font-size: 1rem;
+  margin: 0 5px;
+  cursor: pointer;
+  transition: ease 0.3s;
+}
+.contact-container .contact-form .contact-form-header .contact-avatar-container .avatar-buttons span:hover {
+  color: rgba(0, 0, 0, 0.7);
+}
+.contact-container .contact-form .contact-form-header .contact-info {
+  display: flex;
+  flex-direction: column;
+}
+.contact-container .contact-form .contact-form-header .contact-info .contact-name {
+  text-transform: uppercase;
+  font-family: 'Mochi Light';
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+.contact-container .contact-form .contact-form-header .contact-info .contact-company {
+  font-size: 0.9rem;
+  padding-left: 3px;
+}
+.contact-container .contact-form .contact-form-header .contact-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-grow: 1;
+}
+.contact-container .contact-form .contact-form-header .contact-buttons .input-toggle-container {
+  margin-bottom: 10px;
+}
+.contact-container .contact-form .contact-form-header .contact-buttons .mochi-button-base {
+  color: darkred;
+}
+.contact-container .contact-form .contact-form-fields {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  position: relative;
+  margin-bottom: 60px;
+}
+.contact-container .contact-form .contact-form-fields .contact-form-wrapper {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  overflow-y: auto;
+}
+.contact-container .contact-form .contact-form-fields .contact-form-wrapper .field-container {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+.contact-container .contact-form .contact-form-fields .contact-form-wrapper .field-container .field-title {
+  font-size: 1rem;
+}
+.contact-container .contact-form .contact-form-fields .contact-form-wrapper .field-container input {
+  border: 0;
+  background-color: transparent;
+  padding: 5px 0;
+  font-family: 'Mochi Light';
+  font-size: 1rem;
+}
+.contact-container .contact-form .contact-form-fields .contact-form-wrapper .field-container .field-border-bottom {
+  height: 1px;
+  /* Permalink - use to edit and share this gradient: https://colorzilla.com/gradient-editor/#999999+0,000000+100&0.65+0,0+100 */
+  background: -moz-linear-gradient(left, rgba(153, 153, 153, 0.65) 0%, rgba(0, 0, 0, 0) 100%);
+  /* FF3.6-15 */
+  background: -webkit-linear-gradient(left, rgba(153, 153, 153, 0.65) 0%, rgba(0, 0, 0, 0) 100%);
+  /* Chrome10-25,Safari5.1-6 */
+  background: linear-gradient(to right, rgba(153, 153, 153, 0.65) 0%, rgba(0, 0, 0, 0) 100%);
+  /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#a6999999', endColorstr='#00000000', GradientType=1);
+  /* IE6-9 */
+}
+.contact-container .contact-form .contact-form-fields .contact-form-wrapper .field-container .field-border-bottom.disabled {
+  background: transparent;
+}
+.contact-container .contact-form::before {
+  content: '';
+  position: absolute;
+  height: 100%;
+  width: 10px;
+  box-shadow: 0 0 7px 1px #000000;
+  z-index: -1;
+  top: 5px;
+  left: -1px;
+  border-radius: 100%;
+}
+.contact-container .contact-form::after {
+  content: '';
+  position: absolute;
+  height: 100%;
+  width: 20px;
+  top: 0;
+  left: 0;
+  background-color: #ededed;
+}
+.contact-container .footer {
+  position: absolute;
+  width: 100%;
+  height: 60px;
+  background-color: transparent;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  padding-left: 45px;
+}
+.contact-container .footer .left-buttons {
+  width: 300px;
+  display: flex;
+  justify-content: center;
+}
+.contact-container .footer .right-buttons {
+  display: flex;
+  justify-content: flex-end;
+  flex-grow: 1;
+  padding-right: 25px;
+}
+.contact-container .footer .right-buttons span {
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: ease 0.3s;
+}
+.contact-container .footer .right-buttons span:hover {
+  color: rgba(0, 0, 0, 0.7);
+}

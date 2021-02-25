@@ -1,3 +1,3 @@
 export * from './systemReducers';
-export * from './companyScreenReducers';
-export * from './customersPageReducers';
+export * from './companyReducers';
+export * from './customerReducers';
