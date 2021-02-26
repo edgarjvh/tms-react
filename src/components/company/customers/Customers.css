@@ -74,6 +74,10 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 5px;
 }
 .customers-main-container .fields-container .form-slider .form-slider-wrapper .contact-list-box .contact-list-wrapper .contact-list-item:hover {
   background-color: rgba(0, 0, 0, 0.1);

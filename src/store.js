@@ -7,6 +7,6 @@ export const store = createStore(
         systemReducers,
         companyReducers,
         customerReducers
-    }),
-    applyMiddleware(thunk)
+    })
+    // applyMiddleware(thunk)
 );

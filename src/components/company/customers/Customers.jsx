@@ -21,7 +21,9 @@ import {
     setAutomaticEmailsBcc,
     setShowingContactList,
     setCustomerSearch,
-    setCustomerContacts
+    setCustomerContacts,
+    setContactSearchCustomer,
+    setIsEditingContact
 } from '../../../actions';
 
 import PanelContainer from './panels/panel-container/PanelContainer.jsx';
@@ -29,6 +31,7 @@ import CustomerModal from './modal/Modal.jsx';
 
 function CustomersPage(props) {
     const [popupItems, setPopupItems] = useState([]);
+    const [lastState, setLastState] = useState(0);
     const [automaticEmailsActiveInput, setAutomaticEmailsActiveInput] = useState('');
     const popupItemsRef = useRef([]);
 
@@ -45,6 +48,7 @@ function CustomersPage(props) {
     const modalTransitionProps = useSpring({ opacity: (props.selectedNote.id !== undefined || props.selectedDirection.id !== undefined) ? 1 : 0 });
 
     const setInitialValues = (clearCode = true) => {
+        setLastState(-1);
         props.setSelectedContact({});
         props.setSelectedNote({});
         props.setContactSearch({});
@@ -52,37 +56,41 @@ function CustomersPage(props) {
         props.setAutomaticEmailsTo('');
         props.setAutomaticEmailsCc('');
         props.setAutomaticEmailsBcc('');
-        props.setSelectedCustomer({ code: clearCode ? '' : props.selectedCustomer.code });
+        props.setSelectedCustomer({ id: -1, code: clearCode ? '' : props.selectedCustomer.code });
         setPopupItems([]);
     }
 
     const searchCustomerByCode = (e) => {
-        if (e.target.value.trim() !== '') {
+        let keyCode = e.keyCode || e.which;
 
-            $.post(props.serverUrl + '/customers', {
-                code: e.target.value.toLowerCase()
-            }).then(async res => {
-                if (res.result === 'OK') {
-                    if (res.customers.length > 0) {
-                        await setInitialValues();
-                        await props.setSelectedCustomer(res.customers[0]);
+        if (keyCode === 9) {
+            if (e.target.value.trim() !== '') {
 
-                        await res.customers[0].contacts.map(async c => {
-                            if (c.is_primary === 1) {
-                                await props.setSelectedContact(c);
-                            }
-                            return true;
-                        });
+                $.post(props.serverUrl + '/customers', {
+                    code: e.target.value.toLowerCase()
+                }).then(async res => {
+                    if (res.result === 'OK') {
+                        if (res.customers.length > 0) {
+                            await setInitialValues();
+                            await props.setSelectedCustomer(res.customers[0]);
 
+                            await res.customers[0].contacts.map(async c => {
+                                if (c.is_primary === 1) {
+                                    await props.setSelectedContact(c);
+                                }
+                                return true;
+                            });
+
+                        } else {
+                            setInitialValues(false);
+                        }
                     } else {
                         setInitialValues(false);
                     }
-                } else {
-                    setInitialValues(false);
-                }
-            });
-        } else {
-            setInitialValues(false);
+                });
+            } else {
+                setInitialValues(false);
+            }
         }
     }
 
@@ -260,10 +268,218 @@ function CustomersPage(props) {
         props.setCustomerPanels(panels);
     }
 
-    const validateCustomerForSaving = () => {
+    const validateCustomerForSaving = (e) => {
+        let keyCode = e.keyCode || e.which;
+
+        if (keyCode === 9) {
+            window.clearTimeout(delayTimer);
+
+            window.setTimeout(() => {
+                let selectedCustomer = props.selectedCustomer;
+
+                if (selectedCustomer.id === undefined || selectedCustomer.id === -1) {
+                    selectedCustomer.id = 0;
+                }
+
+                if (
+                    (selectedCustomer.name || '').trim().replace(/\s/g, "").replace("&", "A") !== "" &&
+                    (selectedCustomer.city || '').trim().replace(/\s/g, "") !== "" &&
+                    (selectedCustomer.state || '').trim().replace(/\s/g, "") !== "" &&
+                    (selectedCustomer.address1 || '').trim() !== "" &&
+                    (selectedCustomer.zip || '').trim() !== ""
+                ) {
+                    let parseCity = selectedCustomer.city.trim().replace(/\s/g, "").substring(0, 3);
+
+                    if (parseCity.toLowerCase() === "ft.") {
+                        parseCity = "FO";
+                    }
+                    if (parseCity.toLowerCase() === "mt.") {
+                        parseCity = "MO";
+                    }
+                    if (parseCity.toLowerCase() === "st.") {
+                        parseCity = "SA";
+                    }
+
+                    let mailingParseCity = (selectedCustomer.mailing_city || '').trim().replace(/\s/g, "").substring(0, 3);
+
+                    if (mailingParseCity.toLowerCase() === "ft.") {
+                        mailingParseCity = "FO";
+                    }
+                    if (mailingParseCity.toLowerCase() === "mt.") {
+                        mailingParseCity = "MO";
+                    }
+                    if (mailingParseCity.toLowerCase() === "st.") {
+                        mailingParseCity = "SA";
+                    }
+
+                    let newCode = (selectedCustomer.name || '').trim().replace(/\s/g, "").replace("&", "A").substring(0, 3) + parseCity.substring(0, 2) + (selectedCustomer.state || '').trim().replace(/\s/g, "").substring(0, 2);
+                    let mailingNewCode = (selectedCustomer.mailing_name || '').trim().replace(/\s/g, "").replace("&", "A").substring(0, 3) + mailingParseCity.substring(0, 2) + (selectedCustomer.mailing_state || '').trim().replace(/\s/g, "").substring(0, 2);
+
+                    selectedCustomer.code = newCode;
+                    selectedCustomer.mailing_code = mailingNewCode;
+
+                    $.post(props.serverUrl + '/saveCustomer', selectedCustomer).then(res => {
+                        if (props.selectedCustomer.id !== undefined && props.selectedCustomer.id >= 0) {
+                            if (lastState >= 0) {
+                                props.setSelectedCustomer(res.customer);
+                                if (res.customer.contacts.length === 1) {
+                                    if (res.customer.contacts[0].is_primary === 1) {
+                                        props.setSelectedContact(res.customer.contacts[0]);
+                                    }
+                                }
+                            } else {
+                                setLastState(0);
+                            }
+                        }
+                    });
+                }
+            }, 300);
+        }
+    }
+
+    const remitToAddressBtn = () => {
+        if (props.selectedCustomer.id === undefined || props.selectedCustomer.id <= 0) {
+            window.alert('You must select a customer first');
+            return;
+        }
+
+        let customer = props.selectedCustomer;
+
+        customer.mailing_code = customer.code;
+        customer.mailing_code_number = customer.code_number;
+        customer.mailing_name = customer.name;
+        customer.mailing_address1 = customer.address1;
+        customer.mailing_address2 = customer.address2;
+        customer.mailing_city = customer.city;
+        customer.mailing_state = customer.state;
+        customer.mailing_zip = customer.zip;
+        customer.mailing_contact_name = customer.contact_name;
+        customer.mailing_contact_phone = customer.contact_phone;
+        customer.mailing_ext = customer.ext;
+        customer.mailing_email = customer.email;
+
+        props.setSelectedCustomer(customer);
+
+        validateCustomerForSaving();
+    }
+
+    const mailingAddressClearBtn = () => {
+        if (props.selectedCustomer.id === undefined || props.selectedCustomer.id <= 0) {
+            // window.alert('You must select a customer first');
+            return;
+        }
+
+        let customer = props.selectedCustomer;
+
+        customer.mailing_code = '';
+        customer.mailing_code_number = '';
+        customer.mailing_name = '';
+        customer.mailing_address1 = '';
+        customer.mailing_address2 = '';
+        customer.mailing_city = '';
+        customer.mailing_state = '';
+        customer.mailing_zip = '';
+        customer.mailing_contact_name = '';
+        customer.mailing_contact_phone = '';
+        customer.mailing_ext = '';
+        customer.mailing_email = '';
+        customer.mailing_bill_to = '';
+
+        props.setSelectedCustomer(customer);
+
+        validateCustomerForSaving();
+    }
+
+    const mailingAddressBillToBtn = () => {
+        if (props.selectedCustomer.id === undefined || props.selectedCustomer.id <= 0) {
+            window.alert('You must select a customer first');
+            return;
+        }
+
+        let customer = props.selectedCustomer;
+
+        if ((customer.mailing_bill_to || '') !== '') {
+            customer.mailing_bill_to = '';
+        } else {
+            if ((customer.mailing_code || '') !== '') {
+                customer.mailing_bill_to = customer.mailing_code + ((customer.mailing_code_number || 0) === 0 ? '' : customer.mailing_code_number);
+            }
+        }
+
+        props.setSelectedCustomer(customer);
+
+        validateCustomerForSaving();
+    }
+
+    const selectedContactIsPrimaryChange = async (e) => {
+        await props.setSelectedContact({ ...props.selectedContact, is_primary: e.target.checked ? 1 : 0 });
+
+        if (props.selectedCustomer.id === undefined) {
+            return;
+        }
+
+        let contact = props.selectedContact;
+        contact = { ...contact, is_primary: e.target.checked ? 1 : 0 };
+
+        if (contact.customer_id === undefined || contact.customer_id === 0) {
+            contact.customer_id = props.selectedCustomer.id;
+        }
+
+        if ((contact.first_name || '').trim() === '' || (contact.last_name || '').trim() === '' || (contact.phone_work || '').trim() === '' || (contact.email_work || '').trim() === '') {
+            return;
+        }
+
+        if ((contact.address1 || '').trim() === '' && (contact.address2 || '').trim() === '') {
+            contact.address1 = props.selectedCustomer.address1;
+            contact.address2 = props.selectedCustomer.address2;
+            contact.city = props.selectedCustomer.city;
+            contact.state = props.selectedCustomer.state;
+            contact.zip_code = props.selectedCustomer.zip;
+        }
+
+        $.post(props.serverUrl + '/saveContact', contact).then(async res => {
+            if (res.result === 'OK') {
+                await props.setSelectedContact(res.contact);
+                await props.setSelectedCustomer({ ...props.selectedCustomer, contacts: res.contacts });
+            }
+        });
 
     }
-    const validateContactForSaving = () => { }
+
+    const validateContactForSaving = (e) => {
+        let keyCode = e.keyCode || e.which;
+
+        if (keyCode === 9) {
+            if (props.selectedCustomer.id === undefined) {
+                return;
+            }
+
+            let contact = props.selectedContact;
+
+            if (contact.customer_id === undefined || contact.customer_id === 0) {
+                contact.customer_id = props.selectedCustomer.id;
+            }
+
+            if ((contact.first_name || '').trim() === '' || (contact.last_name || '').trim() === '' || (contact.phone_work || '').trim() === '' || (contact.email_work || '').trim() === '') {
+                return;
+            }
+
+            if ((contact.address1 || '').trim() === '' && (contact.address2 || '').trim() === '') {
+                contact.address1 = props.selectedCustomer.address1;
+                contact.address2 = props.selectedCustomer.address2;
+                contact.city = props.selectedCustomer.city;
+                contact.state = props.selectedCustomer.state;
+                contact.zip_code = props.selectedCustomer.zip;
+            }
+
+            $.post(props.serverUrl + '/saveContact', contact).then(async res => {
+                if (res.result === 'OK') {
+                    await props.setSelectedCustomer({ ...props.selectedCustomer, contacts: res.contacts });
+                    await props.setSelectedContact(res.contact);
+                }
+            });
+        }
+    }
 
     const validateAutomaticEmailsForSaving = () => {
         $.post(props.serverUrl + '/saveAutomaticEmails', props.selectedCustomer.automatic_emails).then(res => {
@@ -853,62 +1069,62 @@ function CustomersPage(props) {
                             <div className="form-row">
                                 <div className="input-box-container input-code">
                                     <input type="text" placeholder="Code" maxLength="8"
-                                        onBlur={searchCustomerByCode}
+                                        onKeyDown={searchCustomerByCode}
                                         onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, code: e.target.value })}
                                         value={(props.selectedCustomer.code_number || 0) === 0 ? (props.selectedCustomer.code || '') : props.selectedCustomer.code + props.selectedCustomer.code_number} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Name" onBlur={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, name: e.target.value })} value={props.selectedCustomer.name || ''} />
+                                    <input type="text" placeholder="Name" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, name: e.target.value })} value={props.selectedCustomer.name || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Address 1" onBlur={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, address1: e.target.value })} value={props.selectedCustomer.address1 || ''} />
+                                    <input type="text" placeholder="Address 1" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, address1: e.target.value })} value={props.selectedCustomer.address1 || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Address 2" onBlur={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, address2: e.target.value })} value={props.selectedCustomer.address2 || ''} />
+                                    <input type="text" placeholder="Address 2" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, address2: e.target.value })} value={props.selectedCustomer.address2 || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="City" onBlur={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, city: e.target.value })} value={props.selectedCustomer.city || ''} />
+                                    <input type="text" placeholder="City" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, city: e.target.value })} value={props.selectedCustomer.city || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-state">
-                                    <input type="text" placeholder="State" maxLength="2" onBlur={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, state: e.target.value })} value={props.selectedCustomer.state || ''} />
+                                    <input type="text" placeholder="State" maxLength="2" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, state: e.target.value })} value={props.selectedCustomer.state || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-zip-code">
-                                    <input type="text" placeholder="Postal Code" onBlur={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, zip: e.target.value })} value={props.selectedCustomer.zip || ''} />
+                                    <input type="text" placeholder="Postal Code" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, zip: e.target.value })} value={props.selectedCustomer.zip || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Contact Name" onBlur={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, contact_name: e.target.value })} value={props.selectedCustomer.contact_name || ''} />
+                                    <input type="text" placeholder="Contact Name" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, contact_name: e.target.value })} value={props.selectedCustomer.contact_name || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-phone">
                                     <MaskedInput
                                         mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                         guide={true}
-                                        type="text" placeholder="Contact Phone" onBlur={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, contact_phone: e.target.value })} value={props.selectedCustomer.contact_phone || ''} />
+                                        type="text" placeholder="Contact Phone" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, contact_phone: e.target.value })} value={props.selectedCustomer.contact_phone || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-phone-ext">
-                                    <input type="text" placeholder="Ext" onBlur={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, ext: e.target.value })} value={props.selectedCustomer.ext || ''} />
+                                    <input type="text" placeholder="Ext" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, ext: e.target.value })} value={props.selectedCustomer.ext || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="E-Mail" style={{ textTransform: 'lowercase' }} onBlur={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, email: e.target.value })} value={props.selectedCustomer.email || ''} />
+                                    <input type="text" placeholder="E-Mail" style={{ textTransform: 'lowercase' }} onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, email: e.target.value })} value={props.selectedCustomer.email || ''} />
                                 </div>
                             </div>
                         </div>
@@ -920,17 +1136,17 @@ function CustomersPage(props) {
                                 <div className="form-title">Mailing Address</div>
                                 <div className="top-border top-border-middle"></div>
                                 <div className="form-buttons">
-                                    <div className="mochi-button">
+                                    <div className="mochi-button" onClick={mailingAddressBillToBtn}>
                                         <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                         <div className="mochi-button-base">Bill to</div>
                                         <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
                                     </div>
-                                    <div className="mochi-button">
+                                    <div className="mochi-button" onClick={remitToAddressBtn}>
                                         <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                         <div className="mochi-button-base">Remit to address is the same</div>
                                         <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
                                     </div>
-                                    <div className="mochi-button">
+                                    <div className="mochi-button" onClick={mailingAddressClearBtn}>
                                         <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                         <div className="mochi-button-base">Clear</div>
                                         <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
@@ -942,62 +1158,62 @@ function CustomersPage(props) {
                             <div className="form-row">
                                 <div className="input-box-container input-code">
                                     <input type="text" placeholder="Code" maxLength="8"
-                                        onBlur={validateCustomerForSaving}
+                                        onKeyDown={validateCustomerForSaving}
                                         onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_code: e.target.value })}
                                         value={(props.selectedCustomer.mailing_code_number || 0) === 0 ? (props.selectedCustomer.mailing_code || '') : props.selectedCustomer.mailing_code + props.selectedCustomer.mailing_code_number} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Name" onBlur={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_name: e.target.value })} value={props.selectedCustomer.mailing_name || ''} />
+                                    <input type="text" placeholder="Name" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_name: e.target.value })} value={props.selectedCustomer.mailing_name || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Address 1" onBlur={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_address1: e.target.value })} value={props.selectedCustomer.mailing_address1 || ''} />
+                                    <input type="text" placeholder="Address 1" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_address1: e.target.value })} value={props.selectedCustomer.mailing_address1 || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Address 2" onBlur={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_address2: e.target.value })} value={props.selectedCustomer.mailing_address2 || ''} />
+                                    <input type="text" placeholder="Address 2" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_address2: e.target.value })} value={props.selectedCustomer.mailing_address2 || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="City" onBlur={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_city: e.target.value })} value={props.selectedCustomer.mailing_city || ''} />
+                                    <input type="text" placeholder="City" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_city: e.target.value })} value={props.selectedCustomer.mailing_city || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-state">
-                                    <input type="text" placeholder="State" maxLength="2" onBlur={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_state: e.target.value })} value={props.selectedCustomer.mailing_state || ''} />
+                                    <input type="text" placeholder="State" maxLength="2" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_state: e.target.value })} value={props.selectedCustomer.mailing_state || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-zip-code">
-                                    <input type="text" placeholder="Postal Code" onBlur={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_zip: e.target.value })} value={props.selectedCustomer.mailing_zip || ''} />
+                                    <input type="text" placeholder="Postal Code" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_zip: e.target.value })} value={props.selectedCustomer.mailing_zip || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Contact Name" onBlur={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_contact_name: e.target.value })} value={props.selectedCustomer.mailing_contact_name || ''} />
+                                    <input type="text" placeholder="Contact Name" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_contact_name: e.target.value })} value={props.selectedCustomer.mailing_contact_name || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-phone">
                                     <MaskedInput
                                         mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                         guide={true}
-                                        type="text" placeholder="Contact Phone" onBlur={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_contact_phone: e.target.value })} value={props.selectedCustomer.mailing_contact_phone || ''} />
+                                        type="text" placeholder="Contact Phone" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_contact_phone: e.target.value })} value={props.selectedCustomer.mailing_contact_phone || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-phone-ext">
-                                    <input type="text" placeholder="Ext" onBlur={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_ext: e.target.value })} value={props.selectedCustomer.mailing_ext || ''} />
+                                    <input type="text" placeholder="Ext" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_ext: e.target.value })} value={props.selectedCustomer.mailing_ext || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="E-Mail" onBlur={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_email: e.target.value })} value={props.selectedCustomer.mailing_email || ''} />
+                                    <input type="text" placeholder="E-Mail" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_email: e.target.value })} value={props.selectedCustomer.mailing_email || ''} />
                                 </div>
                             </div>
                         </div>
@@ -1005,7 +1221,7 @@ function CustomersPage(props) {
                         <div className="form-borderless-box" style={{ width: '170px', marginLeft: '10px', }}>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Bill To" readOnly={true} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_bill_to: e.target.value })} value={props.selectedCustomer.mailing_bill_to || ''} />
+                                    <input type="text" style={{ textTransform: 'uppercase' }} placeholder="Bill To" readOnly={true} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_bill_to: e.target.value })} value={props.selectedCustomer.mailing_bill_to || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
@@ -1083,12 +1299,57 @@ function CustomersPage(props) {
                                 <div className="form-title">Contacts</div>
                                 <div className="top-border top-border-middle"></div>
                                 <div className="form-buttons">
-                                    <div className="mochi-button">
+                                    <div className="mochi-button" onClick={async () => {
+                                        if (props.selectedCustomer.id === undefined) {
+                                            window.alert('You must select a contact first!');
+                                            return;
+                                        }
+
+                                        if (props.selectedContact.id === undefined) {
+                                            window.alert('You must select a contact');
+                                            return;
+                                        }
+
+                                        let index = props.panels.length - 1;
+                                        let panels = props.panels.map((p, i) => {
+                                            if (p.name === 'customer-contacts') {
+                                                index = i;
+                                                p.isOpened = true;
+                                            }
+                                            return p;
+                                        });
+
+                                        await props.setIsEditingContact(false);
+                                        await props.setContactSearchCustomer({ ...props.selectedCustomer, selectedContact: props.selectedContact });
+
+                                        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
+                                        props.setCustomerPanels(panels);
+                                    }}>
                                         <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                         <div className="mochi-button-base">More</div>
                                         <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
                                     </div>
-                                    <div className="mochi-button">
+                                    <div className="mochi-button" onClick={() => {
+                                        if (props.selectedCustomer.id === undefined) {
+                                            window.alert('You must select a customer');
+                                            return;
+                                        }
+
+                                        let index = props.panels.length - 1;
+                                        let panels = props.panels.map((p, i) => {
+                                            if (p.name === 'customer-contacts') {
+                                                index = i;
+                                                p.isOpened = true;
+                                            }
+                                            return p;
+                                        });
+
+                                        props.setContactSearchCustomer({ ...props.selectedCustomer, selectedContact: { id: 0, customer_id: props.selectedCustomer.id } });
+                                        props.setIsEditingContact(true);
+
+                                        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
+                                        props.setCustomerPanels(panels);
+                                    }}>
                                         <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                         <div className="mochi-button-base">Add contact</div>
                                         <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
@@ -1106,7 +1367,7 @@ function CustomersPage(props) {
                                 <div className="input-box-container grow">
 
 
-                                    <input type="text" placeholder="First Name" onBlur={validateContactForSaving} onChange={e => {
+                                    <input type="text" placeholder="First Name" onKeyDown={validateContactForSaving} onChange={e => {
 
                                         props.setSelectedContact({ ...props.selectedContact, first_name: e.target.value })
                                     }} value={props.selectedContact.first_name || ''} />
@@ -1116,7 +1377,7 @@ function CustomersPage(props) {
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Last Name" onBlur={validateContactForSaving} onChange={e => props.setSelectedContact({ ...props.selectedContact, last_name: e.target.value })} value={props.selectedContact.last_name || ''} />
+                                    <input type="text" placeholder="Last Name" onKeyDown={validateContactForSaving} onChange={e => props.setSelectedContact({ ...props.selectedContact, last_name: e.target.value })} value={props.selectedContact.last_name || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
@@ -1125,15 +1386,15 @@ function CustomersPage(props) {
                                     <MaskedInput
                                         mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                         guide={true}
-                                        type="text" placeholder="Phone" onBlur={validateContactForSaving} onChange={e => props.setSelectedContact({ ...props.selectedContact, phone_work: e.target.value })} value={props.selectedContact.phone_work || ''} />
+                                        type="text" placeholder="Phone" onKeyDown={validateContactForSaving} onChange={e => props.setSelectedContact({ ...props.selectedContact, phone_work: e.target.value })} value={props.selectedContact.phone_work || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div style={{ width: '50%', display: 'flex', justifyContent: 'space-between' }}>
                                     <div className="input-box-container input-phone-ext">
-                                        <input type="text" placeholder="Ext" onBlur={validateContactForSaving} onChange={e => props.setSelectedContact({ ...props.selectedContact, phone_ext: e.target.value })} value={props.selectedContact.phone_ext || ''} />
+                                        <input type="text" placeholder="Ext" onKeyDown={validateContactForSaving} onChange={e => props.setSelectedContact({ ...props.selectedContact, phone_ext: e.target.value })} value={props.selectedContact.phone_ext || ''} />
                                     </div>
                                     <div className="input-toggle-container">
-                                        <input type="checkbox" id="cbox-customer-contacts-primary-btn" onChange={e => { props.setSelectedContact({ ...props.selectedContact, is_primary: e.target.checked ? 1 : 0 }); validateContactForSaving() }} checked={(props.selectedContact.is_primary || 0) === 1} />
+                                        <input type="checkbox" id="cbox-customer-contacts-primary-btn" onChange={selectedContactIsPrimaryChange} checked={(props.selectedContact.is_primary || 0) === 1} />
                                         <label htmlFor="cbox-customer-contacts-primary-btn">
                                             <div className="label-text">Primary</div>
                                             <div className="input-toggle-btn"></div>
@@ -1144,11 +1405,11 @@ function CustomersPage(props) {
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="E-Mail" onBlur={validateContactForSaving} onChange={e => props.setSelectedContact({ ...props.selectedContact, email_work: e.target.value })} value={props.selectedContact.email_work || ''} />
+                                    <input type="text" placeholder="E-Mail" onKeyDown={validateContactForSaving} onChange={e => props.setSelectedContact({ ...props.selectedContact, email_work: e.target.value })} value={props.selectedContact.email_work || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Notes" onBlur={validateContactForSaving} onChange={e => props.setSelectedContact({ ...props.selectedContact, notes: e.target.value })} value={props.selectedContact.notes || ''} />
+                                    <input type="text" placeholder="Notes" onKeyDown={validateContactForSaving} onChange={e => props.setSelectedContact({ ...props.selectedContact, notes: e.target.value })} value={props.selectedContact.notes || ''} />
                                 </div>
                             </div>
                         </div>
@@ -1497,8 +1758,30 @@ function CustomersPage(props) {
                                             {
                                                 (props.selectedCustomer.contacts || []).map((contact, index) => {
                                                     return (
-                                                        <div className="contact-list-item" key={index} onDoubleClick={() => { }} onClick={() => props.setSelectedContact(contact)}>
-                                                            {contact.first_name + (contact.middle_name === '' ? '' : ' ' + contact.middle_name) + ' ' + contact.last_name + ' ' + contact.phone_work + ' ' + contact.email_work}
+                                                        <div className="contact-list-item" key={index} onDoubleClick={async () => {
+
+                                                            let index = props.panels.length - 1;
+                                                            let panels = props.panels.map((p, i) => {
+                                                                if (p.name === 'customer-contacts') {
+                                                                    index = i;
+                                                                    p.isOpened = true;
+                                                                }
+                                                                return p;
+                                                            });
+
+                                                            await props.setIsEditingContact(false);
+                                                            await props.setContactSearchCustomer({ ...props.selectedCustomer, selectedContact: contact });
+
+                                                            panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
+                                                            props.setCustomerPanels(panels);
+                                                        }} onClick={() => props.setSelectedContact(contact)}>
+                                                            <span>
+                                                                {contact.first_name + (contact.middle_name === '' ? '' : ' ' + contact.middle_name) + ' ' + contact.last_name + ' ' + contact.phone_work + ' ' + contact.email_work}
+                                                            </span>
+                                                            {
+                                                                (contact.is_primary === 1) &&
+                                                                <span className='fas fa-check'></span>
+                                                            }
                                                         </div>
                                                     )
                                                 })
@@ -1509,7 +1792,7 @@ function CustomersPage(props) {
                                     <div className="contact-search-box">
                                         <div className="form-row">
                                             <div className="input-box-container grow">
-                                                <input type="text" placeholder="First Name"  onChange={e => props.setContactSearch({ ...props.contactSearch, first_name: e.target.value }) } value={props.contactSearch.first_name || ''} />
+                                                <input type="text" placeholder="First Name" onChange={e => props.setContactSearch({ ...props.contactSearch, first_name: e.target.value })} value={props.contactSearch.first_name || ''} />
                                             </div>
                                             <div className="form-h-sep"></div>
                                             <div className="input-box-container grow">
@@ -1820,5 +2103,7 @@ export default connect(mapStateToProps, {
     setAutomaticEmailsBcc,
     setShowingContactList,
     setCustomerSearch,
-    setCustomerContacts
+    setCustomerContacts,
+    setContactSearchCustomer,
+    setIsEditingContact
 })(CustomersPage)

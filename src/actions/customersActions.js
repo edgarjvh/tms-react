@@ -84,3 +84,9 @@ export const setContactSearchCustomer = customer => {
         payload: customer
     }
 }
+export const setIsEditingContact = isEditing => {
+    return {
+        type: customersConstants.SET_IS_EDITING_CONTACT,
+        payload: isEditing
+    }
+}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { connect } from 'react-redux';
 import classnames from 'classnames';
 import $ from 'jquery';
@@ -7,12 +7,15 @@ import './Contacts.css';
 import {
     setCustomerPanels,
     setSelectedContact,
-    setContactSearchCustomer
+    setContactSearchCustomer,
+    setSelectedCustomer,
+    setIsEditingContact
 } from './../../../../../actions';
 import MaskedInput from 'react-text-mask';
 
-function Contacts(props) {
-    const [isEditing, setIsEditing] = useState(false);
+function Contacts(props) {    
+    const refPrefix = useRef();
+    const refInputAvatar = useRef();
 
     const closePanelBtnClick = () => {
         let panels = props.panels.map((panel) => {
@@ -29,8 +32,132 @@ function Contacts(props) {
 
     const borderBottomClasses = classnames({
         'field-border-bottom': true,
-        'disabled': !isEditing
+        'disabled': !props.isEditingContact
     });
+
+    const saveContact = () => {
+        let contact = props.customer.selectedContact;
+
+        if ((contact.first_name || '').trim() === '') {
+            window.alert('You must enter the first name!');
+            return;
+        }
+
+        if ((contact.last_name || '').trim() === '') {
+            window.alert('You must enter the last name!');
+            return;
+        }
+
+        if ((contact.phone_work || '').trim() === '') {
+            window.alert('You must enter the phone work!');
+            return;
+        }
+
+        if ((contact.email_work || '').trim() === '') {
+            window.alert('You must enter the e-mail work!');
+            return;
+        }
+
+        if ((contact.address1 || '').trim() === '' && (contact.address2 || '').trim() === '') {
+            contact.address1 = props.customer.address1;
+            contact.address2 = props.customer.address2;
+            contact.city = props.customer.city;
+            contact.state = props.customer.state;
+            contact.zip_code = props.customer.zip;
+        }
+
+        $.post(props.serverUrl + '/saveContact', contact).then(async res => {
+            if (res.result === 'OK') {
+                if (props.selectedCustomer.id !== undefined) {
+                    await props.setSelectedCustomer({ ...props.selectedCustomer, contacts: res.contacts });
+                }
+
+                if (props.selectedContact.id !== undefined) {
+                    if (props.selectedContact.id === contact.id) {
+                        await props.setSelectedContact(res.contact);
+                    }
+                }
+
+                await props.setContactSearchCustomer({ ...props.customer, selectedContact: res.contact, contacts: res.contacts });
+
+                props.setIsEditingContact(false);
+            }
+        });
+    }
+
+    const deleteContact = () => {
+        let contact = props.customer.selectedContact;
+
+        if (window.confirm('Are you sure to delete this contact?')) {
+            $.post(props.serverUrl + '/deleteContact', contact).then(async res => {
+                if (res.result === 'OK') {
+                    if (props.selectedCustomer.id !== undefined) {
+                        await props.setSelectedCustomer({ ...props.selectedCustomer, contacts: res.contacts });
+                    }
+
+                    if (props.selectedContact.id !== undefined) {
+                        if (props.selectedContact.id === contact.id) {
+                            await props.setSelectedContact({});
+                        }
+                    }
+
+                    await props.setContactSearchCustomer({ ...props.customer, selectedContact: {}, contacts: res.contacts });
+
+                    props.setIsEditingContact(false);
+                }
+            });
+        }
+    }
+
+    const contactAvatarChange = (e) => {
+        let files = e.target.files;
+        const maxSize = 1048576;
+
+        if (FileReader && files && (files.length > 0)){
+            if (files[0].size > maxSize) {
+                window.alert("Selected image is too large, please select an image below 1mb");
+                return;
+            }
+
+            let formData = new FormData();
+            formData.append("avatar", files[0]);
+            formData.append("contact_id", props.customer.selectedContact.id);
+            formData.append("customer_id", props.customer.id);
+
+            $.ajax({
+                method: "post",
+                url: props.serverUrl + "/uploadAvatar",
+                data: formData,
+                contentType: false,
+                processData: false,
+                cache: false,
+                success: async res => {
+                    if (res.result === "OK") {
+                        if (props.selectedCustomer.id !== undefined) {
+                            await props.setSelectedCustomer({ ...props.selectedCustomer, contacts: res.contacts });
+                        }                           
+    
+                        await props.setContactSearchCustomer({ ...props.customer, selectedContact: res.contact, contacts: res.contacts });
+                    }
+                },
+                error: err => {
+                    console.log("ajax error");
+                },
+            });
+        }        
+    }
+
+    const removeContactAvatar = (e) => {
+        $.post(props.serverUrl + '/removeAvatar', props.customer.selectedContact).then(async res => {
+            if (res.result === "OK") {
+                if (props.selectedCustomer.id !== undefined) {
+                    await props.setSelectedCustomer({ ...props.selectedCustomer, contacts: res.contacts });
+                }                           
+
+                await props.setContactSearchCustomer({ ...props.customer, selectedContact: res.contact, contacts: res.contacts });
+            }
+        })
+    }
 
     return (
         <div className="panel-content">
@@ -50,10 +177,13 @@ function Contacts(props) {
                                     if (curLetter !== lastLetter) {
                                         lastLetter = curLetter;
                                         return (
-                                            <div>
+                                            <div key={index}>
                                                 <div className="letter-header">{curLetter}</div>
 
-                                                <div className="row-contact">
+                                                <div className="row-contact" onClick={async () => {
+                                                    await props.setContactSearchCustomer({ ...props.customer, selectedContact: contact });
+                                                    props.setIsEditingContact(false);
+                                                }}>
                                                     <div className="contact-avatar-container">
                                                         <img src={contact.avatar ? props.serverUrl + '/avatars/' + contact.avatar : 'img/avatar-user-default.png'} alt="" />
                                                     </div>
@@ -68,7 +198,10 @@ function Contacts(props) {
                                         )
                                     } else {
                                         return (
-                                            <div className="row-contact">
+                                            <div key={index} className="row-contact" onClick={async () => {
+                                                await props.setContactSearchCustomer({ ...props.customer, selectedContact: contact });
+                                                props.setIsEditingContact(false);
+                                            }}>
                                                 <div className="contact-avatar-container">
                                                     <img src={contact.avatar ? props.serverUrl + '/avatars/' + contact.avatar : 'img/avatar-user-default.png'} alt="" />
                                                 </div>
@@ -89,18 +222,28 @@ function Contacts(props) {
                 <div className="contact-form">
                     <div className="contact-form-header">
                         <div className="contact-avatar-container">
-                        <div className="avatar-buttons">
-                                <span className="fas fa-trash-alt"></span>
-                                <span className="fas fa-sync"></span>
-                            </div>
+
+                            {
+                                (props.isEditingContact && (props.customer.selectedContact.id || 0) > 0 && (props.customer.selectedContact.avatar || '') !== '') && <span className="fas fa-trash-alt remove-contact-avatar-btn" onClick={removeContactAvatar}></span>
+                            }
+                            {
+                                (props.isEditingContact && (props.customer.selectedContact.id || 0) > 0) && <span className="fas fa-sync change-contact-avatar-btn" onClick={() => {refInputAvatar.current.click()}}></span>
+                            }
+                            
+                            <form encType='multipart/form-data' style={{display: 'none'}}>
+                                <input type="file" ref={refInputAvatar} accept='image/*' onChange={contactAvatarChange} />
+                            </form>
+
                             <div className="contact-avatar-wrapper">
                                 <img src={props.customer.selectedContact.avatar ? props.serverUrl + '/avatars/' + props.customer.selectedContact.avatar : 'img/avatar-user-default.png'} alt="" />
                             </div>
-                            
+
                         </div>
                         <div className="contact-info">
-                            <div className="contact-name">{(props.customer.selectedContact.prefix || '') + " " + props.customer.selectedContact.first_name + " " + (props.customer.selectedContact.middle_name || '') + " " + props.customer.selectedContact.last_name}</div>
-                            <div className="contact-company"><span style={{ fontWeight: 'bold' }}>{props.customer.name}</span> <span>{props.customer.selectedContact.title}</span> <span style={{ fontWeight: 'bold' }}>{props.customer.selectedContact.department}</span></div>
+                            <div className="contact-name">
+                                {(props.customer.selectedContact.prefix || '') + " " + (props.customer.selectedContact.first_name || '') + " " + (props.customer.selectedContact.middle_name || '') + " " + (props.customer.selectedContact.last_name || '')}
+                            </div>
+                            <div className="contact-company"><span style={{ fontWeight: 'bold' }}>{props.customer.selectedContact.id !== undefined ? props.customer.name : ''}</span> <span>{(props.customer.selectedContact.title || '')}</span> <span style={{ fontWeight: 'bold' }}>{(props.customer.selectedContact.department || '')}</span></div>
                         </div>
                         <div className="contact-buttons">
                             <div className="input-toggle-container">
@@ -110,7 +253,7 @@ function Contacts(props) {
                                         contact.is_primary = e.target.checked ? 1 : 0;
                                         props.setContactSearchCustomer({ ...props.customer, selectedContact: contact });
                                     }}
-                                    disabled={!isEditing}
+                                    disabled={!props.isEditingContact}
                                     checked={(props.customer.selectedContact.is_primary || 0) === 1} />
                                 <label htmlFor="cbox-panel-customer-contacts-primary-btn">
                                     <div className="label-text">Primary</div>
@@ -118,9 +261,11 @@ function Contacts(props) {
                                 </label>
                             </div>
 
-                            <div className="mochi-button">
+                            <div className="mochi-button" onClick={deleteContact} style={{
+                                pointerEvents: (props.customer.selectedContact.id !== undefined && props.customer.selectedContact.id > 0) ? 'all' : 'none'
+                            }}>
                                 <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
-                                <div className="mochi-button-base">Delete</div>
+                                <div className="mochi-button-base" style={{color: (props.customer.selectedContact.id !== undefined && props.customer.selectedContact.id > 0) ? 'rgba(138,8,8,1)' : 'rgba(138,8,8,0.5)'}}>Delete</div>
                                 <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
                             </div>
                         </div>
@@ -129,7 +274,7 @@ function Contacts(props) {
                         <div className="contact-form-wrapper">
                             <div className="field-container">
                                 <div className="field-title">Prefix</div>
-                                <input type="text" readOnly={!isEditing} 
+                                <input ref={refPrefix} type="text" readOnly={!props.isEditingContact}
                                     onChange={e => {
                                         let contact = props.customer.selectedContact;
                                         contact.prefix = e.target.value;
@@ -141,7 +286,7 @@ function Contacts(props) {
 
                             <div className="field-container">
                                 <div className="field-title">First Name</div>
-                                <input type="text" readOnly={!isEditing}
+                                <input type="text" readOnly={!props.isEditingContact}
                                     onChange={e => {
                                         let contact = props.customer.selectedContact;
                                         contact.first_name = e.target.value;
@@ -153,7 +298,7 @@ function Contacts(props) {
 
                             <div className="field-container">
                                 <div className="field-title">Middle Name</div>
-                                <input type="text" readOnly={!isEditing}
+                                <input type="text" readOnly={!props.isEditingContact}
                                     onChange={e => {
                                         let contact = props.customer.selectedContact;
                                         contact.middle_name = e.target.value;
@@ -165,7 +310,7 @@ function Contacts(props) {
 
                             <div className="field-container">
                                 <div className="field-title">Last Name</div>
-                                <input type="text" readOnly={!isEditing}
+                                <input type="text" readOnly={!props.isEditingContact}
                                     onChange={e => {
                                         let contact = props.customer.selectedContact;
                                         contact.last_name = e.target.value;
@@ -177,7 +322,7 @@ function Contacts(props) {
 
                             <div className="field-container">
                                 <div className="field-title">Suffix</div>
-                                <input type="text" readOnly={!isEditing}
+                                <input type="text" readOnly={!props.isEditingContact}
                                     onChange={e => {
                                         let contact = props.customer.selectedContact;
                                         contact.suffix = e.target.value;
@@ -189,14 +334,14 @@ function Contacts(props) {
 
                             <div className="field-container">
                                 <div className="field-title">Company</div>
-                                <input type="text" readOnly={!isEditing}
-                                    value={props.customer.name || ''} />
+                                <input type="text" readOnly={!props.isEditingContact}
+                                    value={props.customer.selectedContact.id !== undefined ? props.customer.name : ''} />
                                 <div className={borderBottomClasses}></div>
                             </div>
 
                             <div className="field-container">
                                 <div className="field-title">Title</div>
-                                <input type="text" readOnly={!isEditing}
+                                <input type="text" readOnly={!props.isEditingContact}
                                     onChange={e => {
                                         let contact = props.customer.selectedContact;
                                         contact.title = e.target.value;
@@ -208,7 +353,7 @@ function Contacts(props) {
 
                             <div className="field-container">
                                 <div className="field-title">Department</div>
-                                <input type="text" readOnly={!isEditing}
+                                <input type="text" readOnly={!props.isEditingContact}
                                     onChange={e => {
                                         let contact = props.customer.selectedContact;
                                         contact.department = e.target.value;
@@ -220,7 +365,7 @@ function Contacts(props) {
 
                             <div className="field-container">
                                 <div className="field-title">E-mail Work</div>
-                                <input type="text" readOnly={!isEditing}
+                                <input type="text" readOnly={!props.isEditingContact}
                                     onChange={e => {
                                         let contact = props.customer.selectedContact;
                                         contact.email_work = e.target.value;
@@ -232,7 +377,7 @@ function Contacts(props) {
 
                             <div className="field-container">
                                 <div className="field-title">E-mail Personal</div>
-                                <input type="text" readOnly={!isEditing}
+                                <input type="text" readOnly={!props.isEditingContact}
                                     onChange={e => {
                                         let contact = props.customer.selectedContact;
                                         contact.email_personal = e.target.value;
@@ -244,7 +389,7 @@ function Contacts(props) {
 
                             <div className="field-container">
                                 <div className="field-title">E-mail Other</div>
-                                <input type="text" readOnly={!isEditing}
+                                <input type="text" readOnly={!props.isEditingContact}
                                     onChange={e => {
                                         let contact = props.customer.selectedContact;
                                         contact.email_other = e.target.value;
@@ -259,7 +404,7 @@ function Contacts(props) {
                                 <MaskedInput
                                     mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                     guide={true}
-                                    type="text" readOnly={!isEditing}
+                                    type="text" readOnly={!props.isEditingContact}
                                     onChange={e => {
                                         let contact = props.customer.selectedContact;
                                         contact.phone_work = e.target.value;
@@ -271,7 +416,7 @@ function Contacts(props) {
 
                             <div className="field-container">
                                 <div className="field-title">Ext</div>
-                                <input type="text" readOnly={!isEditing}
+                                <input type="text" readOnly={!props.isEditingContact}
                                     onChange={e => {
                                         let contact = props.customer.selectedContact;
                                         contact.phone_ext = e.target.value;
@@ -286,7 +431,7 @@ function Contacts(props) {
                                 <MaskedInput
                                     mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                     guide={true}
-                                    type="text" readOnly={!isEditing}
+                                    type="text" readOnly={!props.isEditingContact}
                                     onChange={e => {
                                         let contact = props.customer.selectedContact;
                                         contact.phone_work_fax = e.target.value;
@@ -301,7 +446,7 @@ function Contacts(props) {
                                 <MaskedInput
                                     mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                     guide={true}
-                                    type="text" readOnly={!isEditing}
+                                    type="text" readOnly={!props.isEditingContact}
                                     onChange={e => {
                                         let contact = props.customer.selectedContact;
                                         contact.phone_mobile = e.target.value;
@@ -316,7 +461,7 @@ function Contacts(props) {
                                 <MaskedInput
                                     mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                     guide={true}
-                                    type="text" readOnly={!isEditing}
+                                    type="text" readOnly={!props.isEditingContact}
                                     onChange={e => {
                                         let contact = props.customer.selectedContact;
                                         contact.phone_direct = e.target.value;
@@ -331,7 +476,7 @@ function Contacts(props) {
                                 <MaskedInput
                                     mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                     guide={true}
-                                    type="text" readOnly={!isEditing}
+                                    type="text" readOnly={!props.isEditingContact}
                                     onChange={e => {
                                         let contact = props.customer.selectedContact;
                                         contact.phone_other = e.target.value;
@@ -343,7 +488,7 @@ function Contacts(props) {
 
                             <div className="field-container">
                                 <div className="field-title">Country</div>
-                                <input type="text" readOnly={!isEditing}
+                                <input type="text" readOnly={!props.isEditingContact}
                                     onChange={e => {
                                         let contact = props.customer.selectedContact;
                                         contact.country = e.target.value;
@@ -355,7 +500,7 @@ function Contacts(props) {
 
                             <div className="field-container">
                                 <div className="field-title">Address 1</div>
-                                <input type="text" readOnly={!isEditing}
+                                <input type="text" readOnly={!props.isEditingContact}
                                     onChange={e => {
                                         let contact = props.customer.selectedContact;
                                         contact.address1 = e.target.value;
@@ -367,7 +512,7 @@ function Contacts(props) {
 
                             <div className="field-container">
                                 <div className="field-title">Address 2</div>
-                                <input type="text" readOnly={!isEditing}
+                                <input type="text" readOnly={!props.isEditingContact}
                                     onChange={e => {
                                         let contact = props.customer.selectedContact;
                                         contact.address2 = e.target.value;
@@ -379,7 +524,7 @@ function Contacts(props) {
 
                             <div className="field-container">
                                 <div className="field-title">City</div>
-                                <input type="text" readOnly={!isEditing}
+                                <input type="text" readOnly={!props.isEditingContact}
                                     onChange={e => {
                                         let contact = props.customer.selectedContact;
                                         contact.city = e.target.value;
@@ -391,7 +536,7 @@ function Contacts(props) {
 
                             <div className="field-container">
                                 <div className="field-title">State</div>
-                                <input type="text" readOnly={!isEditing}
+                                <input type="text" readOnly={!props.isEditingContact}
                                     onChange={e => {
                                         let contact = props.customer.selectedContact;
                                         contact.state = e.target.value;
@@ -404,7 +549,7 @@ function Contacts(props) {
 
                             <div className="field-container">
                                 <div className="field-title">Postal Code</div>
-                                <input type="text" readOnly={!isEditing}
+                                <input type="text" readOnly={!props.isEditingContact}
                                     onChange={e => {
                                         let contact = props.customer.selectedContact;
                                         contact.zip_code = e.target.value;
@@ -419,7 +564,7 @@ function Contacts(props) {
                                 <MaskedInput
                                     mask={[/[0-9]/, /\d/, '-', /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                     guide={true}
-                                    type="text" readOnly={!isEditing}
+                                    type="text" readOnly={!props.isEditingContact}
                                     onChange={e => {
                                         let contact = props.customer.selectedContact;
                                         contact.birthday = e.target.value;
@@ -431,7 +576,7 @@ function Contacts(props) {
 
                             <div className="field-container">
                                 <div className="field-title">Website</div>
-                                <input type="text" readOnly={!isEditing}
+                                <input type="text" readOnly={!props.isEditingContact}
                                     onChange={e => {
                                         let contact = props.customer.selectedContact;
                                         contact.website = e.target.value;
@@ -443,7 +588,7 @@ function Contacts(props) {
 
                             <div className="field-container">
                                 <div className="field-title">Notes</div>
-                                <input type="text" readOnly={!isEditing}
+                                <input type="text" readOnly={!props.isEditingContact}
                                     onChange={e => {
                                         let contact = props.customer.selectedContact;
                                         contact.notes = e.target.value;
@@ -458,7 +603,11 @@ function Contacts(props) {
 
                 <div className="footer">
                     <div className="left-buttons">
-                        <div className="mochi-button">
+                        <div className="mochi-button" onClick={() => {
+                            props.setContactSearchCustomer({...props.customer, selectedContact: {id: 0, customer_id: props.customer.id}});
+                            props.setIsEditingContact(true);
+                            refPrefix.current.focus();
+                        }}>
                             <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                             <div className="mochi-button-base">
                                 Add Contact
@@ -469,18 +618,19 @@ function Contacts(props) {
 
                     <div className="right-buttons">
                         {
-                            isEditing && 
-                            <span className="fas fa-save" onClick={() => {setIsEditing(false)}}></span>
+                            props.isEditingContact &&
+                            <span className="fas fa-save" onClick={saveContact}></span>
                         }
                         {
-                            !isEditing && 
-                            <span className="fas fa-pencil-alt" onClick={() => {setIsEditing(true)}}></span>
+                            !props.isEditingContact &&
+                            <span className="fas fa-pencil-alt" onClick={() => { props.setIsEditingContact(true) }} style={{
+                                color: props.customer.selectedContact.id !== undefined ? 'rgba(0,0,0,1)' : 'rgba(0,0,0,0.5)',
+                                pointerEvents: props.customer.selectedContact.id !== undefined ? 'all' : 'none'
+                            }}></span>
                         }
                     </div>
                 </div>
             </div>
-
-
         </div>
     )
 }
@@ -492,12 +642,15 @@ const mapStateToProps = state => {
         customer: state.customerReducers.contactSearchCustomer,
         selectedCustomer: state.customerReducers.selectedCustomer,
         selectedContact: state.customerReducers.selectedContact,
-        contacts: state.customerReducers.contacts
+        contacts: state.customerReducers.contacts,
+        isEditingContact: state.customerReducers.isEditingContact
     }
 }
 
 export default connect(mapStateToProps, {
     setCustomerPanels,
     setSelectedContact,
-    setContactSearchCustomer
+    setContactSearchCustomer,
+    setSelectedCustomer,
+    setIsEditingContact
 })(Contacts)

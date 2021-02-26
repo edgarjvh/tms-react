@@ -134,7 +134,7 @@ function ContactSearch(props) {
                             props.contacts.length > 0
                                 ? props.contacts.map((c, i) => {
                                     return (
-                                        <div className="trow" onClick={(e) => { rowClick(e, c) }}>
+                                        <div className="trow" onClick={(e) => { rowClick(e, c) }} key={i}>
                                             <div className="tcol first-name">{c.first_name}</div>
                                             <div className="tcol last-name">{c.last_name}</div>
                                             <div className="tcol address1">{c.address1}</div>

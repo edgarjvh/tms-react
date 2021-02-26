@@ -20,7 +20,8 @@ export const customerReducers = (state = {
     automaticEmailsBcc: '',
     showingContactList: true,
     contacts: [],
-    contactSearchCustomer: {selectedContact: {}},
+    isEditingContact: false,
+    contactSearchCustomer: { selectedContact: {} },
     panels: [
         {
             name: 'customer-search',
@@ -137,6 +138,12 @@ export const customerReducers = (state = {
             state = {
                 ...state,
                 contacts: action.payload
+            }
+            break;
+        case customersConstants.SET_IS_EDITING_CONTACT:
+            state = {
+                ...state,
+                isEditingContact: action.payload
             }
             break;
         case customersConstants.SET_CONTACT_SEARCH_CUSTOMER:
