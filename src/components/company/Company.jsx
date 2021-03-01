@@ -7,6 +7,7 @@ import axios from 'axios';
 
 import DispatchPage from './dispatch/Dispatch.jsx'; 
 import CustomersPage from './customers/Customers.jsx';
+import CarriersPage from './carriers/Carriers.jsx'
 
 function Company(props) {    
     const containerCls = classnames({
@@ -54,7 +55,7 @@ function Company(props) {
         if (!exist){
             curPages.push({
                 name: 'carriers',
-                component: <DispatchPage pageName={'Carriers Page'}/>
+                component: <CarriersPage pageName={'Carriers Page'}/>
             });
 
             props.setPages(curPages);
@@ -147,7 +148,7 @@ const mapStateToProps = state => {
         mainScreen: state.systemReducers.mainScreen,
         pages: state.companyReducers.pages,
         selectedPageIndex: state.companyReducers.selectedPageIndex,
-        scale: state.companyReducers.scale
+        scale: state.systemReducers.scale
     }
 }
 

@@ -15,9 +15,3 @@ export const setSelectedPageIndex = index => {
     }
 }
 
-export const setScale = scale => {
-    return {
-        type: companyConstants.SET_SCALE,
-        payload: scale
-    }
-}

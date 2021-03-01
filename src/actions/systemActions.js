@@ -6,3 +6,10 @@ export const setMainScreen = screen => {
         payload: screen
     }
 }
+
+export const setScale = scale => {
+    return {
+        type: systemConstants.SET_SCALE,
+        payload: scale
+    }
+}

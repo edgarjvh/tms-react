@@ -5,6 +5,7 @@ import $ from 'jquery';
 import Draggable from 'react-draggable';
 import './OrderHistory.css';
 import { setCustomerPanels } from './../../../../../actions';
+import MaskedInput from 'react-text-mask';
 
 function OrderHistory(props) {
 
@@ -29,7 +30,7 @@ function OrderHistory(props) {
             <div className="order-fields-container">
                 <div className="row-fields">
                     <div className="input-box-container date">
-                        <input type="text" placeholder="Date Start" />
+                        <MaskedInput mask={[/[0-9]/, /\d/, '-', /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]} guide={true} type="text" placeholder="Date Start" />
                     </div>
                     <div className="input-box-container city">
                         <input type="text" placeholder="City Origin" />
@@ -44,7 +45,7 @@ function OrderHistory(props) {
 
                 <div className="row-fields">
                     <div className="input-box-container date">
-                        <input type="text" placeholder="Date End" />
+                        <MaskedInput mask={[/[0-9]/, /\d/, '-', /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]} guide={true} type="text" placeholder="Date End" />
                     </div>
                     <div className="input-box-container city">
                         <input type="text" placeholder="City Destination" />

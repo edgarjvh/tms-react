@@ -2,8 +2,7 @@ import { companyConstants } from '../constants';
 
 export const companyReducers = (state = {
     pages: [],
-    selectedPageIndex: -1,
-    scale: 1
+    selectedPageIndex: -1    
 }, action) => {
     switch (action.type) {
         case companyConstants.SET_PAGES:
@@ -17,13 +16,7 @@ export const companyReducers = (state = {
                 ...state,
                 selectedPageIndex: action.payload
             }
-            break;
-        case companyConstants.SET_SCALE:
-            state = {
-                ...state,
-                scale: action.payload
-            }
-            break;
+            break;        
         default:
             break;
     }

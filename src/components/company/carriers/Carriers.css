@@ -1,0 +1,143 @@
+.carriers-main-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  font-size: 24px;
+  background-color: #d3d3d3;
+  transition: all ease 0.7s;
+  overflow: hidden;
+  padding: 10px;
+}
+.carriers-main-container .fields-container-row {
+  display: flex;
+  flex-grow: 1;
+  flex-basis: 100%;
+}
+.carriers-main-container .fields-container-row .fields-container-col {
+  margin-right: 10px;
+  display: flex;
+  min-width: 30%;
+  max-width: 30%;
+}
+.carriers-main-container .fields-container-row .fields-container-col.grow {
+  min-width: calc(10% - 30px);
+  max-width: calc(10% - 30px);
+  flex-direction: column;
+}
+.carriers-main-container .fields-container-row .fields-container-col.grow .form-borderless-box {
+  flex-grow: 1;
+}
+.carriers-main-container .fields-container-row .fields-container-col.grow .form-borderless-box .mochi-button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.5rem;
+  width: 100%;
+}
+.carriers-main-container .fields-container-row .fields-container-col.grow .form-borderless-box .mochi-button .mochi-button-base {
+  white-space: pre-wrap;
+}
+.carriers-main-container .form-slider {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.carriers-main-container .form-slider .form-slider-wrapper {
+  width: 200%;
+  position: absolute;
+  height: 100%;
+  left: 0;
+  display: flex;
+  transition: ease 0.3s;
+}
+.carriers-main-container .form-slider .form-slider-wrapper .contact-list-box {
+  width: 50%;
+  position: relative;
+}
+.carriers-main-container .form-slider .form-slider-wrapper .contact-list-box .contact-list-wrapper {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+}
+.carriers-main-container .form-slider .form-slider-wrapper .contact-list-box .contact-list-wrapper .contact-list-item {
+  font-size: 0.8rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 5px 0;
+  cursor: pointer;
+  transition: ease 0.3s;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 5px;
+}
+.carriers-main-container .form-slider .form-slider-wrapper .contact-list-box .contact-list-wrapper .contact-list-item:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+.carriers-main-container .form-slider .form-slider-wrapper .contact-search-box {
+  width: 50%;
+}
+.carriers-main-container .notes-list-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.carriers-main-container .notes-list-container .notes-list-wrapper {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+}
+.carriers-main-container .notes-list-container .notes-list-wrapper .notes-list-item {
+  font-size: 0.8rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 5px 0;
+  cursor: pointer;
+  transition: ease 0.3s;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.carriers-main-container .notes-list-container .notes-list-wrapper .notes-list-item:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+.carriers-main-container .directions-list-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.carriers-main-container .directions-list-container .directions-list-wrapper {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.carriers-main-container .directions-list-container .directions-list-wrapper .directions-list-item {
+  font-size: 0.8rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 5px 0;
+  cursor: pointer;
+  transition: ease 0.3s;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.carriers-main-container .directions-list-container .directions-list-wrapper .directions-list-item:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+.carriers-main-container .buttons-container {
+  display: flex;
+  flex-direction: column;
+  width: 130px;
+  margin-top: -5px;
+}
+.carriers-main-container .buttons-container > div {
+  margin-bottom: 20px;
+}

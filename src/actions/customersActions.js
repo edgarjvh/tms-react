@@ -90,3 +90,21 @@ export const setIsEditingContact = isEditing => {
         payload: isEditing
     }
 }
+export const setSelectedDocument = document => {
+    return {
+        type: customersConstants.SET_SELECTED_DOCUMENT,
+        payload: document
+    }
+}
+export const setDocumentTags = tags => {
+    return {
+        type: customersConstants.SET_DOCUMENT_TAGS,
+        payload: tags
+    }
+}
+export const setSelectedDocumentNote = note => {
+    return {
+        type: customersConstants.SET_SELECTED_DOCUMENT_NOTE,
+        payload: note
+    }
+}

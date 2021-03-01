@@ -7,7 +7,8 @@ import { useSpring, animated } from 'react-spring';
 import moment from 'moment';
 import CustomerPopup from './popup/Popup.jsx';
 import MaskedInput from 'react-text-mask';
-
+import PanelContainer from './panels/panel-container/PanelContainer.jsx';
+import CustomerModal from './modal/Modal.jsx';
 import {
     setCustomers,
     setSelectedCustomer,
@@ -23,18 +24,16 @@ import {
     setCustomerSearch,
     setCustomerContacts,
     setContactSearchCustomer,
-    setIsEditingContact
+    setIsEditingContact,
+    setSelectedDocument
 } from '../../../actions';
 
-import PanelContainer from './panels/panel-container/PanelContainer.jsx';
-import CustomerModal from './modal/Modal.jsx';
-
-function CustomersPage(props) {
+function Customers(props) {
     const [popupItems, setPopupItems] = useState([]);
     const [lastState, setLastState] = useState(0);
     const [automaticEmailsActiveInput, setAutomaticEmailsActiveInput] = useState('');
     const popupItemsRef = useRef([]);
-
+    const refPopup = useRef();
     const popupContainerClasses = classnames({
         'mochi-contextual-container': true,
         'shown': popupItems.length > 0
@@ -42,7 +41,6 @@ function CustomersPage(props) {
     const refAutomaticEmailsTo = useRef();
     const refAutomaticEmailsCc = useRef();
     const refAutomaticEmailsBcc = useRef();
-    const refPopup = useRef();
     var delayTimer;
 
     const modalTransitionProps = useSpring({ opacity: (props.selectedNote.id !== undefined || props.selectedDirection.id !== undefined) ? 1 : 0 });
@@ -145,8 +143,6 @@ function CustomersPage(props) {
             }
         });
     }
-
-
 
     const searchContactBtnClick = () => {
         let filters = [
@@ -254,18 +250,28 @@ function CustomersPage(props) {
     }
 
     const documentsBtnClick = () => {
-        let index = props.panels.length - 1;
-        let panels = props.panels.map((p, i) => {
-            if (p.name === 'documents') {
-                index = i;
-                p.isOpened = true;
-            }
-            return p;
-        });
+        if ((props.selectedCustomer.id || 0) > 0) {
+            props.setSelectedDocument({
+                id: 0,
+                user_id: Math.floor(Math.random() * (15 - 1)) + 1,
+                date_entered: moment().format('MM-DD-YYYY')
+            });
 
-        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
+            let index = props.panels.length - 1;
+            let panels = props.panels.map((p, i) => {
+                if (p.name === 'documents') {
+                    index = i;
+                    p.isOpened = true;
+                }
+                return p;
+            });
 
-        props.setCustomerPanels(panels);
+            panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
+
+            props.setCustomerPanels(panels);
+        } else {
+            window.alert('You must select a customer first!');
+        }
     }
 
     const validateCustomerForSaving = (e) => {
@@ -1036,6 +1042,20 @@ function CustomersPage(props) {
         }
 
         return formattedHour;
+    }
+
+    const printWindow = (data) => {
+        let mywindow = window.open('', 'new div', 'height=400,width=600');
+        mywindow.document.write('<html><head><title></title>');
+        mywindow.document.write('<link rel="stylesheet" href="../../css/index.css" type="text/css" media="all" />');
+        mywindow.document.write('</head><body >');
+        mywindow.document.write(data);
+        mywindow.document.write('</body></html>');
+        mywindow.document.close();
+        mywindow.focus();
+        setTimeout(function () { mywindow.print(); }, 1000);
+
+        return true;
     }
 
     return (
@@ -1934,7 +1954,22 @@ function CustomersPage(props) {
                                         <div className="mochi-button-base">Add note</div>
                                         <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
                                     </div>
-                                    <div className="mochi-button">
+                                    <div className="mochi-button" onClick={() => {
+                                        if (props.selectedCustomer.id === undefined || props.selectedCustomer.notes.length === 0) {
+                                            window.alert('There is nothing to print!');
+                                            return;
+                                        }
+
+                                        let html = ``;
+
+                                        props.selectedCustomer.notes.map((note, index) => {
+                                            html += `<div><b>${note.user}:${moment(note.date_time, 'YYYY-MM-DD HH:mm:ss').format('MM/DD/YYYY:HHmm')}</b> ${note.text}</div>`
+
+                                            return true;
+                                        })
+
+                                        printWindow(html);
+                                    }}>
                                         <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                         <div className="mochi-button-base">Print</div>
                                         <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
@@ -1949,7 +1984,7 @@ function CustomersPage(props) {
                                         (props.selectedCustomer.notes || []).map((note, index) => {
                                             return (
                                                 <div className="notes-list-item" key={index} onClick={() => props.setSelectedNote(note)}>
-                                                    {note.note}
+                                                    {note.text}
                                                 </div>
                                             )
                                         })
@@ -1974,7 +2009,22 @@ function CustomersPage(props) {
                                         <input type="checkbox" id="cbox-directions-print-on-rate" />
                                         <label htmlFor="cbox-directions-print-on-rate">Print directions on rate confirmation</label>
                                     </div>
-                                    <div className="mochi-button">
+                                    <div className="mochi-button" onClick={() => {
+                                        if (props.selectedCustomer.id === undefined || props.selectedCustomer.directions.length === 0) {
+                                            window.alert('There is nothing to print!');
+                                            return;
+                                        }
+
+                                        let html = ``;
+
+                                        props.selectedCustomer.directions.map((direction, index) => {
+                                            html += `<div> ${direction.text}</div>`
+
+                                            return true;
+                                        })
+
+                                        printWindow(html);
+                                    }}>
                                         <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                         <div className="mochi-button-base">Print</div>
                                         <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
@@ -1989,7 +2039,7 @@ function CustomersPage(props) {
                                         (props.selectedCustomer.directions || []).map((direction, index) => {
                                             return (
                                                 <div className="directions-list-item" key={index} onClick={() => props.setSelectedDirection(direction)}>
-                                                    {direction.direction}
+                                                    {direction.text}
                                                 </div>
                                             )
                                         })
@@ -2047,13 +2097,42 @@ function CustomersPage(props) {
 
             {
                 props.selectedNote.id !== undefined &&
-                <animated.div style={modalTransitionProps}><CustomerModal type='note' isEditable={false} isDeletable={false} isAdding={props.selectedNote.id === 0} /></animated.div>
+                <animated.div style={modalTransitionProps}>
+                    <CustomerModal
+                        selectedData={props.selectedNote}
+                        setSelectedData={props.setSelectedNote}                        
+                        selectedParent={props.selectedCustomer}
+                        setSelectedParent={(notes) => {
+                            props.setSelectedCustomer({ ...props.selectedCustomer, notes: notes });
+                        }}
+                        savingDataUrl='/saveCustomerNote'
+                        deletingDataUrl=''
+                        type='note'
+                        isEditable={false}
+                        isDeletable={false}
+                        isAdding={props.selectedNote.id === 0}
+                    />
+                </animated.div>
 
             }
 
             {
                 props.selectedDirection.id !== undefined &&
-                <animated.div style={modalTransitionProps}><CustomerModal type='direction' isEditable={true} isDeletable={true} isAdding={props.selectedDirection.id === 0} /></animated.div>
+                <animated.div style={modalTransitionProps}>
+                    <CustomerModal
+                        selectedData={props.selectedDirection}
+                        setSelectedData={props.setSelectedDirection}                        
+                        selectedParent={props.selectedCustomer}
+                        setSelectedParent={(directions) => {
+                            props.setSelectedCustomer({ ...props.selectedCustomer, directions: directions });
+                        }}
+                        savingDataUrl='/saveCustomerDirection'
+                        deletingDataUrl='/deleteCustomerDirection'
+                        type='direction'
+                        isEditable={true}
+                        isDeletable={true}
+                        isAdding={props.selectedDirection.id === 0} />
+                </animated.div>
             }
 
             <CustomerPopup
@@ -2072,7 +2151,7 @@ function CustomersPage(props) {
 
 const mapStateToProps = state => {
     return {
-        scale: state.companyReducers.scale,
+        scale: state.systemReducers.scale,
         customers: state.customerReducers.customers,
         contacts: state.customerReducers.contacts,
         selectedCustomer: state.customerReducers.selectedCustomer,
@@ -2086,7 +2165,8 @@ const mapStateToProps = state => {
         automaticEmailsCc: state.customerReducers.automaticEmailsCc,
         automaticEmailsBcc: state.customerReducers.automaticEmailsBcc,
         showingContactList: state.customerReducers.showingContactList,
-        customerSearch: state.customerReducers.customerSearch
+        customerSearch: state.customerReducers.customerSearch,
+        selectedDocument: state.customerReducers.selectedDocument
     }
 }
 
@@ -2105,5 +2185,6 @@ export default connect(mapStateToProps, {
     setCustomerSearch,
     setCustomerContacts,
     setContactSearchCustomer,
-    setIsEditingContact
-})(CustomersPage)
+    setIsEditingContact,
+    setSelectedDocument
+})(Customers)

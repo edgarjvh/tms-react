@@ -5,6 +5,7 @@ import $ from 'jquery';
 import Draggable from 'react-draggable';
 import './LaneHistory.css';
 import { setCustomerPanels } from './../../../../../actions';
+import MaskedInput from 'react-text-mask';
 
 function LaneHistory(props) {
     const closePanelBtnClick = () => {
@@ -27,7 +28,7 @@ function LaneHistory(props) {
             <div className="lane-fields-container">
                 <div className="row-fields">
                     <div className="input-box-container date">
-                        <input type="text" placeholder="Date Start" />
+                        <MaskedInput mask={[/[0-9]/, /\d/, '-', /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]} guide={true} type="text" placeholder="Date Start" />
                     </div>
                     <div className="input-box-container city">
                         <input type="text" placeholder="City Origin" />
@@ -42,7 +43,7 @@ function LaneHistory(props) {
 
                 <div className="row-fields">
                     <div className="input-box-container date">
-                        <input type="text" placeholder="Date End" />
+                        <MaskedInput mask={[/[0-9]/, /\d/, '-', /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]} guide={true} type="text" placeholder="Date End" />
                     </div>
                     <div className="input-box-container city">
                         <input type="text" placeholder="City Destination" />
@@ -58,14 +59,14 @@ function LaneHistory(props) {
             <div className="lane-info-container">
                 <div className="form-bordered-box">
                     <div className="form-header">
-                        <div className="top-border top-border-left"></div>                        
+                        <div className="top-border top-border-left"></div>
                         <div className="top-border top-border-middle"></div>
                         <div className="form-buttons">
                             <div className="mochi-button">
                                 <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                 <div className="mochi-button-base">Print</div>
                                 <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
-                            </div>                            
+                            </div>
                         </div>
                         <div className="top-border top-border-right"></div>
                     </div>

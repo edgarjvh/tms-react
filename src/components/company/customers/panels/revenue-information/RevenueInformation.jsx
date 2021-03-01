@@ -5,6 +5,7 @@ import $ from 'jquery';
 import Draggable from 'react-draggable';
 import './RevenueInformation.css';
 import { setCustomerPanels } from '../../../../../actions';
+import MaskedInput from 'react-text-mask';
 
 function RevenueInformation(props) {
     const closePanelBtnClick = () => {
@@ -27,7 +28,7 @@ function RevenueInformation(props) {
             <div className="revenue-fields-container">
                 <div className="row-fields">
                     <div className="input-box-container date">
-                        <input type="text" placeholder="Date Start" />
+                        <MaskedInput mask={[/[0-9]/, /\d/, '-', /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]} guide={true} type="text" placeholder="Date Start" />
                     </div>
                     <div className="input-box-container city">
                         <input type="text" placeholder="City Origin" />
@@ -42,7 +43,7 @@ function RevenueInformation(props) {
 
                 <div className="row-fields">
                     <div className="input-box-container date">
-                        <input type="text" placeholder="Date End" />
+                        <MaskedInput mask={[/[0-9]/, /\d/, '-', /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]} guide={true} type="text" placeholder="Date End" />
                     </div>
                     <div className="input-box-container city">
                         <input type="text" placeholder="City Destination" />

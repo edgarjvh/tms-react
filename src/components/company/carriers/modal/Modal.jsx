@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { connect } from 'react-redux';
 import $ from 'jquery';
 import './Modal.css';
-import { setSelectedCustomer, setSelectedNote, setSelectedDirection, setCustomers, setSelectedDocumentNote, setSelectedDocument } from './../../../../actions';
+// import { setSelectedCarrier, setSelectedNote, setSelectedDirection, setCustomers, setSelectedDocumentNote, setSelectedDocument } from './../../../../actions';
 import moment from 'moment';
 
 function Modal(props) {
@@ -24,7 +24,7 @@ function Modal(props) {
 
         $.post(props.serverUrl + props.savingDataUrl, {
             id: props.selectedData.id,
-            customer_id: props.selectedCustomer.id,
+            carrier_id: props.selectedCarrier.id,
             doc_id: props.selectedParent.id,
             text: props.selectedData.text,
             user: props.isAdding ? user : props.selectedData.user,
@@ -173,9 +173,9 @@ function Modal(props) {
 }
 
 const mapStateToProps = state => {
-    return {
+    return {        
         serverUrl: state.systemReducers.serverUrl,
-        selectedCustomer: state.customerReducers.selectedCustomer
+        selectedCarrier: state.carrierReducers.selectedCarrier
     }
 }
 

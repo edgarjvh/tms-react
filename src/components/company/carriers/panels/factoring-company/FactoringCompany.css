@@ -1,0 +1,80 @@
+.tbl {
+  width: 100%;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9rem;
+  margin-top: 20px;
+}
+.tbl .thead {
+  display: flex;
+  flex-direction: column;
+}
+.tbl .thead .trow {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+}
+.tbl .thead .trow .tcol {
+  font-weight: bold;
+}
+.tbl .tbody {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  position: relative;
+}
+.tbl .tbody .tbody-wrapper {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+.tbl .tbody .tbody-wrapper .trow {
+  cursor: pointer;
+  transition: ease 0.3s;
+}
+.tbl .tbody .tbody-wrapper .trow .tcol.code {
+  text-transform: uppercase;
+}
+.tbl .tbody .tbody-wrapper .trow .tcol.state {
+  text-transform: uppercase;
+}
+.tbl .tbody .tbody-wrapper .trow:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+.tbl .trow {
+  display: flex;
+  align-items: center;
+}
+.tbl .trow .tcol {
+  padding: 10px;
+}
+.tbl .trow .tcol.code {
+  min-width: 5.5rem;
+  max-width: 5.5rem;
+}
+.tbl .trow .tcol.name {
+  min-width: 15rem;
+  max-width: 15rem;
+}
+.tbl .trow .tcol.address1 {
+  min-width: 13rem;
+  max-width: 13rem;
+}
+.tbl .trow .tcol.address2 {
+  min-width: 13rem;
+  max-width: 13rem;
+}
+.tbl .trow .tcol.city {
+  min-width: 10rem;
+  max-width: 10rem;
+}
+.tbl .trow .tcol.state {
+  min-width: 4rem;
+  max-width: 4rem;
+}
+.tbl .trow .tcol.zip {
+  min-width: 6rem;
+  max-width: 6rem;
+}

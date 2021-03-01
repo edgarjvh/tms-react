@@ -1,11 +1,11 @@
 import { customersConstants } from '../constants';
-import CustomerSearch from '../components/company/customers/panels/customer-search/CustomerSearch';
-import ContactSearch from '../components/company/customers/panels/contact-search/ContactSearch';
-import RevenueInformation from '../components/company/customers/panels/revenue-information/RevenueInformation';
-import OrderHistory from '../components/company/customers/panels/order-history/OrderHistory';
-import LaneHistory from '../components/company/customers/panels/lane-history/LaneHistory';
-import Documents from '../components/company/customers/panels/documents/Documents';
-import Contacts from '../components/company/customers/panels/contacts/Contacts';
+import CustomerSearch from '../components/company/customers/panels/customer-search/CustomerSearch.jsx';
+import ContactSearch from '../components/company/customers/panels/contact-search/ContactSearch.jsx';
+import RevenueInformation from '../components/company/customers/panels/revenue-information/RevenueInformation.jsx';
+import OrderHistory from '../components/company/customers/panels/order-history/OrderHistory.jsx';
+import LaneHistory from '../components/company/customers/panels/lane-history/LaneHistory.jsx';
+import Documents from '../components/company/customers/panels/documents/Documents.jsx';
+import Contacts from '../components/company/customers/panels/contacts/Contacts.jsx';
 
 export const customerReducers = (state = {
     customers: [],
@@ -22,6 +22,9 @@ export const customerReducers = (state = {
     contacts: [],
     isEditingContact: false,
     contactSearchCustomer: { selectedContact: {} },
+    selectedDocument: {},
+    documentTags: '',
+    selectedDocumentNote: {},
     panels: [
         {
             name: 'customer-search',
@@ -150,6 +153,24 @@ export const customerReducers = (state = {
             state = {
                 ...state,
                 contactSearchCustomer: action.payload
+            }
+            break;
+        case customersConstants.SET_SELECTED_DOCUMENT:
+            state = {
+                ...state,
+                selectedDocument: action.payload
+            }
+            break;
+        case customersConstants.SET_DOCUMENT_TAGS:
+            state = {
+                ...state,
+                documentTags: action.payload
+            }
+            break;
+        case customersConstants.SET_SELECTED_DOCUMENT_NOTE:
+            state = {
+                ...state,
+                selectedDocumentNote: action.payload
             }
             break;
         case customersConstants.SET_CUSTOMER_PANELS:
