@@ -7,7 +7,9 @@ import axios from 'axios';
 
 import DispatchPage from './dispatch/Dispatch.jsx'; 
 import CustomersPage from './customers/Customers.jsx';
-import CarriersPage from './carriers/Carriers.jsx'
+import CarriersPage from './carriers/Carriers.jsx';
+import LoadBoardPage from './load-board/LoadBoard.jsx';
+import InvoicePage from './invoice/Invoice.jsx';
 
 function Company(props) {    
     const containerCls = classnames({
@@ -40,6 +42,28 @@ function Company(props) {
             props.setSelectedPageIndex(curPages.length - 1);
         }
     }
+    
+    const customersBtnClick = () => {
+        let curPages = props.pages;
+        let exist = false;
+
+        curPages.map((page, index) => {
+            if (page.name === 'customers'){
+                props.setSelectedPageIndex(index);
+                exist = true;
+            }
+        });
+
+        if (!exist){
+            curPages.push({
+                name: 'customers',
+                component: <CustomersPage pageName={'Customer Page'} />
+            });
+
+            props.setPages(curPages);
+            props.setSelectedPageIndex(curPages.length - 1);
+        }    
+    }
 
     const carriersBtnClick = () => {
         let curPages = props.pages;
@@ -63,12 +87,12 @@ function Company(props) {
         }
     }
 
-    const customersBtnClick = () => {
+    const loadBoardBtnClick = () => {
         let curPages = props.pages;
         let exist = false;
 
         curPages.map((page, index) => {
-            if (page.name === 'customers'){
+            if (page.name === 'load-board'){
                 props.setSelectedPageIndex(index);
                 exist = true;
             }
@@ -76,13 +100,35 @@ function Company(props) {
 
         if (!exist){
             curPages.push({
-                name: 'customers',
-                component: <CustomersPage pageName={'Customer Page'} />
+                name: 'load-board',
+                component: <LoadBoardPage pageName={'Load Board Page'}/>
             });
 
             props.setPages(curPages);
             props.setSelectedPageIndex(curPages.length - 1);
-        }    
+        }
+    }
+
+    const invoiceBtnClick = () => {
+        let curPages = props.pages;
+        let exist = false;
+
+        curPages.map((page, index) => {
+            if (page.name === 'invoice'){
+                props.setSelectedPageIndex(index);
+                exist = true;
+            }
+        });
+
+        if (!exist){
+            curPages.push({
+                name: 'invoice',
+                component: <InvoicePage pageName={'Invoice Page'}/>
+            });
+
+            props.setPages(curPages);
+            props.setSelectedPageIndex(curPages.length - 1);
+        }
     }
 
     const switchAppBtnClick = () => {
@@ -106,8 +152,8 @@ function Company(props) {
                         <div className="menu-btn" id="dispatch-btn" title="Dispatch" onClick={dispatchBtnClick}><span className="fas fa-truck-loading"></span></div>
                         <div className="menu-btn" id="customers-btn" title="Customers" onClick={customersBtnClick}><span className="fas fa-users"></span></div>
                         <div className="menu-btn" id="carriers-btn" title="Carriers" onClick={carriersBtnClick}><span className="fas fa-people-carry"></span></div>
-                        <div className="menu-btn" id="load-board-btn" title="Load Board" onClick={() => {}}><span className="fas fa-chart-area"></span></div>
-                        <div className="menu-btn" id="invoice-btn" title="Invoice"><span className="fas fa-file-invoice"></span></div>
+                        <div className="menu-btn" id="load-board-btn" title="Load Board" onClick={loadBoardBtnClick}><span className="fas fa-chart-area"></span></div>
+                        <div className="menu-btn" id="invoice-btn" title="Invoice" onClick={invoiceBtnClick}><span className="fas fa-file-invoice"></span></div>
                         <div className="menu-btn" id="switch-app-btn" title="Switch App" onClick={switchAppBtnClick}><span className="fas fa-exchange-alt"></span></div>
                     </div>
                 </div>

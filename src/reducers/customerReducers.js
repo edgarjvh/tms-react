@@ -30,43 +30,50 @@ export const customerReducers = (state = {
             name: 'customer-search',
             component: <CustomerSearch title='Customer Search Results' />,
             isOpened: false,
-            pos: -1
+            pos: -1,
+            maxWidth: 100
         },
         {
             name: 'customer-contacts',
             component: <Contacts title='Contacts' />,
             isOpened: false,
-            pos: -1
+            pos: -1,
+            maxWidth: 100
         },
         {
             name: 'customer-contact-search',
             component: <ContactSearch title='Contact Search Results' />,
             isOpened: false,
-            pos: -1
+            pos: -1,
+            maxWidth: 100
         },
         {
             name: 'revenue-information',
             component: <RevenueInformation title='Revenue Information' />,
             isOpened: false,
-            pos: -1
+            pos: -1,
+            maxWidth: 100
         },
         {
             name: 'order-history',
             component: <OrderHistory title='Order History' />,
             isOpened: false,
-            pos: -1
+            pos: -1,
+            maxWidth: 100
         },
         {
             name: 'lane-history',
             component: <LaneHistory title='Lane History' />,
             isOpened: false,
-            pos: -1
+            pos: -1,
+            maxWidth: 100
         },
         {
             name: 'documents',
             component: <Documents title='Documents' />,
             isOpened: false,
-            pos: -1
+            pos: -1,
+            maxWidth: 100
         }
     ]
 }, action) => {

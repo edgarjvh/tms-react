@@ -1500,6 +1500,7 @@ function Customers(props) {
                                 <div className="input-toggle-container">
                                     <input type="checkbox" id="cbox-automatic-emails-booked-load-btn"
                                         onChange={e => {
+                                            console.log('here');
                                             let automatic_emails = (props.selectedCustomer.automatic_emails || {});
                                             automatic_emails.automatic_emails_booked_load = e.target.checked ? 1 : 0;
                                             props.setSelectedCustomer({
@@ -2076,7 +2077,30 @@ function Customers(props) {
                     <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
                 </div>
 
-                <div className="mochi-button wrap">
+                <div className="mochi-button wrap" onClick={() => {
+                    if ((props.selectedCustomer.id || 0) === 0) {
+                        window.alert('There is nothing to print!');
+                        return;
+                    }
+
+                    let customer = { ...props.selectedCustomer };
+
+                    let html = ``;
+
+                    html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Code</span>: ${customer.code.toUpperCase() + (customer.code_number === 0 ? '' : customer.code_number)}</div>`;
+                    html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Name</span>: ${customer.name}</div>`;
+                    html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Address 1</span>: ${customer.address1}</div>`;
+                    html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Address 2</span>: ${customer.address2}</div>`;
+                    html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">City</span>: ${customer.city}</div>`;
+                    html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">State</span>: ${customer.state.toUpperCase()}</div>`;
+                    html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Postal Code</span>: ${customer.zip}</div>`;
+                    html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Contact Name</span>: ${customer.contact_name}</div>`;
+                    html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Contact Phone</span>: ${customer.contact_phone}</div>`;
+                    html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Contact Phone Ext</span>: ${customer.ext}</div>`;
+                    html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">E-Mail</span>: ${customer.email}</div>`;
+
+                    printWindow(html);
+                }}>
                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                     <div className="mochi-button-base">Print Customer Information</div>
                     <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
@@ -2100,7 +2124,7 @@ function Customers(props) {
                 <animated.div style={modalTransitionProps}>
                     <CustomerModal
                         selectedData={props.selectedNote}
-                        setSelectedData={props.setSelectedNote}                        
+                        setSelectedData={props.setSelectedNote}
                         selectedParent={props.selectedCustomer}
                         setSelectedParent={(notes) => {
                             props.setSelectedCustomer({ ...props.selectedCustomer, notes: notes });
@@ -2121,7 +2145,7 @@ function Customers(props) {
                 <animated.div style={modalTransitionProps}>
                     <CustomerModal
                         selectedData={props.selectedDirection}
-                        setSelectedData={props.setSelectedDirection}                        
+                        setSelectedData={props.setSelectedDirection}
                         selectedParent={props.selectedCustomer}
                         setSelectedParent={(directions) => {
                             props.setSelectedCustomer({ ...props.selectedCustomer, directions: directions });

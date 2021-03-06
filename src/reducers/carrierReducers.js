@@ -4,7 +4,9 @@ import ContactSearch from './../components/company/carriers/panels/contact-searc
 import Contacts from './../components/company/carriers/panels/contacts/Contacts.jsx';
 import FactoringCompanySearch from './../components/company/carriers/panels/factoring-company-search/FactoringCompanySearch.jsx';
 import FactoringCompany from './../components/company/carriers/panels/factoring-company/FactoringCompany.jsx';
-
+import Documents from './../components/company/carriers/panels/documents/Documents.jsx';
+import RevenueInformation from './../components/company/carriers/panels/revenue-information/RevenueInformation.jsx';
+import OrderHistory from './../components/company/carriers/panels/order-history/OrderHistory.jsx';
 
 export const carrierReducers = (state = {
     carriers: [],
@@ -29,6 +31,11 @@ export const carrierReducers = (state = {
     selectedEquipment: {},
     insuranceTypes: [],
     selectedInsuranceType: {},
+    carrierInsurances: [],
+    selectedInsurance: {},
+    selectedDocument: {},
+    documentTags: '',
+    selectedDocumentNote: {},
     panels: [
         {
             name: 'carrier-search',
@@ -64,6 +71,27 @@ export const carrierReducers = (state = {
             isOpened: false,
             pos: -1,
             maxWidth: 75
+        },
+        {
+            name: 'documents',
+            component: <Documents title='Documents' />,
+            isOpened: false,
+            pos: -1,
+            maxWidth: 100
+        },
+        {
+            name: 'revenue-information',
+            component: <RevenueInformation title='Revenue Information' />,
+            isOpened: false,
+            pos: -1,
+            maxWidth: 100
+        },
+        {
+            name: 'order-history',
+            component: <OrderHistory title='Order History' />,
+            isOpened: false,
+            pos: -1,
+            maxWidth: 100
         },
     ]
 }, action) => {
@@ -198,6 +226,36 @@ export const carrierReducers = (state = {
             state = {
                 ...state,
                 factoringCompanies: action.payload
+            }
+            break;
+        case carriersConstants.SET_CARRIER_INSURANCES:
+            state = {
+                ...state,
+                carrierInsurances: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_INSURANCE:
+            state = {
+                ...state,
+                selectedInsurance: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_DOCUMENT:
+            state = {
+                ...state,
+                selectedDocument: action.payload
+            }
+            break;
+        case carriersConstants.SET_DOCUMENT_TAGS:
+            state = {
+                ...state,
+                documentTags: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_DOCUMENT_NOTE:
+            state = {
+                ...state,
+                selectedDocumentNote: action.payload
             }
             break;
         case carriersConstants.SET_CARRIER_PANELS:

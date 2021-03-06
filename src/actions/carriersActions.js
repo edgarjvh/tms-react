@@ -138,3 +138,15 @@ export const setFactoringCompanies = factoringCompanies => {
         payload: factoringCompanies
     }
 }
+export const setCarrierInsurances = insurances => {
+    return {
+        type: carriersConstants.SET_CARRIER_INSURANCES,
+        payload: insurances
+    }
+}
+export const setSelectedInsurance = insurance => {
+    return {
+        type: carriersConstants.SET_SELECTED_INSURANCE,
+        payload: insurance
+    }
+}

@@ -30,7 +30,9 @@ import {
     setSelectedEquipment,
     setSelectedInsuranceType,
     setFactoringCompanySearch,
-    setFactoringCompanies
+    setFactoringCompanies,
+    setCarrierInsurances,
+    setSelectedInsurance
 } from '../../../actions';
 
 function Carriers(props) {
@@ -39,12 +41,15 @@ function Carriers(props) {
     const [popupActiveInput, setPopupActiveInput] = useState('');
     const refEquipment = useRef();
     const refInsuranceType = useRef();
+    const refInsuranceCompany = useRef();
     const popupItemsRef = useRef([]);
     const refPopup = useRef();
     const popupContainerClasses = classnames({
         'mochi-contextual-container': true,
         'shown': popupItems.length > 0
     });
+    const [driverPendingSave, setDriverPendingSave] = useState(false);
+    const [insurancePendingSave, setInsurancePendingSave] = useState(false);
     const [selectedEquipmentIndex, setSelectedEquipmentIndex] = useState(-1);
     var delayTimer;
 
@@ -158,6 +163,9 @@ function Carriers(props) {
                                 }
                                 return true;
                             });
+
+                            await props.setSelectedDriver({});
+                            await props.setSelectedInsurance({});
 
                         } else {
                             setInitialValues(false);
@@ -365,26 +373,21 @@ function Carriers(props) {
                 props.setSelectedDriver({ ...props.selectedDriver, equipment_id: item.id, equipment: item });
                 await setPopupItems([]);
                 break;
-
-            case 'insurance type':
-
+            case 'insurance-type':
+                props.setSelectedInsurance({ ...props.selectedInsurance, insurance_type_id: item.id, insurance_type: item });
+                await setPopupItems([]);
                 break;
-
+            case 'insurance-company':
+                props.setSelectedInsurance({ ...props.selectedInsurance, company: item.name });
+                await setPopupItems([]);
+                break;
             default:
 
                 break;
         }
-
-        // $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-        //     if (res.result === 'OK') {
-        //         console.log(res);
-        //     }
-        // });
-
-        // await setPopupItems([]);
     }
 
-    const equipmentOnKeydown = async (e) => {
+    const equipmentOnKeydown = (e) => {
         let key = e.keyCode || e.which;
         let selectedIndex = -1;
         let items = popupItems.map((a, b) => {
@@ -459,16 +462,29 @@ function Carriers(props) {
         }
 
         if (key === 13) {
-            await popupItems.map((item, index) => {
+            popupItems.map((item, index) => {
                 if (item.selected) {
-                    props.setSelectedDriver({ ...props.selectedDriver, equipment_id: item.id, equipment: item });
+                    props.setSelectedDriver({ ...props.selectedDriver, carrier_id: props.selectedCarrier.id, equipment_id: item.id, equipment: item });
+                    let driver = { ...props.selectedDriver, carrier_id: props.selectedCarrier.id, equipment_id: item.id, equipment: item };
+                    if (!driverPendingSave) {
+
+                        if ((driver.first_name || '').trim() !== '') {
+                            $.post(props.serverUrl + '/saveCarrierDriver', driver).then(res => {
+                                setDriverPendingSave(true);
+                                if (res.result === 'OK') {
+                                    props.setSelectedCarrier({ ...props.selectedCarrier, drivers: res.drivers });
+                                    props.setSelectedDriver({ ...res.driver });
+                                }
+                                setDriverPendingSave(false);
+                            });
+                        }
+                    }
                 }
 
-                // save driver
                 return true;
             });
 
-            await setPopupItems([]);
+            setPopupItems([]);
         }
 
         if (key === 9) {
@@ -476,30 +492,43 @@ function Carriers(props) {
                 if ((props.selectedDriver.equipment_id || 0) === 0) {
                     props.setSelectedDriver({ ...props.selectedDriver, equipment: {} });
                 } else {
-                    // save driver
+                    validateDriverForSaving({ keyCode: 9 });
                 }
             } else {
                 popupItems.map((item, index) => {
                     if (item.selected) {
-                        props.setSelectedDriver({ ...props.selectedDriver, equipment_id: item.id, equipment: item });
+                        props.setSelectedDriver({ ...props.selectedDriver, carrier_id: props.selectedCarrier.id, equipment_id: item.id, equipment: item });
+                        let driver = { ...props.selectedDriver, carrier_id: props.selectedCarrier.id, equipment_id: item.id, equipment: item };
+                        if (!driverPendingSave) {
 
-                        // save driver
+                            if ((driver.first_name || '').trim() !== '') {
+                                $.post(props.serverUrl + '/saveCarrierDriver', driver).then(res => {
+                                    setDriverPendingSave(true);
+                                    if (res.result === 'OK') {
+                                        props.setSelectedCarrier({ ...props.selectedCarrier, drivers: res.drivers });
+                                        props.setSelectedDriver({ ...res.driver });
+                                    }
+                                    setDriverPendingSave(false);
+                                });
+                            }
+                        }
                     }
+
+                    return true;
                 });
 
+                validateDriverForSaving({ keyCode: 9 });
                 setPopupItems([]);
             }
         }
-
-        if (key === 27) {
-            setPopupItems([]);
-        }
-
     }
 
+
+
     const onEquipmentInput = async (e) => {
+
         window.clearTimeout(delayTimer);
-        let equipment = props.selectedDriver.equipments || {};
+        let equipment = props.selectedDriver.equipment || {};
         equipment.name = e.target.value.trim();
         await props.setSelectedDriver({ ...props.selectedDriver, equipment_id: 0, equipment: equipment });
 
@@ -562,11 +591,9 @@ function Carriers(props) {
 
                         if (res.result === 'OK') {
                             if (res.equipments.length > 0) {
-                                let items = []
-
-                                res.equipments.map((equipment, i) => {
-                                    items.push({ ...equipment, selected: i === 0 });
-                                    return true;
+                                let items = res.equipments.map((equipment, i) => {
+                                    equipment.selected = i === 0;
+                                    return equipment;
                                 });
 
                                 await setPopupItems(e.target.value.trim() === '' ? [] : items);
@@ -577,6 +604,498 @@ function Carriers(props) {
                     });
                 }, 300);
             }
+        }
+    }
+
+    const onInsuranceCompanyInput = (e) => {
+        window.clearTimeout(delayTimer);
+        setPopupActiveInput('insurance-company');
+        props.setSelectedInsurance({ ...props.selectedInsurance, company: e.target.value.trim() });
+
+        if (e.target.value.trim() === '') {
+            setPopupItems([]);
+        } else {
+            delayTimer = window.setTimeout(() => {
+                $.post(props.serverUrl + '/getInsuranceCompanies', { company: e.target.value.trim() }).then(async res => {
+
+                    const input = refInsuranceCompany.current.getBoundingClientRect();
+
+                    let popup = refPopup.current;
+
+                    const { innerWidth, innerHeight } = window;
+
+                    let screenWSection = innerWidth / 3;
+
+                    popup && popup.childNodes[0].classList.add('vertical');
+
+                    if ((innerHeight - 170 - 30) <= input.top) {
+                        popup && popup.childNodes[0].classList.add('above');
+                    }
+
+                    if ((innerHeight - 170 - 30) > input.top) {
+                        popup && popup.childNodes[0].classList.add('below');
+                        popup && (popup.style.top = (input.top + 10) + 'px');
+                    }
+
+                    if (input.left <= (screenWSection * 1)) {
+                        popup && popup.childNodes[0].classList.add('right');
+                        popup && (popup.style.left = input.left + 'px');
+
+                        if (input.width < 70) {
+                            popup && (popup.style.left = (input.left - 60 + (input.width / 2)) + 'px');
+
+                            if (input.left < 30) {
+                                popup && popup.childNodes[0].classList.add('corner');
+                                popup && (popup.style.left = (input.left + (input.width / 2)) + 'px');
+                            }
+                        }
+                    }
+
+                    if (input.left <= (screenWSection * 2)) {
+                        popup && (popup.style.left = (input.left - 100) + 'px');
+                    }
+
+                    if (input.left > (screenWSection * 2)) {
+                        popup && popup.childNodes[0].classList.add('left');
+                        popup && (popup.style.left = (input.left - 200) + 'px');
+
+                        if ((innerWidth - input.left) < 100) {
+                            popup && popup.childNodes[0].classList.add('corner');
+                            popup && (popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px');
+                        }
+                    }
+
+                    if (res.result === 'OK') {
+                        if (res.companies.length > 0) {
+                            let items = res.companies.map((company, i) => {
+                                company.name = company.company;
+                                company.selected = i === 0;
+                                return company;
+                            });
+
+                            await setPopupItems(e.target.value.trim() === '' ? [] : items);
+                        } else {
+                            await setPopupItems([]);
+                        }
+                    }
+                })
+            }, 300)
+        }
+    }
+
+    const onInsuranceCompanyKeydown = (e) => {
+
+        let key = e.keyCode || e.which;
+        setPopupActiveInput('insurance-company');
+
+        if (e.target.value.trim() !== '') {
+            if (popupItems.length === 0) {
+                if (key === 38 || key === 40) { // arrow keys pressed
+                    e.preventDefault();
+                    delayTimer = window.setTimeout(() => {
+                        $.post(props.serverUrl + '/getInsuranceCompanies', { company: e.target.value.trim() }).then(async res => {
+                            const input = refInsuranceCompany.current.getBoundingClientRect();
+
+                            let popup = refPopup.current;
+
+                            const { innerWidth, innerHeight } = window;
+
+                            let screenWSection = innerWidth / 3;
+
+                            popup && popup.childNodes[0].classList.add('vertical');
+
+                            if ((innerHeight - 170 - 30) <= input.top) {
+                                popup && popup.childNodes[0].classList.add('above');
+                            }
+
+                            if ((innerHeight - 170 - 30) > input.top) {
+                                popup && popup.childNodes[0].classList.add('below');
+                                popup && (popup.style.top = (input.top + 10) + 'px');
+                            }
+
+                            if (input.left <= (screenWSection * 1)) {
+                                popup && popup.childNodes[0].classList.add('right');
+                                popup && (popup.style.left = input.left + 'px');
+
+                                if (input.width < 70) {
+                                    popup && (popup.style.left = (input.left - 60 + (input.width / 2)) + 'px');
+
+                                    if (input.left < 30) {
+                                        popup && popup.childNodes[0].classList.add('corner');
+                                        popup && (popup.style.left = (input.left + (input.width / 2)) + 'px');
+                                    }
+                                }
+                            }
+
+                            if (input.left <= (screenWSection * 2)) {
+                                popup && (popup.style.left = (input.left - 100) + 'px');
+                            }
+
+                            if (input.left > (screenWSection * 2)) {
+                                popup && popup.childNodes[0].classList.add('left');
+                                popup && (popup.style.left = (input.left - 200) + 'px');
+
+                                if ((innerWidth - input.left) < 100) {
+                                    popup && popup.childNodes[0].classList.add('corner');
+                                    popup && (popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px');
+                                }
+                            }
+
+                            if (res.result === 'OK') {
+                                if (res.companies.length > 0) {
+                                    let items = res.companies.map((company, i) => {
+                                        company.name = company.company;
+                                        company.selected = i === 0;
+                                        return company;
+                                    });
+
+                                    await setPopupItems(e.target.value.trim() === '' ? [] : items);
+                                } else {
+                                    await setPopupItems([]);
+                                }
+                            }
+                        })
+                    }, 100)
+                }
+            } else {
+                if (key === 38) { // arrow up
+                    e.preventDefault();
+                    let selectedIndex = -1;
+
+                    popupItems.map((item, index) => {
+                        if (item.selected) {
+                            selectedIndex = index;
+                        }
+                        return true;
+                    });
+
+                    if (selectedIndex === -1) {
+                        selectedIndex = 0;
+                    } else {
+                        if (selectedIndex === 0) {
+                            selectedIndex = popupItems.length - 1;
+                        } else {
+                            selectedIndex -= 1;
+                        }
+                    }
+
+                    setPopupItems(popupItems.map((item, index) => {
+                        item.selected = index === selectedIndex;
+                        return item;
+                    }));
+                }
+
+                if (key === 40) { // arrow down
+                    e.preventDefault();
+                    let selectedIndex = -1;
+
+                    popupItems.map((item, index) => {
+                        if (item.selected) {
+                            selectedIndex = index;
+                        }
+                        return true;
+                    });
+
+                    if (selectedIndex === -1) {
+                        selectedIndex = 0;
+                    } else {
+                        if (selectedIndex === popupItems.length - 1) {
+                            selectedIndex = 0;
+                        } else {
+                            selectedIndex += 1;
+                        }
+                    }
+
+                    setPopupItems(popupItems.map((item, index) => {
+                        item.selected = index === selectedIndex;
+                        return item;
+                    }));
+                }
+
+                if (key === 13 || key === 9) { // enter key                    
+                    popupItems.map(item => {
+                        if (item.selected) {
+                            props.setSelectedInsurance({ ...props.selectedInsurance, company: item.name });
+                        }
+                        return true;
+                    });
+
+                    setPopupItems([]);
+                }
+            }
+        }
+    }
+
+    const onInsuranceTypeKeydown = (e) => {
+
+        let key = e.key.toLowerCase();
+        setPopupActiveInput('insurance-type');
+        let selectedInsurance = props.selectedInsurance || { id: 0 };
+        let selectedIndex = -1;
+
+        const input = refInsuranceType.current.getBoundingClientRect();
+
+        let popup = refPopup.current;
+
+        const { innerWidth, innerHeight } = window;
+
+        let screenWSection = innerWidth / 3;
+
+        popup && popup.childNodes[0].classList.add('vertical');
+
+        if ((innerHeight - 170 - 30) <= input.top) {
+            popup && popup.childNodes[0].classList.add('above');
+        }
+
+        if ((innerHeight - 170 - 30) > input.top) {
+            popup && popup.childNodes[0].classList.add('below');
+            popup && (popup.style.top = (input.top + 10) + 'px');
+        }
+
+        if (input.left <= (screenWSection * 1)) {
+            popup && popup.childNodes[0].classList.add('right');
+            popup && (popup.style.left = input.left + 'px');
+
+            if (input.width < 70) {
+                popup && (popup.style.left = (input.left - 60 + (input.width / 2)) + 'px');
+
+                if (input.left < 30) {
+                    popup && popup.childNodes[0].classList.add('corner');
+                    popup && (popup.style.left = (input.left + (input.width / 2)) + 'px');
+                }
+            }
+        }
+
+        if (input.left <= (screenWSection * 2)) {
+            popup && (popup.style.left = (input.left - 100) + 'px');
+        }
+
+        if (input.left > (screenWSection * 2)) {
+            popup && popup.childNodes[0].classList.add('left');
+            popup && (popup.style.left = (input.left - 200) + 'px');
+
+            if ((innerWidth - input.left) < 100) {
+                popup && popup.childNodes[0].classList.add('corner');
+                popup && (popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px');
+            }
+        }
+
+        if (key === 'enter') {
+            if (popupItems.length > 0) {
+                popupItems.map((type, index) => {
+
+                    if (type.selected) {
+                        selectedInsurance.insurance_type_id = type.id;
+                        selectedInsurance.insurance_type = type;
+                        props.setSelectedInsurance(selectedInsurance);
+                    };
+
+                    return true;
+                });
+
+                setPopupItems([]);
+            }
+        } else if (key === 'c' || key === 'l' || key === 'w') {
+            setPopupItems(props.insuranceTypes.map((type, index) => {
+                type.selected = type.name.substring(0, 1).toLowerCase() === key;
+
+                if (type.selected) {
+                    selectedIndex = index;
+                    selectedInsurance.insurance_type_id = type.id;
+                    selectedInsurance.insurance_type = type;
+                    props.setSelectedInsurance(selectedInsurance);
+                }
+
+                return type;
+            }));
+        } else if (key === 'tab') {
+            setPopupItems([]);
+
+
+        } else if (key === 'arrowleft' || key === 'arrowup') {
+            if (popupItems.length === 0) {
+                if ((props.selectedInsurance.insurance_type?.name || '') !== '') {
+                    setPopupItems(props.insuranceTypes.map((type, index) => {
+                        if (props.selectedInsurance.insurance_type.name === type.name) {
+                            selectedIndex = index;
+                        }
+
+                        if (type.selected) {
+                            selectedInsurance.insurance_type_id = type.id;
+                            selectedInsurance.insurance_type = type;
+                            props.setSelectedInsurance(selectedInsurance);
+                        }
+
+                        return type;
+                    }));
+                } else {
+                    setPopupItems(props.insuranceTypes.map((type, index) => {
+                        type.selected = index === 0;
+                        selectedIndex = 0;
+
+                        console.log(type.selected);
+
+                        if (type.selected) {
+                            selectedInsurance.insurance_type_id = type.id;
+                            selectedInsurance.insurance_type = type;
+                            props.setSelectedInsurance(selectedInsurance);
+                        }
+
+                        return type;
+                    }));
+                }
+            } else {
+                popupItems.map((type, index) => {
+                    if (type.selected) selectedIndex = index;
+                    return true;
+                });
+
+                if (selectedIndex === -1) {
+                    selectedIndex = 0;
+                } else {
+                    if (selectedIndex === 0) {
+                        selectedIndex = popupItems.length - 1;
+                    } else {
+                        selectedIndex = selectedIndex - 1;
+                    }
+                }
+
+                setPopupItems(props.insuranceTypes.map((type, index) => {
+                    type.selected = index === selectedIndex;
+
+                    if (type.selected) {
+                        selectedInsurance.insurance_type_id = type.id;
+                        selectedInsurance.insurance_type = type;
+                        props.setSelectedInsurance(selectedInsurance);
+                    }
+
+                    return type;
+                }));
+            }
+        } else if (key === 'arrowright' || key === 'arrowdown') {
+            if (popupItems.length === 0) {
+                if ((props.selectedInsurance.insurance_type?.name || '') !== '') {
+                    setPopupItems(props.insuranceTypes.map((type, index) => {
+                        if (props.selectedInsurance.insurance_type.name === type.name) {
+                            selectedIndex = index;
+                        }
+
+                        if (type.selected) {
+                            selectedInsurance.insurance_type_id = type.id;
+                            selectedInsurance.insurance_type = type;
+                            props.setSelectedInsurance(selectedInsurance);
+                        }
+
+                        return type;
+                    }));
+                } else {
+                    setPopupItems(props.insuranceTypes.map((type, index) => {
+                        type.selected = index === 0;
+                        selectedIndex = 0;
+
+                        console.log(type.selected);
+
+                        if (type.selected) {
+                            selectedInsurance.insurance_type_id = type.id;
+                            selectedInsurance.insurance_type = type;
+                            props.setSelectedInsurance(selectedInsurance);
+                        }
+
+                        return type;
+                    }));
+                }
+            } else {
+                popupItems.map((type, index) => {
+                    if (type.selected) selectedIndex = index;
+                    return true;
+                });
+
+                if (selectedIndex === -1) {
+                    selectedIndex = 0;
+                } else {
+                    if (selectedIndex === popupItems.length - 1) {
+                        selectedIndex = 0;
+                    } else {
+                        selectedIndex = selectedIndex + 1;
+                    }
+                }
+
+                setPopupItems(props.insuranceTypes.map((type, index) => {
+                    type.selected = index === selectedIndex;
+
+                    if (type.selected) {
+                        selectedInsurance.insurance_type_id = type.id;
+                        selectedInsurance.insurance_type = type;
+                        props.setSelectedInsurance(selectedInsurance);
+                    }
+
+                    return type;
+                }));
+            }
+        } else if (key === 'click') {
+            if (popupItems.length === 0) {
+                if ((props.selectedInsurance.insurance_type?.name || '') !== '') {
+                    setPopupItems(props.insuranceTypes.map((type, index) => {
+                        if (props.selectedInsurance.insurance_type.name === type.name) {
+                            type.selected = true;
+                            selectedIndex = index;
+                        }
+
+                        if (type.selected) {
+                            selectedInsurance.insurance_type_id = type.id;
+                            selectedInsurance.insurance_type = type;
+                            props.setSelectedInsurance(selectedInsurance);
+                        }
+
+                        return type;
+                    }));
+                } else {
+                    setPopupItems(props.insuranceTypes.map((type, index) => {
+                        type.selected = index === 0;
+                        selectedIndex = 0;
+
+
+                        if (type.selected) {
+                            selectedInsurance.insurance_type_id = type.id;
+                            selectedInsurance.insurance_type = type;
+                            props.setSelectedInsurance(selectedInsurance);
+                        }
+
+                        return type;
+                    }));
+                }
+            } else {
+                popupItems.map((type, index) => {
+                    if (type.selected) selectedIndex = index;
+                    return true;
+                });
+
+                if (selectedIndex === -1) {
+                    selectedIndex = 0;
+                } else {
+                    if (selectedIndex === popupItems.length - 1) {
+                        selectedIndex = 0;
+                    } else {
+                        selectedIndex = selectedIndex + 1;
+                    }
+                }
+
+                setPopupItems(props.insuranceTypes.map((type, index) => {
+                    type.selected = index === selectedIndex;
+
+                    if (type.selected) {
+                        selectedInsurance.insurance_type_id = type.id;
+                        selectedInsurance.insurance_type = type;
+                        props.setSelectedInsurance(selectedInsurance);
+                    }
+
+                    return type;
+                }));
+            }
+        }
+
+        if (key !== 'tab') {
+            e.preventDefault();
         }
     }
 
@@ -836,6 +1355,137 @@ function Carriers(props) {
         return true;
     }
 
+
+    const validateDriverForSaving = (e) => {
+        let key = e.keyCode || e.which;
+
+        if (key === 9 && (props.selectedCarrier.id || 0) > 0) {
+            if (!driverPendingSave) {
+
+                let driver = { ...props.selectedDriver, carrier_id: props.selectedCarrier.id };
+
+                if ((driver.first_name || '').trim() !== '') {
+                    $.post(props.serverUrl + '/saveCarrierDriver', driver).then(res => {
+                        setDriverPendingSave(true);
+                        if (res.result === 'OK') {
+                            props.setSelectedCarrier({ ...props.selectedCarrier, drivers: res.drivers });
+                            props.setSelectedDriver({ ...res.driver });
+                        }
+                        setDriverPendingSave(false);
+                    });
+                }
+            }
+        }
+    }
+
+    const validateInsuranceForSaving = (e) => {
+        let key = e.keyCode || e.which;
+
+        if (key === 9 && (props.selectedCarrier.id || 0) > 0) {
+            if (!insurancePendingSave) {
+                console.log(props.selectedCarrier.id)
+
+                let insurance = { ...props.selectedInsurance, carrier_id: props.selectedCarrier.id };
+
+                if ((insurance.insurance_type_id || 0) >= 0 &&
+                    (insurance.company || '').trim() !== '' &&
+                    (insurance.expiration_date || '').trim() !== '' &&
+                    (insurance.amount || '').trim() !== '') {
+
+                    setInsurancePendingSave(true);
+                    $.post(props.serverUrl + '/saveInsurance', insurance).then(res => {
+                        if (res.result === 'OK') {
+                            props.setSelectedCarrier({ ...props.selectedCarrier, insurances: res.insurances });
+                            props.setSelectedInsurance({ ...props.selectedInsurance, id: res.insurance.id });
+                        }
+                        setInsurancePendingSave(false);
+                    });
+                }
+            }
+        }
+    }
+
+    const insuranceStatusClasses = () => {
+        let classes = 'input-box-container insurance-status';
+        let curDate = moment().startOf('day');
+        let curDate2 = moment();
+        let futureMonth = curDate2.add(1, 'M');
+        let statusClass = '';
+
+        (props.selectedCarrier.insurances || []).map((insurance, index) => {
+            let expDate = moment(insurance.expiration_date, 'MM/DD/YYYY');
+
+            if (expDate < curDate) {
+                statusClass = 'expired';
+            } else if (expDate >= curDate && expDate <= futureMonth) {
+                if (statusClass !== 'expired') {
+                    statusClass = 'warning';
+                }
+            } else {
+                if (statusClass !== 'expired' && statusClass !== 'warning') {
+                    statusClass = 'active';
+                }
+            }
+        })
+
+        return classes + ' ' + statusClass;
+    }
+
+    const documentsBtnClick = () => {
+        if ((props.selectedCarrier.id || 0) > 0) {
+            props.setSelectedDocument({
+                id: 0,
+                user_id: Math.floor(Math.random() * (15 - 1)) + 1,
+                date_entered: moment().format('MM-DD-YYYY')
+            });
+
+            let index = props.panels.length - 1;
+            let panels = props.panels.map((p, i) => {
+                if (p.name === 'documents') {
+                    index = i;
+                    p.isOpened = true;
+                }
+                return p;
+            });
+
+            panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
+
+            props.setCarrierPanels(panels);
+        } else {
+            window.alert('You must select a carrier first!');
+        }
+    }
+
+    const revenueInformationBtnClick = () => {
+        let index = props.panels.length - 1;
+        let panels = props.panels.map((p, i) => {
+            if (p.name === 'revenue-information') {
+                index = i;
+                p.isOpened = true;
+            }
+            return p;
+        });
+
+        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
+
+        props.setCarrierPanels(panels);
+    }
+
+    const orderHistoryBtnClick = () => {
+        let index = props.panels.length - 1;
+        let panels = props.panels.map((p, i) => {
+            if (p.name === 'order-history') {
+                index = i;
+                p.isOpened = true;
+            }
+            return p;
+        });
+
+        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
+
+        props.setCarrierPanels(panels);
+    }
+
     return (
         <div className="carriers-main-container" style={{
             borderRadius: props.scale === 1 ? 0 : '20px'
@@ -984,7 +1634,7 @@ function Carriers(props) {
                                 }}
                                 value={props.selectedCarrier.fid || ''} />
                         </div>
-                        <div className="input-box-container" style={{ width: '100%' }}>
+                        <div className={insuranceStatusClasses()} style={{ width: '100%' }}>
                             <input type="text" placeholder='Insurance' readOnly={true} />
                         </div>
                     </div>
@@ -1244,22 +1894,40 @@ function Carriers(props) {
                     </div>
                 </div>
 
-                <div className="fields-container-col">
+                <div className="fields-container-col"  style={{minWidth: '28%', maxWidth: '28%'}}>
                     <div className="form-bordered-box">
                         <div className="form-header">
                             <div className="top-border top-border-left"></div>
-                            <div className="form-title">Drivers</div>
+                            <div className="form-title">Driver Information</div>
                             <div className="top-border top-border-middle"></div>
                             <div className="form-buttons">
                                 <div className="mochi-button" onClick={() => {
+                                    if ((props.selectedCarrier.id || 0) === 0) {
+                                        window.alert('You must selecte a carrier first!');
+                                        return;
+                                    }
 
+                                    if ((props.selectedDriver.id || 0) === 0) {
+                                        window.alert('You must selecte a driver first!');
+                                        return;
+                                    }
+
+                                    if (window.confirm('Are you sure to delete this driver?')) {
+                                        $.post(props.serverUrl + '/deleteCarrierDriver', props.selectedDriver).then(res => {
+                                            if (res.result === 'OK') {
+                                                console.log(res);
+                                                props.setSelectedCarrier({ ...props.selectedCarrier, drivers: res.drivers });
+                                                props.setSelectedDriver({});
+                                            }
+                                        })
+                                    }
                                 }}>
                                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                     <div className="mochi-button-base">Delete</div>
                                     <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
                                 </div>
 
-                                <div className="mochi-button" onClick={() => { }}>
+                                <div className="mochi-button" onClick={() => { props.setSelectedDriver({}) }}>
                                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                     <div className="mochi-button-base">Clear</div>
                                     <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
@@ -1270,15 +1938,15 @@ function Carriers(props) {
 
                         <div className="form-row">
                             <div className="input-box-container grow">
-                                <input type="text" placeholder="First Name" onKeyDown={(e) => { }} onChange={e => {
+                                <input type="text" placeholder="First Name" onKeyDown={validateDriverForSaving} onChange={e => {
                                     props.setSelectedDriver({ ...props.selectedDriver, first_name: e.target.value })
                                 }} value={props.selectedDriver.first_name || ''} />
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container grow">
-                                <input type="text" placeholder="Last Name" onKeyDown={(e) => { }} onChange={e => {
+                                <input type="text" placeholder="Last Name" onKeyDown={validateDriverForSaving} onChange={e => {
                                     props.setSelectedDriver({ ...props.selectedDriver, last_name: e.target.value })
-                                }} value={props.selectedContact.last_name || ''} />
+                                }} value={props.selectedDriver.last_name || ''} />
                             </div>
                         </div>
 
@@ -1289,7 +1957,7 @@ function Carriers(props) {
                                 <MaskedInput
                                     mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                     guide={true}
-                                    type="text" placeholder="Phone" onKeyDown={(e) => { }} onChange={e => {
+                                    type="text" placeholder="Phone" onKeyDown={validateDriverForSaving} onChange={e => {
                                         props.setSelectedDriver({ ...props.selectedDriver, phone: e.target.value })
                                     }} value={props.selectedDriver.phone || ''} />
                             </div>
@@ -1297,7 +1965,7 @@ function Carriers(props) {
                             <div className="form-h-sep"></div>
 
                             <div className="input-box-container" style={{ flexGrow: 1 }}>
-                                <input type="text" placeholder="E-mail" style={{ textTransform: 'lowercase' }} onKeyDown={(e) => { }} onChange={e => {
+                                <input type="text" placeholder="E-mail" style={{ textTransform: 'lowercase' }} onKeyDown={validateDriverForSaving} onChange={e => {
                                     props.setSelectedDriver({ ...props.selectedDriver, email: e.target.value })
                                 }} value={props.selectedDriver.email || ''} />
                             </div>
@@ -1323,19 +1991,22 @@ function Carriers(props) {
                                     transform: `translateY(-50%)`,
                                     fontSize: '1.1rem',
                                     cursor: 'pointer'
+                                }} onClick={() => {
+                                    onEquipmentInput({ target: { value: refEquipment.current.value } });
+                                    refEquipment.current.focus();
                                 }}></span>
                             </div>
                         </div>
                         <div className="form-v-sep"></div>
                         <div className="form-row">
                             <div className="input-box-container grow">
-                                <input type="text" placeholder="Truck" onKeyDown={(e) => { }} onChange={e => {
+                                <input type="text" placeholder="Truck" onKeyDown={validateDriverForSaving} onChange={e => {
                                     props.setSelectedDriver({ ...props.selectedDriver, truck: e.target.value })
                                 }} value={props.selectedDriver.truck || ''} />
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container grow">
-                                <input type="text" placeholder="Trailer" onKeyDown={(e) => { }} onChange={e => {
+                                <input type="text" placeholder="Trailer" onKeyDown={validateDriverForSaving} onChange={e => {
                                     props.setSelectedDriver({ ...props.selectedDriver, trailer: e.target.value })
                                 }} value={props.selectedContact.trailer || ''} />
                             </div>
@@ -1343,7 +2014,7 @@ function Carriers(props) {
                         <div className="form-v-sep"></div>
                         <div className="form-row">
                             <div className="input-box-container grow">
-                                <input type="text" placeholder="Notes" onKeyDown={(e) => { }} onChange={e => {
+                                <input type="text" placeholder="Notes" onKeyDown={validateDriverForSaving} onChange={e => {
                                     props.setSelectedDriver({ ...props.selectedDriver, notes: e.target.value })
                                 }} value={props.selectedDriver.notes || ''} />
                             </div>
@@ -1503,7 +2174,34 @@ function Carriers(props) {
                         alignItems: 'center',
                         padding: '15px 5px'
                     }}>
-                        <div className="mochi-button">
+                        <div className="mochi-button" onClick={() => {
+                            if ((props.selectedCarrier.id || 0) === 0) {
+                                window.alert('There is nothing to print!');
+                                return;
+                            }
+
+                            let carrier = { ...props.selectedCarrier };
+
+                            let html = ``;
+
+                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Code</span>: ${carrier.code.toUpperCase() + (carrier.code_number === 0 ? '' : carrier.code_number)}</div>`;
+                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Name</span>: ${carrier.name}</div>`;
+                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Address 1</span>: ${carrier.address1}</div>`;
+                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Address 2</span>: ${carrier.address2}</div>`;
+                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">City</span>: ${carrier.city}</div>`;
+                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">State</span>: ${carrier.state.toUpperCase()}</div>`;
+                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Postal Code</span>: ${carrier.zip}</div>`;
+                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Contact Name</span>: ${carrier.contact_name}</div>`;
+                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Contact Phone</span>: ${carrier.contact_phone}</div>`;
+                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Contact Phone Ext</span>: ${carrier.ext}</div>`;
+                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">E-Mail</span>: ${carrier.email}</div>`;
+                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">MC Number</span>: ${carrier.mc_number}</div>`;
+                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">DOT Number</span>: ${carrier.dot_number}</div>`;
+                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">SCAC</span>: ${carrier.scac}</div>`;
+                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">FID</span>: ${carrier.fid}</div>`;
+
+                            printWindow(html);
+                        }}>
                             <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                             <div className="mochi-button-base">Print Carrier Information</div>
                             <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
@@ -1515,19 +2213,19 @@ function Carriers(props) {
                             <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
                         </div>
 
-                        <div className="mochi-button">
+                        <div className="mochi-button" onClick={revenueInformationBtnClick}>
                             <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                             <div className="mochi-button-base">Revenue Information</div>
                             <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
                         </div>
 
-                        <div className="mochi-button">
+                        <div className="mochi-button" onClick={orderHistoryBtnClick}>
                             <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                             <div className="mochi-button-base">Order History</div>
                             <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
                         </div>
 
-                        <div className="mochi-button">
+                        <div className="mochi-button" onClick={documentsBtnClick}>
                             <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                             <div className="mochi-button-base">Documents</div>
                             <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
@@ -1549,7 +2247,7 @@ function Carriers(props) {
                             <div className="form-title">Insurances</div>
                             <div className="top-border top-border-middle"></div>
                             <div className="form-buttons">
-                                <div className="mochi-button" onClick={() => props.setSelectedContact({})}>
+                                <div className="mochi-button" onClick={() => props.setSelectedInsurance({})}>
                                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                     <div className="mochi-button-base">Clear</div>
                                     <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
@@ -1559,52 +2257,58 @@ function Carriers(props) {
                         </div>
 
                         <div className="form-row">
-                            <div className="input-box-container grow">
+                            <div className="input-box-container" style={{ position: 'relative', width: '10rem' }}>
+                                <input type="text" placeholder="Type"
+                                    ref={refInsuranceType}
+                                    onKeyDown={onInsuranceTypeKeydown}
+                                    onInput={() => { }}
+                                    onChange={() => { }}
+                                    value={props.selectedInsurance.insurance_type?.name || ''} />
 
-
-                                <input type="text" placeholder="First Name" onKeyDown={validateContactForSaving} onChange={e => {
-
-                                    props.setSelectedContact({ ...props.selectedContact, first_name: e.target.value })
-                                }} value={props.selectedContact.first_name || ''} />
-
-
+                                <span className="fas fa-chevron-down" style={{
+                                    position: 'absolute',
+                                    right: 10,
+                                    top: '50%',
+                                    transform: `translateY(-50%)`,
+                                    fontSize: '1.1rem',
+                                    cursor: 'pointer'
+                                }} onClick={() => {
+                                    refInsuranceType.current.focus();
+                                    onInsuranceTypeKeydown({ key: 'click', preventDefault: () => { } });
+                                }}></span>
 
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container grow">
-                                <input type="text" placeholder="Last Name" onKeyDown={validateContactForSaving} onChange={e => props.setSelectedContact({ ...props.selectedContact, last_name: e.target.value })} value={props.selectedContact.last_name || ''} />
+                                <input type="text" placeholder="Company"
+                                    ref={refInsuranceCompany}
+                                    onKeyDown={onInsuranceCompanyKeydown}
+                                    onInput={onInsuranceCompanyInput}
+                                    // onChange={onInsuranceCompanyInput}
+                                    value={props.selectedInsurance.company || ''} />
                             </div>
                         </div>
                         <div className="form-v-sep"></div>
                         <div className="form-row">
-                            <div className="input-box-container" style={{ width: '50%' }}>
+                            <div className="input-box-container grow">
                                 <MaskedInput
-                                    mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
+                                    mask={[/[0-9]/, /\d/, '-', /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                     guide={true}
-                                    type="text" placeholder="Phone" onKeyDown={validateContactForSaving} onChange={e => props.setSelectedContact({ ...props.selectedContact, phone_work: e.target.value })} value={props.selectedContact.phone_work || ''} />
+                                    type="text" placeholder="Expiration Date" onKeyDown={validateInsuranceForSaving} onChange={e => props.setSelectedInsurance({ ...props.selectedInsurance, expiration_date: e.target.value })} value={props.selectedInsurance.expiration_date || ''} />
                             </div>
                             <div className="form-h-sep"></div>
-                            <div style={{ width: '50%', display: 'flex', justifyContent: 'space-between' }}>
-                                <div className="input-box-container input-phone-ext">
-                                    <input type="text" placeholder="Ext" onKeyDown={validateContactForSaving} onChange={e => props.setSelectedContact({ ...props.selectedContact, phone_ext: e.target.value })} value={props.selectedContact.phone_ext || ''} />
-                                </div>
-                                <div className="input-toggle-container">
-                                    <input type="checkbox" id="cbox-carrier-contacts-primary-btn" onChange={selectedContactIsPrimaryChange} checked={(props.selectedContact.is_primary || 0) === 1} />
-                                    <label htmlFor="cbox-carrier-contacts-primary-btn">
-                                        <div className="label-text">Primary</div>
-                                        <div className="input-toggle-btn"></div>
-                                    </label>
-                                </div>
+                            <div className="input-box-container grow">
+                                <input type="text" placeholder="Amount" onKeyDown={validateInsuranceForSaving} onChange={e => props.setSelectedInsurance({ ...props.selectedInsurance, amount: e.target.value })} value={props.selectedInsurance.amount || ''} />
+                            </div>
+                            <div className="form-h-sep"></div>
+                            <div className="input-box-container grow">
+                                <input type="text" placeholder="Deductible" onKeyDown={validateInsuranceForSaving} onChange={e => props.setSelectedInsurance({ ...props.selectedInsurance, deductible: e.target.value })} value={props.selectedInsurance.deductible || ''} />
                             </div>
                         </div>
                         <div className="form-v-sep"></div>
                         <div className="form-row">
                             <div className="input-box-container grow">
-                                <input type="text" placeholder="E-Mail" onKeyDown={validateContactForSaving} onChange={e => props.setSelectedContact({ ...props.selectedContact, email_work: e.target.value })} value={props.selectedContact.email_work || ''} />
-                            </div>
-                            <div className="form-h-sep"></div>
-                            <div className="input-box-container grow">
-                                <input type="text" placeholder="Notes" onKeyDown={validateContactForSaving} onChange={e => props.setSelectedContact({ ...props.selectedContact, notes: e.target.value })} value={props.selectedContact.notes || ''} />
+                                <input type="text" placeholder="Notes" onKeyDown={validateInsuranceForSaving} onChange={e => props.setSelectedInsurance({ ...props.selectedInsurance, notes: e.target.value })} value={props.selectedInsurance.notes || ''} />
                             </div>
                         </div>
                     </div>
@@ -1618,49 +2322,25 @@ function Carriers(props) {
                             <div className="top-border top-border-right"></div>
                         </div>
 
-                        <div className="form-slider">
-                            <div className="form-slider-wrapper" style={{ left: props.showingContactList ? 0 : '-100%' }}>
-                                <div className="contact-list-box">
-                                    <div className="contact-list-wrapper">
-                                        {
-                                            (props.selectedCarrier.contacts || []).map((contact, index) => {
-                                                return (
-                                                    <div className="contact-list-item" key={index} onDoubleClick={async () => {
-
-                                                        let index = props.panels.length - 1;
-                                                        let panels = props.panels.map((p, i) => {
-                                                            if (p.name === 'carrier-contacts') {
-                                                                index = i;
-                                                                p.isOpened = true;
-                                                            }
-                                                            return p;
-                                                        });
-
-                                                        await props.setIsEditingContact(false);
-                                                        await props.setContactSearchCarrier({ ...props.selectedCarrier, selectedContact: contact });
-
-                                                        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                                                        props.setCarrierPanels(panels);
-                                                    }} onClick={() => props.setSelectedContact(contact)}>
-                                                        <span>
-                                                            {contact.first_name + (contact.middle_name === '' ? '' : ' ' + contact.middle_name) + ' ' + contact.last_name + ' ' + contact.phone_work + ' ' + contact.email_work}
-                                                        </span>
-                                                        {
-                                                            (contact.is_primary === 1) &&
-                                                            <span className='fas fa-check'></span>
-                                                        }
-                                                    </div>
-                                                )
-                                            })
-                                        }
-                                    </div>
-                                </div>
+                        <div className="insurances-list-container">
+                            <div className="insurances-list-wrapper">
+                                {
+                                    (props.selectedCarrier.insurances || []).map((insurance, index) => {
+                                        return (
+                                            <div className="insurances-list-item" key={index} onClick={() => props.setSelectedInsurance({ ...insurance })}>
+                                                <span>
+                                                    <b>{insurance.insurance_type.name}</b> {insurance.company} <b>{insurance.expiration_date}</b> {insurance.amount}
+                                                </span>
+                                            </div>
+                                        )
+                                    })
+                                }
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="fields-container-col">
+                <div className="fields-container-col"  style={{minWidth: '28%', maxWidth: '28%'}}>
                     <div className="form-bordered-box" style={{
                         flexGrow: 1
                     }}>
@@ -1669,7 +2349,33 @@ function Carriers(props) {
                             <div className="form-title">Drivers</div>
                             <div className="top-border top-border-middle"></div>
                             <div className="form-buttons">
-                                <div className="mochi-button" onClick={() => { }}>
+                                <div className="mochi-button" onClick={() => {
+                                    if ((props.selectedCarrier.id || 0) === 0 || props.selectedCarrier.drivers.length === 0) {
+                                        window.alert('There is nothing to print!');
+                                        return;
+                                    }
+
+                                    let html = ``;
+
+                                    props.selectedCarrier.drivers.map((driver, index) => {
+                                        html += `
+                                        <div style="margin-bottom: 15px">
+                                            <div><b>First Name</b>: ${(driver.first_name || '')}</div>
+                                            <div><b>Last Name</b>: ${(driver.Last_name || '')}</div>
+                                            <div><b>Phone</b>: ${(driver.phone || '')}</div>
+                                            <div><b>E-Mail</b>: ${(driver.email || '')}</div>
+                                            <div><b>Equipment</b>: ${(driver.equipment?.name || '')}</div>
+                                            <div><b>Truck</b>: ${(driver.truck || '')}</div>
+                                            <div><b>Trailer</b>: ${(driver.trailer || '')}</div>
+                                            <div><b>Notes</b>: ${(driver.notes || '')}</div>
+                                        </div>`
+
+                                        return true;
+                                    });
+
+
+                                    printWindow(html);
+                                }}>
                                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                     <div className="mochi-button-base">Print</div>
                                     <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
@@ -1678,12 +2384,14 @@ function Carriers(props) {
                             <div className="top-border top-border-right"></div>
                         </div>
 
-                        <div className="driver-list-box">
-                            <div className="driver-list-wrapper">
+                        <div className="drivers-list-container">
+                            <div className="drivers-list-wrapper">
                                 {
                                     (props.selectedCarrier.drivers || []).map((driver, index) => {
                                         return (
-                                            <div className="driver-list-item" key={index} onClick={() => { }}>
+                                            <div className="drivers-list-item" key={index} onClick={() => {
+                                                props.setSelectedDriver({ ...driver });
+                                            }}>
                                                 <span>
                                                     {driver.first_name + ' ' + driver.last_name + ' ' + driver.phone + ' ' + driver.email}
                                                 </span>
@@ -1844,7 +2552,7 @@ function Carriers(props) {
                             <div className="top-border top-border-middle"></div>
                             <div className="form-buttons">
                                 <div className="mochi-button" onClick={() => {
-                                    if ((props.selectedCarrier.id || 0) === 0){
+                                    if ((props.selectedCarrier.id || 0) === 0) {
                                         window.alert('You must select a carrier first!');
                                         return;
                                     }
@@ -1894,8 +2602,8 @@ function Carriers(props) {
                         </div>
                     </div>
                 </div>
-                <div className="fields-container-col">
-                <div className="form-bordered-box" >
+                <div className="fields-container-col"  style={{minWidth: '28%', maxWidth: '28%'}}>
+                    <div className="form-bordered-box" >
                         <div className="form-header">
                             <div className="top-border top-border-left"></div>
                             <div className="form-title">Past Orders</div>
@@ -1906,7 +2614,13 @@ function Carriers(props) {
                                     <div className="mochi-button-base">Search</div>
                                     <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
                                 </div>
-                                <div className="mochi-button">
+                                <div className="mochi-button" onClick={() => {
+                                    if (props.selectedCarrier.id === undefined || (props.selectedCarrier.past_orders || []).length === 0) {
+                                        window.alert('There is nothing to print!');
+                                        return;
+                                    }
+
+                                }}>
                                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                     <div className="mochi-button-base">Print</div>
                                     <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
@@ -1915,7 +2629,7 @@ function Carriers(props) {
                             <div className="top-border top-border-right"></div>
                         </div>
 
-                        
+
                     </div>
                 </div>
             </div>
@@ -1925,7 +2639,7 @@ function Carriers(props) {
                 <animated.div style={modalTransitionProps}>
                     <CarrierModal
                         selectedData={props.selectedNote}
-                        setSelectedData={props.setSelectedNote}                        
+                        setSelectedData={props.setSelectedNote}
                         selectedParent={props.selectedCarrier}
                         setSelectedParent={(notes) => {
                             props.setSelectedCarrier({ ...props.selectedCarrier, notes: notes });
@@ -1979,7 +2693,9 @@ const mapStateToProps = state => {
         selectedEquipment: state.carrierReducers.selectedEquipment,
         selectedInsuranceType: state.carrierReducers.selectedInsuranceType,
         factoringCompanySearch: state.carrierReducers.factoringCompanySearch,
-        factoringCompanies: state.carrierReducers.factoringCompanies
+        factoringCompanies: state.carrierReducers.factoringCompanies,
+        carrierInsurances: state.carrierReducers.carrierInsurances,
+        selectedInsurance: state.carrierReducers.selectedInsurance
     }
 }
 
@@ -2003,5 +2719,7 @@ export default connect(mapStateToProps, {
     setSelectedEquipment,
     setSelectedInsuranceType,
     setFactoringCompanySearch,
-    setFactoringCompanies
+    setFactoringCompanies,
+    setCarrierInsurances,
+    setSelectedInsurance
 })(Carriers)

@@ -1,5 +1,5 @@
 import { createStore, combineReducers, applyMiddleware } from 'redux';
-import {systemReducers,companyReducers, customerReducers, carrierReducers } from './reducers';
+import {systemReducers,companyReducers, customerReducers, carrierReducers, invoiceReducers, dispatchReducers } from './reducers';
 import thunk from 'redux-thunk';
 
 export const store = createStore(
@@ -7,7 +7,9 @@ export const store = createStore(
         systemReducers,
         companyReducers,
         customerReducers,
-        carrierReducers
+        carrierReducers,
+        invoiceReducers,
+        dispatchReducers
     })
     // applyMiddleware(thunk)
 );

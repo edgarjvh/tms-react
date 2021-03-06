@@ -22,8 +22,8 @@
   max-width: 30%;
 }
 .carriers-main-container .fields-container-row .fields-container-col.grow {
-  min-width: calc(10% - 30px);
-  max-width: calc(10% - 30px);
+  min-width: calc(12% - 30px);
+  max-width: calc(12% - 30px);
   flex-direction: column;
 }
 .carriers-main-container .fields-container-row .fields-container-col.grow .form-borderless-box {
@@ -33,11 +33,26 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   width: 100%;
 }
 .carriers-main-container .fields-container-row .fields-container-col.grow .form-borderless-box .mochi-button .mochi-button-base {
   white-space: pre-wrap;
+}
+.carriers-main-container .input-box-container.insurance-status {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+.carriers-main-container .input-box-container.insurance-status input:read-only {
+  color: black;
+}
+.carriers-main-container .input-box-container.insurance-status.active {
+  background-color: lightgreen;
+}
+.carriers-main-container .input-box-container.insurance-status.warning {
+  background-color: yellow;
+}
+.carriers-main-container .input-box-container.insurance-status.expired {
+  background-color: lightcoral !important;
 }
 .carriers-main-container .form-slider {
   position: relative;
@@ -82,6 +97,54 @@
 }
 .carriers-main-container .form-slider .form-slider-wrapper .contact-search-box {
   width: 50%;
+}
+.carriers-main-container .drivers-list-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.carriers-main-container .drivers-list-container .drivers-list-wrapper {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+}
+.carriers-main-container .drivers-list-container .drivers-list-wrapper .drivers-list-item {
+  font-size: 0.8rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 5px 0;
+  cursor: pointer;
+  transition: ease 0.3s;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.carriers-main-container .drivers-list-container .drivers-list-wrapper .drivers-list-item:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+.carriers-main-container .insurances-list-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.carriers-main-container .insurances-list-container .insurances-list-wrapper {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+}
+.carriers-main-container .insurances-list-container .insurances-list-wrapper .insurances-list-item {
+  font-size: 0.8rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 5px 0;
+  cursor: pointer;
+  transition: ease 0.3s;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.carriers-main-container .insurances-list-container .insurances-list-wrapper .insurances-list-item:hover {
+  background-color: rgba(0, 0, 0, 0.1);
 }
 .carriers-main-container .notes-list-container {
   width: 100%;

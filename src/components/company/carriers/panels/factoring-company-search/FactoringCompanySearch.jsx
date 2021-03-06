@@ -38,7 +38,7 @@ function FactoringCompanySearch(props) {
         
         clickCount++;
 
-        window.setTimeout(async () => {
+        window.setTimeout(() => {
             if (clickCount === 1) {
                 let index = props.panels.length - 1;
                 let panels = props.panels.map((p, i) => {
@@ -53,9 +53,9 @@ function FactoringCompanySearch(props) {
 
                 props.setCarrierPanels(panels);
             } else {
-                await props.setSelectedCarrier({...props.setSelectedCarrier, factoring_company: f});
+                 props.setSelectedCarrier({...props.selectedCarrier, factoring_company: f});
 
-                await props.setFactoringCompanySearch([]);  
+                 props.setFactoringCompanySearch([]);  
 
                 closePanelBtnClick();
             }
@@ -117,7 +117,7 @@ function FactoringCompanySearch(props) {
                             props.factoringCompanies.length > 0
                                 ? props.factoringCompanies.map((f, i) => {
                                     return (
-                                        <div className="trow" onClick={(e) => { rowClick(e, f) }} key={i}>
+                                        <div className="trow" onClick={(e) => { rowClick(e, {...f}) }} key={i}>
                                             <div className="tcol code">{f.code + (f.code_number === 0 ? '' : f.code_number)}</div>
                                             <div className="tcol name">{f.name}</div>
                                             <div className="tcol address1">{f.address1}</div>
@@ -143,7 +143,8 @@ const mapStateToProps = state => {
         panels: state.carrierReducers.panels,
         carriers: state.carrierReducers.carriers,
         factoringCompanySearch: state.carrierReducers.factoringCompanySearch,
-        factoringCompanies: state.carrierReducers.factoringCompanies
+        factoringCompanies: state.carrierReducers.factoringCompanies,
+        selectedCarrier: state.carrierReducers.selectedCarrier
     }
 }
 
