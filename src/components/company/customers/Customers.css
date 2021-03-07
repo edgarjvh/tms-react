@@ -66,7 +66,7 @@
   overflow-y: auto;
 }
 .customers-main-container .fields-container .form-slider .form-slider-wrapper .contact-list-box .contact-list-wrapper .contact-list-item {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   padding: 5px 0;
   cursor: pointer;
@@ -97,7 +97,7 @@
   overflow-y: auto;
 }
 .customers-main-container .fields-container .notes-list-container .notes-list-wrapper .notes-list-item {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   padding: 5px 0;
   cursor: pointer;
@@ -122,7 +122,7 @@
   overflow-x: hidden;
 }
 .customers-main-container .fields-container .directions-list-container .directions-list-wrapper .directions-list-item {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   padding: 5px 0;
   cursor: pointer;

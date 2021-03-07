@@ -48,6 +48,31 @@ function Modal(props) {
         }
     }
 
+    const printData = () => {
+        if ((props.selectedData.text || '').trim() === ''){
+            window.alert('There is nothing to print!');
+            return;
+        }
+
+        let html = `<div><b>${props.selectedData.user}:${moment(props.selectedData.date_time, 'YYYY-MM-DD HH:mm:ss').format('MM/DD/YYYY:HHmm')}</b> ${props.selectedData.text}</div>`;
+
+        printWindow(html);
+    }
+
+    const printWindow = (data) => {
+        let mywindow = window.open('', 'new div', 'height=400,width=600');
+        mywindow.document.write('<html><head><title></title>');
+        mywindow.document.write('<link rel="stylesheet" href="../../css/index.css" type="text/css" media="all" />');
+        mywindow.document.write('</head><body >');
+        mywindow.document.write(data);
+        mywindow.document.write('</body></html>');
+        mywindow.document.close();
+        mywindow.focus();
+        setTimeout(function () { mywindow.print(); }, 1000);
+
+        return true;
+    }
+
     const getinitials = (length) => {
         let result = "";
         // ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789;
@@ -133,9 +158,20 @@ function Modal(props) {
                                 </div>
                             }
                             {
+                                (props.isPrintable && !isEditing && !props.isAdding) &&
+                                <div className="mochi-button" style={{
+                                    marginRight: 5
+                                }}
+                                    onClick={printData}>
+                                    <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
+                                    <div className="mochi-button-base">Print</div>
+                                    <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
+                                </div>
+                            }
+                            {
                                 (props.isEditable && !isEditing && !props.isAdding) &&
                                 <div className="mochi-button" onClick={() => {
-                                    props.setSelectedData({...props.selectedData, oldText: props.selectedData.text})
+                                    props.setSelectedData({ ...props.selectedData, oldText: props.selectedData.text })
                                     setIsEditing(true);
                                 }}>
                                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
@@ -148,8 +184,8 @@ function Modal(props) {
                                 <div className="mochi-button" style={{
                                     marginRight: 5
                                 }} onClick={() => {
-                                    props.setSelectedData({...props.selectedData, text: props.selectedData.oldText})
-                                    setIsEditing(false);                                   
+                                    props.setSelectedData({ ...props.selectedData, text: props.selectedData.oldText })
+                                    setIsEditing(false);
                                 }}>
                                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                     <div className="mochi-button-base">Cancel</div>
@@ -173,7 +209,7 @@ function Modal(props) {
 }
 
 const mapStateToProps = state => {
-    return {        
+    return {
         serverUrl: state.systemReducers.serverUrl,
         selectedCarrier: state.carrierReducers.selectedCarrier
     }

@@ -36,3 +36,51 @@
   display: flex;
   flex-direction: column;
 }
+.dispatch-main-container .notes-for-carrier-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.dispatch-main-container .notes-for-carrier-container .notes-for-carrier-wrapper {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+}
+.dispatch-main-container .notes-for-carrier-container .notes-for-carrier-wrapper .notes-for-carrier-item {
+  font-size: 0.7rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 5px 0;
+  cursor: pointer;
+  transition: ease 0.3s;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.dispatch-main-container .notes-for-carrier-container .notes-for-carrier-wrapper .notes-for-carrier-item:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+.dispatch-main-container .internal-notes-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.dispatch-main-container .internal-notes-container .internal-notes-wrapper {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+}
+.dispatch-main-container .internal-notes-container .internal-notes-wrapper .internal-notes-item {
+  font-size: 0.7rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 5px 0;
+  cursor: pointer;
+  transition: ease 0.3s;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.dispatch-main-container .internal-notes-container .internal-notes-wrapper .internal-notes-item:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}

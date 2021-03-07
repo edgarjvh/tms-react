@@ -6,6 +6,8 @@ import MaskedInput from 'react-text-mask';
 import PanelContainer from './panels/panel-container/PanelContainer.jsx';
 import $ from 'jquery';
 import DispatchPopup from './popup/Popup.jsx';
+import DispatchModal from './modal/Modal.jsx';
+import { useSpring, animated } from 'react-spring';
 
 import {
     setDispatchPanels,
@@ -66,6 +68,8 @@ import {
 } from './../../../actions';
 
 function Dispatch(props) {
+
+    const modalTransitionProps = useSpring({ opacity: (props.selectedNoteForCarrier.id !== undefined || props.selectedInternalNote.id !== undefined) ? 1 : 0 });
 
     const refPopup = useRef();
     const [popupItems, setPopupItems] = useState([]);
@@ -734,7 +738,7 @@ function Dispatch(props) {
         let key = e.keyCode || e.which;
 
         if (key === 9) {
-            if (e.target.value.trim() !== '') {
+            if (e.target.value !== '') {
 
                 $.post(props.serverUrl + '/customers', {
                     code: e.target.value.toLowerCase()
@@ -771,7 +775,7 @@ function Dispatch(props) {
         let key = e.keyCode || e.which;
 
         if (key === 9) {
-            if (e.target.value.trim() !== '') {
+            if (e.target.value !== '') {
 
                 $.post(props.serverUrl + '/customers', {
                     code: e.target.value.toLowerCase()
@@ -808,7 +812,7 @@ function Dispatch(props) {
         let key = e.keyCode || e.which;
 
         if (key === 9) {
-            if (e.target.value.trim() !== '') {
+            if (e.target.value !== '') {
 
                 $.post(props.serverUrl + '/customers', {
                     code: e.target.value.toLowerCase()
@@ -1010,13 +1014,13 @@ function Dispatch(props) {
                             <div className="form-borderless-box">
                                 <div className="form-row" style={{ display: 'flex', justifyContent: 'space-between' }}>
                                     <div className="input-box-container" style={{ width: '9rem' }}>
-                                        <input type="text" placeholder='A/E Number' onChange={(e) => { props.setAeNumber(e.target.value.trim()) }} value={props.ae_number || ''} />
+                                        <input type="text" placeholder='A/E Number' onChange={(e) => { props.setAeNumber(e.target.value) }} value={props.ae_number || ''} />
                                     </div>
                                     <div className="input-box-container" style={{ width: '9rem' }}>
-                                        <input type="text" placeholder='Order Number' onChange={(e) => { props.setOrderNumber(e.target.value.trim()) }} value={props.order_number || ''} />
+                                        <input type="text" placeholder='Order Number' onChange={(e) => { props.setOrderNumber(e.target.value) }} value={props.order_number || ''} />
                                     </div>
                                     <div className="input-box-container" style={{ width: '9rem' }}>
-                                        <input type="text" placeholder='Trip Number' onChange={(e) => { props.setTripNumber(e.target.value.trim()) }} value={props.trip_number || ''} />
+                                        <input type="text" placeholder='Trip Number' onChange={(e) => { props.setTripNumber(e.target.value) }} value={props.trip_number || ''} />
                                     </div>
                                     <div className="mochi-button">
                                         <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
@@ -1164,16 +1168,16 @@ function Dispatch(props) {
                                 <div className="input-box-container input-code">
                                     <input type="text" placeholder="Code" maxLength="8"
                                         onKeyDown={getBillToCompanyByCode}
-                                        onInput={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, code: e.target.value.toUpperCase() }) }}
-                                        onChange={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, code: e.target.value.toUpperCase() }) }}
+                                        onInput={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, code: e.target.value }) }}
+                                        onChange={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, code: e.target.value }) }}
                                         value={props.selectedBillToCompanyInfo.code || ''}
                                     />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container grow">
                                     <input type="text" placeholder="Name"
-                                        onInput={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, name: e.target.value.toUpperCase() }) }}
-                                        onChange={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, name: e.target.value.toUpperCase() }) }}
+                                        onInput={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, name: e.target.value }) }}
+                                        onChange={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, name: e.target.value }) }}
                                         value={props.selectedBillToCompanyInfo.name || ''}
                                     />
                                 </div>
@@ -1182,8 +1186,8 @@ function Dispatch(props) {
                             <div className="form-row">
                                 <div className="input-box-container grow">
                                     <input type="text" placeholder="Address 1"
-                                        onInput={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, address1: e.target.value.toUpperCase() }) }}
-                                        onChange={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, address1: e.target.value.toUpperCase() }) }}
+                                        onInput={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, address1: e.target.value }) }}
+                                        onChange={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, address1: e.target.value }) }}
                                         value={props.selectedBillToCompanyInfo.address1 || ''}
                                     />
                                 </div>
@@ -1192,8 +1196,8 @@ function Dispatch(props) {
                             <div className="form-row">
                                 <div className="input-box-container grow">
                                     <input type="text" placeholder="Address 2"
-                                        onInput={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, address2: e.target.value.toUpperCase() }) }}
-                                        onChange={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, address2: e.target.value.toUpperCase() }) }}
+                                        onInput={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, address2: e.target.value }) }}
+                                        onChange={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, address2: e.target.value }) }}
                                         value={props.selectedBillToCompanyInfo.address2 || ''}
                                     />
                                 </div>
@@ -1202,24 +1206,24 @@ function Dispatch(props) {
                             <div className="form-row">
                                 <div className="input-box-container grow">
                                     <input type="text" placeholder="City"
-                                        onInput={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, city: e.target.value.toUpperCase() }) }}
-                                        onChange={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, city: e.target.value.toUpperCase() }) }}
+                                        onInput={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, city: e.target.value }) }}
+                                        onChange={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, city: e.target.value }) }}
                                         value={props.selectedBillToCompanyInfo.city || ''}
                                     />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-state">
                                     <input type="text" placeholder="State" maxLength="2"
-                                        onInput={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, state: e.target.value.toUpperCase() }) }}
-                                        onChange={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, state: e.target.value.toUpperCase() }) }}
+                                        onInput={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, state: e.target.value }) }}
+                                        onChange={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, state: e.target.value }) }}
                                         value={props.selectedBillToCompanyInfo.state || ''}
                                     />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-zip-code">
                                     <input type="text" placeholder="Postal Code"
-                                        onInput={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, zip: e.target.value.toUpperCase() }) }}
-                                        onChange={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, zip: e.target.value.toUpperCase() }) }}
+                                        onInput={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, zip: e.target.value }) }}
+                                        onChange={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, zip: e.target.value }) }}
                                         value={props.selectedBillToCompanyInfo.zip || ''}
                                     />
                                 </div>
@@ -1228,8 +1232,8 @@ function Dispatch(props) {
                             <div className="form-row">
                                 <div className="input-box-container grow">
                                     <input type="text" placeholder="Contact Name"
-                                        onInput={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, contact_name: e.target.value.toUpperCase() }) }}
-                                        onChange={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, contact_name: e.target.value.toUpperCase() }) }}
+                                        onInput={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, contact_name: e.target.value }) }}
+                                        onChange={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, contact_name: e.target.value }) }}
                                         value={props.selectedBillToCompanyInfo.contact_name || ''}
                                     />
                                 </div>
@@ -1239,16 +1243,16 @@ function Dispatch(props) {
                                         mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                         guide={true}
                                         type="text" placeholder="Contact Phone"
-                                        onInput={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, contact_phone: e.target.value.toUpperCase() }) }}
-                                        onChange={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, contact_phone: e.target.value.toUpperCase() }) }}
+                                        onInput={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, contact_phone: e.target.value }) }}
+                                        onChange={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, contact_phone: e.target.value }) }}
                                         value={props.selectedBillToCompanyInfo.contact_phone || ''}
                                     />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-phone-ext">
                                     <input type="text" placeholder="Ext"
-                                        onInput={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, ext: e.target.value.toUpperCase() }) }}
-                                        onChange={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, ext: e.target.value.toUpperCase() }) }}
+                                        onInput={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, ext: e.target.value }) }}
+                                        onChange={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, ext: e.target.value }) }}
                                         value={props.selectedBillToCompanyInfo.ext || ''}
                                     />
                                 </div>
@@ -1414,15 +1418,30 @@ function Dispatch(props) {
                                         <div className='form-title'>Notes for Carrier on Rate Conf</div>
                                         <div className='top-border top-border-middle'></div>
                                         <div className='form-buttons'>
-                                            <div className='mochi-button'>
+                                            <div className='mochi-button' onClick={() => {
+                                                props.setSelectedNoteForCarrier({ id: 0 });
+                                            }}>
                                                 <div className='mochi-button-decorator mochi-button-decorator-left'>(</div>
-                                                <div className='mochi-button-base'>Add Note</div>
+                                                <div className='mochi-button-base'>Add note</div>
                                                 <div className='mochi-button-decorator mochi-button-decorator-right'>)</div>
                                             </div>
                                         </div>
                                         <div className='top-border top-border-right'></div>
                                     </div>
 
+                                    <div className="notes-for-carrier-container">
+                                        <div className="notes-for-carrier-wrapper">
+                                            {
+                                                (props.notesForCarrier || []).map((note, index) => {
+                                                    return (
+                                                        <div className="notes-for-carrier-item" key={index} onClick={() => props.setSelectedNoteForCarrier(note)}>
+                                                            {note.text}
+                                                        </div>
+                                                    )
+                                                })
+                                            }
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1430,7 +1449,19 @@ function Dispatch(props) {
                 </div>
 
                 <div className="fields-container-col" style={{ display: 'flex', flexDirection: 'column', width: '10%', justifyContent: 'space-between', alignItems: 'flex-end', padding: '2px 0 10px 0' }}>
-                    <div className='mochi-button'>
+                    <div className='mochi-button' onClick={() => {
+                        let index = props.panels.length - 1;
+                        let panels = props.panels.map((p, i) => {
+                            if (p.name === 'rate-conf') {
+                                index = i;
+                                p.isOpened = true;
+                            }
+                            return p;
+                        });
+
+                        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
+                        props.setDispatchPanels(panels);
+                    }}>
                         <div className='mochi-button-decorator mochi-button-decorator-left'>(</div>
                         <div className='mochi-button-base'>Rate Conf</div>
                         <div className='mochi-button-decorator mochi-button-decorator-right'>)</div>
@@ -1452,17 +1483,53 @@ function Dispatch(props) {
                         <div className='mochi-button-base'>Print Order</div>
                         <div className='mochi-button-decorator mochi-button-decorator-right'>)</div>
                     </div>
-                    <div className='mochi-button'>
+                    <div className='mochi-button' onClick={() => {
+                        let index = props.panels.length - 1;
+                        let panels = props.panels.map((p, i) => {
+                            if (p.name === 'bol') {
+                                index = i;
+                                p.isOpened = true;
+                            }
+                            return p;
+                        });
+
+                        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
+                        props.setDispatchPanels(panels);
+                    }}>
                         <div className='mochi-button-decorator mochi-button-decorator-left'>(</div>
                         <div className='mochi-button-base'>Print BOL</div>
                         <div className='mochi-button-decorator mochi-button-decorator-right'>)</div>
                     </div>
-                    <div className='mochi-button'>
+                    <div className='mochi-button' onClick={() => {
+                        let index = props.panels.length - 1;
+                        let panels = props.panels.map((p, i) => {
+                            if (p.name === 'documents') {
+                                index = i;
+                                p.isOpened = true;
+                            }
+                            return p;
+                        });
+
+                        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
+                        props.setDispatchPanels(panels);
+                    }}>
                         <div className='mochi-button-decorator mochi-button-decorator-left'>(</div>
                         <div className='mochi-button-base'>Documents</div>
                         <div className='mochi-button-decorator mochi-button-decorator-right'>)</div>
                     </div>
-                    <div className='mochi-button'>
+                    <div className='mochi-button' onClick={() => {
+                        let index = props.panels.length - 1;
+                        let panels = props.panels.map((p, i) => {
+                            if (p.name === 'load-board') {
+                                index = i;
+                                p.isOpened = true;
+                            }
+                            return p;
+                        });
+
+                        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
+                        props.setDispatchPanels(panels);
+                    }}>
                         <div className='mochi-button-decorator mochi-button-decorator-left'>(</div>
                         <div className='mochi-button-base'>Load Board</div>
                         <div className='mochi-button-decorator mochi-button-decorator-right'>)</div>
@@ -1490,49 +1557,61 @@ function Dispatch(props) {
 
             <div className="fields-container-row" style={{ display: 'flex', alignSelf: 'flex-start', minWidth: '70%', maxWidth: '69%', alignItems: 'center' }}>
                 <div className="input-box-container grow">
-                    <input type="text" placeholder="PU 1" onChange={(e) => { props.setPu1(e.target.value.trim()) }} value={props.pu1 || ''} />
+                    <input type="text" placeholder="PU 1" onChange={(e) => { props.setPu1(e.target.value) }} value={props.pu1 || ''} />
                 </div>
                 <div className="form-h-sep"></div>
                 <div className="input-box-container grow">
-                    <input type="text" placeholder="PU 2" onChange={(e) => { props.setPu2(e.target.value.trim()) }} value={props.pu2 || ''} />
+                    <input type="text" placeholder="PU 2" onChange={(e) => { props.setPu2(e.target.value) }} value={props.pu2 || ''} />
                 </div>
                 <div className="form-h-sep"></div>
                 <div className="input-box-container grow">
-                    <input type="text" placeholder="PU 3" onChange={(e) => { props.setPu3(e.target.value.trim()) }} value={props.pu3 || ''} />
+                    <input type="text" placeholder="PU 3" onChange={(e) => { props.setPu3(e.target.value) }} value={props.pu3 || ''} />
                 </div>
                 <div className="form-h-sep"></div>
                 <div className="input-box-container grow">
-                    <input type="text" placeholder="PU 4" onChange={(e) => { props.setPu4(e.target.value.trim()) }} value={props.pu4 || ''} />
+                    <input type="text" placeholder="PU 4" onChange={(e) => { props.setPu4(e.target.value) }} value={props.pu4 || ''} />
                 </div>
                 <div className="form-h-sep"></div>
                 <div className="input-box-container grow">
-                    <input type="text" placeholder="PU 5" onChange={(e) => { props.setPu5(e.target.value.trim()) }} value={props.pu5 || ''} />
+                    <input type="text" placeholder="PU 5" onChange={(e) => { props.setPu5(e.target.value) }} value={props.pu5 || ''} />
                 </div>
                 <div className="form-h-sep"></div>
-                <div className='mochi-button'>
+                <div className='mochi-button' onClick={() => {
+                    let index = props.panels.length - 1;
+                    let panels = props.panels.map((p, i) => {
+                        if (p.name === 'routing') {
+                            index = i;
+                            p.isOpened = true;
+                        }
+                        return p;
+                    });
+
+                    panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
+                    props.setDispatchPanels(panels);
+                }}>
                     <div className='mochi-button-decorator mochi-button-decorator-left'>(</div>
                     <div className='mochi-button-base'>Routing</div>
                     <div className='mochi-button-decorator mochi-button-decorator-right'>)</div>
                 </div>
                 <div className="form-h-sep"></div>
                 <div className="input-box-container grow">
-                    <input type="text" placeholder="Delivery 1" onChange={(e) => { props.setDelivery1(e.target.value.trim()) }} value={props.delivery1 || ''} />
+                    <input type="text" placeholder="Delivery 1" onChange={(e) => { props.setDelivery1(e.target.value) }} value={props.delivery1 || ''} />
                 </div>
                 <div className="form-h-sep"></div>
                 <div className="input-box-container grow">
-                    <input type="text" placeholder="Delivery 2" onChange={(e) => { props.setDelivery2(e.target.value.trim()) }} value={props.delivery2 || ''} />
+                    <input type="text" placeholder="Delivery 2" onChange={(e) => { props.setDelivery2(e.target.value) }} value={props.delivery2 || ''} />
                 </div>
                 <div className="form-h-sep"></div>
                 <div className="input-box-container grow">
-                    <input type="text" placeholder="Delivery 3" onChange={(e) => { props.setDelivery3(e.target.value.trim()) }} value={props.delivery3 || ''} />
+                    <input type="text" placeholder="Delivery 3" onChange={(e) => { props.setDelivery3(e.target.value) }} value={props.delivery3 || ''} />
                 </div>
                 <div className="form-h-sep"></div>
                 <div className="input-box-container grow">
-                    <input type="text" placeholder="Delivery 4" onChange={(e) => { props.setDelivery4(e.target.value.trim()) }} value={props.delivery4 || ''} />
+                    <input type="text" placeholder="Delivery 4" onChange={(e) => { props.setDelivery4(e.target.value) }} value={props.delivery4 || ''} />
                 </div>
                 <div className="form-h-sep"></div>
                 <div className="input-box-container grow">
-                    <input type="text" placeholder="Delivery 5" onChange={(e) => { props.setDelivery5(e.target.value.trim()) }} value={props.delivery5 || ''} />
+                    <input type="text" placeholder="Delivery 5" onChange={(e) => { props.setDelivery5(e.target.value) }} value={props.delivery5 || ''} />
                 </div>
                 <div className="form-h-sep"></div>
             </div>
@@ -1599,16 +1678,16 @@ function Dispatch(props) {
                                 <div className="input-box-container input-code">
                                     <input type="text" placeholder="Code" maxLength="8"
                                         onKeyDown={getShipperCompanyByCode}
-                                        onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, code: e.target.value.toUpperCase() }) }}
-                                        onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, code: e.target.value.toUpperCase() }) }}
+                                        onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, code: e.target.value }) }}
+                                        onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, code: e.target.value }) }}
                                         value={props.selectedShipperCompanyInfo.code || ''}
                                     />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container grow">
                                     <input type="text" placeholder="Name"
-                                        onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, name: e.target.value.toUpperCase() }) }}
-                                        onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, name: e.target.value.toUpperCase() }) }}
+                                        onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, name: e.target.value }) }}
+                                        onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, name: e.target.value }) }}
                                         value={props.selectedShipperCompanyInfo.name || ''}
                                     />
                                 </div>
@@ -1620,8 +1699,8 @@ function Dispatch(props) {
                                         <div className="form-row">
                                             <div className="input-box-container grow">
                                                 <input type="text" placeholder="Address 1"
-                                                    onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, address1: e.target.value.toUpperCase() }) }}
-                                                    onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, address1: e.target.value.toUpperCase() }) }}
+                                                    onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, address1: e.target.value }) }}
+                                                    onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, address1: e.target.value }) }}
                                                     value={props.selectedShipperCompanyInfo.address1 || ''}
                                                 />
                                             </div>
@@ -1630,8 +1709,8 @@ function Dispatch(props) {
                                         <div className="form-row">
                                             <div className="input-box-container grow">
                                                 <input type="text" placeholder="Address 2"
-                                                    onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, address2: e.target.value.toUpperCase() }) }}
-                                                    onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, address2: e.target.value.toUpperCase() }) }}
+                                                    onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, address2: e.target.value }) }}
+                                                    onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, address2: e.target.value }) }}
                                                     value={props.selectedShipperCompanyInfo.address2 || ''}
                                                 />
                                             </div>
@@ -1640,24 +1719,24 @@ function Dispatch(props) {
                                         <div className="form-row">
                                             <div className="input-box-container grow">
                                                 <input type="text" placeholder="City"
-                                                    onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, city: e.target.value.toUpperCase() }) }}
-                                                    onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, city: e.target.value.toUpperCase() }) }}
+                                                    onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, city: e.target.value }) }}
+                                                    onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, city: e.target.value }) }}
                                                     value={props.selectedShipperCompanyInfo.city || ''}
                                                 />
                                             </div>
                                             <div className="form-h-sep"></div>
                                             <div className="input-box-container input-state">
                                                 <input type="text" placeholder="State" maxLength="2"
-                                                    onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, state: e.target.value.toUpperCase() }) }}
-                                                    onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, state: e.target.value.toUpperCase() }) }}
+                                                    onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, state: e.target.value }) }}
+                                                    onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, state: e.target.value }) }}
                                                     value={props.selectedShipperCompanyInfo.state || ''}
                                                 />
                                             </div>
                                             <div className="form-h-sep"></div>
                                             <div className="input-box-container input-zip-code">
                                                 <input type="text" placeholder="Postal Code"
-                                                    onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, zip: e.target.value.toUpperCase() }) }}
-                                                    onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, zip: e.target.value.toUpperCase() }) }}
+                                                    onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, zip: e.target.value }) }}
+                                                    onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, zip: e.target.value }) }}
                                                     value={props.selectedShipperCompanyInfo.zip || ''}
                                                 />
                                             </div>
@@ -1666,8 +1745,8 @@ function Dispatch(props) {
                                         <div className="form-row">
                                             <div className="input-box-container grow">
                                                 <input type="text" placeholder="Contact Name"
-                                                    onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, contact_name: e.target.value.toUpperCase() }) }}
-                                                    onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, contact_name: e.target.value.toUpperCase() }) }}
+                                                    onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, contact_name: e.target.value }) }}
+                                                    onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, contact_name: e.target.value }) }}
                                                     value={props.selectedShipperCompanyInfo.contact_name || ''}
                                                 />
                                             </div>
@@ -1677,16 +1756,16 @@ function Dispatch(props) {
                                                     mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                                     guide={true}
                                                     type="text" placeholder="Contact Phone"
-                                                    onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, contact_phone: e.target.value.toUpperCase() }) }}
-                                                    onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, contact_phone: e.target.value.toUpperCase() }) }}
+                                                    onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, contact_phone: e.target.value }) }}
+                                                    onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, contact_phone: e.target.value }) }}
                                                     value={props.selectedShipperCompanyInfo.contact_phone || ''}
                                                 />
                                             </div>
                                             <div className="form-h-sep"></div>
                                             <div className="input-box-container input-phone-ext">
                                                 <input type="text" placeholder="Ext"
-                                                    onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, ext: e.target.value.toUpperCase() }) }}
-                                                    onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, ext: e.target.value.toUpperCase() }) }}
+                                                    onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, ext: e.target.value }) }}
+                                                    onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, ext: e.target.value }) }}
                                                     value={props.selectedShipperCompanyInfo.ext || ''}
                                                 />
                                             </div>
@@ -1697,11 +1776,11 @@ function Dispatch(props) {
                                         <div className="form-row" style={{ alignItems: 'center' }}>
                                             <div className="input-box-container grow">
                                                 <MaskedInput
-                                                    mask={[/[0-9]/, /\d/, '-', /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
+                                                    mask={[/[0-9]/, /\d/, '/', /\d/, /\d/, '/', /\d/, /\d/, /\d/, /\d/]}
                                                     guide={true}
                                                     type="text" placeholder="PU Date 1"
-                                                    onInput={(e) => { props.setShipperPuDate1(e.target.value.toUpperCase()) }}
-                                                    onChange={(e) => { props.setShipperPuDate1(e.target.value.toUpperCase()) }}
+                                                    onInput={(e) => { props.setShipperPuDate1(e.target.value) }}
+                                                    onChange={(e) => { props.setShipperPuDate1(e.target.value) }}
                                                     value={props.shipperPuDate1 || ''}
                                                 />
                                             </div>
@@ -1711,19 +1790,19 @@ function Dispatch(props) {
                                                     mask={[/[0-9]/, /\d/, ':', /\d/, /\d/]}
                                                     guide={true}
                                                     type="text" placeholder="PU Time 1"
-                                                    onInput={(e) => { props.setShipperPuTime1(e.target.value.toUpperCase()) }}
-                                                    onChange={(e) => { props.setShipperPuTime1(e.target.value.toUpperCase()) }}
+                                                    onInput={(e) => { props.setShipperPuTime1(e.target.value) }}
+                                                    onChange={(e) => { props.setShipperPuTime1(e.target.value) }}
                                                     value={props.shipperPuTime1 || ''}
                                                 />
                                             </div>
                                             <div style={{ minWidth: '1.8rem', fontSize: '1rem', textAlign: 'center' }}>To</div>
                                             <div className="input-box-container grow">
                                                 <MaskedInput
-                                                    mask={[/[0-9]/, /\d/, '-', /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
+                                                    mask={[/[0-9]/, /\d/, '/', /\d/, /\d/, '/', /\d/, /\d/, /\d/, /\d/]}
                                                     guide={true}
                                                     type="text" placeholder="PU Date 2"
-                                                    onInput={(e) => { props.setShipperPuDate2(e.target.value.toUpperCase()) }}
-                                                    onChange={(e) => { props.setShipperPuDate2(e.target.value.toUpperCase()) }}
+                                                    onInput={(e) => { props.setShipperPuDate2(e.target.value) }}
+                                                    onChange={(e) => { props.setShipperPuDate2(e.target.value) }}
                                                     value={props.shipperPuDate2 || ''}
                                                 />
                                             </div>
@@ -1733,8 +1812,8 @@ function Dispatch(props) {
                                                     mask={[/[0-9]/, /\d/, ':', /\d/, /\d/]}
                                                     guide={true}
                                                     type="text" placeholder="PU Time 2"
-                                                    onInput={(e) => { props.setShipperPuTime2(e.target.value.toUpperCase()) }}
-                                                    onChange={(e) => { props.setShipperPuTime2(e.target.value.toUpperCase()) }}
+                                                    onInput={(e) => { props.setShipperPuTime2(e.target.value) }}
+                                                    onChange={(e) => { props.setShipperPuTime2(e.target.value) }}
                                                     value={props.shipperPuTime2 || ''}
                                                 />
                                             </div>
@@ -1743,16 +1822,16 @@ function Dispatch(props) {
                                         <div className="form-row" style={{ alignItems: 'center' }}>
                                             <div className="input-box-container grow">
                                                 <input type="text" placeholder="BOL Number"
-                                                    onInput={(e) => { props.setShipperBolNumber(e.target.value.toUpperCase()) }}
-                                                    onChange={(e) => { props.setShipperBolNumber(e.target.value.toUpperCase()) }}
+                                                    onInput={(e) => { props.setShipperBolNumber(e.target.value) }}
+                                                    onChange={(e) => { props.setShipperBolNumber(e.target.value) }}
                                                     value={props.shipperBolNumber || ''}
                                                 />
                                             </div>
                                             <div style={{ minWidth: '1.8rem', fontSize: '1rem', textAlign: 'center' }}></div>
                                             <div className="input-box-container grow">
                                                 <input type="text" placeholder="PO Number"
-                                                    onInput={(e) => { props.setShipperPoNumber(e.target.value.toUpperCase()) }}
-                                                    onChange={(e) => { props.setShipperPoNumber(e.target.value.toUpperCase()) }}
+                                                    onInput={(e) => { props.setShipperPoNumber(e.target.value) }}
+                                                    onChange={(e) => { props.setShipperPoNumber(e.target.value) }}
                                                     value={props.shipperPoNumber || ''}
                                                 />
                                             </div>
@@ -1761,16 +1840,16 @@ function Dispatch(props) {
                                         <div className="form-row" style={{ alignItems: 'center' }}>
                                             <div className="input-box-container grow">
                                                 <input type="text" placeholder="REF Number"
-                                                    onInput={(e) => { props.setShipperRefNumber(e.target.value.toUpperCase()) }}
-                                                    onChange={(e) => { props.setShipperRefNumber(e.target.value.toUpperCase()) }}
+                                                    onInput={(e) => { props.setShipperRefNumber(e.target.value) }}
+                                                    onChange={(e) => { props.setShipperRefNumber(e.target.value) }}
                                                     value={props.shipperRefNumber || ''}
                                                 />
                                             </div>
                                             <div style={{ minWidth: '1.8rem', fontSize: '1rem', textAlign: 'center' }}></div>
                                             <div className="input-box-container grow">
                                                 <input type="text" placeholder="SEAL Number"
-                                                    onInput={(e) => { props.setShipperSealNumber(e.target.value.toUpperCase()) }}
-                                                    onChange={(e) => { props.setShipperSealNumber(e.target.value.toUpperCase()) }}
+                                                    onInput={(e) => { props.setShipperSealNumber(e.target.value) }}
+                                                    onChange={(e) => { props.setShipperSealNumber(e.target.value) }}
                                                     value={props.shipperSealNumber || ''}
                                                 />
                                             </div>
@@ -1779,8 +1858,8 @@ function Dispatch(props) {
                                         <div className="form-row" style={{ alignItems: 'center' }}>
                                             <div className="input-box-container grow">
                                                 <input type="text" placeholder="Special Instructions"
-                                                    onInput={(e) => { props.setShipperSpecialInstructions(e.target.value.toUpperCase()) }}
-                                                    onChange={(e) => { props.setShipperSpecialInstructions(e.target.value.toUpperCase()) }}
+                                                    onInput={(e) => { props.setShipperSpecialInstructions(e.target.value) }}
+                                                    onChange={(e) => { props.setShipperSpecialInstructions(e.target.value) }}
                                                     value={props.shipperSpecialInstructions || ''}
                                                 />
                                             </div>
@@ -1848,16 +1927,16 @@ function Dispatch(props) {
                                 <div className="input-box-container input-code">
                                     <input type="text" placeholder="Code" maxLength="8"
                                         onKeyDown={getConsigneeCompanyByCode}
-                                        onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, code: e.target.value.toUpperCase() }) }}
-                                        onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, code: e.target.value.toUpperCase() }) }}
+                                        onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, code: e.target.value }) }}
+                                        onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, code: e.target.value }) }}
                                         value={props.selectedConsigneeCompanyInfo.code || ''}
                                     />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container grow">
                                     <input type="text" placeholder="Name"
-                                        onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, name: e.target.value.toUpperCase() }) }}
-                                        onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, name: e.target.value.toUpperCase() }) }}
+                                        onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, name: e.target.value }) }}
+                                        onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, name: e.target.value }) }}
                                         value={props.selectedConsigneeCompanyInfo.name || ''}
                                     />
                                 </div>
@@ -1869,8 +1948,8 @@ function Dispatch(props) {
                                         <div className="form-row">
                                             <div className="input-box-container grow">
                                                 <input type="text" placeholder="Address 1"
-                                                    onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, address1: e.target.value.toUpperCase() }) }}
-                                                    onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, address1: e.target.value.toUpperCase() }) }}
+                                                    onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, address1: e.target.value }) }}
+                                                    onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, address1: e.target.value }) }}
                                                     value={props.selectedConsigneeCompanyInfo.address1 || ''}
                                                 />
                                             </div>
@@ -1879,8 +1958,8 @@ function Dispatch(props) {
                                         <div className="form-row">
                                             <div className="input-box-container grow">
                                                 <input type="text" placeholder="Address 2"
-                                                    onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, address2: e.target.value.toUpperCase() }) }}
-                                                    onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, address2: e.target.value.toUpperCase() }) }}
+                                                    onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, address2: e.target.value }) }}
+                                                    onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, address2: e.target.value }) }}
                                                     value={props.selectedConsigneeCompanyInfo.address2 || ''}
                                                 />
                                             </div>
@@ -1889,24 +1968,24 @@ function Dispatch(props) {
                                         <div className="form-row">
                                             <div className="input-box-container grow">
                                                 <input type="text" placeholder="City"
-                                                    onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, city: e.target.value.toUpperCase() }) }}
-                                                    onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, city: e.target.value.toUpperCase() }) }}
+                                                    onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, city: e.target.value }) }}
+                                                    onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, city: e.target.value }) }}
                                                     value={props.selectedConsigneeCompanyInfo.city || ''}
                                                 />
                                             </div>
                                             <div className="form-h-sep"></div>
                                             <div className="input-box-container input-state">
                                                 <input type="text" placeholder="State" maxLength="2"
-                                                    onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, state: e.target.value.toUpperCase() }) }}
-                                                    onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, state: e.target.value.toUpperCase() }) }}
+                                                    onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, state: e.target.value }) }}
+                                                    onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, state: e.target.value }) }}
                                                     value={props.selectedConsigneeCompanyInfo.state || ''}
                                                 />
                                             </div>
                                             <div className="form-h-sep"></div>
                                             <div className="input-box-container input-zip-code">
                                                 <input type="text" placeholder="Postal Code"
-                                                    onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, zip: e.target.value.toUpperCase() }) }}
-                                                    onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, zip: e.target.value.toUpperCase() }) }}
+                                                    onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, zip: e.target.value }) }}
+                                                    onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, zip: e.target.value }) }}
                                                     value={props.selectedConsigneeCompanyInfo.zip || ''}
                                                 />
                                             </div>
@@ -1915,8 +1994,8 @@ function Dispatch(props) {
                                         <div className="form-row">
                                             <div className="input-box-container grow">
                                                 <input type="text" placeholder="Contact Name"
-                                                    onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, contact_name: e.target.value.toUpperCase() }) }}
-                                                    onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, contact_name: e.target.value.toUpperCase() }) }}
+                                                    onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, contact_name: e.target.value }) }}
+                                                    onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, contact_name: e.target.value }) }}
                                                     value={props.selectedConsigneeCompanyInfo.contact_name || ''}
                                                 />
                                             </div>
@@ -1926,16 +2005,16 @@ function Dispatch(props) {
                                                     mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                                     guide={true}
                                                     type="text" placeholder="Contact Phone"
-                                                    onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, contact_phone: e.target.value.toUpperCase() }) }}
-                                                    onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, contact_phone: e.target.value.toUpperCase() }) }}
+                                                    onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, contact_phone: e.target.value }) }}
+                                                    onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, contact_phone: e.target.value }) }}
                                                     value={props.selectedConsigneeCompanyInfo.contact_phone || ''}
                                                 />
                                             </div>
                                             <div className="form-h-sep"></div>
                                             <div className="input-box-container input-phone-ext">
                                                 <input type="text" placeholder="Ext"
-                                                    onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, ext: e.target.value.toUpperCase() }) }}
-                                                    onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, ext: e.target.value.toUpperCase() }) }}
+                                                    onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, ext: e.target.value }) }}
+                                                    onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, ext: e.target.value }) }}
                                                     value={props.selectedConsigneeCompanyInfo.ext || ''}
                                                 />
                                             </div>
@@ -1946,11 +2025,11 @@ function Dispatch(props) {
                                         <div className="form-row" style={{ alignItems: 'center' }}>
                                             <div className="input-box-container grow">
                                                 <MaskedInput
-                                                    mask={[/[0-9]/, /\d/, '-', /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
+                                                    mask={[/[0-9]/, /\d/, '/', /\d/, /\d/, '/', /\d/, /\d/, /\d/, /\d/]}
                                                     guide={true}
                                                     type="text" placeholder="Delivery Date 1"
-                                                    onInput={(e) => { props.setConsigneeDeliveryDate1(e.target.value.toUpperCase()) }}
-                                                    onChange={(e) => { props.setConsigneeDeliveryDate1(e.target.value.toUpperCase()) }}
+                                                    onInput={(e) => { props.setConsigneeDeliveryDate1(e.target.value) }}
+                                                    onChange={(e) => { props.setConsigneeDeliveryDate1(e.target.value) }}
                                                     value={props.consigneeDeliveryDate1 || ''}
                                                 />
                                             </div>
@@ -1960,19 +2039,19 @@ function Dispatch(props) {
                                                     mask={[/[0-9]/, /\d/, ':', /\d/, /\d/]}
                                                     guide={true}
                                                     type="text" placeholder="Delivery Time 1"
-                                                    onInput={(e) => { props.setConsigneeDeliveryTime1(e.target.value.toUpperCase()) }}
-                                                    onChange={(e) => { props.setConsigneeDeliveryTime1(e.target.value.toUpperCase()) }}
+                                                    onInput={(e) => { props.setConsigneeDeliveryTime1(e.target.value) }}
+                                                    onChange={(e) => { props.setConsigneeDeliveryTime1(e.target.value) }}
                                                     value={props.consigneeDeliveryTime1 || ''}
                                                 />
                                             </div>
                                             <div style={{ minWidth: '1.8rem', fontSize: '1rem', textAlign: 'center' }}>To</div>
                                             <div className="input-box-container grow">
                                                 <MaskedInput
-                                                    mask={[/[0-9]/, /\d/, '-', /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
+                                                    mask={[/[0-9]/, /\d/, '/', /\d/, /\d/, '/', /\d/, /\d/, /\d/, /\d/]}
                                                     guide={true}
                                                     type="text" placeholder="Delivery Date 2"
-                                                    onInput={(e) => { props.setConsigneeDeliveryDate2(e.target.value.toUpperCase()) }}
-                                                    onChange={(e) => { props.setConsigneeDeliveryDate2(e.target.value.toUpperCase()) }}
+                                                    onInput={(e) => { props.setConsigneeDeliveryDate2(e.target.value) }}
+                                                    onChange={(e) => { props.setConsigneeDeliveryDate2(e.target.value) }}
                                                     value={props.consigneeDeliveryDate2 || ''}
                                                 />
                                             </div>
@@ -1982,15 +2061,15 @@ function Dispatch(props) {
                                                     mask={[/[0-9]/, /\d/, ':', /\d/, /\d/]}
                                                     guide={true}
                                                     type="text" placeholder="Delivery Time 2"
-                                                    onInput={(e) => { props.setConsigneeDeliveryTime2(e.target.value.toUpperCase()) }}
-                                                    onChange={(e) => { props.setConsigneeDeliveryTime2(e.target.value.toUpperCase()) }}
+                                                    onInput={(e) => { props.setConsigneeDeliveryTime2(e.target.value) }}
+                                                    onChange={(e) => { props.setConsigneeDeliveryTime2(e.target.value) }}
                                                     value={props.consigneeDeliveryTime2 || ''}
                                                 />
                                             </div>
                                         </div>
                                         <div className="form-v-sep"></div>
                                         <div className="form-row" style={{ flexGrow: 1 }}>
-                                            <div className="input-box-container grow" style={{maxHeight: 'initial', minHeight: 'initial' }}>
+                                            <div className="input-box-container grow" style={{ maxHeight: 'initial', minHeight: 'initial' }}>
                                                 <textarea placeholder="Special Instructions" style={{
                                                     resize: 'none',
                                                     flexGrow: 1,
@@ -1998,8 +2077,8 @@ function Dispatch(props) {
                                                     width: '100%',
                                                     height: '100%'
                                                 }}
-                                                onInput={(e) => { props.setConsigneeSpecialInstructions(e.target.value.toUpperCase()) }}
-                                                    onChange={(e) => { props.setConsigneeSpecialInstructions(e.target.value.toUpperCase()) }}
+                                                    onInput={(e) => { props.setConsigneeSpecialInstructions(e.target.value) }}
+                                                    onChange={(e) => { props.setConsigneeSpecialInstructions(e.target.value) }}
                                                     value={props.consigneeSpecialInstructions || ''}
                                                 ></textarea>
                                             </div>
@@ -2019,15 +2098,30 @@ function Dispatch(props) {
                                         <div className='form-title'>Internal Notes</div>
                                         <div className='top-border top-border-middle'></div>
                                         <div className='form-buttons'>
-                                            <div className='mochi-button'>
+                                            <div className='mochi-button' onClick={() => {
+                                                props.setSelectedInternalNote({ id: 0 });
+                                            }}>
                                                 <div className='mochi-button-decorator mochi-button-decorator-left'>(</div>
-                                                <div className='mochi-button-base'>Add Note</div>
+                                                <div className='mochi-button-base'>Add note</div>
                                                 <div className='mochi-button-decorator mochi-button-decorator-right'>)</div>
                                             </div>
                                         </div>
                                         <div className='top-border top-border-right'></div>
                                     </div>
 
+                                    <div className="internal-notes-container">
+                                        <div className="internal-notes-wrapper">
+                                            {
+                                                (props.internalNotes || []).map((note, index) => {
+                                                    return (
+                                                        <div className="internal-notes-item" key={index} onClick={() => props.setSelectedInternalNote(note)}>
+                                                            {note.text}
+                                                        </div>
+                                                    )
+                                                })
+                                            }
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -2083,16 +2177,16 @@ function Dispatch(props) {
                     <div className="form-h-sep"></div>
                     <div className="input-box-container" style={{ width: '10rem' }}>
                         <input type="text" placeholder="Event Location"
-                            onInput={(e) => { props.setDispatchEventLocation(e.target.value.toUpperCase()) }}
-                            onChange={(e) => { props.setDispatchEventLocation(e.target.value.toUpperCase()) }}
+                            onInput={(e) => { props.setDispatchEventLocation(e.target.value) }}
+                            onChange={(e) => { props.setDispatchEventLocation(e.target.value) }}
                             value={props.dispatchEventLocation || ''}
                         />
                     </div>
                     <div className="form-h-sep"></div>
                     <div className="input-box-container grow">
                         <input type="text" placeholder="Event Notes"
-                            onInput={(e) => { props.setDispatchEventNotes(e.target.value.toUpperCase()) }}
-                            onChange={(e) => { props.setDispatchEventNotes(e.target.value.toUpperCase()) }}
+                            onInput={(e) => { props.setDispatchEventNotes(e.target.value) }}
+                            onChange={(e) => { props.setDispatchEventNotes(e.target.value) }}
                             value={props.dispatchEventNotes || ''}
                         />
                     </div>
@@ -2142,6 +2236,46 @@ function Dispatch(props) {
                 </div>
             </div>
 
+            {
+                props.selectedNoteForCarrier.id !== undefined &&
+                <animated.div style={modalTransitionProps}>
+                    <DispatchModal
+                        selectedData={props.selectedNoteForCarrier}
+                        setSelectedData={props.setSelectedNoteForCarrier}
+                        selectedParent={props.notesForCarrier}
+                        setSelectedParent={(notes) => {
+                            props.setNotesForCarrier(notes);
+                        }}
+                        savingDataUrl='/saveNotesForCarrier'
+                        deletingDataUrl='/deleteNotesForCarrier'
+                        type='note'
+                        isEditable={true}
+                        isDeletable={true}
+                        isAdding={props.selectedNoteForCarrier.id === 0}
+                    />
+                </animated.div>
+            }
+
+            {
+                props.selectedInternalNote.id !== undefined &&
+                <animated.div style={modalTransitionProps}>
+                    <DispatchModal
+                        selectedData={props.selectedInternalNote}
+                        setSelectedData={props.setSelectedInternalNote}
+                        selectedParent={props.internalNotes}
+                        setSelectedParent={(notes) => {
+                            props.setInternalNotes(notes);
+                        }}
+                        savingDataUrl='/saveInternalNotes'
+                        deletingDataUrl=''
+                        type='note'
+                        isEditable={false}
+                        isDeletable={false}
+                        isAdding={props.selectedInternalNote.id === 0}
+                    />
+                </animated.div>
+            }
+
             <DispatchPopup
                 popupRef={refPopup}
                 popupClasses={popupContainerClasses}
@@ -2159,7 +2293,7 @@ function Dispatch(props) {
 const mapStateToProps = state => {
     return {
         serverUrl: state.systemReducers.serverUrl,
-        scale: state.companyReducers.scale,
+        scale: state.systemReducers.scale,
         panels: state.dispatchReducers.panels,
         billToCompanies: state.dispatchReducers.billToCompanies,
         selectedBillToCompanyInfo: state.dispatchReducers.selectedBillToCompanyInfo,

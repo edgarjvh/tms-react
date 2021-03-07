@@ -7,6 +7,7 @@ import FactoringCompany from './../components/company/carriers/panels/factoring-
 import Documents from './../components/company/carriers/panels/documents/Documents.jsx';
 import RevenueInformation from './../components/company/carriers/panels/revenue-information/RevenueInformation.jsx';
 import OrderHistory from './../components/company/carriers/panels/order-history/OrderHistory.jsx';
+import EquipmentInformation from './../components/company/carriers/panels/equipment-information/EquipmentInformation.jsx';
 
 export const carrierReducers = (state = {
     carriers: [],
@@ -36,6 +37,7 @@ export const carrierReducers = (state = {
     selectedDocument: {},
     documentTags: '',
     selectedDocumentNote: {},
+    equipmentInformation: {},
     panels: [
         {
             name: 'carrier-search',
@@ -93,6 +95,13 @@ export const carrierReducers = (state = {
             pos: -1,
             maxWidth: 100
         },
+        {
+            name: 'equipment-information',
+            component: <EquipmentInformation title='Equipment Information' />,
+            isOpened: false,
+            pos: -1,
+            maxWidth: 45
+        }
     ]
 }, action) => {
     switch (action.type) {
@@ -256,6 +265,12 @@ export const carrierReducers = (state = {
             state = {
                 ...state,
                 selectedDocumentNote: action.payload
+            }
+            break;
+        case carriersConstants.SET_EQUIPMENT_INFORMATION:
+            state = {
+                ...state,
+                equipmentInformation: action.payload
             }
             break;
         case carriersConstants.SET_CARRIER_PANELS:

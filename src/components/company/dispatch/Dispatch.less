@@ -1,41 +1,98 @@
-.dispatch-main-container{
+.dispatch-main-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  background-color: #d3d3d3;
+  transition: all ease 0.7s;
+  padding: 10px;
+
+  .fields-container-row {
+    display: flex;
+    width: 100%;
+  }
+
+  .form-slider {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+
+    .form-slider-wrapper {
+      width: 200%;
+      position: absolute;
+      height: 100%;
+      left: 0;
+      display: flex;
+      transition: ease 0.3s;
+
+      .first-page,
+      .second-page {
+        width: 50%;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+      }
+    }
+  }
+
+  .notes-for-carrier-container {
     width: 100%;
     height: 100%;
     position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    font-size: 24px;
-    background-color: #d3d3d3;
-    transition: all ease 0.7s;
-    padding: 10px;
 
-    .fields-container-row{
-        display: flex;
-        width: 100%;
-    }
+    .notes-for-carrier-wrapper {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
 
-    .form-slider {
-        position: relative;
-        width: 100%;
-        height: 100%;
+      .notes-for-carrier-item {
+        font-size: 0.7rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        padding: 5px 0;
+        cursor: pointer;
+        transition: ease 0.3s;
+        text-overflow: ellipsis;
+        white-space: nowrap;
         overflow: hidden;
-    
-        .form-slider-wrapper {
-          width: 200%;
-          position: absolute;
-          height: 100%;
-          left: 0;
-          display: flex;
-          transition: ease 0.3s;
-    
-          .first-page, .second-page {
-            width: 50%;
-            position: relative;
-            display: flex;
-            flex-direction: column;        
-          }    
-        }
       }
+
+      .notes-for-carrier-item:hover {
+        background-color: rgba(0, 0, 0, 0.1);
+      }
+    }
+  }
+
+  .internal-notes-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+
+    .internal-notes-wrapper {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+
+      .internal-notes-item {
+        font-size: 0.7rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        padding: 5px 0;
+        cursor: pointer;
+        transition: ease 0.3s;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+
+      .internal-notes-item:hover {
+        background-color: rgba(0, 0, 0, 0.1);
+      }
+    }
+  }
 }

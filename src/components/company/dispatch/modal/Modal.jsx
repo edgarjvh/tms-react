@@ -13,38 +13,47 @@ function Modal(props) {
         props.setSelectedData({ ...props.selectedData, text: e.target.value });
     }
 
-    const saveData = () => {
-        let user = getinitials(2);
-        let date_time = moment().format('YYYY-MM-DD HH:mm:ss');
-
+    const saveData = async () => {
+        let user = await getinitials(2);
+        let date_time = await moment().format('YYYY-MM-DD HH:mm:ss');
+                        
         if ((props.selectedData.text || '').trim() === '') {
             alert('You must type some text!');
             return;
         }
 
-        // $.post(props.serverUrl + props.savingDataUrl, {
-        //     id: props.selectedData.id,
-        //     customer_id: props.selectedCustomer.id,
-        //     doc_id: props.selectedParent.id,
-        //     text: props.selectedData.text,
-        //     user: props.isAdding ? user : props.selectedData.user,
-        //     date_time: props.isAdding ? date_time : props.selectedData.date_time
-        // }).then(res => {
-        //     if (res.result === 'OK') {
-        //         props.setSelectedParent(res.data);
-        //         props.setSelectedData({});
-        //     }
-        // });
+        let notes = props.selectedParent;
+
+        if (props.isAdding){
+            notes.push({...props.selectedData, id: '_' + Math.random().toString(36).substr(2, 9), user: user, date_time: date_time})
+            await props.setSelectedParent(notes);
+            await props.setSelectedData({});
+        }else{ 
+            await props.setSelectedParent(notes.map((n,i) => {
+                if (n.id === props.selectedData.id){
+                    n = props.selectedData;                    
+                }
+                return n;
+            }));
+            await props.setSelectedData({});
+        }
     }
 
-    const deleteData = () => {
-        if (window.confirm(`Are you sure to delete this ${props.type}?`)) {
-            $.post(props.serverUrl + props.deletingDataUrl, props.selectedData).then(res => {
-                if (res.result === 'OK') {
-                    props.setSelectedParent(res.data);
-                    props.setSelectedData({});
-                }
-            })
+    const deleteData = async () => {
+        if (window.confirm(`Are you sure to delete this ${props.type}?`)) { 
+          
+            await props.setSelectedParent(props.selectedParent.filter((n,i) => {                
+                return n.id !== props.selectedData.id;
+            }));
+            await props.setSelectedData({});
+
+
+            // $.post(props.serverUrl + props.deletingDataUrl, props.selectedData).then(res => {
+            //     if (res.result === 'OK') {
+            //         props.setSelectedParent(res.data);
+            //         props.setSelectedData({});
+            //     }
+            // })
         }
     }
 
@@ -135,7 +144,7 @@ function Modal(props) {
                             {
                                 (props.isEditable && !isEditing && !props.isAdding) &&
                                 <div className="mochi-button" onClick={() => {
-                                    props.setSelectedData({...props.selectedData, oldText: props.selectedData.text})
+                                    props.setSelectedData({ ...props.selectedData, oldText: props.selectedData.text })
                                     setIsEditing(true);
                                 }}>
                                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
@@ -148,8 +157,8 @@ function Modal(props) {
                                 <div className="mochi-button" style={{
                                     marginRight: 5
                                 }} onClick={() => {
-                                    props.setSelectedData({...props.selectedData, text: props.selectedData.oldText})
-                                    setIsEditing(false);                                   
+                                    props.setSelectedData({ ...props.selectedData, text: props.selectedData.oldText })
+                                    setIsEditing(false);
                                 }}>
                                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                     <div className="mochi-button-base">Cancel</div>

@@ -79,7 +79,7 @@
   overflow-y: auto;
 }
 .carriers-main-container .form-slider .form-slider-wrapper .contact-list-box .contact-list-wrapper .contact-list-item {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   padding: 5px 0;
   cursor: pointer;
@@ -110,7 +110,7 @@
   overflow-y: auto;
 }
 .carriers-main-container .drivers-list-container .drivers-list-wrapper .drivers-list-item {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   padding: 5px 0;
   cursor: pointer;
@@ -134,7 +134,7 @@
   overflow-y: auto;
 }
 .carriers-main-container .insurances-list-container .insurances-list-wrapper .insurances-list-item {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   padding: 5px 0;
   cursor: pointer;
@@ -158,7 +158,7 @@
   overflow-y: auto;
 }
 .carriers-main-container .notes-list-container .notes-list-wrapper .notes-list-item {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   padding: 5px 0;
   cursor: pointer;
@@ -183,7 +183,7 @@
   overflow-x: hidden;
 }
 .carriers-main-container .directions-list-container .directions-list-wrapper .directions-list-item {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   padding: 5px 0;
   cursor: pointer;

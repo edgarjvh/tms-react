@@ -150,3 +150,9 @@ export const setSelectedInsurance = insurance => {
         payload: insurance
     }
 }
+export const setEquipmentInformation = info => {
+    return {
+        type: carriersConstants.SET_EQUIPMENT_INFORMATION,
+        payload: info
+    }
+}

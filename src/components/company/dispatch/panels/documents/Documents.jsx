@@ -5,7 +5,7 @@ import $ from 'jquery';
 import Draggable from 'react-draggable';
 import './Documents.css';
 import {
-    setCustomerPanels,
+    setDispatchPanels,
     setSelectedDocument,
     setSelectedCustomer,
     setDocumentTags,
@@ -32,7 +32,7 @@ function Documents(props) {
             return panel;
         });
 
-        props.setCustomerPanels(panels);
+        props.setDispatchPanels(panels);
     }
 
     const tagsOnKeydown = (e) => {
@@ -381,17 +381,7 @@ function Documents(props) {
                         <div className="form-title">Preview</div>
                         <div className="top-border top-border-middle"></div>
                         <div className="form-buttons">
-                            <div className="mochi-button" onClick={(e, id = 'frame-preview') => {
-                                const iframe = document.frames
-                                    ? document.frames[id]
-                                    : document.getElementById(id);
-                                const iframeWindow = iframe.contentWindow || iframe;
-
-                                iframe.focus();
-                                iframeWindow.print();
-
-                                return false;
-                            }}>
+                            <div className="mochi-button">
                                 <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                 <div className="mochi-button-base">Print</div>
                                 <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
@@ -478,7 +468,7 @@ const mapStateToProps = state => {
 }
 
 export default connect(mapStateToProps, {
-    setCustomerPanels,
+    setDispatchPanels,
     setSelectedDocument,
     setSelectedCustomer,
     setDocumentTags,

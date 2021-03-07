@@ -1471,6 +1471,21 @@ function Carriers(props) {
         props.setCarrierPanels(panels);
     }
 
+    const equipmentInformationBtnClick = () => {
+        let index = props.panels.length - 1;
+        let panels = props.panels.map((p, i) => {
+            if (p.name === 'equipment-information') {
+                index = i;
+                p.isOpened = true;
+            }
+            return p;
+        });
+
+        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
+
+        props.setCarrierPanels(panels);
+    }
+
     const orderHistoryBtnClick = () => {
         let index = props.panels.length - 1;
         let panels = props.panels.map((p, i) => {
@@ -2207,7 +2222,7 @@ function Carriers(props) {
                             <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
                         </div>
 
-                        <div className="mochi-button">
+                        <div className="mochi-button" onClick={equipmentInformationBtnClick}>
                             <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                             <div className="mochi-button-base">Equipment Information</div>
                             <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
@@ -2649,6 +2664,7 @@ function Carriers(props) {
                         type='note'
                         isEditable={false}
                         isDeletable={false}
+                        isPrintable={true}
                         isAdding={props.selectedNote.id === 0}
                     />
                 </animated.div>

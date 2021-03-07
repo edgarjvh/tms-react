@@ -10,6 +10,10 @@ import RatingScreen from './../components/company/dispatch/panels/rating-screen/
 import CarrierInfo from './../components/company/dispatch/panels/carrier-info/CarrierInfo.jsx';
 import AdjustRate from './../components/company/dispatch/panels/adjust-rate/AdjustRate.jsx';
 import Order from './../components/company/dispatch/panels/order/Order.jsx';
+import LoadBoard from './../components/company/dispatch/panels/load-board/LoadBoard.jsx';
+import Routing from './../components/company/dispatch/panels/routing/Routing.jsx';
+import Bol from './../components/company/dispatch/panels/bol/Bol.jsx';
+import RateConf from './../components/company/dispatch/panels/rate-conf/RateConf.jsx';
 
 export const dispatchReducers = (state = {
     billToCompanies: [],
@@ -143,6 +147,34 @@ export const dispatchReducers = (state = {
         {
             name: 'order',
             component: <Order title='Order' />,
+            isOpened: false,
+            pos: -1,
+            maxWidth: 100
+        },
+        {
+            name: 'load-board',
+            component: <LoadBoard title='Load Board' />,
+            isOpened: false,
+            pos: -1,
+            maxWidth: 100
+        },
+        {
+            name: 'routing',
+            component: <Routing title='Routing' />,
+            isOpened: false,
+            pos: -1,
+            maxWidth: 100
+        },
+        {
+            name: 'bol',
+            component: <Bol title='BOL' />,
+            isOpened: false,
+            pos: -1,
+            maxWidth: 100
+        },
+        {
+            name: 'rate-conf',
+            component: <RateConf title='Rate Conf' />,
             isOpened: false,
             pos: -1,
             maxWidth: 100
