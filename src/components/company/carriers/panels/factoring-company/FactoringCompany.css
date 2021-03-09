@@ -1,80 +1,63 @@
-.tbl {
+.factoring-company-container {
   width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  padding: 10px 5px;
+}
+.factoring-company-container .fields-container-col {
   flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  font-size: 0.9rem;
-  margin-top: 20px;
-}
-.tbl .thead {
+  flex-basis: 100%;
   display: flex;
   flex-direction: column;
 }
-.tbl .thead .trow {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
-}
-.tbl .thead .trow .tcol {
-  font-weight: bold;
-}
-.tbl .tbody {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
+.factoring-company-container .factoring-company-list-container {
+  width: 100%;
+  height: 100%;
   position: relative;
 }
-.tbl .tbody .tbody-wrapper {
+.factoring-company-container .factoring-company-list-container .factoring-company-list-wrapper {
   position: absolute;
   width: 100%;
   height: 100%;
-  overflow: auto;
-  display: flex;
-  flex-direction: column;
+  overflow-y: auto;
 }
-.tbl .tbody .tbody-wrapper .trow {
+.factoring-company-container .factoring-company-list-container .factoring-company-list-wrapper .factoring-company-list-item {
+  font-size: 0.7rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 5px 0;
   cursor: pointer;
   transition: ease 0.3s;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 }
-.tbl .tbody .tbody-wrapper .trow .tcol.code {
-  text-transform: uppercase;
+.factoring-company-container .factoring-company-list-container .factoring-company-list-wrapper .factoring-company-list-item:hover {
+  background-color: rgba(0, 0, 0, 0.1);
 }
-.tbl .tbody .tbody-wrapper .trow .tcol.state {
-  text-transform: uppercase;
+.factoring-company-container .factoring-company-invoice-list-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
 }
-.tbl .tbody .tbody-wrapper .trow:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+.factoring-company-container .factoring-company-invoice-list-container .factoring-company-invoice-list-wrapper {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
 }
-.tbl .trow {
+.factoring-company-container .factoring-company-invoice-list-container .factoring-company-invoice-list-wrapper .factoring-company-invoice-list-item {
+  font-size: 0.7rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 5px 0;
+  cursor: pointer;
+  transition: ease 0.3s;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
   display: flex;
   align-items: center;
 }
-.tbl .trow .tcol {
-  padding: 10px;
-}
-.tbl .trow .tcol.code {
-  min-width: 5.5rem;
-  max-width: 5.5rem;
-}
-.tbl .trow .tcol.name {
-  min-width: 15rem;
-  max-width: 15rem;
-}
-.tbl .trow .tcol.address1 {
-  min-width: 13rem;
-  max-width: 13rem;
-}
-.tbl .trow .tcol.address2 {
-  min-width: 13rem;
-  max-width: 13rem;
-}
-.tbl .trow .tcol.city {
-  min-width: 10rem;
-  max-width: 10rem;
-}
-.tbl .trow .tcol.state {
-  min-width: 4rem;
-  max-width: 4rem;
-}
-.tbl .trow .tcol.zip {
-  min-width: 6rem;
-  max-width: 6rem;
+.factoring-company-container .factoring-company-invoice-list-container .factoring-company-invoice-list-wrapper .factoring-company-invoice-list-item:hover {
+  background-color: rgba(0, 0, 0, 0.1);
 }

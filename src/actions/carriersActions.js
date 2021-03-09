@@ -90,6 +90,24 @@ export const setSelectedDocumentNote = note => {
         payload: note
     }
 }
+export const setSelectedFactoringCompanyDocument = document => {
+    return {
+        type: carriersConstants.SET_SELECTED_FACTORING_COMPANY_DOCUMENT,
+        payload: document
+    }
+}
+export const setFactoringCompanyDocumentTags = tags => {
+    return {
+        type: carriersConstants.SET_FACTORING_COMPANY_DOCUMENT_TAGS,
+        payload: tags
+    }
+}
+export const setSelectedFactoringCompanyDocumentNote = note => {
+    return {
+        type: carriersConstants.SET_SELECTED_FACTORING_COMPANY_DOCUMENT_NOTE,
+        payload: note
+    }
+}
 export const setDrivers = drivers => {
     return {
         type: carriersConstants.SET_DRIVERS,
@@ -136,6 +154,72 @@ export const setFactoringCompanies = factoringCompanies => {
     return {
         type: carriersConstants.SET_FACTORING_COMPANIES,
         payload: factoringCompanies
+    }
+}
+export const setSelectedFactoringCompany = factoringCompany => {
+    return {
+        type: carriersConstants.SET_SELECTED_FACTORING_COMPANY,
+        payload: factoringCompany
+    }
+}
+export const setSelectedFactoringCompanyContact = contact => {
+    return {
+        type: carriersConstants.SET_SELECTED_FACTORING_COMPANY_CONTACT,
+        payload: contact
+    }
+}
+export const setSelectedFactoringCompanyContactSearch = search => {
+    return {
+        type: carriersConstants.SET_SELECTED_FACTORING_COMPANY_CONTACT_SEARCH,
+        payload: search
+    }
+}
+export const setSelectedFactoringCompanyIsShowingContactList = bool => {
+    return {
+        type: carriersConstants.SET_SELECTED_FACTORING_COMPANY_IS_SHOWING_CONTACT_LIST,
+        payload: bool
+    }
+}
+export const setFactoringCompanyContacts = contacts => {
+    return {
+        type: carriersConstants.SET_FACTORING_COMPANY_CONTACTS,
+        payload: contacts
+    }
+}
+export const setFactoringCompanyIsEditingContact = bool => {
+    return {
+        type: carriersConstants.SET_FACTORING_COMPANY_IS_EDITING_CONTACT,
+        payload: bool
+    }
+}
+export const setSelectedFactoringCompanyNote = note => {
+    return {
+        type: carriersConstants.SET_SELECTED_FACTORING_COMPANY_NOTE,
+        payload: note
+    }
+}
+export const setSelectedFactoringCompanyInvoiceSearch = search => {
+    return {
+        type: carriersConstants.SET_SELECTED_FACTORING_COMPANY_INVOICE_SEARCH,
+        payload: search
+    }
+}
+export const setSelectedFactoringCompanyInvoices = invoices => {
+    return {
+        type: carriersConstants.SET_SELECTED_FACTORING_COMPANY_INVOICES,
+        payload: invoices
+    }
+}
+export const setSelectedFactoringCompanyInvoice = invoice => {
+    return {
+        type: carriersConstants.SET_SELECTED_FACTORING_COMPANY_INVOICE,
+        payload: invoice
+    }
+}
+export const setSelectedFactoringCompanyIsShowingInvoiceList = bool => {
+    return {
+        type: carriersConstants.SET_SELECTED_FACTORING_COMPANY_IS_SHOWING_INVOICE_LIST,
+        payload: bool
     }
 }
 export const setCarrierInsurances = insurances => {

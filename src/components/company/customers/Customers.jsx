@@ -1088,63 +1088,64 @@ function Customers(props) {
 
                             <div className="form-row">
                                 <div className="input-box-container input-code">
-                                    <input type="text" placeholder="Code" maxLength="8"
+                                    <input tabIndex={1} type="text" placeholder="Code" maxLength="8" id="txt-customer-code"
                                         onKeyDown={searchCustomerByCode}
                                         onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, code: e.target.value })}
                                         value={(props.selectedCustomer.code_number || 0) === 0 ? (props.selectedCustomer.code || '') : props.selectedCustomer.code + props.selectedCustomer.code_number} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Name" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, name: e.target.value })} value={props.selectedCustomer.name || ''} />
+                                    <input tabIndex={2} type="text" placeholder="Name" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, name: e.target.value })} value={props.selectedCustomer.name || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Address 1" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, address1: e.target.value })} value={props.selectedCustomer.address1 || ''} />
+                                    <input tabIndex={3} type="text" placeholder="Address 1" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, address1: e.target.value })} value={props.selectedCustomer.address1 || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Address 2" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, address2: e.target.value })} value={props.selectedCustomer.address2 || ''} />
+                                    <input tabIndex={4} type="text" placeholder="Address 2" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, address2: e.target.value })} value={props.selectedCustomer.address2 || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="City" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, city: e.target.value })} value={props.selectedCustomer.city || ''} />
+                                    <input tabIndex={5} type="text" placeholder="City" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, city: e.target.value })} value={props.selectedCustomer.city || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-state">
-                                    <input type="text" placeholder="State" maxLength="2" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, state: e.target.value })} value={props.selectedCustomer.state || ''} />
+                                    <input tabIndex={6} type="text" placeholder="State" maxLength="2" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, state: e.target.value })} value={props.selectedCustomer.state || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-zip-code">
-                                    <input type="text" placeholder="Postal Code" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, zip: e.target.value })} value={props.selectedCustomer.zip || ''} />
+                                    <input tabIndex={7} type="text" placeholder="Postal Code" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, zip: e.target.value })} value={props.selectedCustomer.zip || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Contact Name" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, contact_name: e.target.value })} value={props.selectedCustomer.contact_name || ''} />
+                                    <input tabIndex={8} type="text" placeholder="Contact Name" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, contact_name: e.target.value })} value={props.selectedCustomer.contact_name || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-phone">
                                     <MaskedInput
+                                        tabIndex={9}
                                         mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                         guide={true}
                                         type="text" placeholder="Contact Phone" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, contact_phone: e.target.value })} value={props.selectedCustomer.contact_phone || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-phone-ext">
-                                    <input type="text" placeholder="Ext" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, ext: e.target.value })} value={props.selectedCustomer.ext || ''} />
+                                    <input tabIndex={10} type="text" placeholder="Ext" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, ext: e.target.value })} value={props.selectedCustomer.ext || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="E-Mail" style={{ textTransform: 'lowercase' }} onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, email: e.target.value })} value={props.selectedCustomer.email || ''} />
+                                    <input tabIndex={11} type="text" placeholder="E-Mail" style={{ textTransform: 'lowercase' }} onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, email: e.target.value })} value={props.selectedCustomer.email || ''} />
                                 </div>
                             </div>
                         </div>
@@ -1177,63 +1178,63 @@ function Customers(props) {
 
                             <div className="form-row">
                                 <div className="input-box-container input-code">
-                                    <input type="text" placeholder="Code" maxLength="8"
+                                    <input tabIndex={12} type="text" placeholder="Code" maxLength="8"
                                         onKeyDown={validateCustomerForSaving}
                                         onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_code: e.target.value })}
                                         value={(props.selectedCustomer.mailing_code_number || 0) === 0 ? (props.selectedCustomer.mailing_code || '') : props.selectedCustomer.mailing_code + props.selectedCustomer.mailing_code_number} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Name" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_name: e.target.value })} value={props.selectedCustomer.mailing_name || ''} />
+                                    <input tabIndex={13} type="text" placeholder="Name" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_name: e.target.value })} value={props.selectedCustomer.mailing_name || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Address 1" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_address1: e.target.value })} value={props.selectedCustomer.mailing_address1 || ''} />
+                                    <input tabIndex={14} type="text" placeholder="Address 1" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_address1: e.target.value })} value={props.selectedCustomer.mailing_address1 || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Address 2" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_address2: e.target.value })} value={props.selectedCustomer.mailing_address2 || ''} />
+                                    <input tabIndex={15} type="text" placeholder="Address 2" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_address2: e.target.value })} value={props.selectedCustomer.mailing_address2 || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="City" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_city: e.target.value })} value={props.selectedCustomer.mailing_city || ''} />
+                                    <input tabIndex={16} type="text" placeholder="City" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_city: e.target.value })} value={props.selectedCustomer.mailing_city || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-state">
-                                    <input type="text" placeholder="State" maxLength="2" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_state: e.target.value })} value={props.selectedCustomer.mailing_state || ''} />
+                                    <input tabIndex={17} type="text" placeholder="State" maxLength="2" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_state: e.target.value })} value={props.selectedCustomer.mailing_state || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-zip-code">
-                                    <input type="text" placeholder="Postal Code" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_zip: e.target.value })} value={props.selectedCustomer.mailing_zip || ''} />
+                                    <input tabIndex={18} type="text" placeholder="Postal Code" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_zip: e.target.value })} value={props.selectedCustomer.mailing_zip || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Contact Name" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_contact_name: e.target.value })} value={props.selectedCustomer.mailing_contact_name || ''} />
+                                    <input tabIndex={19} type="text" placeholder="Contact Name" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_contact_name: e.target.value })} value={props.selectedCustomer.mailing_contact_name || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-phone">
-                                    <MaskedInput
+                                    <MaskedInput tabIndex={20}
                                         mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                         guide={true}
                                         type="text" placeholder="Contact Phone" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_contact_phone: e.target.value })} value={props.selectedCustomer.mailing_contact_phone || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-phone-ext">
-                                    <input type="text" placeholder="Ext" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_ext: e.target.value })} value={props.selectedCustomer.mailing_ext || ''} />
+                                    <input tabIndex={21} type="text" placeholder="Ext" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_ext: e.target.value })} value={props.selectedCustomer.mailing_ext || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="E-Mail" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_email: e.target.value })} value={props.selectedCustomer.mailing_email || ''} />
+                                    <input tabIndex={22} type="text" placeholder="E-Mail" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_email: e.target.value })} value={props.selectedCustomer.mailing_email || ''} />
                                 </div>
                             </div>
                         </div>
@@ -1241,31 +1242,31 @@ function Customers(props) {
                         <div className="form-borderless-box" style={{ width: '170px', marginLeft: '10px', }}>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" style={{ textTransform: 'uppercase' }} placeholder="Bill To" readOnly={true} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_bill_to: e.target.value })} value={props.selectedCustomer.mailing_bill_to || ''} />
+                                    <input tabIndex={32} type="text" style={{ textTransform: 'uppercase' }} placeholder="Bill To" readOnly={true} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_bill_to: e.target.value })} value={props.selectedCustomer.mailing_bill_to || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Division" readOnly={true} />
+                                    <input tabIndex={33} type="text" placeholder="Division" readOnly={true} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Agent Code" readOnly={true} />
+                                    <input tabIndex={34} type="text" placeholder="Agent Code" readOnly={true} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Salesman" readOnly={true} />
+                                    <input tabIndex={35} type="text" placeholder="Salesman" readOnly={true} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="FID" readOnly={true} />
+                                    <input tabIndex={36} type="text" placeholder="FID" readOnly={true} />
                                 </div>
                             </div>
                         </div>
@@ -1281,13 +1282,13 @@ function Customers(props) {
 
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Invoicing Terms" />
+                                    <input tabIndex={37} type="text" placeholder="Invoicing Terms" />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Credit Limit Total" />
+                                    <input tabIndex={38} type="text" placeholder="Credit Limit Total" />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
@@ -1385,25 +1386,20 @@ function Customers(props) {
 
                             <div className="form-row">
                                 <div className="input-box-container grow">
-
-
-                                    <input type="text" placeholder="First Name" onKeyDown={validateContactForSaving} onChange={e => {
+                                    <input tabIndex={23} type="text" placeholder="First Name" onKeyDown={validateContactForSaving} onChange={e => {
 
                                         props.setSelectedContact({ ...props.selectedContact, first_name: e.target.value })
                                     }} value={props.selectedContact.first_name || ''} />
-
-
-
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Last Name" onKeyDown={validateContactForSaving} onChange={e => props.setSelectedContact({ ...props.selectedContact, last_name: e.target.value })} value={props.selectedContact.last_name || ''} />
+                                    <input tabIndex={24} type="text" placeholder="Last Name" onKeyDown={validateContactForSaving} onChange={e => props.setSelectedContact({ ...props.selectedContact, last_name: e.target.value })} value={props.selectedContact.last_name || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container" style={{ width: '50%' }}>
-                                    <MaskedInput
+                                    <MaskedInput tabIndex={25}
                                         mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                         guide={true}
                                         type="text" placeholder="Phone" onKeyDown={validateContactForSaving} onChange={e => props.setSelectedContact({ ...props.selectedContact, phone_work: e.target.value })} value={props.selectedContact.phone_work || ''} />
@@ -1411,7 +1407,7 @@ function Customers(props) {
                                 <div className="form-h-sep"></div>
                                 <div style={{ width: '50%', display: 'flex', justifyContent: 'space-between' }}>
                                     <div className="input-box-container input-phone-ext">
-                                        <input type="text" placeholder="Ext" onKeyDown={validateContactForSaving} onChange={e => props.setSelectedContact({ ...props.selectedContact, phone_ext: e.target.value })} value={props.selectedContact.phone_ext || ''} />
+                                        <input tabIndex={26} type="text" placeholder="Ext" onKeyDown={validateContactForSaving} onChange={e => props.setSelectedContact({ ...props.selectedContact, phone_ext: e.target.value })} value={props.selectedContact.phone_ext || ''} />
                                     </div>
                                     <div className="input-toggle-container">
                                         <input type="checkbox" id="cbox-customer-contacts-primary-btn" onChange={selectedContactIsPrimaryChange} checked={(props.selectedContact.is_primary || 0) === 1} />
@@ -1425,11 +1421,11 @@ function Customers(props) {
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="E-Mail" onKeyDown={validateContactForSaving} onChange={e => props.setSelectedContact({ ...props.selectedContact, email_work: e.target.value })} value={props.selectedContact.email_work || ''} />
+                                    <input tabIndex={27} type="text" placeholder="E-Mail" onKeyDown={validateContactForSaving} onChange={e => props.setSelectedContact({ ...props.selectedContact, email_work: e.target.value })} value={props.selectedContact.email_work || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Notes" onKeyDown={validateContactForSaving} onChange={e => props.setSelectedContact({ ...props.selectedContact, notes: e.target.value })} value={props.selectedContact.notes || ''} />
+                                    <input tabIndex={28} type="text" placeholder="Notes" onKeyDown={validateContactForSaving} onChange={e => props.setSelectedContact({ ...props.selectedContact, notes: e.target.value })} value={props.selectedContact.notes || ''} />
                                 </div>
                             </div>
                         </div>
@@ -1488,7 +1484,7 @@ function Customers(props) {
                                             }
                                         })
                                     }
-                                    <input type="text" placeholder="E-mail To"
+                                    <input tabIndex={29} type="text" placeholder="E-mail To"
                                         ref={refAutomaticEmailsTo}
                                         onKeyDown={(e) => { automaticEmailsOnKeydown(e, 'to') }}
                                         onInput={(e) => { automaticEmailsOnInput(e, 'to') }}
@@ -1577,7 +1573,7 @@ function Customers(props) {
                                         })
                                     }
 
-                                    <input type="text" placeholder="E-mail Cc"
+                                    <input tabIndex={30} type="text" placeholder="E-mail Cc"
                                         ref={refAutomaticEmailsCc}
                                         onKeyDown={(e) => { automaticEmailsOnKeydown(e, 'cc') }}
                                         onInput={(e) => { automaticEmailsOnInput(e, 'cc') }}
@@ -1664,7 +1660,7 @@ function Customers(props) {
                                             }
                                         })
                                     }
-                                    <input type="text" placeholder="E-mail Bcc"
+                                    <input tabIndex={31} type="text" placeholder="E-mail Bcc"
                                         ref={refAutomaticEmailsBcc}
                                         onKeyDown={(e) => { automaticEmailsOnKeydown(e, 'bcc') }}
                                         onInput={(e) => { automaticEmailsOnInput(e, 'bcc') }}
@@ -1852,7 +1848,25 @@ function Customers(props) {
                                         <div className="form-v-sep"></div>
                                         <div className="form-row">
                                             <div className="input-box-container grow">
-                                                <input type="text" placeholder="E-Mail" style={{ textTransform: 'lowercase' }} onFocus={() => { props.setShowingContactList(false) }} onChange={e => props.setContactSearch({ ...props.contactSearch, email: e.target.value })} value={props.contactSearch.email || ''} />
+                                                <input type="text" placeholder="E-Mail" style={{ textTransform: 'lowercase' }}
+                                                    onKeyDown={(e) => {
+                                                        e.preventDefault();
+                                                        let key = e.keyCode || e.which;
+
+                                                        if (key === 9) {
+                                                            let elems = document.getElementsByTagName('input');
+
+                                                            for (var i = elems.length; i--;) {
+                                                                if (elems[i].getAttribute('tabindex') && elems[i].getAttribute('tabindex') === '29') {
+                                                                    elems[i].focus();
+                                                                    break;
+                                                                }
+                                                            }
+                                                        }
+                                                    }}
+                                                    onFocus={() => { props.setShowingContactList(false) }}
+                                                    onChange={e => props.setContactSearch({ ...props.contactSearch, email: e.target.value })}
+                                                    value={props.contactSearch.email || ''} />
                                             </div>
                                         </div>
                                     </div>
@@ -1883,7 +1897,7 @@ function Customers(props) {
 
                                 <div className="form-row" style={{ justifyContent: 'space-around' }}>
                                     <div className="input-box-container ">
-                                        <input type="text" placeholder="Open"
+                                        <input tabIndex={39} type="text" placeholder="Open"
                                             onBlur={(e) => validateHoursForSaving(e, 'hours open')}
                                             onChange={e => {
                                                 let hours = (props.selectedCustomer.hours || {});
@@ -1894,7 +1908,7 @@ function Customers(props) {
                                     </div>
                                     <div className="form-h-sep"></div>
                                     <div className="input-box-container ">
-                                        <input type="text" placeholder="Close"
+                                        <input tabIndex={40} type="text" placeholder="Close"
                                             onBlur={(e) => validateHoursForSaving(e, 'hours close')}
                                             onChange={e => {
                                                 let hours = (props.selectedCustomer.hours || {});
@@ -1916,7 +1930,7 @@ function Customers(props) {
 
                                 <div className="form-row" style={{ justifyContent: 'space-around' }}>
                                     <div className="input-box-container ">
-                                        <input type="text" placeholder="Open"
+                                        <input tabIndex={41} type="text" placeholder="Open"
                                             onBlur={(e) => validateHoursForSaving(e, 'delivery hours open')}
                                             onChange={e => {
                                                 let hours = (props.selectedCustomer.hours || {});
@@ -1927,7 +1941,22 @@ function Customers(props) {
                                     </div>
                                     <div className="form-h-sep"></div>
                                     <div className="input-box-container ">
-                                        <input type="text" placeholder="Close"
+                                        <input tabIndex={42} type="text" placeholder="Close"
+                                            onKeyDown={(e) => {
+                                                e.preventDefault();
+                                                let key = e.keyCode || e.which;
+
+                                                if (key === 9) {
+                                                    let elems = document.getElementsByTagName('input');
+
+                                                    for (var i = elems.length; i--;) {
+                                                        if (elems[i].getAttribute('tabindex') && elems[i].getAttribute('tabindex') === '1') {
+                                                            elems[i].focus();
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                            }}
                                             onBlur={(e) => validateHoursForSaving(e, 'delivery hours close')}
                                             onChange={e => {
                                                 let hours = (props.selectedCustomer.hours || {});

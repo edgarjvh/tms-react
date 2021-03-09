@@ -3,25 +3,26 @@ import { connect } from 'react-redux';
 import classnames from 'classnames';
 import $ from 'jquery';
 import Draggable from 'react-draggable';
-import './FactoringCompanySearch.css';
-import {
-    setCarrierPanels,
-    setSelectedCarrier,
-    setSelectedContact,
-    setCarrierContacts,
-    setContactSearch,
+import './FactoringCompanyPanelSearch.css';
+import { 
+    setCarrierPanels, 
+    setSelectedCarrier, 
+    setSelectedContact, 
+    setCarrierContacts, 
+    setContactSearch, 
     setShowingContactList,
     setContactSearchCarrier,
-    setFactoringCompanySearch
-} from '../../../../../actions';
+    setFactoringCompanySearch,
+    setSelectedFactoringCompany
+ } from '../../../../../actions';
 
-function FactoringCompanySearch(props) {
+function FactoringCompanyPanelSearch(props) {
     const closePanelBtnClick = () => {
         console.log('closing')
         let index = props.panels.length - 1;
 
         let panels = props.panels.map((panel, i) => {
-            if (panel.name === 'carrier-factoring-company-search') {
+            if (panel.name === 'carrier-factoring-company-panel-search') {
                 index = i;
                 panel.isOpened = false;
             }
@@ -35,74 +36,29 @@ function FactoringCompanySearch(props) {
     var clickCount = 0;
 
     const rowClick = (e, f) => {
-
+        
         clickCount++;
 
         window.setTimeout(() => {
             if (clickCount === 1) {
-                let index = props.panels.length - 1;
-                let panels = props.panels.map((p, i) => {
-                    if (p.name === 'carrier-factoring-company') {
-                        index = i;
-                        p.isOpened = true;
-                    }
-                    return p;
-                });
+                // let index = props.panels.length - 1;
+                // let panels = props.panels.map((p, i) => {
+                //     if (p.name === 'carrier-factoring-company') {
+                //         index = i;
+                //         p.isOpened = true;
+                //     }
+                //     return p;
+                // });                                
 
-                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
+                // panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
 
-                props.setCarrierPanels(panels);
+                // props.setCarrierPanels(panels);
             } else {
-                // props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: f });
+                 props.setSelectedFactoringCompany({...f});
 
-                let selectedCarrier = props.selectedCarrier;
-                selectedCarrier.factoring_company_id = f.id;
+                 props.setFactoringCompanySearch([]);  
 
-                if (selectedCarrier.id === undefined || selectedCarrier.id === -1) {
-                    selectedCarrier.id = 0;
-                }
-
-                if (
-                    (selectedCarrier.name || '').trim().replace(/\s/g, "").replace("&", "A") !== "" &&
-                    (selectedCarrier.city || '').trim().replace(/\s/g, "") !== "" &&
-                    (selectedCarrier.state || '').trim().replace(/\s/g, "") !== "" &&
-                    (selectedCarrier.address1 || '').trim() !== "" &&
-                    (selectedCarrier.zip || '').trim() !== ""
-                ) {
-                    let parseCity = selectedCarrier.city.trim().replace(/\s/g, "").substring(0, 3);
-
-                    if (parseCity.toLowerCase() === "ft.") {
-                        parseCity = "FO";
-                    }
-                    if (parseCity.toLowerCase() === "mt.") {
-                        parseCity = "MO";
-                    }
-                    if (parseCity.toLowerCase() === "st.") {
-                        parseCity = "SA";
-                    }
-
-                    let newCode = (selectedCarrier.name || '').trim().replace(/\s/g, "").replace("&", "A").substring(0, 3) + parseCity.substring(0, 2) + (selectedCarrier.state || '').trim().replace(/\s/g, "").substring(0, 2);
-
-                    selectedCarrier.code = newCode;
-
-                    $.post(props.serverUrl + '/saveCarrier', selectedCarrier).then(async res => {
-                        if (props.selectedCarrier.id !== undefined && props.selectedCarrier.id >= 0) {
-                            selectedCarrier.factoring_company = f;
-                            await props.setSelectedCarrier(selectedCarrier);
-                            if (res.carrier.contacts.length === 1) {
-                                if (res.carrier.contacts[0].is_primary === 1) {
-                                    await props.setSelectedContact(res.carrier.contacts[0]);
-                                }
-                            }
-
-                            await props.setFactoringCompanySearch([]);
-                            closePanelBtnClick();
-                            
-                        }
-                    });
-
-                    
-                }
+                closePanelBtnClick();
             }
 
             clickCount = 0;
@@ -162,7 +118,7 @@ function FactoringCompanySearch(props) {
                             props.factoringCompanies.length > 0
                                 ? props.factoringCompanies.map((f, i) => {
                                     return (
-                                        <div className="trow" onClick={(e) => { rowClick(e, { ...f }) }} key={i}>
+                                        <div className="trow" onClick={(e) => { rowClick(e, {...f}) }} key={i}>
                                             <div className="tcol code">{f.code + (f.code_number === 0 ? '' : f.code_number)}</div>
                                             <div className="tcol name">{f.name}</div>
                                             <div className="tcol address1">{f.address1}</div>
@@ -185,12 +141,12 @@ function FactoringCompanySearch(props) {
 
 const mapStateToProps = state => {
     return {
-        serverUrl: state.systemReducers.serverUrl,
         panels: state.carrierReducers.panels,
         carriers: state.carrierReducers.carriers,
         factoringCompanySearch: state.carrierReducers.factoringCompanySearch,
         factoringCompanies: state.carrierReducers.factoringCompanies,
-        selectedCarrier: state.carrierReducers.selectedCarrier
+        selectedCarrier: state.carrierReducers.selectedCarrier,
+        selectedFactoringCompany: state.carrierReducers.selectedFactoringCompany,
     }
 }
 
@@ -202,5 +158,6 @@ export default connect(mapStateToProps, {
     setContactSearch,
     setShowingContactList,
     setContactSearchCarrier,
-    setFactoringCompanySearch
-})(FactoringCompanySearch)
+    setFactoringCompanySearch,
+    setSelectedFactoringCompany
+})(FactoringCompanyPanelSearch)

@@ -79,10 +79,7 @@ function Dispatch(props) {
     });
     const popupItemsRef = useRef([]);
     const [popupActiveInput, setPopupActiveInput] = useState('');
-
-    const [division, setDivision] = useState({});
-    const [loadType, setLoadType] = useState({});
-    const [template, setTemplate] = useState({});
+  
     const [carrierEquipment, setCarrierEquipment] = useState({});
     const [dispatchEvent, setDispatchEvent] = useState({});
     const refDivision = useRef();
@@ -180,6 +177,70 @@ function Dispatch(props) {
             selected: false
         }
     ]);
+
+    const dispatchClearBtnClick = () => {
+        props.setAeNumber('');
+        props.setOrderNumber('');
+        props.setTripNumber('');
+
+        props.setDivision({});
+        props.setLoadType({});
+        props.setTemplate({});
+        setCarrierEquipment({});
+
+        props.setSelectedBillToCompanyInfo({});
+        props.setSelectedBillToCompanyContact({});
+        props.setSelectedBillToCompanySearch([]);
+
+        props.setSelectedShipperCompanyInfo({});
+        props.setSelectedShipperCompanyContact({});
+        props.setSelectedShipperCompanySearch([]);
+
+        props.setSelectedConsigneeCompanyInfo({});
+        props.setSelectedConsigneeCompanyContact({});
+        props.setSelectedConsigneeCompanySearch([]);
+
+        props.setPu1('');
+        props.setPu2('');
+        props.setPu3('');
+        props.setPu4('');
+        props.setPu5('');
+        props.setDelivery1('');
+        props.setDelivery2('');
+        props.setDelivery3('');
+        props.setDelivery4('');
+        props.setDelivery5('');
+        props.setShipperPuDate1('');
+        props.setShipperPuDate2('');
+        props.setShipperPuTime1('');
+        props.setShipperPuTime2('');
+        props.setShipperBolNumber('');
+        props.setShipperPoNumber('');
+        props.setShipperRefNumber('');
+        props.setShipperSealNumber('');
+        props.setShipperSpecialInstructions('');
+        props.setConsigneeDeliveryDate1('');
+        props.setConsigneeDeliveryDate2('');
+        props.setConsigneeDeliveryTime1('');
+        props.setConsigneeDeliveryTime2('');
+        props.setConsigneeSpecialInstructions('');
+
+        props.setDispatchEvents([]);
+        props.setDispatchEvent({});
+        props.setDispatchEventLocation('');
+        props.setDispatchEventNotes('');
+
+        props.setHazMat(0);
+        props.setExpedited(0);
+        props.setNotesForCarrier([]);
+        props.setInternalNotes([]);
+        props.setSelectedNoteForCarrier({});
+        props.setSelectedInternalNote({});
+        props.setIsShowingShipperSecondPage(false);
+        props.setIsShowingConsigneeSecondPage(false);
+
+        
+    }
 
     const popupItemClick = (item) => {
         switch (popupActiveInput) {
@@ -1001,6 +1062,8 @@ function Dispatch(props) {
         });
     }
 
+    
+
     return (
         <div className="dispatch-main-container" style={{
             borderRadius: props.scale === 1 ? 0 : '20px'
@@ -1022,7 +1085,7 @@ function Dispatch(props) {
                                     <div className="input-box-container" style={{ width: '9rem' }}>
                                         <input type="text" placeholder='Trip Number' onChange={(e) => { props.setTripNumber(e.target.value) }} value={props.trip_number || ''} />
                                     </div>
-                                    <div className="mochi-button">
+                                    <div className="mochi-button" onClick={dispatchClearBtnClick}>
                                         <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                         <div className="mochi-button-base">Clear</div>
                                         <div className="mochi-button-decorator mochi-button-decorator-right">)</div>

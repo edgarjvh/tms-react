@@ -3,11 +3,16 @@ import CarrierSearch from './../components/company/carriers/panels/carrier-searc
 import ContactSearch from './../components/company/carriers/panels/contact-search/ContactSearch.jsx';
 import Contacts from './../components/company/carriers/panels/contacts/Contacts.jsx';
 import FactoringCompanySearch from './../components/company/carriers/panels/factoring-company-search/FactoringCompanySearch.jsx';
+import FactoringCompanyPanelSearch from './../components/company/carriers/panels/factoring-company-panel-search/FactoringCompanyPanelSearch.jsx';
 import FactoringCompany from './../components/company/carriers/panels/factoring-company/FactoringCompany.jsx';
 import Documents from './../components/company/carriers/panels/documents/Documents.jsx';
 import RevenueInformation from './../components/company/carriers/panels/revenue-information/RevenueInformation.jsx';
 import OrderHistory from './../components/company/carriers/panels/order-history/OrderHistory.jsx';
 import EquipmentInformation from './../components/company/carriers/panels/equipment-information/EquipmentInformation.jsx';
+import FactoringCompanyContacts from './../components/company/carriers/panels/factoring-company-contacts/FactoringCompanyContacts.jsx';
+import FactoringCompanyContactSearch from './../components/company/carriers/panels/factoring-company-contact-search/FactoringCompanyContactSearch.jsx';
+import FactoringCompanyInvoiceSearch from './../components/company/carriers/panels/factoring-company-invoice-search/FactoringCompanyInvoiceSearch.jsx';
+import FactoringCompanyDocuments from './../components/company/carriers/panels/factoring-company-documents/FactoringCompanyDocuments.jsx';
 
 export const carrierReducers = (state = {
     carriers: [],
@@ -18,14 +23,34 @@ export const carrierReducers = (state = {
     contactSearch: {},
     factoringCompanySearch: [],
     factoringCompanies: [],
+    factoringCompanyContacts: [],
+    selectedFactoringCompany: {},
+    selectedFactoringCompanyContact: {},
+    selectedFactoringCompanyContactSearch: { selectedContact: {} },
+    selectedFactoringCompanyIsShowingContactList: true,
+    selectedFactoringCompanyNote: {},
+    factoringCompanyIsEditingContact: false,
+
+    selectedFactoringCompanyInvoices: [
+
+    ],
+    selectedFactoringCompanyInvoice: {},
+    selectedFactoringCompanyIsShowingInvoiceList: true,
+    selectedFactoringCompanyInvoiceSearch: { selectedInvoice: {} },
+
     carrierSearch: [],
     showingContactList: true,
     contacts: [],
     isEditingContact: false,
     contactSearchCarrier: { selectedContact: {} },
     selectedDocument: {},
-    documentTags: '',
     selectedDocumentNote: {},
+    documentTags: '',
+
+    selectedFactoringCompanyDocument: {},
+    selectedFactoringCompanyDocumentNote: {},
+    factoringCompanyDocumentTags: '',
+
     drivers: [],
     selectedDriver: {},
     equipments: [],
@@ -34,9 +59,6 @@ export const carrierReducers = (state = {
     selectedInsuranceType: {},
     carrierInsurances: [],
     selectedInsurance: {},
-    selectedDocument: {},
-    documentTags: '',
-    selectedDocumentNote: {},
     equipmentInformation: {},
     panels: [
         {
@@ -63,6 +85,13 @@ export const carrierReducers = (state = {
         {
             name: 'carrier-factoring-company-search',
             component: <FactoringCompanySearch title='Factoring Company Search Results' />,
+            isOpened: false,
+            pos: -1,
+            maxWidth: 100
+        },
+        {
+            name: 'carrier-factoring-company-panel-search',
+            component: <FactoringCompanyPanelSearch title='Factoring Company Search Results' />,
             isOpened: false,
             pos: -1,
             maxWidth: 100
@@ -101,6 +130,34 @@ export const carrierReducers = (state = {
             isOpened: false,
             pos: -1,
             maxWidth: 45
+        },
+        {
+            name: 'factoring-company-contacts',
+            component: <FactoringCompanyContacts title='Contacts' />,
+            isOpened: false,
+            pos: -1,
+            maxWidth: 100
+        },
+        {
+            name: 'factoring-company-contact-search',
+            component: <FactoringCompanyContactSearch title='Factoring Company Contact Search Results' />,
+            isOpened: false,
+            pos: -1,
+            maxWidth: 100
+        },
+        {
+            name: 'factoring-company-invoice-search',
+            component: <FactoringCompanyInvoiceSearch title='Factoring Company Invoice Search Results' />,
+            isOpened: false,
+            pos: -1,
+            maxWidth: 100
+        },
+        {
+            name: 'factoring-company-documents',
+            component: <FactoringCompanyDocuments title='Documents' />,
+            isOpened: false,
+            pos: -1,
+            maxWidth: 100
         }
     ]
 }, action) => {
@@ -189,6 +246,24 @@ export const carrierReducers = (state = {
                 selectedDocumentNote: action.payload
             }
             break;
+        case carriersConstants.SET_SELECTED_FACTORING_COMPANY_DOCUMENT:
+            state = {
+                ...state,
+                selectedFactoringCompanyDocument: action.payload
+            }
+            break;
+        case carriersConstants.SET_FACTORING_COMPANY_DOCUMENT_TAGS:
+            state = {
+                ...state,
+                factoringCompanyDocumentTags: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_FACTORING_COMPANY_DOCUMENT_NOTE:
+            state = {
+                ...state,
+                selectedFactoringCompanyDocumentNote: action.payload
+            }
+            break;
         case carriersConstants.SET_DRIVERS:
             state = {
                 ...state,
@@ -237,6 +312,74 @@ export const carrierReducers = (state = {
                 factoringCompanies: action.payload
             }
             break;
+        case carriersConstants.SET_SELECTED_FACTORING_COMPANY:
+            state = {
+                ...state,
+                selectedFactoringCompany: action.payload
+            }
+            break;
+        case carriersConstants.SET_FACTORING_COMPANY_CONTACTS:
+            state = {
+                ...state,
+                factoringCompanyContacts: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_FACTORING_COMPANY_CONTACT:
+            state = {
+                ...state,
+                selectedFactoringCompanyContact: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_FACTORING_COMPANY_CONTACT_SEARCH:
+            state = {
+                ...state,
+                selectedFactoringCompanyContactSearch: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_FACTORING_COMPANY_IS_SHOWING_CONTACT_LIST:
+            state = {
+                ...state,
+                selectedFactoringCompanyIsShowingContactList: action.payload
+            }
+            break;
+        case carriersConstants.SET_FACTORING_COMPANY_IS_EDITING_CONTACT:
+            state = {
+                ...state,
+                factoringCompanyIsEditingContact: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_FACTORING_COMPANY_NOTE:
+            state = {
+                ...state,
+                selectedFactoringCompanyNote: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_FACTORING_COMPANY_INVOICE_SEARCH:
+
+            state = {
+                ...state,
+                selectedFactoringCompanyInvoiceSearch: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_FACTORING_COMPANY_INVOICES:
+            state = {
+                ...state,
+                selectedFactoringCompanyInvoices: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_FACTORING_COMPANY_INVOICE:
+            state = {
+                ...state,
+                selectedFactoringCompanyInvoice: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_FACTORING_COMPANY_IS_SHOWING_INVOICE_LIST:
+            state = {
+                ...state,
+                selectedFactoringCompanyIsShowingInvoiceList: action.payload,
+                selectedFactoringCompanyInvoiceSearch: action.payload ? { selectedInvoice: {} } : state.selectedFactoringCompanyInvoiceSearch,
+            }
+            break;
         case carriersConstants.SET_CARRIER_INSURANCES:
             state = {
                 ...state,
@@ -249,24 +392,7 @@ export const carrierReducers = (state = {
                 selectedInsurance: action.payload
             }
             break;
-        case carriersConstants.SET_SELECTED_DOCUMENT:
-            state = {
-                ...state,
-                selectedDocument: action.payload
-            }
-            break;
-        case carriersConstants.SET_DOCUMENT_TAGS:
-            state = {
-                ...state,
-                documentTags: action.payload
-            }
-            break;
-        case carriersConstants.SET_SELECTED_DOCUMENT_NOTE:
-            state = {
-                ...state,
-                selectedDocumentNote: action.payload
-            }
-            break;
+
         case carriersConstants.SET_EQUIPMENT_INFORMATION:
             state = {
                 ...state,

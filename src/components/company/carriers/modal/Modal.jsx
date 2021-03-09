@@ -25,6 +25,7 @@ function Modal(props) {
         $.post(props.serverUrl + props.savingDataUrl, {
             id: props.selectedData.id,
             carrier_id: props.selectedCarrier.id,
+            factoring_company_id: props.selectedParent.id,
             doc_id: props.selectedParent.id,
             text: props.selectedData.text,
             user: props.isAdding ? user : props.selectedData.user,
