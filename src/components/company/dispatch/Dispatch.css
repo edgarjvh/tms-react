@@ -84,3 +84,18 @@
 .dispatch-main-container .internal-notes-container .internal-notes-wrapper .internal-notes-item:hover {
   background-color: rgba(0, 0, 0, 0.1);
 }
+.dispatch-main-container .input-box-container.insurance-status {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+.dispatch-main-container .input-box-container.insurance-status input:read-only {
+  color: black;
+}
+.dispatch-main-container .input-box-container.insurance-status.active {
+  background-color: lightgreen;
+}
+.dispatch-main-container .input-box-container.insurance-status.warning {
+  background-color: yellow;
+}
+.dispatch-main-container .input-box-container.insurance-status.expired {
+  background-color: lightcoral !important;
+}

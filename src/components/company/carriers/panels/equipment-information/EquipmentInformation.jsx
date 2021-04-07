@@ -311,7 +311,7 @@ function EquipmentInformation(props) {
                             onChange={onEquipmentInput}
                             value={props.equipmentInformation.equipment?.name || ''}
                         />
-                        <span className="fas fa-chevron-down" style={{
+                        <span className="fas fa-caret-down" style={{
                             position: 'absolute',
                             right: 10,
                             top: '50%',

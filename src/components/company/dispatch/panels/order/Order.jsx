@@ -107,8 +107,8 @@ function Order(props) {
                                 <span style={{ ...styleFieldData, fontWeight: 'bold', fontSize: '1.2rem' }}>ET3 LOGISTICS, LLC</span>
                             </div>
                             <div style={{ flexGrow: 1, flexBasis: '100%', textAlign: 'right' }}>
-                                <div style={{ marginBottom: 5 }}><span style={{ ...styleFieldName, fontSize: '0.9rem' }}>ORDER#</span> <span style={{ ...styleFieldData, fontSize: '0.9rem' }}>{props.order_number}</span></div>
-                                <div><span style={{ ...styleFieldName, fontSize: '0.9rem' }}>TRIP#</span> <span style={{ ...styleFieldData, fontSize: '0.9rem' }}>{props.trip_number}</span></div>
+                                <div style={{ marginBottom: 5 }}><span style={{ ...styleFieldName, fontSize: '0.9rem' }}>ORDER#</span> <span style={{ ...styleFieldData, fontSize: '0.9rem' }}>{props.selected_order?.order_number}</span></div>
+                                <div><span style={{ ...styleFieldName, fontSize: '0.9rem' }}>TRIP#</span> <span style={{ ...styleFieldData, fontSize: '0.9rem' }}>{props.selected_order?.trip_number}</span></div>
                             </div>
                         </div>
 
@@ -171,15 +171,15 @@ function Order(props) {
                                     padding: 10
                                 }}>
                                     <div style={{ ...styleFlexCol, flexGrow: 1, marginRight: 10 }}>
-                                        <div style={{ ...styleFlexRow, marginBottom: 10 }}><span style={{ ...styleFieldName, marginRight: 5 }}>PO Number:</span> <span style={{ ...styleFieldData }}>{props.shipperPoNumber}</span></div>
-                                        <div style={{ ...styleFlexRow, marginBottom: 10 }}><span style={{ ...styleFieldName, marginRight: 5 }}>BOL Number:</span> <span style={{ ...styleFieldData }}>{props.shipperBolNumber}</span></div>
+                                        <div style={{ ...styleFlexRow, marginBottom: 10 }}><span style={{ ...styleFieldName, marginRight: 5 }}>PO Numbers:</span> <span style={{ ...styleFieldData }}>{props.selected_order?.po_numbers}</span></div>
+                                        <div style={{ ...styleFlexRow, marginBottom: 10 }}><span style={{ ...styleFieldName, marginRight: 5 }}>BOL Numbers:</span> <span style={{ ...styleFieldData }}>{props.selected_order?.bol_numbers}</span></div>
                                         <div style={{ ...styleFlexRow, marginBottom: 10 }}><span style={{ ...styleFieldName, marginRight: 5 }}>Shipper Number:</span> <span style={{ ...styleFieldData }}>123456789AB</span></div>
                                         <div style={{ ...styleFlexRow }}><span style={{ ...styleFieldName, marginRight: 5 }}>Commodity:</span> <span style={{ ...styleFieldData }}>Aluminium Shapes</span></div>
                                     </div>
 
                                     <div style={{ ...styleFlexCol, flexGrow: 1 }}>
-                                        <div style={{ ...styleFlexRow, marginBottom: 10 }}><span style={{ ...styleFieldName, marginRight: 5 }}>Division:</span> <span style={{ ...styleFieldData }}>{(props.division.name || '')}</span></div>
-                                        <div style={{ ...styleFlexRow, marginBottom: 10 }}><span style={{ ...styleFieldName, marginRight: 5 }}>Load Type:</span> <span style={{ ...styleFieldData }}>{(props.load_type.name || '')}</span></div>
+                                        <div style={{ ...styleFlexRow, marginBottom: 10 }}><span style={{ ...styleFieldName, marginRight: 5 }}>Division:</span> <span style={{ ...styleFieldData }}>{(props.selected_order?.division || '')}</span></div>
+                                        <div style={{ ...styleFlexRow, marginBottom: 10 }}><span style={{ ...styleFieldName, marginRight: 5 }}>Load Type:</span> <span style={{ ...styleFieldData }}>{(props.selected_order?.load_type || '')}</span></div>
                                         <div style={{ ...styleFlexRow }}><span style={{ ...styleFieldName, marginRight: 5 }}>Total Charges:</span> <span style={{ ...styleFieldData }}>$50,000.00</span></div>
                                     </div>
                                 </div>
@@ -195,8 +195,8 @@ function Order(props) {
                                 <div style={{ ...styleFlexRow, justifyContent: 'space-evenly', marginBottom: 15 }}>
                                     <div style={{ ...styleFlexRow }}><span style={{ ...styleFieldName }}>ORDER INFORMATION</span></div>
                                     <div style={{ ...styleFlexRow }}><span style={{ ...styleFieldName, marginRight: 5 }}>Equipment:</span> <span style={{ ...styleFieldData }}>REMOVABLE GOOSE NECK</span></div>
-                                    <div style={{ ...styleFlexRow }}><span style={{ ...styleFieldName, marginRight: 5 }}>Expedited:</span> <span style={{ ...styleFieldData }}>{props.expedited === 0 ? 'NO' : 'YES'}</span></div>
-                                    <div style={{ ...styleFlexRow }}><span style={{ ...styleFieldName, marginRight: 5 }}>HaxMat:</span> <span style={{ ...styleFieldData }}>{props.hazMat === 0 ? 'NO' : 'YES'}</span></div>
+                                    <div style={{ ...styleFlexRow }}><span style={{ ...styleFieldName, marginRight: 5 }}>Expedited:</span> <span style={{ ...styleFieldData }}>{props.selected_order?.expedited === 1 ? 'YES' : 'NO'}</span></div>
+                                    <div style={{ ...styleFlexRow }}><span style={{ ...styleFieldName, marginRight: 5 }}>HaxMat:</span> <span style={{ ...styleFieldData }}>{props.selected_order?.haz_mat === 1 ? 'YES' : 'NO'}</span></div>
                                 </div>
 
                                 <div style={{ ...styleFlexRow, justifyContent: 'space-between', marginBottom: 10 }}>
@@ -278,9 +278,9 @@ function Order(props) {
 
                                     <div style={{ ...styleFlexCol, justifyContent: 'center', alignItems: 'flex-start', paddingLeft: 10, flexGrow: 1 }}>
                                         <div style={{ ...styleFlexRow, marginBottom: 3 }}><span style={{ ...styleFieldName, textDecoration: 'underline' }}>PICK UP TIMES</span></div>
-                                        <div style={{ ...styleFlexRow, marginBottom: 3 }}><span style={{ ...styleFieldName, width: '3rem' }}>DATE:</span> <span style={{ ...styleFieldData }}>{props.shipperPuDate1}</span></div>
-                                        <div style={{ ...styleFlexRow, marginBottom: 3 }}><span style={{ ...styleFieldName, width: '3rem' }}>FROM:</span> <span style={{ ...styleFieldData }}>{props.shipperPuTime1}</span></div>
-                                        <div style={{ ...styleFlexRow, marginBottom: 3 }}><span style={{ ...styleFieldName, width: '3rem' }}>TO:</span> <span style={{ ...styleFieldData }}>{props.shipperPuTime2}</span></div>
+                                        <div style={{ ...styleFlexRow, marginBottom: 3 }}><span style={{ ...styleFieldName, width: '3rem' }}>DATE:</span> <span style={{ ...styleFieldData }}>{props.selected_order?.pu_date1}</span></div>
+                                        <div style={{ ...styleFlexRow, marginBottom: 3 }}><span style={{ ...styleFieldName, width: '3rem' }}>FROM:</span> <span style={{ ...styleFieldData }}>{props.selected_order?.pu_time1}</span></div>
+                                        <div style={{ ...styleFlexRow, marginBottom: 3 }}><span style={{ ...styleFieldName, width: '3rem' }}>TO:</span> <span style={{ ...styleFieldData }}>{props.selected_order?.pu_time2}</span></div>
                                     </div>
                                 </div>
 
@@ -325,9 +325,9 @@ function Order(props) {
 
                                     <div style={{ ...styleFlexCol, justifyContent: 'center', alignItems: 'flex-start', flexGrow: 1, paddingLeft: 10 }}>
                                         <div style={{ ...styleFlexRow, marginBottom: 3 }}><span style={{ ...styleFieldName, textDecoration: 'underline' }}>DELIVERY TIMES</span></div>
-                                        <div style={{ ...styleFlexRow, marginBottom: 3 }}><span style={{ ...styleFieldName, width: '3rem' }}>DATE:</span> <span style={{ ...styleFieldData }}>{props.consigneeDeliveryDate1}</span></div>
-                                        <div style={{ ...styleFlexRow, marginBottom: 3 }}><span style={{ ...styleFieldName, width: '3rem' }}>FROM:</span> <span style={{ ...styleFieldData }}>{props.consigneeDeliveryTime1}</span></div>
-                                        <div style={{ ...styleFlexRow, marginBottom: 3 }}><span style={{ ...styleFieldName, width: '3rem' }}>TO:</span> <span style={{ ...styleFieldData }}>{props.consigneeDeliveryTime2}</span></div>
+                                        <div style={{ ...styleFlexRow, marginBottom: 3 }}><span style={{ ...styleFieldName, width: '3rem' }}>DATE:</span> <span style={{ ...styleFieldData }}>{props.selected_order?.delivery_date1}</span></div>
+                                        <div style={{ ...styleFlexRow, marginBottom: 3 }}><span style={{ ...styleFieldName, width: '3rem' }}>FROM:</span> <span style={{ ...styleFieldData }}>{props.selected_order?.delivery_time1}</span></div>
+                                        <div style={{ ...styleFlexRow, marginBottom: 3 }}><span style={{ ...styleFieldName, width: '3rem' }}>TO:</span> <span style={{ ...styleFieldData }}>{props.selected_order?.delivery_time2}</span></div>
                                     </div>
                                 </div>
                             </div>
@@ -344,27 +344,27 @@ function Order(props) {
 
                                 <div style={{ ...styleFlexCol, justifyContent: 'center', flexGrow: 1, flexBasis: '100%' }}>
                                     <span style={{ ...styleFieldName, marginBottom: 5 }}>CARRIER INFORMATION</span>
-                                    <span style={{ ...styleFieldData, color: '#4682B4', marginBottom: 5 }}>CARRIER CODE</span>
-                                    <span style={{ ...styleFieldData, marginBottom: 5 }}>CARRIER NAME</span>
-                                    <span style={{ ...styleFieldData, marginBottom: 5 }}>ADDRESS</span>
-                                    <span style={{ ...styleFieldData }}>CITY, ST ZIP</span>
+                                    <span style={{ ...styleFieldData, color: '#4682B4', marginBottom: 5 }}>{props.selectedDispatchCarrierInfoCarrier.code}</span>
+                                    <span style={{ ...styleFieldData, marginBottom: 5 }}>{props.selectedDispatchCarrierInfoCarrier.name}</span>
+                                    <span style={{ ...styleFieldData, marginBottom: 5 }}>{props.selectedDispatchCarrierInfoCarrier.address1}</span>
+                                    <span style={{ ...styleFieldData }}>{props.selectedDispatchCarrierInfoCarrier.city}, {props.selectedDispatchCarrierInfoCarrier.state} {props.selectedDispatchCarrierInfoCarrier.zip}</span>
                                 </div>
 
                                 <div style={{ ...styleFlexCol, justifyContent: 'center', flexGrow: 1, flexBasis: '100%' }}>
-                                    <div style={{ ...styleFlexRow, marginBottom: 5 }}><span style={{ ...styleFieldName, width: '4rem' }}>Contact:</span> <span style={{ ...styleFieldData }}>FIRST LAST</span></div>
+                                    <div style={{ ...styleFlexRow, marginBottom: 5 }}><span style={{ ...styleFieldName, width: '4rem' }}>Contact:</span> <span style={{ ...styleFieldData }}>{props.selectedDispatchCarrierInfoContact.first_name} {props.selectedDispatchCarrierInfoContact.last_name}</span></div>
                                     <div style={{ ...styleFlexRow, marginBottom: 5 }}>
-                                        <span style={{ ...styleFieldName, width: '4rem' }}>Phone:</span><span style={{ ...styleFieldData, marginRight: 5 }}>555-123-4567</span>
-                                        <span style={{ ...styleFieldName, width: '1.5rem' }}>Ext:</span><span style={{ ...styleFieldData }}>123</span>
+                                        <span style={{ ...styleFieldName, width: '4rem' }}>Phone:</span><span style={{ ...styleFieldData, marginRight: 5 }}>{props.selectedDispatchCarrierInfoContact.phone_work}</span>
+                                        <span style={{ ...styleFieldName, width: '1.5rem' }}>Ext:</span><span style={{ ...styleFieldData }}>{props.selectedDispatchCarrierInfoContact.phone_ext}</span>
                                     </div>
-                                    <div style={{ ...styleFlexRow }}><span style={{ ...styleFieldName, width: '4rem' }}>Contact:</span> <span style={{ ...styleFieldData }}>FIRST LAST</span></div>
+                                    <div style={{ ...styleFlexRow }}><span style={{ ...styleFieldName, width: '4rem' }}>E-Mail:</span> <span style={{ ...styleFieldData }}>{props.selectedDispatchCarrierInfoContact.email_work}</span></div>
                                 </div>
 
                                 <div style={{ ...styleFlexCol, justifyContent: 'center', flexGrow: 1, flexBasis: '100%' }}>
                                     <span style={{ ...styleFieldName, marginBottom: 5 }}>DRIVER INFORMATION</span>
-                                    <div style={{ ...styleFlexRow, marginBottom: 5 }}><span style={{ ...styleFieldName, width: '4rem' }}>Driver:</span> <span style={{ ...styleFieldData }}>FIRST LAST</span></div>
-                                    <div style={{ ...styleFlexRow, marginBottom: 5 }}><span style={{ ...styleFieldName, width: '4rem' }}>Phone:</span> <span style={{ ...styleFieldData }}>555-123-4567</span></div>
+                                    <div style={{ ...styleFlexRow, marginBottom: 5 }}><span style={{ ...styleFieldName, width: '4rem' }}>Driver:</span> <span style={{ ...styleFieldData }}>{props.selectedDispatchCarrierInfoDriver.first_name} {props.selectedDispatchCarrierInfoDriver.last_name}</span></div>
+                                    <div style={{ ...styleFlexRow, marginBottom: 5 }}><span style={{ ...styleFieldName, width: '4rem' }}>Phone:</span> <span style={{ ...styleFieldData }}>{props.selectedDispatchCarrierInfoDriver.phone}</span></div>
                                     <div style={{ ...styleFlexRow, marginBottom: 5 }}><span style={{ ...styleFieldName, width: '4rem' }}>Unit:</span> <span style={{ ...styleFieldData }}>12345678</span></div>
-                                    <div style={{ ...styleFlexRow, marginBottom: 5 }}><span style={{ ...styleFieldName, width: '4rem' }}>Trailer:</span> <span style={{ ...styleFieldData }}>T123456789</span></div>
+                                    <div style={{ ...styleFlexRow, marginBottom: 5 }}><span style={{ ...styleFieldName, width: '4rem' }}>Trailer:</span> <span style={{ ...styleFieldData }}>{props.selectedDispatchCarrierInfoDriver.trailer}</span></div>
                                 </div>
 
                             </div>
@@ -381,10 +381,10 @@ function Order(props) {
                                 <div style={{ ...styleFieldName, marginBottom: 15 }}>NOTES FOR CARRIER</div>
                                 <div style={{ ...styleFieldData, ...styleFlexCol }}>
                                     {
-                                        props.notesForCarrier.map((note, index) => {
+                                        (props.selected_order?.notes_for_carrier || []).map((note, index) => {
 
                                             return (
-                                                <div style={{ ...styleFieldData }}>{note.text}</div>
+                                                <div style={{ ...styleFieldData }} key={index}>{note.text}</div>
                                             )
                                         })
                                     }
@@ -462,18 +462,22 @@ function Order(props) {
 const mapStateToProps = state => {
     return {
         panels: state.dispatchReducers.panels,
-        billToCompanies: state.dispatchReducers.billToCompanies,
-        selectedBillToCompanyInfo: state.dispatchReducers.selectedBillToCompanyInfo,
-        selectedBillToCompanyContact: state.dispatchReducers.selectedBillToCompanyContact,
-        selectedBillToCompanySearch: state.dispatchReducers.selectedBillToCompanySearch,
-        shipperCompanies: state.dispatchReducers.shipperCompanies,
-        selectedShipperCompanyInfo: state.dispatchReducers.selectedShipperCompanyInfo,
-        selectedShipperCompanyContact: state.dispatchReducers.selectedShipperCompanyContact,
-        selectedShipperCompanySearch: state.dispatchReducers.selectedShipperCompanySearch,
-        consigneeCompanies: state.dispatchReducers.consigneeCompanies,
-        selectedConsigneeCompanyInfo: state.dispatchReducers.selectedConsigneeCompanyInfo,
-        selectedConsigneeCompanyContact: state.dispatchReducers.selectedConsigneeCompanyContact,
-        selectedConsigneeCompanySearch: state.dispatchReducers.selectedConsigneeCompanySearch,
+        selected_order: state.dispatchReducers.selected_order,
+        billToCompanies: state.customerReducers.billToCompanies,
+        selectedBillToCompanyInfo: state.customerReducers.selectedBillToCompanyInfo,
+        selectedBillToCompanyContact: state.customerReducers.selectedBillToCompanyContact,
+        selectedBillToCompanySearch: state.customerReducers.selectedBillToCompanySearch,
+        shipperCompanies: state.customerReducers.shipperCompanies,
+        selectedShipperCompanyInfo: state.customerReducers.selectedShipperCompanyInfo,
+        selectedShipperCompanyContact: state.customerReducers.selectedShipperCompanyContact,
+        selectedShipperCompanySearch: state.customerReducers.selectedShipperCompanySearch,
+        consigneeCompanies: state.customerReducers.consigneeCompanies,
+        selectedConsigneeCompanyInfo: state.customerReducers.selectedConsigneeCompanyInfo,
+        selectedConsigneeCompanyContact: state.customerReducers.selectedConsigneeCompanyContact,
+        selectedConsigneeCompanySearch: state.customerReducers.selectedConsigneeCompanySearch,
+        selectedDispatchCarrierInfoCarrier: state.carrierReducers.selectedDispatchCarrierInfoCarrier,
+        selectedDispatchCarrierInfoContact: state.carrierReducers.selectedDispatchCarrierInfoContact,
+        selectedDispatchCarrierInfoDriver: state.carrierReducers.selectedDispatchCarrierInfoDriver,
         ae_number: state.dispatchReducers.ae_number,
         order_number: state.dispatchReducers.order_number,
         trip_number: state.dispatchReducers.trip_number,

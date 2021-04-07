@@ -892,10 +892,10 @@ function FactoringCompany(props) {
                                         value={props.selectedFactoringCompanyContact.phone_ext || ''} />
                                 </div>
                                 <div className="input-toggle-container">
-                                    <input type="checkbox" id="cbox-customer-contacts-primary-btn"
+                                    <input type="checkbox" id="cbox-factoring-company-contacts-primary-btn"
                                         onChange={selectedContactIsPrimaryChange}
                                         checked={(props.selectedFactoringCompanyContact.is_primary || 0) === 1} />
-                                    <label htmlFor="cbox-customer-contacts-primary-btn">
+                                    <label htmlFor="cbox-factoring-company-contacts-primary-btn">
                                         <div className="label-text">Primary</div>
                                         <div className="input-toggle-btn"></div>
                                     </label>

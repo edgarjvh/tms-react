@@ -340,7 +340,7 @@ function Routing(props) {
                                     onChange={() => { }}
                                     value={carrierEquipment.name || ''}
                                 />
-                                <span className="fas fa-chevron-down" style={{
+                                <span className="fas fa-caret-down" style={{
                                     position: 'absolute',
                                     right: 5,
                                     top: 'calc(50% + 2px)',

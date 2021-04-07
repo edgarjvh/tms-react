@@ -1,0 +1,34 @@
+.lane-fields-container {
+  display: flex;
+  flex-direction: column;
+  margin: 20px 0 15px;
+  flex-grow: 0 !important;
+}
+.lane-fields-container .row-fields {
+  display: flex;
+  margin-bottom: 5px;
+}
+.lane-fields-container .row-fields .input-box-container.date {
+  width: 8rem;
+  margin-right: 2px;
+}
+.lane-fields-container .row-fields .input-box-container.city {
+  flex-grow: 1;
+  margin-right: 2px;
+}
+.lane-fields-container .row-fields .input-box-container.state {
+  width: 8rem;
+  margin-right: 2px;
+}
+.lane-fields-container .row-fields .input-box-container.zip {
+  width: 8rem;
+}
+.lane-info-container {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 10px;
+}
+.lane-info-container .form-bordered-box {
+  flex-grow: 1;
+}

@@ -6,13 +6,19 @@ export const setDispatchPanels = panels => {
         payload: panels
     }
 }
+export const setSelectedOrder = order => {
+    return {
+        type: dispatchConstants.SET_SELECTED_ORDER,
+        payload: order
+    }
+}
 export const setBillToCompanies = companies => {
     return {
         type: dispatchConstants.SET_BILL_TO_COMPANIES,
         payload: companies
     }
 }
-export const setSelectedBillToCompanyInfo = company => {
+export const setSelectedBillToCompanyInfo = company => { 
     return {
         type: dispatchConstants.SET_SELECTED_BILL_TO_COMPANY_INFO,
         payload: company
@@ -28,6 +34,18 @@ export const setSelectedBillToCompanySearch = search => {
     return {
         type: dispatchConstants.SET_SELECTED_BILL_TO_COMPANY_SEARCH,
         payload: search
+    }
+}
+export const setSelectedBillToCompanyNote = note => {
+    return {
+        type: dispatchConstants.SET_SELECTED_BILL_TO_COMPANY_NOTE,
+        payload: note
+    }
+}
+export const setSelectedBillToCompanyDirection = direction => {
+    return {
+        type: dispatchConstants.SET_SELECTED_BILL_TO_COMPANY_DIRECTION,
+        payload: direction
     }
 }
 export const setShipperCompanies = companies => {
@@ -54,6 +72,18 @@ export const setSelectedShipperCompanySearch = search => {
         payload: search
     }
 }
+export const setSelectedShipperCompanyNote = note => {
+    return {
+        type: dispatchConstants.SET_SELECTED_SHIPPER_COMPANY_NOTE,
+        payload: note
+    }
+}
+export const setSelectedShipperCompanyDirection = direction => {
+    return {
+        type: dispatchConstants.SET_SELECTED_SHIPPER_COMPANY_DIRECTION,
+        payload: direction
+    }
+}
 export const setConsigneeCompanies = companies => {
     return {
         type: dispatchConstants.SET_CONSIGNEE_COMPANIES,
@@ -76,6 +106,18 @@ export const setSelectedConsigneeCompanySearch = search => {
     return {
         type: dispatchConstants.SET_SELECTED_CONSIGNEE_COMPANY_SEARCH,
         payload: search
+    }
+}
+export const setSelectedConsigneeCompanyNote = note => {
+    return {
+        type: dispatchConstants.SET_SELECTED_CONSIGNEE_COMPANY_NOTE,
+        payload: note
+    }
+}
+export const setSelectedConsigneeCompanyDirection = direction => {
+    return {
+        type: dispatchConstants.SET_SELECTED_CONSIGNEE_COMPANY_DIRECTION,
+        payload: direction
     }
 }
 export const setDispatchCarriers = carriers => {

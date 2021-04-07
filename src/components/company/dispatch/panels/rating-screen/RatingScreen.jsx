@@ -400,7 +400,7 @@ function RatingScreen(props) {
                             value={billToRateType.name || ''}
                         />
 
-                        <span className="fas fa-chevron-down" style={{
+                        <span className="fas fa-caret-down" style={{
                             position: 'absolute',
                             right: 5,
                             top: 'calc(50% + 2px)',
@@ -492,7 +492,7 @@ function RatingScreen(props) {
                             value={carrierChargesRateType.name || ''}
                         />
 
-                        <span className="fas fa-chevron-down" style={{
+                        <span className="fas fa-caret-down" style={{
                             position: 'absolute',
                             right: 5,
                             top: 'calc(50% + 2px)',

@@ -46,7 +46,7 @@ function ShipperCompanySearch(props) {
 
             <div className="input-box-container" style={{ marginTop: 20, display: 'flex', alignItems: 'center' }}>
                 {
-                    (props.selectedShipperCompanySearch || []).map((item, index) => {
+                    (props.shipperCompanySearch || []).map((item, index) => {
 
                         if (item.data.trim() !== '') {
                             return (
@@ -118,8 +118,8 @@ function ShipperCompanySearch(props) {
 const mapStateToProps = state => {
     return {
         panels: state.dispatchReducers.panels,
-        shipperCompanies: state.dispatchReducers.shipperCompanies,
-        selectedShipperCompanySearch: state.dispatchReducers.selectedShipperCompanySearch,
+        shipperCompanies: state.customerReducers.shipperCompanies,
+        shipperCompanySearch: state.customerReducers.shipperCompanySearch,
     }
 }
 

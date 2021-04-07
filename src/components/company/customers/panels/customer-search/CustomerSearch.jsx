@@ -98,7 +98,7 @@ function CustomerSearch(props) {
                                             <div className="tcol zip">{c.zip}</div>
                                             <div className="tcol contact-name">{c.contact_name}</div>
                                             <div className="tcol contact-phone">{c.contact_phone}</div>
-                                            <div className="tcol contact-phone-ext">{c.ext}</div>
+                                            {/* <div className="tcol contact-phone-ext">{c.ext}</div> */}
                                         </div>
                                     )
                                 })

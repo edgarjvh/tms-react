@@ -772,7 +772,7 @@ function Invoice(props) {
                                     value={billToRateType.name || ''}
                                 />
 
-                                <span className="fas fa-chevron-down" style={{
+                                <span className="fas fa-caret-down" style={{
                                     position: 'absolute',
                                     right: 5,
                                     top: 'calc(50% + 2px)',
@@ -919,7 +919,7 @@ function Invoice(props) {
                                     onChange={() => { }}
                                     value={carrierChargesRateType.name || ''}
                                 />
-                                <span className="fas fa-chevron-down" style={{
+                                <span className="fas fa-caret-down" style={{
                                     position: 'absolute',
                                     right: 5,
                                     top: 'calc(50% + 2px)',
@@ -1180,7 +1180,7 @@ function Invoice(props) {
                                     onChange={() => { }}
                                     value={equipment.name || ''}
                                 />
-                                <span className="fas fa-chevron-down" style={{
+                                <span className="fas fa-caret-down" style={{
                                     position: 'absolute',
                                     right: 5,
                                     top: 'calc(50% + 2px)',
@@ -1239,7 +1239,7 @@ function Invoice(props) {
                                 onChange={() => { }}
                                 value={term.name || ''}
                             />
-                            <span className="fas fa-chevron-down" style={{
+                            <span className="fas fa-caret-down" style={{
                                 position: 'absolute',
                                 right: 5,
                                 top: 'calc(50% + 2px)',

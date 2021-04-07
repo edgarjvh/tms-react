@@ -60,14 +60,45 @@
   width: 50%;
   position: relative;
 }
+.shipper-company-info .fields-container .form-slider .form-slider-wrapper .contact-list-box .contact-list-header {
+  display: flex;
+  font-size: 0.7rem;
+  font-weight: bold;
+  text-decoration: underline;
+  color: rgba(0, 0, 0, 0.7);
+  min-height: 1rem;
+  max-height: 1rem;
+}
+.shipper-company-info .fields-container .form-slider .form-slider-wrapper .contact-list-box .tcol.first-name {
+  min-width: 5rem;
+  max-width: 5rem;
+}
+.shipper-company-info .fields-container .form-slider .form-slider-wrapper .contact-list-box .tcol.last-name {
+  min-width: 5rem;
+  max-width: 5rem;
+}
+.shipper-company-info .fields-container .form-slider .form-slider-wrapper .contact-list-box .tcol.phone-work {
+  min-width: 5rem;
+  max-width: 5rem;
+}
+.shipper-company-info .fields-container .form-slider .form-slider-wrapper .contact-list-box .tcol.email-work {
+  flex-grow: 1;
+}
+.shipper-company-info .fields-container .form-slider .form-slider-wrapper .contact-list-box .tcol.pri {
+  min-width: 0.65rem;
+  max-width: 0.65rem;
+  text-align: center;
+}
 .shipper-company-info .fields-container .form-slider .form-slider-wrapper .contact-list-box .contact-list-wrapper {
   position: absolute;
   width: 100%;
-  height: 100%;
+  height: calc(100% - 1rem);
+  bottom: 0;
   overflow-y: auto;
+  padding-top: 5px;
 }
 .shipper-company-info .fields-container .form-slider .form-slider-wrapper .contact-list-box .contact-list-wrapper .contact-list-item {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   padding: 5px 0;
   cursor: pointer;
@@ -79,6 +110,11 @@
   align-items: center;
   justify-content: space-between;
   padding-right: 5px;
+}
+.shipper-company-info .fields-container .form-slider .form-slider-wrapper .contact-list-box .contact-list-wrapper .contact-list-item > div {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .shipper-company-info .fields-container .form-slider .form-slider-wrapper .contact-list-box .contact-list-wrapper .contact-list-item:hover {
   background-color: rgba(0, 0, 0, 0.1);
@@ -98,7 +134,7 @@
   overflow-y: auto;
 }
 .shipper-company-info .fields-container .notes-list-container .notes-list-wrapper .notes-list-item {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   padding: 5px 0;
   cursor: pointer;
@@ -123,7 +159,7 @@
   overflow-x: hidden;
 }
 .shipper-company-info .fields-container .directions-list-container .directions-list-wrapper .directions-list-item {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   padding: 5px 0;
   cursor: pointer;

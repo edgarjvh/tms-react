@@ -6,7 +6,7 @@ import Draggable from 'react-draggable';
 import './Contacts.css';
 import {
     setCarrierPanels,
-    setSelectedContact,
+    setSelectedCarrierContact,
     setContactSearchCarrier,
     setSelectedCarrier,
     setIsEditingContact
@@ -74,7 +74,7 @@ function Contacts(props) {
 
                 if (props.selectedContact.id !== undefined) {
                     if (props.selectedContact.id === contact.id) {
-                        await props.setSelectedContact(res.contact);
+                        await props.setSelectedCarrierContact(res.contact);
                     }
                 }
 
@@ -97,7 +97,7 @@ function Contacts(props) {
 
                     if (props.selectedContact.id !== undefined) {
                         if (props.selectedContact.id === contact.id) {
-                            await props.setSelectedContact({});
+                            await props.setSelectedCarrierContact({});
                         }
                     }
 
@@ -649,7 +649,7 @@ const mapStateToProps = state => {
 
 export default connect(mapStateToProps, {
     setCarrierPanels,
-    setSelectedContact,
+    setSelectedCarrierContact,
     setContactSearchCarrier,
     setSelectedCarrier,
     setIsEditingContact

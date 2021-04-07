@@ -43,6 +43,9 @@
 }
 .tbl .trow .tcol {
   padding: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .tbl .trow .tcol.code {
   min-width: 5.5rem;
@@ -53,16 +56,16 @@
   max-width: 12rem;
 }
 .tbl .trow .tcol.address1 {
-  min-width: 13rem;
-  max-width: 13rem;
-}
-.tbl .trow .tcol.address2 {
-  min-width: 13rem;
-  max-width: 13rem;
-}
-.tbl .trow .tcol.city {
   min-width: 10rem;
   max-width: 10rem;
+}
+.tbl .trow .tcol.address2 {
+  min-width: 10rem;
+  max-width: 10rem;
+}
+.tbl .trow .tcol.city {
+  min-width: 7rem;
+  max-width: 7rem;
 }
 .tbl .trow .tcol.state {
   min-width: 4rem;

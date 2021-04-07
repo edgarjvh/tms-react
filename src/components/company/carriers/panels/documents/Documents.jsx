@@ -6,10 +6,10 @@ import Draggable from 'react-draggable';
 import './Documents.css';
 import {
     setCarrierPanels,
-    setSelectedDocument,
+    setSelectedCarrierDocument,
     setSelectedCarrier,
-    setDocumentTags,
-    setSelectedDocumentNote
+    setCarrierDocumentTags,
+    setSelectedCarrierDocumentNote
 } from './../../../../../actions';
 import moment from 'moment';
 import DocViewer from "react-doc-viewer";
@@ -40,13 +40,13 @@ function Documents(props) {
 
         if (keyCode === 32) {
             e.preventDefault();
-            props.setSelectedDocument({ ...props.selectedDocument, tags: ((props.selectedDocument.tags || '') + ' ' + props.documentTags).trim() });
-            props.setDocumentTags('');
+            props.setSelectedCarrierDocument({ ...props.selectedDocument, tags: ((props.selectedDocument.tags || '') + ' ' + props.documentTags).trim() });
+            props.setCarrierDocumentTags('');
             refTagInput.current.focus();
         }
         if (keyCode === 9) {
-            props.setSelectedDocument({ ...props.selectedDocument, tags: ((props.selectedDocument.tags || '') + ' ' + props.documentTags).trim() });
-            props.setDocumentTags('');
+            props.setSelectedCarrierDocument({ ...props.selectedDocument, tags: ((props.selectedDocument.tags || '') + ' ' + props.documentTags).trim() });
+            props.setCarrierDocumentTags('');
             refTagInput.current.focus();
         }
     }
@@ -94,7 +94,7 @@ function Documents(props) {
                 console.log(res);
                 if (res.result === "OK") {
                     props.setSelectedCarrier({ ...props.selectedCarrier, documents: res.documents });
-                    props.setSelectedDocument({
+                    props.setSelectedCarrierDocument({
                         id: 0,
                         user_id: Math.floor(Math.random() * (15 - 1)) + 1,
                         date_entered: moment().format('MM-DD-YYYY')
@@ -146,7 +146,7 @@ function Documents(props) {
                         </div>
 
                         <div className="mochi-button" onClick={() => {
-                            props.setSelectedDocument({
+                            props.setSelectedCarrierDocument({
                                 id: 0,
                                 user_id: Math.floor(Math.random() * (15 - 1)) + 1,
                                 date_entered: moment().format('MM-DD-YYYY')
@@ -168,7 +168,7 @@ function Documents(props) {
                                 type="text"
                                 placeholder="Title"
                                 value={props.selectedDocument.title || ''}
-                                onChange={(e) => { props.setSelectedDocument({ ...props.selectedDocument, title: e.target.value }) }}
+                                onChange={(e) => { props.setSelectedCarrierDocument({ ...props.selectedDocument, title: e.target.value }) }}
                                 readOnly={(props.selectedDocument.id || 0) > 0} />
                         </div>
 
@@ -177,7 +177,7 @@ function Documents(props) {
                                 type="text"
                                 placeholder="Subject"
                                 value={props.selectedDocument.subject || ''}
-                                onChange={(e) => { props.setSelectedDocument({ ...props.selectedDocument, subject: e.target.value }) }}
+                                onChange={(e) => { props.setSelectedCarrierDocument({ ...props.selectedDocument, subject: e.target.value }) }}
                                 readOnly={(props.selectedDocument.id || 0) > 0} />
                         </div>
 
@@ -202,7 +202,7 @@ function Documents(props) {
                                                     (props.selectedDocument.id || 0) === 0 &&
                                                     <span className="fas fa-trash-alt" style={{ marginRight: '5px', cursor: 'pointer' }}
                                                         onClick={() => {
-                                                            props.setSelectedDocument({ ...props.selectedDocument, tags: (props.selectedDocument.tags || '').replace(item, '').trim() })
+                                                            props.setSelectedCarrierDocument({ ...props.selectedDocument, tags: (props.selectedDocument.tags || '').replace(item, '').trim() })
                                                         }}></span>
                                                 }
 
@@ -217,8 +217,8 @@ function Documents(props) {
                             <input type="text" placeholder="Tags" ref={refTagInput}
                                 onKeyDown={tagsOnKeydown}
                                 value={props.documentTags || ''}
-                                onChange={(e) => { props.setDocumentTags(e.target.value) }}
-                                onInput={(e) => { props.setDocumentTags(e.target.value) }}
+                                onChange={(e) => { props.setCarrierDocumentTags(e.target.value) }}
+                                onInput={(e) => { props.setCarrierDocumentTags(e.target.value) }}
                                 readOnly={(props.selectedDocument.id || 0) > 0} />
                         </div>
                     </div>
@@ -287,7 +287,7 @@ function Documents(props) {
 
                                 return (
                                     <div className={itemClasses} key={index} onClick={() => {
-                                        props.setSelectedDocument(document);
+                                        props.setSelectedCarrierDocument(document);
 
 
                                     }}>
@@ -309,7 +309,7 @@ function Documents(props) {
                                                 }).then(res => {
                                                     if (res.result === 'OK') {
                                                         if ((props.selectedDocument.id || 0) === document.id) {
-                                                            props.setSelectedDocument({
+                                                            props.setSelectedCarrierDocument({
                                                                 id: 0,
                                                                 user_id: Math.floor(Math.random() * (15 - 1)) + 1,
                                                                 date_entered: moment().format('MM-DD-YYYY')
@@ -342,7 +342,7 @@ function Documents(props) {
                         <div className="form-buttons">
                             <div className="mochi-button" onClick={() => {
                                 if ((props.selectedDocument.id || 0) > 0) {
-                                    props.setSelectedDocumentNote({ id: 0, carrier_document_id: props.selectedDocument.id })
+                                    props.setSelectedCarrierDocumentNote({ id: 0, carrier_document_id: props.selectedDocument.id })
                                 } else {
                                     window.alert('You must select a document first!');
                                 }
@@ -363,7 +363,7 @@ function Documents(props) {
                             (props.selectedDocument.notes || []).map((note, index) => {
                                 return (
                                     <div className='documents-notes-list-item' key={index} onClick={() => {
-                                        props.setSelectedDocumentNote(note);
+                                        props.setSelectedCarrierDocumentNote(note);
                                     }}>
                                         {note.text}
                                     </div>
@@ -440,11 +440,11 @@ function Documents(props) {
                 <animated.div style={modalTransitionProps}>
                     <CarrierModal
                         selectedData={props.selectedDocumentNote}
-                        setSelectedData={props.setSelectedDocumentNote}
+                        setSelectedData={props.setSelectedCarrierDocumentNote}
                         selectedParent={props.selectedDocument}
                         setSelectedParent={(notes) => {
 
-                            props.setSelectedDocument({ ...props.selectedDocument, notes: notes });
+                            props.setSelectedCarrierDocument({ ...props.selectedDocument, notes: notes });
 
                             props.setSelectedCarrier({...props.selectedCarrier, documents: props.selectedCarrier.documents.map((document, index) => {
                                 if (document.id === props.selectedDocument.id){
@@ -479,8 +479,8 @@ const mapStateToProps = state => {
 
 export default connect(mapStateToProps, {
     setCarrierPanels,
-    setSelectedDocument,
+    setSelectedCarrierDocument,
     setSelectedCarrier,
-    setDocumentTags,
-    setSelectedDocumentNote
+    setCarrierDocumentTags,
+    setSelectedCarrierDocumentNote
 })(Documents)

@@ -12,7 +12,8 @@ import {
     setContactSearch,
     setShowingContactList,
     setContactSearchCarrier,
-    setFactoringCompanySearch
+    setFactoringCompanySearch,
+    setSelectedFactoringCompany
 } from '../../../../../actions';
 
 function FactoringCompanySearch(props) {
@@ -48,6 +49,8 @@ function FactoringCompanySearch(props) {
                     }
                     return p;
                 });
+
+                props.setSelectedFactoringCompany({...f});
 
                 panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
 
@@ -202,5 +205,6 @@ export default connect(mapStateToProps, {
     setContactSearch,
     setShowingContactList,
     setContactSearchCarrier,
-    setFactoringCompanySearch
+    setFactoringCompanySearch,
+    setSelectedFactoringCompany
 })(FactoringCompanySearch)

@@ -276,7 +276,7 @@ function Documents(props) {
                                     'fa-file-video': ['webm', 'mpg', 'mp2', 'mpeg', 'mpe', 'mpv', 'ogg', 'mp4', 'm4p', 'm4v', 'avi', 'wmv', 'mov', 'qt', 'flv', 'swf', 'avchd'].includes(document.doc_extension.toLowerCase()),
                                     'fa-file-archive': ['7z', 'arc', 'arj', 'bz2', 'daa', 'gz', 'rar', 'tar', 'zim', 'zip'].includes(document.doc_extension.toLowerCase()),
                                     'fa-file-pdf': document.doc_extension.toLowerCase() === 'pdf',
-                                    'fa-file-alt': document.doc_extension.toLowerCase() === 'txt',
+                                    'fa-file-alt': ['txt', 'log'].includes(document.doc_extension.toLowerCase()),
                                     'fa-file': !['jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi', 'png', 'gif', 'webp', 'tiff', 'tif', 'bmp', 'jp2', 'j2k', 'jpf', 'jpx', 'jpm', 'mj2', 'svg', 'svgz', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'htm', 'html', 'webm', 'mpg', 'mp2', 'mpeg', 'mpe', 'mpv', 'ogg', 'mp4', 'm4p', 'm4v', 'avi', 'wmv', 'mov', 'qt', 'flv', 'swf', 'avchd', '7z', 'arc', 'arj', 'bz2', 'daa', 'gz', 'rar', 'tar', 'zim', 'zip', 'pdf', 'txt'].includes(document.doc_extension.toLowerCase())
                                 });
 
@@ -402,7 +402,7 @@ function Documents(props) {
 
                     {
                         ((props.selectedDocument.id || 0) > 0 &&
-                            (['pdf', 'txt', 'htm', 'html', 'tmf'].includes(props.selectedDocument.doc_extension.toLowerCase()))) &&
+                            (['pdf', 'txt', 'htm', 'html', 'tmf', 'log'].includes(props.selectedDocument.doc_extension.toLowerCase()))) &&
                         <iframe id="frame-preview" src={(props.serverUrl + '/customer-documents/' + props.selectedDocument.doc_id) + '#toolbar=1&navpanes=0&scrollbar=0'} frameBorder={0} allowFullScreen={true} width="100%" height="100%"></iframe>
                     }
 
@@ -427,7 +427,7 @@ function Documents(props) {
 
                     {
                         ((props.selectedDocument.id || 0) > 0 &&
-                            (!['jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi', 'png', 'gif', 'webp', 'tiff', 'tif', 'bmp', 'jp2', 'j2k', 'jpf', 'jpx', 'jpm', 'mj2', 'svg', 'svgz', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'htm', 'html', 'webm', 'mpg', 'mp2', 'mpeg', 'mpe', 'mpv', 'ogg', 'mp4', 'm4p', 'm4v', 'avi', 'wmv', 'mov', 'qt', 'flv', 'swf', 'avchd', '7z', 'arc', 'arj', 'bz2', 'daa', 'gz', 'rar', 'tar', 'zim', 'zip', 'pdf', 'txt', 'tmf'].includes(props.selectedDocument.doc_extension.toLowerCase()))) &&
+                            (!['jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi', 'png', 'gif', 'webp', 'tiff', 'tif', 'bmp', 'jp2', 'j2k', 'jpf', 'jpx', 'jpm', 'mj2', 'svg', 'svgz', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'htm', 'html', 'webm', 'mpg', 'mp2', 'mpeg', 'mpe', 'mpv', 'ogg', 'mp4', 'm4p', 'm4v', 'avi', 'wmv', 'mov', 'qt', 'flv', 'swf', 'avchd', '7z', 'arc', 'arj', 'bz2', 'daa', 'gz', 'rar', 'tar', 'zim', 'zip', 'pdf', 'txt', 'tmf', 'log'].includes(props.selectedDocument.doc_extension.toLowerCase()))) &&
                         <div className="preview-not-available">
                             <span>No preview available for this file</span> <a href={props.serverUrl + '/customer-documents/' + props.selectedDocument.doc_id} download={true}>Download</a>
                         </div>

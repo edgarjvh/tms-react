@@ -46,7 +46,7 @@ function BillToCompanySearch(props) {
 
             <div className="input-box-container" style={{ marginTop: 20, display: 'flex', alignItems: 'center' }}>
                 {
-                    (props.selectedBillToCompanySearch || []).map((item, index) => {
+                    (props.billToCompanySearch || []).map((item, index) => {
 
                         if (item.data.trim() !== '') {
                             return (
@@ -83,7 +83,7 @@ function BillToCompanySearch(props) {
                         <div className="tcol zip">Postal Code</div>
                         <div className="tcol contact-name">Contact Name</div>
                         <div className="tcol contact-phone">Contact Phone</div>
-                        <div className="tcol contact-phone-ext">Ext</div>
+                        {/* <div className="tcol contact-phone-ext">Ext</div> */}
                     </div>
                 </div>
                 <div className="tbody">
@@ -102,7 +102,7 @@ function BillToCompanySearch(props) {
                                             <div className="tcol zip">{c.zip}</div>
                                             <div className="tcol contact-name">{c.contact_name}</div>
                                             <div className="tcol contact-phone">{c.contact_phone}</div>
-                                            <div className="tcol contact-phone-ext">{c.ext}</div>
+                                            {/* <div className="tcol contact-phone-ext">{c.ext}</div> */}
                                         </div>
                                     )
                                 })
@@ -118,8 +118,8 @@ function BillToCompanySearch(props) {
 const mapStateToProps = state => {
     return {
         panels: state.dispatchReducers.panels,
-        billToCompanies: state.dispatchReducers.billToCompanies,
-        selectedBillToCompanySearch: state.dispatchReducers.selectedBillToCompanySearch,
+        billToCompanies: state.customerReducers.billToCompanies,
+        billToCompanySearch: state.customerReducers.billToCompanySearch,
     }
 }
 

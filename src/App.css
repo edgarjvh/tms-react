@@ -1,5 +1,42 @@
 * {
   box-sizing: border-box;
+  /* width */
+  /* Track */
+  /* Handle */
+  /* Handle on hover */
+}
+* ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+* ::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 5px grey;
+  border-radius: 10px;
+}
+* ::-webkit-scrollbar-thumb {
+  background: #4096ee;
+  /* Old browsers */
+  background: -moz-linear-gradient(top, #4096ee 0%, #60abf8 56%, #7abcff 100%);
+  /* FF3.6-15 */
+  background: -webkit-linear-gradient(top, #4096ee 0%, #60abf8 56%, #7abcff 100%);
+  /* Chrome10-25,Safari5.1-6 */
+  background: linear-gradient(to bottom, #4096ee 0%, #60abf8 56%, #7abcff 100%);
+  /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#4096ee', endColorstr='#7abcff', GradientType=0);
+  /* IE6-9 */
+  border-radius: 10px;
+}
+* ::-webkit-scrollbar-thumb:hover {
+  background: #4096ee;
+  /* Old browsers */
+  background: -moz-linear-gradient(top, #1b73cb 0%, #3d87d0 56%, #5aa0e6 100%);
+  /* FF3.6-15 */
+  background: -webkit-linear-gradient(top, #1b73cb 0%, #3d87d0 56%, #5aa0e6 100%);
+  /* Chrome10-25,Safari5.1-6 */
+  background: linear-gradient(to bottom, #1b73cb 0%, #3d87d0 56%, #5aa0e6 100%);
+  /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#4096ee', endColorstr='#7abcff', GradientType=0);
+  /* IE6-9 */
 }
 @media screen and (min-width: 1025px) {
   body,
@@ -17,7 +54,7 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  font-family: 'Mochi Med Oblique';
+  font-family: "Mochi Med Oblique";
 }
 input:focus,
 textarea:focus,
@@ -296,7 +333,7 @@ select:focus {
   position: absolute;
   display: flex;
   flex-direction: column;
-  transition: left linear 0.3s;
+  transition: left ease 0.3s, width ease 0.3s;
   left: 110%;
 }
 .main-panel-container .panel .panel-content {

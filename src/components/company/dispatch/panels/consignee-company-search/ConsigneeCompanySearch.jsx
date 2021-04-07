@@ -46,7 +46,7 @@ function ConsigneeCompanySearch(props) {
 
             <div className="input-box-container" style={{ marginTop: 20, display: 'flex', alignItems: 'center' }}>
                 {
-                    (props.selectedConsigneeCompanySearch || []).map((item, index) => {
+                    (props.consigneeCompanySearch || []).map((item, index) => {
 
                         if (item.data.trim() !== '') {
                             return (
@@ -118,8 +118,8 @@ function ConsigneeCompanySearch(props) {
 const mapStateToProps = state => {
     return {
         panels: state.dispatchReducers.panels,
-        consigneeCompanies: state.dispatchReducers.consigneeCompanies,
-        selectedConsigneeCompanySearch: state.dispatchReducers.selectedConsigneeCompanySearch,
+        consigneeCompanies: state.customerReducers.consigneeCompanies,
+        consigneeCompanySearch: state.customerReducers.consigneeCompanySearch,
     }
 }
 

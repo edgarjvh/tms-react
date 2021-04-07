@@ -72,14 +72,45 @@
   width: 50%;
   position: relative;
 }
+.carrier-info .form-slider .form-slider-wrapper .contact-list-box .contact-list-header {
+  display: flex;
+  font-size: 0.7rem;
+  font-weight: bold;
+  text-decoration: underline;
+  color: rgba(0, 0, 0, 0.7);
+  min-height: 1rem;
+  max-height: 1rem;
+}
+.carrier-info .form-slider .form-slider-wrapper .contact-list-box .tcol.first-name {
+  min-width: 5rem;
+  max-width: 5rem;
+}
+.carrier-info .form-slider .form-slider-wrapper .contact-list-box .tcol.last-name {
+  min-width: 5rem;
+  max-width: 5rem;
+}
+.carrier-info .form-slider .form-slider-wrapper .contact-list-box .tcol.phone-work {
+  min-width: 5rem;
+  max-width: 5rem;
+}
+.carrier-info .form-slider .form-slider-wrapper .contact-list-box .tcol.email-work {
+  flex-grow: 1;
+}
+.carrier-info .form-slider .form-slider-wrapper .contact-list-box .tcol.pri {
+  min-width: 0.65rem;
+  max-width: 0.65rem;
+  text-align: center;
+}
 .carrier-info .form-slider .form-slider-wrapper .contact-list-box .contact-list-wrapper {
   position: absolute;
   width: 100%;
-  height: 100%;
+  height: calc(100% - 1rem);
+  bottom: 0;
   overflow-y: auto;
+  padding-top: 5px;
 }
 .carrier-info .form-slider .form-slider-wrapper .contact-list-box .contact-list-wrapper .contact-list-item {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   padding: 5px 0;
   cursor: pointer;
@@ -92,6 +123,11 @@
   justify-content: space-between;
   padding-right: 5px;
 }
+.carrier-info .form-slider .form-slider-wrapper .contact-list-box .contact-list-wrapper .contact-list-item > div {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .carrier-info .form-slider .form-slider-wrapper .contact-list-box .contact-list-wrapper .contact-list-item:hover {
   background-color: rgba(0, 0, 0, 0.1);
 }
@@ -103,14 +139,40 @@
   height: 100%;
   position: relative;
 }
+.carrier-info .drivers-list-container .drivers-list-header {
+  display: flex;
+  font-size: 0.7rem;
+  font-weight: bold;
+  text-decoration: underline;
+  color: rgba(0, 0, 0, 0.7);
+  min-height: 1rem;
+  max-height: 1rem;
+}
+.carrier-info .drivers-list-container .tcol.first-name {
+  min-width: 5rem;
+  max-width: 5rem;
+}
+.carrier-info .drivers-list-container .tcol.last-name {
+  min-width: 5rem;
+  max-width: 5rem;
+}
+.carrier-info .drivers-list-container .tcol.phone {
+  min-width: 5rem;
+  max-width: 5rem;
+}
+.carrier-info .drivers-list-container .tcol.email {
+  flex-grow: 1;
+}
 .carrier-info .drivers-list-container .drivers-list-wrapper {
   position: absolute;
   width: 100%;
-  height: 100%;
+  height: calc(100% - 1rem);
+  bottom: 0;
   overflow-y: auto;
+  padding-top: 5px;
 }
 .carrier-info .drivers-list-container .drivers-list-wrapper .drivers-list-item {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   padding: 5px 0;
   cursor: pointer;
@@ -118,6 +180,15 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 5px;
+}
+.carrier-info .drivers-list-container .drivers-list-wrapper .drivers-list-item > div {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .carrier-info .drivers-list-container .drivers-list-wrapper .drivers-list-item:hover {
   background-color: rgba(0, 0, 0, 0.1);
@@ -127,14 +198,41 @@
   height: 100%;
   position: relative;
 }
+.carrier-info .insurances-list-container .insurances-list-header {
+  display: flex;
+  font-size: 0.7rem;
+  font-weight: bold;
+  text-decoration: underline;
+  color: rgba(0, 0, 0, 0.7);
+  min-height: 1rem;
+  max-height: 1rem;
+}
+.carrier-info .insurances-list-container .tcol.type {
+  min-width: 6rem;
+  max-width: 6rem;
+}
+.carrier-info .insurances-list-container .tcol.company {
+  flex-grow: 1;
+}
+.carrier-info .insurances-list-container .tcol.expiration-date {
+  min-width: 5rem;
+  max-width: 5rem;
+}
+.carrier-info .insurances-list-container .tcol.amount {
+  min-width: 4rem;
+  max-width: 4rem;
+  text-align: right;
+}
 .carrier-info .insurances-list-container .insurances-list-wrapper {
   position: absolute;
   width: 100%;
-  height: 100%;
+  height: calc(100% - 1rem);
+  bottom: 0;
   overflow-y: auto;
+  padding-top: 5px;
 }
 .carrier-info .insurances-list-container .insurances-list-wrapper .insurances-list-item {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   padding: 5px 0;
   cursor: pointer;
@@ -142,6 +240,15 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 5px;
+}
+.carrier-info .insurances-list-container .insurances-list-wrapper .insurances-list-item > div {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .carrier-info .insurances-list-container .insurances-list-wrapper .insurances-list-item:hover {
   background-color: rgba(0, 0, 0, 0.1);
@@ -158,7 +265,7 @@
   overflow-y: auto;
 }
 .carrier-info .notes-list-container .notes-list-wrapper .notes-list-item {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   padding: 5px 0;
   cursor: pointer;
@@ -183,7 +290,7 @@
   overflow-x: hidden;
 }
 .carrier-info .directions-list-container .directions-list-wrapper .directions-list-item {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   padding: 5px 0;
   cursor: pointer;

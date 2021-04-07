@@ -25,13 +25,17 @@ function Documents(props) {
 
 
     const closePanelBtnClick = () => {
-        let panels = props.panels.map((panel) => {
+        let index = props.panels.length - 1;
+
+        let panels = props.panels.map((panel, i) => {
             if (panel.name === 'documents') {
+                index = i;
                 panel.isOpened = false;
             }
             return panel;
         });
 
+        panels.splice(0, 0, panels.splice(index, 1)[0]);
         props.setDispatchPanels(panels);
     }
 
@@ -458,7 +462,7 @@ function Documents(props) {
 
 const mapStateToProps = state => {
     return {
-        panels: state.customerReducers.panels,
+        panels: state.dispatchReducers.panels,
         serverUrl: state.systemReducers.serverUrl,
         selectedCustomer: state.customerReducers.selectedCustomer,
         selectedDocument: state.customerReducers.selectedDocument,

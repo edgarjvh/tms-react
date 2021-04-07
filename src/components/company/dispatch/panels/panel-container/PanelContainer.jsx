@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { connect } from 'react-redux';
 import classnames from 'classnames';
 import $ from 'jquery';
@@ -42,6 +42,7 @@ function PanelContainer(props) {
         <div className={panelContainerClasses}>
             {
                 (props.panels || []).map((panel, index) => {
+
                     return (
                         <Draggable
                             axis="x"
@@ -56,10 +57,28 @@ function PanelContainer(props) {
                             position={{ x: 0, y: 0 }}
                             key={index}
                         >
-                            <div className="panel" data-name={panel.name} style={{
-                                width: panel.isOpened ? `calc(100% - ${panel.pos * 15}px)` : '100%',
-                                left: panel.isOpened ? (panel.pos * 15) + 'px' : '110%'
-                            }}>
+                            <div className="panel"
+                                id={'panel-' + panel.name}
+                                data-name={panel.name}
+                                ref={ref => props.panelRefs.current.push(ref)}
+                                onClick={() => {
+                                    let index = props.panels.length - 1;
+                                    let panels = props.panels.map((p, i) => {
+                                        if (p.name === panel.name) {
+                                            index = i;                                           
+                                        }
+                                        return p;
+                                    });
+
+                                    if (index < props.panels.length -1){
+                                        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
+                                        props.setDispatchPanels(panels);
+                                    }                                    
+                                }}
+                                style={{
+                                    width: panel.isOpened ? `calc(${panel.maxWidth}% - ${panel.pos * 1}in)` : panel.maxWidth + '%',
+                                    left: panel.isOpened ? `calc(${100 - panel.maxWidth}% + ${(panel.pos * 1)}in` : '110%'
+                                }}>
                                 {panel.component}
                             </div>
                         </Draggable>

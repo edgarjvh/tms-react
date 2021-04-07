@@ -5,7 +5,7 @@ export const invoiceReducers = (state = {
     panels: [
         {
             name: 'documents',
-            component: <Documents title='Documents' />,
+            component: <Documents title='Documents' tabTimes={42000} />,
             isOpened: false,
             pos: -1,
             maxWidth: 100

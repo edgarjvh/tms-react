@@ -80,11 +80,44 @@
         width: 50%;
         position: relative;
 
+        .contact-list-header {
+          display: flex;
+          font-size: 0.7rem;
+          font-weight: bold;
+          text-decoration: underline;
+          color: rgba(0, 0, 0, 0.7);
+          min-height: 1rem;
+          max-height: 1rem;
+        }
+
+        .tcol.first-name {
+          min-width: 5rem;
+          max-width: 5rem;
+        }
+        .tcol.last-name {
+          min-width: 5rem;
+          max-width: 5rem;
+        }
+        .tcol.phone-work {
+          min-width: 5rem;
+          max-width: 5rem;
+        }
+        .tcol.email-work {
+          flex-grow: 1;
+        }
+        .tcol.pri {
+          min-width: 0.65rem;
+          max-width: 0.65rem;
+          text-align: center;
+        }
+
         .contact-list-wrapper {
           position: absolute;
           width: 100%;
-          height: 100%;
+          height: calc(100% - 1rem);
+          bottom: 0;
           overflow-y: auto;
+          padding-top: 5px;
 
           .contact-list-item {
             font-size: 0.7rem;
@@ -99,6 +132,12 @@
             align-items: center;
             justify-content: space-between;
             padding-right: 5px;
+
+            > div {
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            }
           }
 
           .contact-list-item:hover {
@@ -118,11 +157,39 @@
     height: 100%;
     position: relative;
 
+    .drivers-list-header {
+      display: flex;
+      font-size: 0.7rem;
+      font-weight: bold;
+      text-decoration: underline;
+      color: rgba(0, 0, 0, 0.7);
+      min-height: 1rem;
+      max-height: 1rem;
+    }
+
+    .tcol.first-name {
+      min-width: 5rem;
+      max-width: 5rem;
+    }
+    .tcol.last-name {
+      min-width: 5rem;
+      max-width: 5rem;
+    }
+    .tcol.phone {
+      min-width: 5rem;
+      max-width: 5rem;
+    }
+    .tcol.email {
+      flex-grow: 1;
+    }
+
     .drivers-list-wrapper {
       position: absolute;
       width: 100%;
-      height: 100%;
+      height: calc(100% - 1rem);
+      bottom: 0;
       overflow-y: auto;
+      padding-top: 5px;
 
       .drivers-list-item {
         font-size: 0.7rem;
@@ -133,6 +200,16 @@
         text-overflow: ellipsis;
         white-space: nowrap;
         overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-right: 5px;
+
+        > div {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
       }
 
       .drivers-list-item:hover {
@@ -146,11 +223,40 @@
     height: 100%;
     position: relative;
 
+    .insurances-list-header {
+      display: flex;
+      font-size: 0.7rem;
+      font-weight: bold;
+      text-decoration: underline;
+      color: rgba(0, 0, 0, 0.7);
+      min-height: 1rem;
+      max-height: 1rem;
+    }
+
+    .tcol.type {
+      min-width: 6rem;
+      max-width: 6rem;
+    }
+    .tcol.company {
+      flex-grow: 1;
+    }
+    .tcol.expiration-date {
+      min-width: 5rem;
+      max-width: 5rem;
+    }
+    .tcol.amount {
+      min-width: 4rem;
+      max-width: 4rem;
+      text-align: right;
+    }
+
     .insurances-list-wrapper {
       position: absolute;
       width: 100%;
-      height: 100%;
+      height: calc(100% - 1rem);
+      bottom: 0;
       overflow-y: auto;
+      padding-top: 5px;
 
       .insurances-list-item {
         font-size: 0.7rem;
@@ -161,6 +267,16 @@
         text-overflow: ellipsis;
         white-space: nowrap;
         overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-right: 5px;
+
+        > div {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
       }
 
       .insurances-list-item:hover {

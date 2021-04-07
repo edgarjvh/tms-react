@@ -7,10 +7,10 @@ import './ContactSearch.css';
 import { 
     setCarrierPanels, 
     setSelectedCarrier, 
-    setSelectedContact, 
+    setSelectedCarrierContact, 
     setCarrierContacts, 
     setContactSearch, 
-    setShowingContactList,
+    setShowingCarrierContactList,
     setContactSearchCarrier
  } from '../../../../../actions';
 
@@ -65,7 +65,7 @@ function ContactSearch(props) {
                 await props.setSelectedCarrier(c.carrier);
                 await c.carrier.contacts.map(contact => {
                     if (c.id === contact.id) {
-                        props.setSelectedContact(contact);
+                        props.setSelectedCarrierContact(contact);
                     }
 
                     return true;
@@ -73,7 +73,7 @@ function ContactSearch(props) {
 
 
                 await props.setContactSearch({});
-                await props.setShowingContactList(true);
+                await props.setShowingCarrierContactList(true);
 
                 closePanelBtnClick();
             }
@@ -170,9 +170,9 @@ const mapStateToProps = state => {
 export default connect(mapStateToProps, {
     setCarrierPanels,
     setSelectedCarrier,
-    setSelectedContact,
+    setSelectedCarrierContact,
     setCarrierContacts,
     setContactSearch,
-    setShowingContactList,
+    setShowingCarrierContactList,
     setContactSearchCarrier
 })(ContactSearch)

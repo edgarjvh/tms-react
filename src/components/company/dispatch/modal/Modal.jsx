@@ -13,48 +13,66 @@ function Modal(props) {
         props.setSelectedData({ ...props.selectedData, text: e.target.value });
     }
 
-    const saveData = async () => {
-        let user = await getinitials(2);
-        let date_time = await moment().format('YYYY-MM-DD HH:mm:ss');
-                        
+    const saveData = () => {
+        let user = getinitials(2);
+        let date_time = moment().format('YYYY-MM-DD HH:mm:ss');
+
         if ((props.selectedData.text || '').trim() === '') {
             alert('You must type some text!');
             return;
         }
 
-        let notes = props.selectedParent;
+        $.post(props.serverUrl + props.savingDataUrl, {
+            id: props.selectedData.id,
+            customer_id: props.selectedCustomer.id,
+            doc_id: props.selectedParent.id,
+            factoring_company_id: props.selectedParent.id,
+            order_number: props.selectedParent.order_number,
+            text: props.selectedData.text,
+            user: props.isAdding ? user : props.selectedData.user,
+            date_time: props.isAdding ? date_time : props.selectedData.date_time
+        }).then(res => {
+            if (res.result === 'OK') {
+                props.setSelectedParent(res.data);
+                props.setSelectedData({});
+            }
+        });
+    }
 
-        if (props.isAdding){
-            notes.push({...props.selectedData, id: '_' + Math.random().toString(36).substr(2, 9), user: user, date_time: date_time})
-            await props.setSelectedParent(notes);
-            await props.setSelectedData({});
-        }else{ 
-            await props.setSelectedParent(notes.map((n,i) => {
-                if (n.id === props.selectedData.id){
-                    n = props.selectedData;                    
+    const deleteData = () => {
+        if (window.confirm(`Are you sure to delete this ${props.type}?`)) {
+            $.post(props.serverUrl + props.deletingDataUrl, props.selectedData).then(res => {
+                if (res.result === 'OK') {
+                    props.setSelectedParent(res.data);
+                    props.setSelectedData({});
                 }
-                return n;
-            }));
-            await props.setSelectedData({});
+            })
         }
     }
 
-    const deleteData = async () => {
-        if (window.confirm(`Are you sure to delete this ${props.type}?`)) { 
-          
-            await props.setSelectedParent(props.selectedParent.filter((n,i) => {                
-                return n.id !== props.selectedData.id;
-            }));
-            await props.setSelectedData({});
-
-
-            // $.post(props.serverUrl + props.deletingDataUrl, props.selectedData).then(res => {
-            //     if (res.result === 'OK') {
-            //         props.setSelectedParent(res.data);
-            //         props.setSelectedData({});
-            //     }
-            // })
+    const printData = () => {
+        if ((props.selectedData.text || '').trim() === ''){
+            window.alert('There is nothing to print!');
+            return;
         }
+
+        let html = `<div><b>${props.selectedData.user}:${moment(props.selectedData.date_time, 'YYYY-MM-DD HH:mm:ss').format('MM/DD/YYYY:HHmm')}</b> ${props.selectedData.text}</div>`;
+
+        printWindow(html);
+    }
+
+    const printWindow = (data) => {
+        let mywindow = window.open('', 'new div', 'height=400,width=600');
+        mywindow.document.write('<html><head><title></title>');
+        mywindow.document.write('<link rel="stylesheet" href="../../css/index.css" type="text/css" media="all" />');
+        mywindow.document.write('</head><body >');
+        mywindow.document.write(data);
+        mywindow.document.write('</body></html>');
+        mywindow.document.close();
+        mywindow.focus();
+        setTimeout(function () { mywindow.print(); }, 1000);
+
+        return true;
     }
 
     const getinitials = (length) => {
@@ -138,6 +156,17 @@ function Modal(props) {
                                     onClick={deleteData}>
                                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                     <div className="mochi-button-base">Delete</div>
+                                    <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
+                                </div>
+                            }
+                            {
+                                (props.isPrintable && !isEditing && !props.isAdding) &&
+                                <div className="mochi-button" style={{
+                                    marginRight: 5
+                                }}
+                                    onClick={printData}>
+                                    <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
+                                    <div className="mochi-button-base">Print</div>
                                     <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
                                 </div>
                             }
