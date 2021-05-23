@@ -9,7 +9,8 @@ import {
     setSelectedConsigneeCompanyDocument,
     setSelectedConsigneeCompanyInfo,
     setConsigneeCompanyDocumentTags,
-    setSelectedConsigneeCompanyDocumentNote
+    setSelectedConsigneeCompanyDocumentNote,
+    setDispatchOpenedPanels
 } from './../../../../../actions';
 import moment from 'moment';
 import DocViewer from "react-doc-viewer";
@@ -23,16 +24,10 @@ function ConsigneeCompanyDocuments(props) {
     const refIframeImg = useRef(null);
     const modalTransitionProps = useSpring({ opacity: (props.selectedConsigneeCompanyDocumentNote.id !== undefined) ? 1 : 0 });
 
-
-    const closePanelBtnClick = () => {
-        let panels = props.panels.map((panel) => {
-            if (panel.name === 'consignee-company-documents') {
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
-        props.setDispatchPanels(panels);
+    const closePanelBtnClick = (e, name) => {
+        props.setDispatchOpenedPanels(props.dispatchOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
 
     const tagsOnKeydown = (e) => {
@@ -97,7 +92,7 @@ function ConsigneeCompanyDocuments(props) {
                     props.setSelectedConsigneeCompanyDocument({
                         id: 0,
                         user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                        date_entered: moment().format('MM-DD-YYYY')
+                        date_entered: moment().format('MM/DD/YYYY')
                     });
 
                     refTitleInput.current && refTitleInput.current.focus();
@@ -130,9 +125,9 @@ function ConsigneeCompanyDocuments(props) {
 
     return (
         <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
-            <div className="title">{props.title}</div>
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'consignee-company-documents')}><span className="fas fa-times"></span></div>
+            <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className="documents-fields">
                 <div className="documents-left-side">
@@ -142,14 +137,14 @@ function ConsigneeCompanyDocuments(props) {
                         </div>
 
                         <div className="input-box-container" style={{ marginRight: 5 }}>
-                            <input type="text" placeholder="Date Entered" readOnly={true} value={props.selectedConsigneeCompanyDocument.date_entered || moment().format('MM-DD-YYYY')} />
+                            <input type="text" placeholder="Date Entered" readOnly={true} value={props.selectedConsigneeCompanyDocument.date_entered || moment().format('MM/DD/YYYY')} />
                         </div>
 
                         <div className="mochi-button" onClick={() => {
                             props.setSelectedConsigneeCompanyDocument({
                                 id: 0,
                                 user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                                date_entered: moment().format('MM-DD-YYYY')
+                                date_entered: moment().format('MM/DD/YYYY')
                             });
 
                             refTitleInput.current.focus();
@@ -312,7 +307,7 @@ function ConsigneeCompanyDocuments(props) {
                                                             props.setSelectedConsigneeCompanyDocument({
                                                                 id: 0,
                                                                 user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                                                                date_entered: moment().format('MM-DD-YYYY')
+                                                                date_entered: moment().format('MM/DD/YYYY')
                                                             });
 
                                                             refTitleInput.current.focus();
@@ -469,6 +464,7 @@ function ConsigneeCompanyDocuments(props) {
 const mapStateToProps = state => {
     return {
         panels: state.dispatchReducers.panels,
+        dispatchOpenedPanels: state.dispatchReducers.dispatchOpenedPanels,
         serverUrl: state.systemReducers.serverUrl,
         selectedConsigneeCompanyInfo: state.customerReducers.selectedConsigneeCompanyInfo,
         selectedConsigneeCompanyDocument: state.customerReducers.selectedConsigneeCompanyDocument,
@@ -482,5 +478,6 @@ export default connect(mapStateToProps, {
     setSelectedConsigneeCompanyDocument,
     setSelectedConsigneeCompanyInfo,
     setConsigneeCompanyDocumentTags,
-    setSelectedConsigneeCompanyDocumentNote
+    setSelectedConsigneeCompanyDocumentNote,
+    setDispatchOpenedPanels
 })(ConsigneeCompanyDocuments)

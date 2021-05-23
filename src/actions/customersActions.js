@@ -217,6 +217,111 @@ export const setSelectedBillToCompanyDocumentNote = note => {
 }
 
 
+// ===================================== LB BILL TO COMPANY ============================================
+export const setLbBillToCompanies = customers => {
+    return {
+        type: customersConstants.SET_LB_BILL_TO_COMPANIES,
+        payload: customers
+    }
+}
+export const setLbSelectedBillToCompanyInfo = customer => {
+    return {
+        type: customersConstants.SET_LB_SELECTED_BILL_TO_COMPANY_INFO,
+        payload: customer
+    }
+}
+export const setLbSelectedBillToCompanyContact = contact => {
+    return {
+        type: customersConstants.SET_LB_SELECTED_BILL_TO_COMPANY_CONTACT,
+        payload: contact
+    }
+}
+export const setLbBillToCompanySearch = customerSearch => {
+    return {
+        type: customersConstants.SET_LB_BILL_TO_COMPANY_SEARCH,
+        payload: customerSearch
+    }
+}
+export const setLbSelectedBillToCompanyNote = note => {
+    return {
+        type: customersConstants.SET_LB_SELECTED_BILL_TO_COMPANY_NOTE,
+        payload: note
+    }
+}
+export const setLbSelectedBillToCompanyDirection = direction => {
+    return {
+        type: customersConstants.SET_LB_SELECTED_BILL_TO_COMPANY_DIRECTION,
+        payload: direction
+    }
+}
+export const setLbBillToCompanyContactSearch = contactSearch => {
+    return {
+        type: customersConstants.SET_LB_BILL_TO_COMPANY_CONTACT_SEARCH,
+        payload: contactSearch
+    }
+}
+export const setLbBillToCompanyAutomaticEmailsTo = to => {
+    return {
+        type: customersConstants.SET_LB_BILL_TO_COMPANY_AUTOMATIC_EMAILS_TO,
+        payload: to
+    }
+}
+export const setLbBillToCompanyAutomaticEmailsCc = cc => {
+    return {
+        type: customersConstants.SET_LB_BILL_TO_COMPANY_AUTOMATIC_EMAILS_CC,
+        payload: cc
+    }
+}
+export const setLbBillToCompanyAutomaticEmailsBcc = bcc => {
+    return {
+        type: customersConstants.SET_LB_BILL_TO_COMPANY_AUTOMATIC_EMAILS_BCC,
+        payload: bcc
+    }
+}
+export const setLbBillToCompanyShowingContactList = show => {
+    return {
+        type: customersConstants.SET_LB_BILL_TO_COMPANY_SHOWING_CONTACT_LIST,
+        payload: show
+    }
+}
+export const setLbBillToCompanyContacts = contacts => {
+    return {
+        type: customersConstants.SET_LB_BILL_TO_COMPANY_CONTACTS,
+        payload: contacts
+    }
+}
+export const setLbBillToCompanyContactSearchCustomer = customer => {
+    return {
+        type: customersConstants.SET_LB_BILL_TO_COMPANY_CONTACT_SEARCH_CUSTOMER,
+        payload: customer
+    }
+}
+export const setLbBillToCompanyIsEditingContact = isEditing => {
+    return {
+        type: customersConstants.SET_LB_BILL_TO_COMPANY_IS_EDITING_CONTACT,
+        payload: isEditing
+    }
+}
+export const setLbSelectedBillToCompanyDocument = document => {
+    return {
+        type: customersConstants.SET_LB_SELECTED_BILL_TO_COMPANY_DOCUMENT,
+        payload: document
+    }
+}
+export const setLbBillToCompanyDocumentTags = tags => {
+    return {
+        type: customersConstants.SET_LB_BILL_TO_COMPANY_DOCUMENT_TAGS,
+        payload: tags
+    }
+}
+export const setLbSelectedBillToCompanyDocumentNote = note => {
+    return {
+        type: customersConstants.SET_LB_SELECTED_BILL_TO_COMPANY_DOCUMENT_NOTE,
+        payload: note
+    }
+}
+
+
 // ===================================== SHIPPER COMPANY ============================================
 export const setShipperCompanies = customers => {
     return {
@@ -317,6 +422,111 @@ export const setShipperCompanyDocumentTags = tags => {
 export const setSelectedShipperCompanyDocumentNote = note => {
     return {
         type: customersConstants.SET_SELECTED_SHIPPER_COMPANY_DOCUMENT_NOTE,
+        payload: note
+    }
+}
+
+
+// ===================================== LB SHIPPER COMPANY ============================================
+export const setLbShipperCompanies = customers => {
+    return {
+        type: customersConstants.SET_LB_SHIPPER_COMPANIES,
+        payload: customers
+    }
+}
+export const setLbSelectedShipperCompanyInfo = customer => {
+    return {
+        type: customersConstants.SET_LB_SELECTED_SHIPPER_COMPANY_INFO,
+        payload: customer
+    }
+}
+export const setLbSelectedShipperCompanyContact = contact => {
+    return {
+        type: customersConstants.SET_LB_SELECTED_SHIPPER_COMPANY_CONTACT,
+        payload: contact
+    }
+}
+export const setLbShipperCompanySearch = customerSearch => {
+    return {
+        type: customersConstants.SET_LB_SHIPPER_COMPANY_SEARCH,
+        payload: customerSearch
+    }
+}
+export const setLbSelectedShipperCompanyNote = note => {
+    return {
+        type: customersConstants.SET_LB_SELECTED_SHIPPER_COMPANY_NOTE,
+        payload: note
+    }
+}
+export const setLbSelectedShipperCompanyDirection = direction => {
+    return {
+        type: customersConstants.SET_LB_SELECTED_SHIPPER_COMPANY_DIRECTION,
+        payload: direction
+    }
+}
+export const setLbShipperCompanyContactSearch = contactSearch => {
+    return {
+        type: customersConstants.SET_LB_SHIPPER_COMPANY_CONTACT_SEARCH,
+        payload: contactSearch
+    }
+}
+export const setLbShipperCompanyAutomaticEmailsBcc = to => {
+    return {
+        type: customersConstants.SET_LB_SHIPPER_COMPANY_AUTOMATIC_EMAILS_TO,
+        payload: to
+    }
+}
+export const setLbShipperCompanyAutomaticEmailsCc = cc => {
+    return {
+        type: customersConstants.SET_LB_SHIPPER_COMPANY_AUTOMATIC_EMAILS_CC,
+        payload: cc
+    }
+}
+export const setLbShipperCompanyAutomaticEmailsTo = bcc => {
+    return {
+        type: customersConstants.SET_LB_SHIPPER_COMPANY_AUTOMATIC_EMAILS_BCC,
+        payload: bcc
+    }
+}
+export const setLbShipperCompanyShowingContactList = show => {
+    return {
+        type: customersConstants.SET_LB_SHIPPER_COMPANY_SHOWING_CONTACT_LIST,
+        payload: show
+    }
+}
+export const setLbShipperCompanyContacts = contacts => {
+    return {
+        type: customersConstants.SET_LB_SHIPPER_COMPANY_CONTACTS,
+        payload: contacts
+    }
+}
+export const setLbShipperCompanyContactSearchCustomer = customer => {
+    return {
+        type: customersConstants.SET_LB_SHIPPER_COMPANY_CONTACT_SEARCH_CUSTOMER,
+        payload: customer
+    }
+}
+export const setLbShipperCompanyIsEditingContact = isEditing => {
+    return {
+        type: customersConstants.SET_LB_SHIPPER_COMPANY_IS_EDITING_CONTACT,
+        payload: isEditing
+    }
+}
+export const setLbSelectedShipperCompanyDocument = document => {
+    return {
+        type: customersConstants.SET_LB_SELECTED_SHIPPER_COMPANY_DOCUMENT,
+        payload: document
+    }
+}
+export const setLbShipperCompanyDocumentTags = tags => {
+    return {
+        type: customersConstants.SET_LB_SHIPPER_COMPANY_DOCUMENT_TAGS,
+        payload: tags
+    }
+}
+export const setLbSelectedShipperCompanyDocumentNote = note => {
+    return {
+        type: customersConstants.SET_LB_SELECTED_SHIPPER_COMPANY_DOCUMENT_NOTE,
         payload: note
     }
 }
@@ -423,5 +633,117 @@ export const setSelectedConsigneeCompanyDocumentNote = note => {
     return {
         type: customersConstants.SET_SELECTED_CONSIGNEE_COMPANY_DOCUMENT_NOTE,
         payload: note
+    }
+}
+
+
+// ===================================== LB CONSIGNEE COMPANY ============================================
+export const setLbConsigneeCompanies = customers => {
+    return {
+        type: customersConstants.SET_LB_CONSIGNEE_COMPANIES,
+        payload: customers
+    }
+}
+export const setLbSelectedConsigneeCompanyInfo = customer => {
+    return {
+        type: customersConstants.SET_LB_SELECTED_CONSIGNEE_COMPANY_INFO,
+        payload: customer
+    }
+}
+export const setLbSelectedConsigneeCompanyContact = contact => {
+    return {
+        type: customersConstants.SET_LB_SELECTED_CONSIGNEE_COMPANY_CONTACT,
+        payload: contact
+    }
+}
+export const setLbConsigneeCompanySearch = customerSearch => {
+    return {
+        type: customersConstants.SET_LB_CONSIGNEE_COMPANY_SEARCH,
+        payload: customerSearch
+    }
+}
+export const setLbSelectedConsigneeCompanyNote = note => {
+    return {
+        type: customersConstants.SET_LB_SELECTED_CONSIGNEE_COMPANY_NOTE,
+        payload: note
+    }
+}
+export const setLbSelectedConsigneeCompanyDirection = direction => {
+    return {
+        type: customersConstants.SET_LB_SELECTED_CONSIGNEE_COMPANY_DIRECTION,
+        payload: direction
+    }
+}
+export const setLbConsigneeCompanyContactSearch = contactSearch => {
+    return {
+        type: customersConstants.SET_LB_CONSIGNEE_COMPANY_CONTACT_SEARCH,
+        payload: contactSearch
+    }
+}
+export const setLbConsigneeCompanyAutomaticEmailsBcc = to => {
+    return {
+        type: customersConstants.SET_LB_CONSIGNEE_COMPANY_AUTOMATIC_EMAILS_TO,
+        payload: to
+    }
+}
+export const setLbConsigneeCompanyAutomaticEmailsCc = cc => {
+    return {
+        type: customersConstants.SET_LB_CONSIGNEE_COMPANY_AUTOMATIC_EMAILS_CC,
+        payload: cc
+    }
+}
+export const setLbConsigneeCompanyAutomaticEmailsTo = bcc => {
+    return {
+        type: customersConstants.SET_LB_CONSIGNEE_COMPANY_AUTOMATIC_EMAILS_BCC,
+        payload: bcc
+    }
+}
+export const setLbConsigneeCompanyShowingContactList = show => {
+    return {
+        type: customersConstants.SET_LB_CONSIGNEE_COMPANY_SHOWING_CONTACT_LIST,
+        payload: show
+    }
+}
+export const setLbConsigneeCompanyContacts = contacts => {
+    return {
+        type: customersConstants.SET_LB_CONSIGNEE_COMPANY_CONTACTS,
+        payload: contacts
+    }
+}
+export const setLbConsigneeCompanyContactSearchCustomer = customer => {
+    return {
+        type: customersConstants.SET_LB_CONSIGNEE_COMPANY_CONTACT_SEARCH_CUSTOMER,
+        payload: customer
+    }
+}
+export const setLbConsigneeCompanyIsEditingContact = isEditing => {
+    return {
+        type: customersConstants.SET_LB_CONSIGNEE_COMPANY_IS_EDITING_CONTACT,
+        payload: isEditing
+    }
+}
+export const setLbSelectedConsigneeCompanyDocument = document => {
+    return {
+        type: customersConstants.SET_LB_SELECTED_CONSIGNEE_COMPANY_DOCUMENT,
+        payload: document
+    }
+}
+export const setLbConsigneeCompanyDocumentTags = tags => {
+    return {
+        type: customersConstants.SET_LB_CONSIGNEE_COMPANY_DOCUMENT_TAGS,
+        payload: tags
+    }
+}
+export const setLbSelectedConsigneeCompanyDocumentNote = note => {
+    return {
+        type: customersConstants.SET_LB_SELECTED_CONSIGNEE_COMPANY_DOCUMENT_NOTE,
+        payload: note
+    }
+}
+
+export const setCustomerOpenedPanels = panels => {
+    return {
+        type: customersConstants.SET_CUSTOMER_OPENED_PANELS,
+        payload: panels
     }
 }

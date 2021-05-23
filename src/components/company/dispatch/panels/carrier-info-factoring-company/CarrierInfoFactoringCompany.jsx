@@ -24,7 +24,8 @@ import {
     setDispatchCarrierInfoFactoringCompanySearch,
     setDispatchCarrierInfoFactoringCompanies,
     setSelectedDispatchCarrierInfoFactoringCompanyDocument,
-    setSelectedDispatchCarrierInfoCarrier
+    setSelectedDispatchCarrierInfoCarrier,
+    setDispatchOpenedPanels
 } from '../../../../../actions';
 
 function CarrierInfoFactoringCompany(props) {
@@ -41,21 +42,10 @@ function CarrierInfoFactoringCompany(props) {
         props.setSelectedDispatchCarrierInfoFactoringCompanyInvoiceSearch([]);
     }
 
-
-    const closePanelBtnClick = () => {
-        console.log('closing')
-        let index = props.panels.length - 1;
-
-        let panels = props.panels.map((panel, i) => {
-            if (panel.name === 'carrier-info-factoring-company') {
-                index = i;
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
-        panels.splice(0, 0, panels.splice(index, 1)[0]);
-        props.setDispatchPanels(panels);
+    const closePanelBtnClick = (e, name) => {
+        props.setDispatchOpenedPanels(props.dispatchOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
 
     const searchFactoringCompanyBtnClick = () => {
@@ -95,18 +85,10 @@ function CarrierInfoFactoringCompany(props) {
             if (res.result === 'OK') {
                 await props.setDispatchCarrierInfoFactoringCompanySearch(factoringCompanySearch);
                 await props.setDispatchCarrierInfoFactoringCompanies(res.factoring_companies);
-
-                let index = props.panels.length - 1;
-                let panels = props.panels.map((p, i) => {
-                    if (p.name === 'carrier-info-factoring-company-panel-search') {
-                        index = i;
-                        p.isOpened = true;
-                    }
-                    return p;
-                });
-
-                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                await props.setDispatchPanels(panels);
+                
+                if (!props.dispatchOpenedPanels.includes('carrier-info-factoring-company-panel-search')){
+                    props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'carrier-info-factoring-company-panel-search'])
+                }
             }
         });
     }
@@ -365,17 +347,9 @@ function CarrierInfoFactoringCompany(props) {
                 await props.setSelectedDispatchCarrierInfoFactoringCompanyContactSearch({ ...props.selectedDispatchCarrierInfoFactoringCompanyContactSearch, filters: filters });
                 await props.setDispatchCarrierInfoFactoringCompanyContacts(res.contacts);
 
-                let index = props.panels.length - 1;
-                let panels = props.panels.map((p, i) => {
-                    if (p.name === 'carrier-info-factoring-company-contact-search') {
-                        index = i;
-                        p.isOpened = true;
-                    }
-                    return p;
-                });
-
-                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                await props.setDispatchPanels(panels);
+                if (!props.dispatchOpenedPanels.includes('carrier-info-factoring-company-contact-search')){
+                    props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'carrier-info-factoring-company-contact-search'])
+                }
             }
         });
     }
@@ -449,17 +423,9 @@ function CarrierInfoFactoringCompany(props) {
 
         await props.setSelectedDispatchCarrierInfoFactoringCompanyInvoiceSearch({ ...props.selectedDispatchCarrierInfoFactoringCompanyInvoiceSearch, filters: filters })
 
-        let index = props.panels.length - 1;
-        let panels = props.panels.map((p, i) => {
-            if (p.name === 'carrier-info-factoring-company-invoice-search') {
-                index = i;
-                p.isOpened = true;
-            }
-            return p;
-        });
-
-        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-        await props.setDispatchPanels(panels);
+        if (!props.dispatchOpenedPanels.includes('carrier-info-factoring-company-invoice-search')){
+            props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'carrier-info-factoring-company-invoice-search'])
+        }
 
         // $.post(props.serverUrl + '/customerContactsSearch', { search: filters }).then(async res => {
         //     if (res.result === 'OK') {
@@ -483,9 +449,9 @@ function CarrierInfoFactoringCompany(props) {
 
     return (
         <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
-            <div className="title">{props.title}</div>
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'carrier-info-factoring-company')}><span className="fas fa-times"></span></div>
+            <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className="factoring-company-container">
                 <div className="fields-container-col" style={{ marginRight: 10 }}>
@@ -823,20 +789,12 @@ function CarrierInfoFactoringCompany(props) {
                                         return;
                                     }
 
-                                    let index = props.panels.length - 1;
-                                    let panels = props.panels.map((p, i) => {
-                                        if (p.name === 'carrier-info-factoring-company-contacts') {
-                                            index = i;
-                                            p.isOpened = true;
-                                        }
-                                        return p;
-                                    });
-
                                     await props.setDispatchCarrierInfoFactoringCompanyIsEditingContact(false);
                                     await props.setSelectedDispatchCarrierInfoFactoringCompanyContactSearch({ ...props.selectedDispatchCarrierInfoFactoringCompany, selectedContact: props.selectedDispatchCarrierInfoFactoringCompanyContact });
 
-                                    panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                                    props.setDispatchPanels(panels);
+                                    if (!props.dispatchOpenedPanels.includes('carrier-info-factoring-company-contacts')){
+                                        props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'carrier-info-factoring-company-contacts'])
+                                    }
                                 }}>
                                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                     <div className="mochi-button-base">More</div>
@@ -848,20 +806,12 @@ function CarrierInfoFactoringCompany(props) {
                                         return;
                                     }
 
-                                    let index = props.panels.length - 1;
-                                    let panels = props.panels.map((p, i) => {
-                                        if (p.name === 'carrier-info-factoring-company-contacts') {
-                                            index = i;
-                                            p.isOpened = true;
-                                        }
-                                        return p;
-                                    });
-
                                     props.setSelectedDispatchCarrierInfoFactoringCompanyContactSearch({ ...props.selectedDispatchCarrierInfoFactoringCompany, selectedContact: { id: 0, factoring_company_id: props.selectedDispatchCarrierInfoFactoringCompany.id } });
                                     props.setDispatchCarrierInfoFactoringCompanyIsEditingContact(true);
 
-                                    panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                                    props.setDispatchPanels(panels);
+                                    if (!props.dispatchOpenedPanels.includes('carrier-info-factoring-company-contacts')){
+                                        props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'carrier-info-factoring-company-contacts'])
+                                    }
                                 }}>
                                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                     <div className="mochi-button-base">Add contact</div>
@@ -1001,20 +951,12 @@ function CarrierInfoFactoringCompany(props) {
                                                 return (
                                                     <div className="contact-list-item" key={index} onDoubleClick={async () => {
 
-                                                        let index = props.panels.length - 1;
-                                                        let panels = props.panels.map((p, i) => {
-                                                            if (p.name === 'carrier-info-factoring-company-contacts') {
-                                                                index = i;
-                                                                p.isOpened = true;
-                                                            }
-                                                            return p;
-                                                        });
-
                                                         await props.setDispatchCarrierInfoFactoringCompanyIsEditingContact(false);
                                                         await props.setSelectedDispatchCarrierInfoFactoringCompanyContactSearch({ ...props.selectedDispatchCarrierInfoFactoringCompany, selectedContact: contact });
 
-                                                        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                                                        props.setDispatchPanels(panels);
+                                                        if (!props.dispatchOpenedPanels.includes('carrier-info-factoring-company-contacts')){
+                                                            props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'carrier-info-factoring-company-contacts'])
+                                                        }
                                                     }} onClick={() => props.setSelectedDispatchCarrierInfoFactoringCompanyContact(contact)}>
                                                         <div className="contact-list-col tcol first-name">{contact.first_name}</div>
                                                         <div className="contact-list-col tcol last-name">{contact.last_name}</div>
@@ -1116,21 +1058,12 @@ function CarrierInfoFactoringCompany(props) {
                                 props.setSelectedDispatchCarrierInfoFactoringCompanyDocument({
                                     id: 0,
                                     user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                                    date_entered: moment().format('MM-DD-YYYY')
-                                });
+                                    date_entered: moment().format('MM/DD/YYYY')
+                                });                               
 
-                                let index = props.panels.length - 1;
-                                let panels = props.panels.map((p, i) => {
-                                    if (p.name === 'carrier-info-factoring-company-documents') {
-                                        index = i;
-                                        p.isOpened = true;
-                                    }
-                                    return p;
-                                });
-
-                                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-                                props.setDispatchPanels(panels);
+                                if (!props.dispatchOpenedPanels.includes('carrier-info-factoring-company-documents')){
+                                    props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'carrier-info-factoring-company-documents'])
+                                }
                             } else {
                                 window.alert('You must select a factoring company first!');
                             }
@@ -1444,6 +1377,7 @@ const mapStateToProps = state => {
     return {
         serverUrl: state.systemReducers.serverUrl,
         panels: state.dispatchReducers.panels,
+        dispatchOpenedPanels: state.dispatchReducers.dispatchOpenedPanels,
         dispatchCarrierInfoFactoringCompanySearch: state.carrierReducers.dispatchCarrierInfoFactoringCompanySearch,
         selectedDispatchCarrierInfoFactoringCompany: state.carrierReducers.selectedDispatchCarrierInfoFactoringCompany,
         selectedDispatchCarrierInfoFactoringCompanyContact: state.carrierReducers.selectedDispatchCarrierInfoFactoringCompanyContact,
@@ -1477,5 +1411,6 @@ export default connect(mapStateToProps, {
     setDispatchCarrierInfoFactoringCompanySearch,
     setDispatchCarrierInfoFactoringCompanies,
     setSelectedDispatchCarrierInfoFactoringCompanyDocument,
-    setSelectedDispatchCarrierInfoCarrier
+    setSelectedDispatchCarrierInfoCarrier,
+    setDispatchOpenedPanels
 })(CarrierInfoFactoringCompany)

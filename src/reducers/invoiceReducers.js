@@ -2,6 +2,7 @@ import { invoiceConstants } from './../constants';
 import Documents from './../components/company/invoice/panels/documents/Documents.jsx';
 
 export const invoiceReducers = (state = {
+    invoiceOpenedPanels: [],
     panels: [
         {
             name: 'documents',
@@ -29,6 +30,12 @@ export const invoiceReducers = (state = {
             state = {
                 ...state,
                 selectedDocumentNote: action.payload
+            }
+            break;
+            case invoiceConstants.SET_INVOICE_OPENED_PANELS:
+            state = {
+                ...state,
+                invoiceOpenedPanels: action.payload
             }
             break;
         case invoiceConstants.SET_INVOICE_PANELS:

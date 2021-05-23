@@ -9,7 +9,8 @@ import {
     setSelectedShipperCompanyDocument,
     setSelectedShipperCompanyInfo,
     setShipperCompanyDocumentTags,
-    setSelectedShipperCompanyDocumentNote
+    setSelectedShipperCompanyDocumentNote,
+    setDispatchOpenedPanels
 } from './../../../../../actions';
 import moment from 'moment';
 import DocViewer from "react-doc-viewer";
@@ -23,16 +24,10 @@ function ShipperCompanyDocuments(props) {
     const refIframeImg = useRef(null);
     const modalTransitionProps = useSpring({ opacity: (props.selectedShipperCompanyDocumentNote.id !== undefined) ? 1 : 0 });
 
-
-    const closePanelBtnClick = () => {
-        let panels = props.panels.map((panel) => {
-            if (panel.name === 'shipper-company-documents') {
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
-        props.setDispatchPanels(panels);
+    const closePanelBtnClick = (e, name) => {
+        props.setDispatchOpenedPanels(props.dispatchOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
 
     const tagsOnKeydown = (e) => {
@@ -97,7 +92,7 @@ function ShipperCompanyDocuments(props) {
                     props.setSelectedShipperCompanyDocument({
                         id: 0,
                         user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                        date_entered: moment().format('MM-DD-YYYY')
+                        date_entered: moment().format('MM/DD/YYYY')
                     });
 
                     refTitleInput.current && refTitleInput.current.focus();
@@ -130,9 +125,9 @@ function ShipperCompanyDocuments(props) {
 
     return (
         <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
-            <div className="title">{props.title}</div>
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'shipper-company-documents')}><span className="fas fa-times"></span></div>
+            <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className="documents-fields">
                 <div className="documents-left-side">
@@ -142,14 +137,14 @@ function ShipperCompanyDocuments(props) {
                         </div>
 
                         <div className="input-box-container" style={{ marginRight: 5 }}>
-                            <input type="text" placeholder="Date Entered" readOnly={true} value={props.selectedShipperCompanyDocument.date_entered || moment().format('MM-DD-YYYY')} />
+                            <input type="text" placeholder="Date Entered" readOnly={true} value={props.selectedShipperCompanyDocument.date_entered || moment().format('MM/DD/YYYY')} />
                         </div>
 
                         <div className="mochi-button" onClick={() => {
                             props.setSelectedShipperCompanyDocument({
                                 id: 0,
                                 user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                                date_entered: moment().format('MM-DD-YYYY')
+                                date_entered: moment().format('MM/DD/YYYY')
                             });
 
                             refTitleInput.current.focus();
@@ -312,7 +307,7 @@ function ShipperCompanyDocuments(props) {
                                                             props.setSelectedShipperCompanyDocument({
                                                                 id: 0,
                                                                 user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                                                                date_entered: moment().format('MM-DD-YYYY')
+                                                                date_entered: moment().format('MM/DD/YYYY')
                                                             });
 
                                                             refTitleInput.current.focus();
@@ -469,6 +464,7 @@ function ShipperCompanyDocuments(props) {
 const mapStateToProps = state => {
     return {
         panels: state.dispatchReducers.panels,
+        dispatchOpenedPanels: state.dispatchReducers.dispatchOpenedPanels,
         serverUrl: state.systemReducers.serverUrl,
         selectedShipperCompanyInfo: state.customerReducers.selectedShipperCompanyInfo,
         selectedShipperCompanyDocument: state.customerReducers.selectedShipperCompanyDocument,
@@ -482,5 +478,6 @@ export default connect(mapStateToProps, {
     setSelectedShipperCompanyDocument,
     setSelectedShipperCompanyInfo,
     setShipperCompanyDocumentTags,
-    setSelectedShipperCompanyDocumentNote
+    setSelectedShipperCompanyDocumentNote,
+    setDispatchOpenedPanels
 })(ShipperCompanyDocuments)

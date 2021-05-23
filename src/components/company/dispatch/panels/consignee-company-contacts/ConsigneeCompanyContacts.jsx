@@ -9,7 +9,8 @@ import {
     setSelectedConsigneeCompanyContact,
     setConsigneeCompanyContactSearchCustomer,
     setSelectedConsigneeCompanyInfo,
-    setConsigneeCompanyIsEditingContact
+    setConsigneeCompanyIsEditingContact,
+    setDispatchOpenedPanels
 } from './../../../../../actions';
 import MaskedInput from 'react-text-mask';
 
@@ -17,15 +18,10 @@ function ConsigneeCompanyContacts(props) {
     const refPrefix = useRef();
     const refInputAvatar = useRef();
 
-    const closePanelBtnClick = () => {
-        let panels = props.panels.map((panel) => {
-            if (panel.name === 'consignee-company-contacts') {
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
-        props.setDispatchPanels(panels);
+    const closePanelBtnClick = (e, name) => {
+        props.setDispatchOpenedPanels(props.dispatchOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
 
     var lastLetter = '';
@@ -161,13 +157,13 @@ function ConsigneeCompanyContacts(props) {
 
     return (
         <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'consignee-company-contacts')}><span className="fas fa-times"></span></div>
 
             <div className="contact-container">
 
                 <div className="contact-list-container">
-                    <div className="title">{props.title}</div>
+                    <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
                     <div className="contact-list">
                         <div className="contact-list-wrapper">
@@ -562,7 +558,7 @@ function ConsigneeCompanyContacts(props) {
                             <div className="field-container">
                                 <div className="field-title">Birthday</div>
                                 <MaskedInput
-                                    mask={[/[0-9]/, /\d/, '-', /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
+                                    mask={[/[0-9]/, /\d/, '/', /\d/, /\d/, '/', /\d/, /\d/, /\d/, /\d/]}
                                     guide={true}
                                     type="text" readOnly={!props.consigneeCompanyIsEditingContact}
                                     onChange={e => {
@@ -639,6 +635,7 @@ const mapStateToProps = state => {
     return {
         serverUrl: state.systemReducers.serverUrl,
         panels: state.dispatchReducers.panels,
+        dispatchOpenedPanels: state.dispatchReducers.dispatchOpenedPanels,
         customer: state.customerReducers.consigneeCompanyContactSearchCustomer,
         selectedConsigneeCompanyInfo: state.customerReducers.selectedConsigneeCompanyInfo,
         selectedConsigneeCompanyContact: state.customerReducers.selectedConsigneeCompanyContact,
@@ -652,5 +649,6 @@ export default connect(mapStateToProps, {
     setSelectedConsigneeCompanyContact,
     setConsigneeCompanyContactSearchCustomer,
     setSelectedConsigneeCompanyInfo,
-    setConsigneeCompanyIsEditingContact
+    setConsigneeCompanyIsEditingContact,
+    setDispatchOpenedPanels
 })(ConsigneeCompanyContacts)

@@ -24,3 +24,9 @@ export const setSelectedDocumentNote = note => {
         payload: note
     }
 }
+export const setInvoiceOpenedPanels = panels => {
+    return {
+        type: invoiceConstants.SET_INVOICE_OPENED_PANELS,
+        payload: panels
+    }
+}

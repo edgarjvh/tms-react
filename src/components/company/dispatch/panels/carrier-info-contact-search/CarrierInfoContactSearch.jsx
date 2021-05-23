@@ -10,24 +10,15 @@ import {
     setSelectedDispatchCarrierInfoContact,      
     setDispatchCarrierInfoContactSearch, 
     setDispatchCarrierInfoShowingContactList,
-    setDispatchCarrierInfoContactSearchCarrier
+    setDispatchCarrierInfoContactSearchCarrier,
+    setDispatchOpenedPanels
  } from '../../../../../actions';
 
 function CarrierInfoContactSearch(props) {
-    const closePanelBtnClick = () => {
-        console.log('closing')
-        let index = props.panels.length - 1;
-
-        let panels = props.panels.map((panel, i) => {
-            if (panel.name === 'carrier-info-contact-search') {
-                index = i;
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
-        panels.splice(0, 0, panels.splice(index, 1)[0]);
-        props.setDispatchPanels(panels);
+    const closePanelBtnClick = (e, name) => {
+        props.setDispatchOpenedPanels(props.dispatchOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
 
     var clickCount = 0;
@@ -37,16 +28,7 @@ function CarrierInfoContactSearch(props) {
         clickCount++;
 
         window.setTimeout(async () => {
-            if (clickCount === 1) {
-                let index = props.panels.length - 1;
-                let panels = props.panels.map((p, i) => {
-                    if (p.name === 'carrier-info-contacts') {
-                        index = i;
-                        p.isOpened = true;
-                    }
-                    return p;
-                });
-                
+            if (clickCount === 1) {                
                 let selectedContact = {};
 
                 c.carrier.contacts.map(contact => {
@@ -56,10 +38,9 @@ function CarrierInfoContactSearch(props) {
                 });
 
                 await props.setDispatchCarrierInfoContactSearchCarrier({...c.carrier, selectedContact: selectedContact});
-
-                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-                props.setDispatchPanels(panels);
+                if (!props.dispatchOpenedPanels.includes('carrier-info-contacts')){
+                    props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'carrier-info-contacts'])
+                }
             } else {
                 await props.setSelectedDispatchCarrierInfoCarrier(c.carrier);
                 await c.carrier.contacts.map(contact => {
@@ -74,7 +55,7 @@ function CarrierInfoContactSearch(props) {
                 await props.setDispatchCarrierInfoContactSearch({});
                 await props.setDispatchCarrierInfoShowingContactList(true);
 
-                closePanelBtnClick();
+                closePanelBtnClick(null, 'carrier-info-contact-search');
             }
 
             clickCount = 0;
@@ -83,9 +64,9 @@ function CarrierInfoContactSearch(props) {
 
     return (
         <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
-            <div className="title">{props.title}</div>
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'carrier-info-contact-search')}><span className="fas fa-times"></span></div>
+            <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className="input-box-container" style={{ marginTop: 20, display: 'flex', alignItems: 'center' }}>
                 {
@@ -160,6 +141,7 @@ function CarrierInfoContactSearch(props) {
 const mapStateToProps = state => {
     return {
         panels: state.dispatchReducers.panels,
+        dispatchOpenedPanels: state.dispatchReducers.dispatchOpenedPanels,
         dispatchCarrierInfoContactSearch: state.carrierReducers.dispatchCarrierInfoContactSearch,
         dispatchCarrierInfoContacts: state.carrierReducers.dispatchCarrierInfoContacts
     }
@@ -171,5 +153,6 @@ export default connect(mapStateToProps, {
     setSelectedDispatchCarrierInfoContact,    
     setDispatchCarrierInfoContactSearch,
     setDispatchCarrierInfoShowingContactList,
-    setDispatchCarrierInfoContactSearchCarrier
+    setDispatchCarrierInfoContactSearchCarrier,
+    setDispatchOpenedPanels
 })(CarrierInfoContactSearch)

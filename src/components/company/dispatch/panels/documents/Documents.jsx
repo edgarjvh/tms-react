@@ -6,37 +6,28 @@ import Draggable from 'react-draggable';
 import './Documents.css';
 import {
     setDispatchPanels,
-    setSelectedDocument,
-    setSelectedCustomer,
-    setDocumentTags,
-    setSelectedDocumentNote
+    setSelectedOrderDocument,
+    setSelectedOrder,
+    setOrderDocumentTags,
+    setSelectedOrderDocumentNote,
+    setDispatchOpenedPanels
 } from './../../../../../actions';
 import moment from 'moment';
 import DocViewer from "react-doc-viewer";
 import { useSpring, animated } from 'react-spring';
-import DispatchModal from './../../modal/Modal.jsx';
+import OrderModal from './../../modal/Modal.jsx';
 
 function Documents(props) {
     const refTitleInput = useRef();
     const refTagInput = useRef();
     const refDocumentInput = useRef();
     const refIframeImg = useRef(null);
-    const modalTransitionProps = useSpring({ opacity: (props.selectedDocumentNote.id !== undefined) ? 1 : 0 });
+    const modalTransitionProps = useSpring({ opacity: (props.selectedOrderDocumentNote.id !== undefined) ? 1 : 0 });
 
-
-    const closePanelBtnClick = () => {
-        let index = props.panels.length - 1;
-
-        let panels = props.panels.map((panel, i) => {
-            if (panel.name === 'documents') {
-                index = i;
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
-        panels.splice(0, 0, panels.splice(index, 1)[0]);
-        props.setDispatchPanels(panels);
+    const closePanelBtnClick = (e, name) => {
+        props.setDispatchOpenedPanels(props.dispatchOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
 
     const tagsOnKeydown = (e) => {
@@ -44,52 +35,52 @@ function Documents(props) {
 
         if (keyCode === 32) {
             e.preventDefault();
-            props.setSelectedDocument({ ...props.selectedDocument, tags: ((props.selectedDocument.tags || '') + ' ' + props.documentTags).trim() });
-            props.setDocumentTags('');
+            props.setSelectedOrderDocument({ ...props.selectedOrderDocument, tags: ((props.selectedOrderDocument.tags || '') + ' ' + props.orderDocumentTags).trim() });
+            props.setOrderDocumentTags('');
             refTagInput.current.focus();
         }
         if (keyCode === 9) {
-            props.setSelectedDocument({ ...props.selectedDocument, tags: ((props.selectedDocument.tags || '') + ' ' + props.documentTags).trim() });
-            props.setDocumentTags('');
+            props.setSelectedOrderDocument({ ...props.selectedOrderDocument, tags: ((props.selectedOrderDocument.tags || '') + ' ' + props.orderDocumentTags).trim() });
+            props.setOrderDocumentTags('');
             refTagInput.current.focus();
         }
     }
 
     const validateDocumentToSave = (e) => {
-        if ((props.selectedDocument.title || '').trim() === '') {
+        if ((props.selectedOrderDocument.title || '').trim() === '') {
             window.alert('You must enter the title!');
             return;
         }
 
-        if ((props.selectedDocument.subject || '').trim() === '') {
+        if ((props.selectedOrderDocument.subject || '').trim() === '') {
             window.alert('You must enter the subject!');
             return;
         }
 
-        if ((props.selectedDocument.tags || '').trim() === '') {
+        if ((props.selectedOrderDocument.tags || '').trim() === '') {
             window.alert('You must enter the tags!');
             return;
         }
 
-        let selectedDocument = props.selectedDocument;
+        let selectedOrderDocument = props.selectedOrderDocument;
 
-        selectedDocument.tags = selectedDocument.tags.replace(/  +/g, ' ');
-        selectedDocument.tags = selectedDocument.tags.trim();
+        selectedOrderDocument.tags = selectedOrderDocument.tags.replace(/  +/g, ' ');
+        selectedOrderDocument.tags = selectedOrderDocument.tags.trim();
 
         let formData = new FormData();
         let files = e.target.files;
 
         formData.append("doc", files[0]);
-        formData.append("customer_id", props.selectedCustomer.id);
-        formData.append("user_id", selectedDocument.user_id);
-        formData.append("date_entered", selectedDocument.date_entered);
-        formData.append("title", selectedDocument.title);
-        formData.append("subject", selectedDocument.subject);
-        formData.append("tags", selectedDocument.tags);
+        formData.append("order_id", props.selected_order.id);
+        formData.append("user_id", selectedOrderDocument.user_id);
+        formData.append("date_entered", selectedOrderDocument.date_entered);
+        formData.append("title", selectedOrderDocument.title);
+        formData.append("subject", selectedOrderDocument.subject);
+        formData.append("tags", selectedOrderDocument.tags);
 
         $.ajax({
             method: "post",
-            url: props.serverUrl + "/saveDocument",
+            url: props.serverUrl + "/saveOrderDocument",
             data: formData,
             contentType: false,
             processData: false,
@@ -97,11 +88,11 @@ function Documents(props) {
             success: (res) => {
                 console.log(res);
                 if (res.result === "OK") {
-                    props.setSelectedCustomer({ ...props.selectedCustomer, documents: res.documents });
-                    props.setSelectedDocument({
+                    props.setSelectedOrder({ ...props.selected_order, documents: res.documents });
+                    props.setSelectedOrderDocument({
                         id: 0,
                         user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                        date_entered: moment().format('MM-DD-YYYY')
+                        date_entered: moment().format('MM/DD/YYYY')
                     });
 
                     refTitleInput.current && refTitleInput.current.focus();
@@ -114,17 +105,17 @@ function Documents(props) {
     }
 
     const uploadDocumentBtnClick = () => {
-        if ((props.selectedDocument.title || '') === '') {
+        if ((props.selectedOrderDocument.title || '') === '') {
             window.alert('You must enter the title!');
             return;
         }
 
-        if ((props.selectedDocument.subject || '') === '') {
+        if ((props.selectedOrderDocument.subject || '') === '') {
             window.alert('You must enter the subject!');
             return;
         }
 
-        if ((props.selectedDocument.tags || '').trim() === '') {
+        if ((props.selectedOrderDocument.tags || '').trim() === '') {
             window.alert('You must enter one tag, at least!');
             return;
         }
@@ -134,26 +125,26 @@ function Documents(props) {
 
     return (
         <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
-            <div className="title">{props.title}</div>
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'order-documents')}><span className="fas fa-times"></span></div>
+            <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className="documents-fields">
                 <div className="documents-left-side">
                     <div className="documents-fields-row">
                         <div className="input-box-container">
-                            <input type="text" placeholder="Id" readOnly={true} value={props.selectedDocument.user_id || 0} />
+                            <input type="text" placeholder="Id" readOnly={true} value={props.selectedOrderDocument.user_id || 0} />
                         </div>
 
                         <div className="input-box-container" style={{ marginRight: 5 }}>
-                            <input type="text" placeholder="Date Entered" readOnly={true} value={props.selectedDocument.date_entered || moment().format('MM-DD-YYYY')} />
+                            <input type="text" placeholder="Date Entered" readOnly={true} value={props.selectedOrderDocument.date_entered || moment().format('MM/DD/YYYY')} />
                         </div>
 
                         <div className="mochi-button" onClick={() => {
-                            props.setSelectedDocument({
+                            props.setSelectedOrderDocument({
                                 id: 0,
                                 user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                                date_entered: moment().format('MM-DD-YYYY')
+                                date_entered: moment().format('MM/DD/YYYY')
                             });
 
                             refTitleInput.current.focus();
@@ -171,25 +162,25 @@ function Documents(props) {
                                 ref={refTitleInput}
                                 type="text"
                                 placeholder="Title"
-                                value={props.selectedDocument.title || ''}
-                                onChange={(e) => { props.setSelectedDocument({ ...props.selectedDocument, title: e.target.value }) }}
-                                readOnly={(props.selectedDocument.id || 0) > 0} />
+                                value={props.selectedOrderDocument.title || ''}
+                                onChange={(e) => { props.setSelectedOrderDocument({ ...props.selectedOrderDocument, title: e.target.value }) }}
+                                readOnly={(props.selectedOrderDocument.id || 0) > 0} />
                         </div>
 
                         <div className="input-box-container">
                             <input
                                 type="text"
                                 placeholder="Subject"
-                                value={props.selectedDocument.subject || ''}
-                                onChange={(e) => { props.setSelectedDocument({ ...props.selectedDocument, subject: e.target.value }) }}
-                                readOnly={(props.selectedDocument.id || 0) > 0} />
+                                value={props.selectedOrderDocument.subject || ''}
+                                onChange={(e) => { props.setSelectedOrderDocument({ ...props.selectedOrderDocument, subject: e.target.value }) }}
+                                readOnly={(props.selectedOrderDocument.id || 0) > 0} />
                         </div>
 
                         <div className="input-box-container tags" style={{
                             flexGrow: 1, marginRight: 10
                         }}>
                             {
-                                (props.selectedDocument.tags || '').split(' ').map((item, index) => {
+                                (props.selectedOrderDocument.tags || '').split(' ').map((item, index) => {
                                     if (item.trim() !== '') {
                                         return (
                                             <div key={index} style={{
@@ -203,10 +194,10 @@ function Documents(props) {
                                                 cursor: 'default'
                                             }} title={item}>
                                                 {
-                                                    (props.selectedDocument.id || 0) === 0 &&
+                                                    (props.selectedOrderDocument.id || 0) === 0 &&
                                                     <span className="fas fa-trash-alt" style={{ marginRight: '5px', cursor: 'pointer' }}
                                                         onClick={() => {
-                                                            props.setSelectedDocument({ ...props.selectedDocument, tags: (props.selectedDocument.tags || '').replace(item, '').trim() })
+                                                            props.setSelectedOrderDocument({ ...props.selectedOrderDocument, tags: (props.selectedOrderDocument.tags || '').replace(item, '').trim() })
                                                         }}></span>
                                                 }
 
@@ -220,10 +211,10 @@ function Documents(props) {
                             }
                             <input type="text" placeholder="Tags" ref={refTagInput}
                                 onKeyDown={tagsOnKeydown}
-                                value={props.documentTags || ''}
-                                onChange={(e) => { props.setDocumentTags(e.target.value) }}
-                                onInput={(e) => { props.setDocumentTags(e.target.value) }}
-                                readOnly={(props.selectedDocument.id || 0) > 0} />
+                                value={props.orderDocumentTags || ''}
+                                onChange={(e) => { props.setOrderDocumentTags(e.target.value) }}
+                                onInput={(e) => { props.setOrderDocumentTags(e.target.value) }}
+                                readOnly={(props.selectedOrderDocument.id || 0) > 0} />
                         </div>
                     </div>
                 </div>
@@ -245,10 +236,10 @@ function Documents(props) {
                     </div>
                     <div className="mochi-button" style={{
                         fontSize: '1.5rem',
-                        pointerEvents: (props.selectedDocument.id || 0) > 0 ? 'none' : 'all'
+                        pointerEvents: (props.selectedOrderDocument.id || 0) > 0 ? 'none' : 'all'
                     }} onClick={uploadDocumentBtnClick}>
                         <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
-                        <div className="mochi-button-base" style={{ color: (props.selectedDocument.id || 0) > 0 ? 'rgba(0,0,0,0.3)' : '#323232' }}>Upload Documents</div>
+                        <div className="mochi-button-base" style={{ color: (props.selectedOrderDocument.id || 0) > 0 ? 'rgba(0,0,0,0.3)' : '#323232' }}>Upload Documents</div>
                         <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
                     </div>
 
@@ -269,7 +260,7 @@ function Documents(props) {
 
                     <div className="form-wrapper">
                         {
-                            (props.selectedCustomer.documents || []).map((document, index) => {
+                            (props.selected_order.documents || []).map((document, index) => {
                                 let docIconClasses = classnames({
                                     'fas': true,
                                     'fa-file-image': ['jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi', 'png', 'gif', 'webp', 'tiff', 'tif', 'bmp', 'jp2', 'j2k', 'jpf', 'jpx', 'jpm', 'mj2', 'svg', 'svgz'].includes(document.doc_extension.toLowerCase()),
@@ -280,18 +271,18 @@ function Documents(props) {
                                     'fa-file-video': ['webm', 'mpg', 'mp2', 'mpeg', 'mpe', 'mpv', 'ogg', 'mp4', 'm4p', 'm4v', 'avi', 'wmv', 'mov', 'qt', 'flv', 'swf', 'avchd'].includes(document.doc_extension.toLowerCase()),
                                     'fa-file-archive': ['7z', 'arc', 'arj', 'bz2', 'daa', 'gz', 'rar', 'tar', 'zim', 'zip'].includes(document.doc_extension.toLowerCase()),
                                     'fa-file-pdf': document.doc_extension.toLowerCase() === 'pdf',
-                                    'fa-file-alt': document.doc_extension.toLowerCase() === 'txt',
+                                    'fa-file-alt': ['txt', 'log'].includes(document.doc_extension.toLowerCase()),
                                     'fa-file': !['jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi', 'png', 'gif', 'webp', 'tiff', 'tif', 'bmp', 'jp2', 'j2k', 'jpf', 'jpx', 'jpm', 'mj2', 'svg', 'svgz', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'htm', 'html', 'webm', 'mpg', 'mp2', 'mpeg', 'mpe', 'mpv', 'ogg', 'mp4', 'm4p', 'm4v', 'avi', 'wmv', 'mov', 'qt', 'flv', 'swf', 'avchd', '7z', 'arc', 'arj', 'bz2', 'daa', 'gz', 'rar', 'tar', 'zim', 'zip', 'pdf', 'txt'].includes(document.doc_extension.toLowerCase())
                                 });
 
                                 let itemClasses = classnames({
                                     'documents-list-item': true,
-                                    'selected': (props.selectedDocument.id || 0) === document.id
+                                    'selected': (props.selectedOrderDocument.id || 0) === document.id
                                 });
 
                                 return (
                                     <div className={itemClasses} key={index} onClick={() => {
-                                        props.setSelectedDocument(document);
+                                        props.setSelectedOrderDocument(document);
 
 
                                     }}>
@@ -307,22 +298,22 @@ function Documents(props) {
                                             e.stopPropagation();
 
                                             if (window.confirm('Are you sure to delete this document?')) {
-                                                $.post(props.serverUrl + '/deleteCustomerDocument', {
+                                                $.post(props.serverUrl + '/deleteOrderDocument', {
                                                     doc_id: document.doc_id,
-                                                    customer_id: props.selectedCustomer.id
+                                                    order_id: props.selected_order.id
                                                 }).then(res => {
                                                     if (res.result === 'OK') {
-                                                        if ((props.selectedDocument.id || 0) === document.id) {
-                                                            props.setSelectedDocument({
+                                                        if ((props.selectedOrderDocument.id || 0) === document.id) {
+                                                            props.setSelectedOrderDocument({
                                                                 id: 0,
                                                                 user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                                                                date_entered: moment().format('MM-DD-YYYY')
+                                                                date_entered: moment().format('MM/DD/YYYY')
                                                             });
 
                                                             refTitleInput.current.focus();
                                                         }
 
-                                                        props.setSelectedCustomer({ ...props.selectedCustomer, documents: res.documents });
+                                                        props.setSelectedOrder({ ...props.selected_order, documents: res.documents });
                                                     }
                                                 })
                                             }
@@ -345,17 +336,17 @@ function Documents(props) {
                         <div className="top-border top-border-middle"></div>
                         <div className="form-buttons">
                             <div className="mochi-button" onClick={() => {
-                                if ((props.selectedDocument.id || 0) > 0) {
-                                    props.setSelectedDocumentNote({ id: 0, customer_document_id: props.selectedDocument.id })
+                                if ((props.selectedOrderDocument.id || 0) > 0) {
+                                    props.setSelectedOrderDocumentNote({ id: 0, order_document_id: props.selectedOrderDocument.id })
                                 } else {
                                     window.alert('You must select a document first!');
                                 }
                             }}
                                 style={{
-                                    pointerEvents: (props.selectedDocument.id || 0) > 0 ? 'all' : 'none',
+                                    pointerEvents: (props.selectedOrderDocument.id || 0) > 0 ? 'all' : 'none',
                                 }}>
                                 <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
-                                <div className="mochi-button-base" style={{ color: (props.selectedDocument.id || 0) > 0 ? '#323232' : 'rgba(0,0,0,0.3)' }}>Add Note</div>
+                                <div className="mochi-button-base" style={{ color: (props.selectedOrderDocument.id || 0) > 0 ? '#323232' : 'rgba(0,0,0,0.3)' }}>Add Note</div>
                                 <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
                             </div>
                         </div>
@@ -364,10 +355,10 @@ function Documents(props) {
 
                     <div className="form-wrapper">
                         {
-                            (props.selectedDocument.notes || []).map((note, index) => {
+                            (props.selectedOrderDocument.notes || []).map((note, index) => {
                                 return (
                                     <div className='documents-notes-list-item' key={index} onClick={() => {
-                                        props.setSelectedDocumentNote(note);
+                                        props.setSelectedOrderDocumentNote(note);
                                     }}>
                                         {note.text}
                                     </div>
@@ -385,7 +376,17 @@ function Documents(props) {
                         <div className="form-title">Preview</div>
                         <div className="top-border top-border-middle"></div>
                         <div className="form-buttons">
-                            <div className="mochi-button">
+                            <div className="mochi-button" onClick={(e, id = 'frame-preview') => {
+                                const iframe = document.frames
+                                    ? document.frames[id]
+                                    : document.getElementById(id);
+                                const iframeWindow = iframe.contentWindow || iframe;
+
+                                iframe.focus();
+                                iframeWindow.print();
+
+                                return false;
+                            }}>
                                 <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                 <div className="mochi-button-base">Print</div>
                                 <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
@@ -395,53 +396,53 @@ function Documents(props) {
                     </div>
 
                     {
-                        ((props.selectedDocument.id || 0) > 0 &&
-                            (['pdf', 'txt', 'htm', 'html', 'tmf'].includes(props.selectedDocument.doc_extension.toLowerCase()))) &&
-                        <iframe id="frame-preview" src={(props.serverUrl + '/customer-documents/' + props.selectedDocument.doc_id) + '#toolbar=1&navpanes=0&scrollbar=0'} frameBorder={0} allowFullScreen={true} width="100%" height="100%"></iframe>
+                        ((props.selectedOrderDocument.id || 0) > 0 &&
+                            (['pdf', 'txt', 'htm', 'html', 'tmf', 'log'].includes(props.selectedOrderDocument.doc_extension.toLowerCase()))) &&
+                        <iframe id="frame-preview" src={(props.serverUrl + '/order-documents/' + props.selectedOrderDocument.doc_id) + '#toolbar=1&navpanes=0&scrollbar=0'} frameBorder={0} allowFullScreen={true} width="100%" height="100%"></iframe>
                     }
 
                     {
-                        ((props.selectedDocument.id || 0) > 0 &&
-                            (['webm', 'mpg', 'mp2', 'mpeg', 'mpe', 'mpv', 'ogg', 'mp4', 'm4p', 'm4v', 'avi', 'wmv', 'mov', 'qt', 'flv', 'swf', 'avchd'].includes(props.selectedDocument.doc_extension.toLowerCase()))) &&
-                        <iframe id="frame-preview" src={(props.serverUrl + '/customer-documents/' + props.selectedDocument.doc_id) + '#toolbar=1&navpanes=0&scrollbar=0'} frameBorder={0} allowFullScreen={true} width="100%" height="100%"></iframe>
+                        ((props.selectedOrderDocument.id || 0) > 0 &&
+                            (['webm', 'mpg', 'mp2', 'mpeg', 'mpe', 'mpv', 'ogg', 'mp4', 'm4p', 'm4v', 'avi', 'wmv', 'mov', 'qt', 'flv', 'swf', 'avchd'].includes(props.selectedOrderDocument.doc_extension.toLowerCase()))) &&
+                        <iframe id="frame-preview" src={(props.serverUrl + '/order-documents/' + props.selectedOrderDocument.doc_id) + '#toolbar=1&navpanes=0&scrollbar=0'} frameBorder={0} allowFullScreen={true} width="100%" height="100%"></iframe>
                     }
 
                     {
-                        ((props.selectedDocument.id || 0) > 0 &&
-                            (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(props.selectedDocument.doc_extension.toLowerCase()))) &&
-                        <iframe id="frame-preview" src={('https://view.officeapps.live.com/op/embed.aspx?src=' + props.serverUrl + '/customer-documents/' + props.selectedDocument.doc_id) + '#toolbar=1&navpanes=0&scrollbar=0'} frameBorder={0} allowFullScreen={true} width="100%" height="100%"></iframe>
+                        ((props.selectedOrderDocument.id || 0) > 0 &&
+                            (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(props.selectedOrderDocument.doc_extension.toLowerCase()))) &&
+                        <iframe id="frame-preview" src={('https://view.officeapps.live.com/op/embed.aspx?src=' + props.serverUrl + '/order-documents/' + props.selectedOrderDocument.doc_id) + '#toolbar=1&navpanes=0&scrollbar=0'} frameBorder={0} allowFullScreen={true} width="100%" height="100%"></iframe>
                     }
 
                     {
-                        ((props.selectedDocument.id || 0) > 0 &&
-                            (['jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi', 'png', 'gif', 'webp', 'tiff', 'tif', 'bmp', 'jp2', 'j2k', 'jpf', 'jpx', 'jpm', 'mj2', 'svg', 'svgz'].includes(props.selectedDocument.doc_extension.toLowerCase()))) &&
-                        // <div className="img-wrapper"><img src={props.serverUrl + '/customer-documents/' + props.selectedDocument.doc_id} alt="" /></div>
-                        <iframe id="frame-preview" src={(props.serverUrl + '/customer-documents/' + props.selectedDocument.doc_id) + '#toolbar=1&navpanes=0&scrollbar=0'} frameBorder={0} allowFullScreen={true} width="100%" height="100%"></iframe>
+                        ((props.selectedOrderDocument.id || 0) > 0 &&
+                            (['jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi', 'png', 'gif', 'webp', 'tiff', 'tif', 'bmp', 'jp2', 'j2k', 'jpf', 'jpx', 'jpm', 'mj2', 'svg', 'svgz'].includes(props.selectedOrderDocument.doc_extension.toLowerCase()))) &&
+                        // <div className="img-wrapper"><img src={props.serverUrl + '/order-documents/' + props.selectedOrderDocument.doc_id} alt="" /></div>
+                        <iframe id="frame-preview" src={(props.serverUrl + '/order-documents/' + props.selectedOrderDocument.doc_id) + '#toolbar=1&navpanes=0&scrollbar=0'} frameBorder={0} allowFullScreen={true} width="100%" height="100%"></iframe>
                     }
 
                     {
-                        ((props.selectedDocument.id || 0) > 0 &&
-                            (!['jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi', 'png', 'gif', 'webp', 'tiff', 'tif', 'bmp', 'jp2', 'j2k', 'jpf', 'jpx', 'jpm', 'mj2', 'svg', 'svgz', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'htm', 'html', 'webm', 'mpg', 'mp2', 'mpeg', 'mpe', 'mpv', 'ogg', 'mp4', 'm4p', 'm4v', 'avi', 'wmv', 'mov', 'qt', 'flv', 'swf', 'avchd', '7z', 'arc', 'arj', 'bz2', 'daa', 'gz', 'rar', 'tar', 'zim', 'zip', 'pdf', 'txt', 'tmf'].includes(props.selectedDocument.doc_extension.toLowerCase()))) &&
+                        ((props.selectedOrderDocument.id || 0) > 0 &&
+                            (!['jpg', 'jpeg', 'jpe', 'jif', 'jfif', 'jfi', 'png', 'gif', 'webp', 'tiff', 'tif', 'bmp', 'jp2', 'j2k', 'jpf', 'jpx', 'jpm', 'mj2', 'svg', 'svgz', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'htm', 'html', 'webm', 'mpg', 'mp2', 'mpeg', 'mpe', 'mpv', 'ogg', 'mp4', 'm4p', 'm4v', 'avi', 'wmv', 'mov', 'qt', 'flv', 'swf', 'avchd', '7z', 'arc', 'arj', 'bz2', 'daa', 'gz', 'rar', 'tar', 'zim', 'zip', 'pdf', 'txt', 'tmf', 'log'].includes(props.selectedOrderDocument.doc_extension.toLowerCase()))) &&
                         <div className="preview-not-available">
-                            <span>No preview available for this file</span> <a href={props.serverUrl + '/customer-documents/' + props.selectedDocument.doc_id} download={true}>Download</a>
+                            <span>No preview available for this file</span> <a href={props.serverUrl + '/order-documents/' + props.selectedOrderDocument.doc_id} download={true}>Download</a>
                         </div>
                     }
                 </div>
             </div>
 
             {
-                props.selectedDocumentNote.id !== undefined &&
+                props.selectedOrderDocumentNote.id !== undefined &&
                 <animated.div style={modalTransitionProps}>
-                    <DispatchModal
-                        selectedData={props.selectedDocumentNote}
-                        setSelectedData={props.setSelectedDocumentNote}
-                        selectedParent={props.selectedDocument}
+                    <OrderModal
+                        selectedData={props.selectedOrderDocumentNote}
+                        setSelectedData={props.setSelectedOrderDocumentNote}
+                        selectedParent={props.selectedOrderDocument}
                         setSelectedParent={(notes) => {
 
-                            props.setSelectedDocument({ ...props.selectedDocument, notes: notes });
+                            props.setSelectedOrderDocument({ ...props.selectedOrderDocument, notes: notes });
 
-                            props.setSelectedCustomer({...props.selectedCustomer, documents: props.selectedCustomer.documents.map((document, index) => {
-                                if (document.id === props.selectedDocument.id){
+                            props.setSelectedOrder({...props.selected_order, documents: props.selected_order.documents.map((document, index) => {
+                                if (document.id === props.selectedOrderDocument.id){
                                     document.notes = notes;
                                 }
                                 return document;
@@ -452,7 +453,7 @@ function Documents(props) {
                         type='note'
                         isEditable={false}
                         isDeletable={false}
-                        isAdding={props.selectedDocumentNote.id === 0} />
+                        isAdding={props.selectedOrderDocumentNote.id === 0} />
                 </animated.div>
             }
 
@@ -462,19 +463,20 @@ function Documents(props) {
 
 const mapStateToProps = state => {
     return {
-        panels: state.dispatchReducers.panels,
+        dispatchOpenedPanels: state.dispatchReducers.dispatchOpenedPanels,
         serverUrl: state.systemReducers.serverUrl,
-        selectedCustomer: state.customerReducers.selectedCustomer,
-        selectedDocument: state.customerReducers.selectedDocument,
-        documentTags: state.customerReducers.documentTags,
-        selectedDocumentNote: state.customerReducers.selectedDocumentNote
+        selected_order: state.dispatchReducers.selected_order,
+        selectedOrderDocument: state.dispatchReducers.selectedOrderDocument,
+        orderDocumentTags: state.dispatchReducers.orderDocumentTags,
+        selectedOrderDocumentNote: state.dispatchReducers.selectedOrderDocumentNote
     }
 }
 
 export default connect(mapStateToProps, {
     setDispatchPanels,
-    setSelectedDocument,
-    setSelectedCustomer,
-    setDocumentTags,
-    setSelectedDocumentNote
+    setSelectedOrderDocument,
+    setSelectedOrder,
+    setOrderDocumentTags,
+    setSelectedOrderDocumentNote,
+    setDispatchOpenedPanels
 })(Documents)

@@ -8,23 +8,15 @@ import {
     setDispatchPanels, 
     setSelectedDispatchCarrierInfoCarrier, 
     setSelectedDispatchCarrierInfoContact,
-    setSelectedDispatchCarrierInfoDriver 
+    setSelectedDispatchCarrierInfoDriver,
+    setDispatchOpenedPanels
 } from '../../../../../actions';
 
 function CarrierInfoSearch(props) {
-    const closePanelBtnClick = () => {
-        let index = props.panels.length - 1;
-
-        let panels = props.panels.map((panel, i) => {
-            if (panel.name === 'carrier-info-search') {
-                index = i;
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
-        panels.splice(0, 0, panels.splice(index, 1)[0]);
-        props.setDispatchPanels(panels);
+    const closePanelBtnClick = (e, name) => {
+        props.setDispatchOpenedPanels(props.dispatchOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
 
     const rowDoubleClick = async (e, c) => {
@@ -40,14 +32,14 @@ function CarrierInfoSearch(props) {
             await props.setSelectedDispatchCarrierInfoDriver(c.drivers[0]);
         }
 
-        closePanelBtnClick();
+        closePanelBtnClick(null, 'carrier-info-search');
     }
 
     return (
         <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
-            <div className="title">{props.title}</div>
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'carrier-info-search')}><span className="fas fa-times"></span></div>
+            <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className="input-box-container" style={{ marginTop: 20, display: 'flex', alignItems: 'center' }}>
                 {
@@ -97,7 +89,7 @@ function CarrierInfoSearch(props) {
                             props.dispatchCarrierInfoCarriers.length > 0
                                 ? props.dispatchCarrierInfoCarriers.map((c, i) => {
                                     return (
-                                        <div className="trow" onDoubleClick={(e) => { rowDoubleClick(e, c) }}>
+                                        <div key={i} className="trow" onDoubleClick={(e) => { rowDoubleClick(e, c) }}>
                                             <div className="tcol code">{c.code + (c.code_number === 0 ? '' : c.code_number)}</div>
                                             <div className="tcol name">{c.name}</div>
                                             <div className="tcol address1">{c.address1}</div>
@@ -123,6 +115,7 @@ function CarrierInfoSearch(props) {
 const mapStateToProps = state => {
     return {
         panels: state.dispatchReducers.panels,
+        dispatchOpenedPanels: state.dispatchReducers.dispatchOpenedPanels,
         dispatchCarrierInfoCarriers: state.carrierReducers.dispatchCarrierInfoCarriers,
         dispatchCarrierInfoCarrierSearch: state.carrierReducers.dispatchCarrierInfoCarrierSearch,
     }
@@ -132,5 +125,6 @@ export default connect(mapStateToProps, {
     setDispatchPanels,
     setSelectedDispatchCarrierInfoCarrier,
     setSelectedDispatchCarrierInfoContact,
-    setSelectedDispatchCarrierInfoDriver
+    setSelectedDispatchCarrierInfoDriver,
+    setDispatchOpenedPanels
 })(CarrierInfoSearch)

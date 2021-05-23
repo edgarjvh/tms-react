@@ -6,10 +6,13 @@ import './Carriers.css';
 import { useSpring, animated } from 'react-spring';
 import moment from 'moment';
 import CarrierPopup from './popup/Popup.jsx';
+import CalendarPopup from './calendarPopup/CalendarPopup.jsx';
 import MaskedInput from 'react-text-mask';
 import PanelContainer from './panels/panel-container/PanelContainer.jsx';
 import CarrierModal from './modal/Modal.jsx';
 import ReactStars from "react-rating-stars-component";
+import createNumberMask from 'text-mask-addons/dist/createNumberMask';
+import accounting from 'accounting';
 import {
     setCarriers,
     setSelectedCarrier,
@@ -33,10 +36,16 @@ import {
     setFactoringCompanies,
     setCarrierInsurances,
     setSelectedInsurance,
-    setSelectedFactoringCompany
+    setSelectedFactoringCompany,
+    setCarrierOpenedPanels
 } from '../../../actions';
 
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
+
 function Carriers(props) {
+    const [isCalendarShown, setIsCalendarShown] = useState(false);
+    const [preSelectedExpirationDate, setPreSelectedExpirationDate] = useState(moment());
     const [popupItems, setPopupItems] = useState([]);
     const [isSavingCarrier, setIsSavingCarrier] = useState(false);
     const [isSavingContact, setIsSavingContact] = useState(false);
@@ -45,13 +54,26 @@ function Carriers(props) {
     const [popupActiveInput, setPopupActiveInput] = useState('');
     const refEquipment = useRef();
     const refInsuranceType = useRef();
+    const refExpirationDate = useRef();
     const refInsuranceCompany = useRef();
     const popupItemsRef = useRef([]);
     const refPopup = useRef();
+    const refCalendarPopup = useRef();
     const popupContainerClasses = classnames({
         'mochi-contextual-container': true,
         'shown': popupItems.length > 0
     });
+
+    const calendarPopupContainerClasses = classnames({
+        'mochi-contextual-container': true,
+        'shown': isCalendarShown
+    });
+
+    const currencyMask = createNumberMask({
+        prefix: '',
+        suffix: '',
+        allowDecimal: true,
+    })
 
     const [selectedEquipmentIndex, setSelectedEquipmentIndex] = useState(-1);
     var delayTimer;
@@ -91,6 +113,7 @@ function Carriers(props) {
         props.setContactSearch({});
         props.setShowingCarrierContactList(true);
         props.setSelectedDriver({});
+        props.setSelectedInsurance({})
         props.setSelectedCarrier({ id: 0, code: clearCode ? '' : props.selectedCarrier.code });
         setPopupItems([]);
     }
@@ -132,17 +155,9 @@ function Carriers(props) {
                 await props.setCarrierSearch(carrierSearch);
                 await props.setCarriers(res.carriers);
 
-                let index = props.panels.length - 1;
-                let panels = props.panels.map((p, i) => {
-                    if (p.name === 'carrier-search') {
-                        index = i;
-                        p.isOpened = true;
-                    }
-                    return p;
-                });
-
-                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                await props.setCarrierPanels(panels);
+                if (!props.carrierOpenedPanels.includes('carrier-search')) {
+                    props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'carrier-search']);
+                }
             }
         });
     }
@@ -370,17 +385,9 @@ function Carriers(props) {
                 await props.setContactSearch({ ...props.contactSearch, filters: filters });
                 await props.setCarrierContacts(res.contacts);
 
-                let index = props.panels.length - 1;
-                let panels = props.panels.map((p, i) => {
-                    if (p.name === 'carrier-contact-search') {
-                        index = i;
-                        p.isOpened = true;
-                    }
-                    return p;
-                });
-
-                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                await props.setCarrierPanels(panels);
+                if (!props.carrierOpenedPanels.includes('carrier-contact-search')) {
+                    props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'carrier-contact-search']);
+                }
             }
         });
     }
@@ -388,12 +395,69 @@ function Carriers(props) {
     const popupItemClick = async (item) => {
         switch (popupActiveInput) {
             case 'equipment':
-                props.setSelectedDriver({ ...props.selectedDriver, equipment_id: item.id, equipment: item });
-                await setPopupItems([]);
+                await props.setSelectedDriver({
+                    ...props.selectedDriver,
+                    equipment: item,
+                    equipment_id: item.id,
+                    carrier_id: props.selectedCarrier.id || 0
+                });
+
+                if ((props.selectedCarrier?.id || 0) > 0) {
+                    let driver = {
+                        ...props.selectedDriver,
+                        id: (props.selectedDriver?.id || 0),
+                        carrier_id: props.selectedCarrier.id || 0,
+                        equipment: item,
+                        equipment_id: item.id
+                    };
+
+                    if ((driver.first_name || '').trim() !== '') {
+                        if (!isSavingDriver) {
+                            setIsSavingDriver(true);
+
+                            $.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
+                                if (res.result === 'OK') {
+                                    await props.setSelectedCarrier({ ...props.selectedCarrier, drivers: res.drivers });
+                                    await props.setSelectedDriver({ ...driver, id: res.driver.id });
+                                }
+
+                                await setIsSavingDriver(false);
+                            });
+                        }
+                    }
+                }
+                setPopupItems([]);
                 break;
             case 'insurance-type':
                 props.setSelectedInsurance({ ...props.selectedInsurance, insurance_type_id: item.id, insurance_type: item });
-                await setPopupItems([]);
+
+                let insurance = {
+                    ...props.selectedInsurance,
+                    carrier_id: props.selectedCarrier.id,
+                    insurance_type_id: item.id,
+                    insurance_type: item
+                };
+
+                if ((insurance.insurance_type_id || 0) >= 0 &&
+                    (insurance.company || '').trim() !== '' &&
+                    (insurance.expiration_date || '').trim() !== '' &&
+                    (insurance.amount || '').trim() !== '') {
+
+                    insurance.expiration_date = getFormattedDates(insurance.expiration_date);
+
+                    if (!isSavingInsurance) {
+                        setIsSavingInsurance(true);
+                        $.post(props.serverUrl + '/saveInsurance', insurance).then(async res => {
+                            if (res.result === 'OK') {
+                                await props.setSelectedCarrier({ ...props.selectedCarrier, insurances: res.insurances });
+                                await props.setSelectedInsurance({ ...insurance, id: res.insurance.id });
+                            }
+                            setIsSavingInsurance(false);
+                        });
+                    }
+                }
+
+                setPopupItems([]);
                 break;
             case 'insurance-company':
                 props.setSelectedInsurance({ ...props.selectedInsurance, company: item.name });
@@ -1308,17 +1372,9 @@ function Carriers(props) {
                 await props.setFactoringCompanySearch(factoringCompanySearch);
                 await props.setFactoringCompanies(res.factoring_companies);
 
-                let index = props.panels.length - 1;
-                let panels = props.panels.map((p, i) => {
-                    if (p.name === 'carrier-factoring-company-search') {
-                        index = i;
-                        p.isOpened = true;
-                    }
-                    return p;
-                });
-
-                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                await props.setCarrierPanels(panels);
+                if (!props.carrierOpenedPanels.includes('carrier-factoring-company-search')) {
+                    props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'carrier-factoring-company-search']);
+                }
             }
         });
     }
@@ -1334,20 +1390,11 @@ function Carriers(props) {
             return;
         }
 
-        let index = props.panels.length - 1;
-        let panels = props.panels.map((p, i) => {
-            if (p.name === 'carrier-factoring-company') {
-                index = i;
-                p.isOpened = true;
-            }
-            return p;
-        });
-
         props.setSelectedFactoringCompany({ ...props.selectedCarrier.factoring_company });
 
-        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-        props.setCarrierPanels(panels);
+        if (!props.carrierOpenedPanels.includes('carrier-factoring-company')) {
+            props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'carrier-factoring-company']);
+        }
     }
 
     const clearFactoringCompanyBtnClick = async () => {
@@ -1462,26 +1509,93 @@ function Carriers(props) {
         return true;
     }
 
-    const validateInsuranceForSaving = (e) => {
+    const validateInsuranceForSaving = async (e) => {
         let key = e.keyCode || e.which;
 
-        if (key === 9 && (props.selectedCarrier.id || 0) > 0) {          
+        if (key === 9 && (props.selectedCarrier.id || 0) > 0) {
             let insurance = { ...props.selectedInsurance, carrier_id: props.selectedCarrier.id };
 
             if ((insurance.insurance_type_id || 0) >= 0 &&
-                (insurance.company || '').trim() !== '' &&
-                (insurance.expiration_date || '').trim() !== '' &&
-                (insurance.amount || '').trim() !== '') {
+                (insurance.company || '') !== '' &&
+                (insurance.expiration_date || '') !== '' &&
+                (insurance.amount || '') !== '') {
+
+                insurance.expiration_date = getFormattedDates(insurance.expiration_date);
+                insurance.amount = accounting.unformat(insurance.amount);
+                insurance.deductible = accounting.unformat(insurance.deductible);
 
                 if (!isSavingInsurance) {
                     setIsSavingInsurance(true);
-                    $.post(props.serverUrl + '/saveInsurance', insurance).then(res => {
-                        if (res.result === 'OK') {
-                            props.setSelectedCarrier({ ...props.selectedCarrier, insurances: res.insurances });
-                            props.setSelectedInsurance({ ...props.selectedInsurance, id: res.insurance.id });
+                    $.post(props.serverUrl + '/saveInsurance', insurance).then(async res => {
+                        if (res.result === 'OK') {                            
+                            await props.setSelectedCarrier({ ...props.selectedCarrier, insurances: res.insurances });
+                            await props.setSelectedInsurance({ 
+                                ...insurance, 
+                                id: res.insurance.id, 
+                                amount: res.insurance.amount ? accounting.formatNumber(res.insurance.amount, 2, ',', '.') : res.insurance.amount,
+                                deductible: res.insurance.deductible ? accounting.formatNumber(res.insurance.deductible, 2, ',', '.') : res.insurance.deductible
+                            });
                         }
                         setIsSavingInsurance(false);
+                    }).catch(e => {
+                        setIsSavingInsurance(false);
                     });
+                }
+            }
+        }
+
+        let expiration_date = e.target.value.trim() === '' ? moment() : moment(getFormattedDates(props.selectedInsurance?.expiration_date || ''), 'MM/DD/YYYY');
+
+        await setPreSelectedExpirationDate(expiration_date);
+
+        if (key === 13) {
+            if (isCalendarShown) {
+                expiration_date = preSelectedExpirationDate.clone().format('MM/DD/YYYY');
+
+                let insurance = { ...props.selectedInsurance, carrier_id: props.selectedCarrier.id };
+                insurance.expiration_date = expiration_date;
+
+                await props.setSelectedInsurance(insurance);
+
+                if ((insurance.insurance_type_id || 0) >= 0 &&
+                    (insurance.company || '').trim() !== '' &&
+                    (insurance.expiration_date || '').trim() !== '' &&
+                    (insurance.amount || '').trim() !== '') {
+
+                    if (!isSavingInsurance) {
+                        setIsSavingInsurance(true);
+                        $.post(props.serverUrl + '/saveInsurance', insurance).then(async res => {
+                            if (res.result === 'OK') {
+                                await props.setSelectedCarrier({ ...props.selectedCarrier, insurances: res.insurances });
+                                await props.setSelectedInsurance({ ...insurance, id: res.insurance.id });
+                            }
+                            setIsSavingInsurance(false);
+                        });
+                    }
+                }
+
+                await setIsCalendarShown(false);
+            }
+        }
+
+        if (key >= 37 && key <= 40) {
+            if (isCalendarShown) {
+                e.preventDefault();
+
+                if (key === 37) { // left - minus 1
+                    setPreSelectedExpirationDate(preSelectedExpirationDate.clone().subtract(1, 'day'));
+                }
+
+                if (key === 38) { // up - minus 7
+                    setPreSelectedExpirationDate(preSelectedExpirationDate.clone().subtract(7, 'day'));
+                }
+
+                if (key === 39) { // right - plus 1
+                    setPreSelectedExpirationDate(preSelectedExpirationDate.clone().add(1, 'day'));
+                }
+
+                if (key === 40) { // down - plus 7
+                    setPreSelectedExpirationDate(preSelectedExpirationDate.clone().add(7, 'day'));
                 }
             }
         }
@@ -1518,69 +1632,33 @@ function Carriers(props) {
             props.setSelectedCarrierDocument({
                 id: 0,
                 user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                date_entered: moment().format('MM-DD-YYYY')
+                date_entered: moment().format('MM/DD/YYYY')
             });
 
-            let index = props.panels.length - 1;
-            let panels = props.panels.map((p, i) => {
-                if (p.name === 'documents') {
-                    index = i;
-                    p.isOpened = true;
-                }
-                return p;
-            });
-
-            panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-            props.setCarrierPanels(panels);
+            if (!props.carrierOpenedPanels.includes('documents')) {
+                props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'documents']);
+            }
         } else {
             window.alert('You must select a carrier first!');
         }
     }
 
     const revenueInformationBtnClick = () => {
-        let index = props.panels.length - 1;
-        let panels = props.panels.map((p, i) => {
-            if (p.name === 'revenue-information') {
-                index = i;
-                p.isOpened = true;
-            }
-            return p;
-        });
-
-        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-        props.setCarrierPanels(panels);
+        if (!props.carrierOpenedPanels.includes('revenue-information')) {
+            props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'revenue-information']);
+        }
     }
 
     const equipmentInformationBtnClick = () => {
-        let index = props.panels.length - 1;
-        let panels = props.panels.map((p, i) => {
-            if (p.name === 'equipment-information') {
-                index = i;
-                p.isOpened = true;
-            }
-            return p;
-        });
-
-        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-        props.setCarrierPanels(panels);
+        if (!props.carrierOpenedPanels.includes('equipment-information')) {
+            props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'equipment-information']);
+        }
     }
 
     const orderHistoryBtnClick = () => {
-        let index = props.panels.length - 1;
-        let panels = props.panels.map((p, i) => {
-            if (p.name === 'order-history') {
-                index = i;
-                p.isOpened = true;
-            }
-            return p;
-        });
-
-        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-        props.setCarrierPanels(panels);
+        if (!props.carrierOpenedPanels.includes('order-history')) {
+            props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'order-history']);
+        }
     }
 
     const goToTabindex = (index) => {
@@ -1592,6 +1670,88 @@ function Carriers(props) {
                 break;
             }
         }
+    }
+
+    const getFormattedDates = (date) => {
+        let formattedDate = date;
+
+        try {
+            if (moment(date.trim(), 'MM/DD/YY').format('MM/DD/YY') === date.trim()) {
+                formattedDate = moment(date.trim(), 'MM/DD/YY').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'MM/DD/').format('MM/DD/') === date.trim()) {
+                formattedDate = moment(date.trim(), 'MM/DD/').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'MM/DD').format('MM/DD') === date.trim()) {
+                formattedDate = moment(date.trim(), 'MM/DD').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'MM/').format('MM/') === date.trim()) {
+                formattedDate = moment(date.trim(), 'MM/').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'MM').format('MM') === date.trim()) {
+                formattedDate = moment(date.trim(), 'MM').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'M/D/Y').format('M/D/Y') === date.trim()) {
+                formattedDate = moment(date.trim(), 'M/D/Y').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'MM/D/Y').format('MM/D/Y') === date.trim()) {
+                formattedDate = moment(date.trim(), 'MM/D/Y').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'MM/DD/Y').format('MM/DD/Y') === date.trim()) {
+                formattedDate = moment(date.trim(), 'MM/DD/Y').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'M/DD/Y').format('M/DD/Y') === date.trim()) {
+                formattedDate = moment(date.trim(), 'M/DD/Y').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'M/D/YY').format('M/D/YY') === date.trim()) {
+                formattedDate = moment(date.trim(), 'M/D/YY').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'M/D/YYYY').format('M/D/YYYY') === date.trim()) {
+                formattedDate = moment(date.trim(), 'M/D/YYYY').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'MM/D/YYYY').format('MM/D/YYYY') === date.trim()) {
+                formattedDate = moment(date.trim(), 'MM/D/YYYY').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'MM/DD/YYYY').format('MM/DD/YYYY') === date.trim()) {
+                formattedDate = moment(date.trim(), 'MM/DD/YYYY').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'M/DD/YYYY').format('M/DD/YYYY') === date.trim()) {
+                formattedDate = moment(date.trim(), 'M/DD/YYYY').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'M/D/').format('M/D/') === date.trim()) {
+                formattedDate = moment(date.trim(), 'M/D/').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'M/D').format('M/D') === date.trim()) {
+                formattedDate = moment(date.trim(), 'M/D').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'MM/D').format('MM/D') === date.trim()) {
+                formattedDate = moment(date.trim(), 'MM/D').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'M').format('M') === date.trim()) {
+                formattedDate = moment(date.trim(), 'M').format('MM/DD/YYYY');
+            }
+        } catch (e) {
+            console.log(e);
+        }
+
+        return formattedDate;
     }
 
     return (
@@ -1773,20 +1933,12 @@ function Carriers(props) {
                                         return;
                                     }
 
-                                    let index = props.panels.length - 1;
-                                    let panels = props.panels.map((p, i) => {
-                                        if (p.name === 'carrier-contacts') {
-                                            index = i;
-                                            p.isOpened = true;
-                                        }
-                                        return p;
-                                    });
-
                                     await props.setIsEditingContact(false);
                                     await props.setContactSearchCarrier({ ...props.selectedCarrier, selectedContact: props.selectedContact });
 
-                                    panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                                    props.setCarrierPanels(panels);
+                                    if (!props.carrierOpenedPanels.includes('carrier-contacts')) {
+                                        props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'carrier-contacts']);
+                                    }
                                 }}>
                                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                     <div className="mochi-button-base">More</div>
@@ -1798,20 +1950,12 @@ function Carriers(props) {
                                         return;
                                     }
 
-                                    let index = props.panels.length - 1;
-                                    let panels = props.panels.map((p, i) => {
-                                        if (p.name === 'carrier-contacts') {
-                                            index = i;
-                                            p.isOpened = true;
-                                        }
-                                        return p;
-                                    });
-
                                     props.setContactSearchCarrier({ ...props.selectedCarrier, selectedContact: { id: 0, carrier_id: props.selectedCarrier.id } });
                                     props.setIsEditingContact(true);
 
-                                    panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                                    props.setCarrierPanels(panels);
+                                    if (!props.carrierOpenedPanels.includes('carrier-contacts')) {
+                                        props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'carrier-contacts']);
+                                    }
                                 }}>
                                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                     <div className="mochi-button-base">Add contact</div>
@@ -1928,21 +2072,12 @@ function Carriers(props) {
                                             (props.selectedCarrier.contacts || []).map((contact, index) => {
                                                 return (
                                                     <div className="contact-list-item" key={index} onDoubleClick={async () => {
-
-                                                        let index = props.panels.length - 1;
-                                                        let panels = props.panels.map((p, i) => {
-                                                            if (p.name === 'carrier-contacts') {
-                                                                index = i;
-                                                                p.isOpened = true;
-                                                            }
-                                                            return p;
-                                                        });
-
                                                         await props.setIsEditingContact(false);
                                                         await props.setContactSearchCarrier({ ...props.selectedCarrier, selectedContact: contact });
 
-                                                        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                                                        props.setCarrierPanels(panels);
+                                                        if (!props.carrierOpenedPanels.includes('carrier-contacts')) {
+                                                            props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'carrier-contacts']);
+                                                        }
                                                     }} onClick={() => props.setSelectedCarrierContact(contact)}>
                                                         <div className="contact-list-col tcol first-name">{contact.first_name}</div>
                                                         <div className="contact-list-col tcol last-name">{contact.last_name}</div>
@@ -2110,8 +2245,97 @@ function Carriers(props) {
                                     fontSize: '1.1rem',
                                     cursor: 'pointer'
                                 }} onClick={() => {
-                                    onEquipmentInput({ target: { value: refEquipment.current.value } });
-                                    refEquipment.current.focus();
+                                    delayTimer = window.setTimeout(() => {
+                                        setPopupActiveInput('equipment');
+                                        $.post(props.serverUrl + '/getEquipments', {
+                                            name: ""
+                                        }).then(async res => {
+                                            const input = refEquipment.current.getBoundingClientRect();
+
+                                            let popup = refPopup.current;
+
+                                            const { innerWidth, innerHeight } = window;
+
+                                            let screenWSection = innerWidth / 3;
+
+                                            popup && popup.childNodes[0].classList.add('vertical');
+
+                                            if ((innerHeight - 170 - 30) <= input.top) {
+                                                popup && popup.childNodes[0].classList.add('above');
+                                            }
+
+                                            if ((innerHeight - 170 - 30) > input.top) {
+                                                popup && popup.childNodes[0].classList.add('below');
+                                                popup && (popup.style.top = (input.top + 10) + 'px');
+                                            }
+
+                                            if (input.left <= (screenWSection * 1)) {
+                                                popup && popup.childNodes[0].classList.add('right');
+                                                popup && (popup.style.left = input.left + 'px');
+
+                                                if (input.width < 70) {
+                                                    popup && (popup.style.left = (input.left - 60 + (input.width / 2)) + 'px');
+
+                                                    if (input.left < 30) {
+                                                        popup && popup.childNodes[0].classList.add('corner');
+                                                        popup && (popup.style.left = (input.left + (input.width / 2)) + 'px');
+                                                    }
+                                                }
+                                            }
+
+                                            if (input.left <= (screenWSection * 2)) {
+                                                popup && (popup.style.left = (input.left - 100) + 'px');
+                                            }
+
+                                            if (input.left > (screenWSection * 2)) {
+                                                popup && popup.childNodes[0].classList.add('left');
+                                                popup && (popup.style.left = (input.left - 200) + 'px');
+
+                                                if ((innerWidth - input.left) < 100) {
+                                                    popup && popup.childNodes[0].classList.add('corner');
+                                                    popup && (popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px');
+                                                }
+                                            }
+
+                                            if (res.result === 'OK') {
+                                                if (res.equipments.length > 0) {
+                                                    let items = [];
+                                                    let matched = false;
+
+                                                    items = res.equipments.map((equipment, i) => {
+                                                        if (equipment.name === props.selectedDriver.equipment?.name) {
+                                                            equipment.selected = true;
+                                                            matched = true;
+                                                        } else {
+                                                            equipment.selected = false;
+                                                        }
+
+                                                        return equipment;
+                                                    });
+
+                                                    if (!matched) {
+                                                        items = res.equipments.map((equipment, i) => {
+                                                            equipment.selected = i === 0;
+                                                            return equipment;
+                                                        });
+                                                    }
+
+                                                    await setPopupItems(items);
+
+                                                    popupItemsRef.current.map((r, i) => {
+                                                        if (r && r.classList.contains('selected')) {
+                                                            r.scrollIntoView()
+                                                        }
+                                                        return true;
+                                                    });
+                                                } else {
+                                                    await setPopupItems([]);
+                                                }
+                                            }
+
+                                            refEquipment.current.focus();
+                                        });
+                                    }, 300);
                                 }}></span>
                             </div>
                         </div>
@@ -2391,8 +2615,98 @@ function Carriers(props) {
                                     fontSize: '1.1rem',
                                     cursor: 'pointer'
                                 }} onClick={() => {
-                                    refInsuranceType.current.focus();
-                                    onInsuranceTypeKeydown({ key: 'click', preventDefault: () => { } });
+                                    delayTimer = window.setTimeout(async () => {
+                                        setPopupActiveInput('insurance-type');
+
+                                        $.post(props.serverUrl + '/getInsuranceTypes').then(async res => {
+                                            const input = refInsuranceType.current.getBoundingClientRect();
+
+                                            let popup = refPopup.current;
+
+                                            const { innerWidth, innerHeight } = window;
+
+                                            let screenWSection = innerWidth / 3;
+
+                                            popup && popup.childNodes[0].classList.add('vertical');
+
+                                            if ((innerHeight - 170 - 30) <= input.top) {
+                                                popup && popup.childNodes[0].classList.add('above');
+                                            }
+
+                                            if ((innerHeight - 170 - 30) > input.top) {
+                                                popup && popup.childNodes[0].classList.add('below');
+                                                popup && (popup.style.top = (input.top + 10) + 'px');
+                                            }
+
+                                            if (input.left <= (screenWSection * 1)) {
+                                                popup && popup.childNodes[0].classList.add('right');
+                                                popup && (popup.style.left = input.left + 'px');
+
+                                                if (input.width < 70) {
+                                                    popup && (popup.style.left = (input.left - 60 + (input.width / 2)) + 'px');
+
+                                                    if (input.left < 30) {
+                                                        popup && popup.childNodes[0].classList.add('corner');
+                                                        popup && (popup.style.left = (input.left + (input.width / 2)) + 'px');
+                                                    }
+                                                }
+                                            }
+
+                                            if (input.left <= (screenWSection * 2)) {
+                                                popup && (popup.style.left = (input.left - 100) + 'px');
+                                            }
+
+                                            if (input.left > (screenWSection * 2)) {
+                                                popup && popup.childNodes[0].classList.add('left');
+                                                popup && (popup.style.left = (input.left - 200) + 'px');
+
+                                                if ((innerWidth - input.left) < 100) {
+                                                    popup && popup.childNodes[0].classList.add('corner');
+                                                    popup && (popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px');
+                                                }
+                                            }
+
+                                            if (res.result === 'OK') {
+                                                if (res.types.length > 0) {
+                                                    let items = [];
+                                                    let matched = false;
+
+                                                    items = res.types.map((insurance_type, i) => {
+                                                        if (insurance_type.name === props.selectedInsurance.insurance_type?.name) {
+                                                            insurance_type.selected = true;
+                                                            matched = true;
+                                                        } else {
+                                                            insurance_type.selected = false;
+                                                        }
+
+                                                        return insurance_type;
+                                                    });
+
+                                                    if (!matched) {
+                                                        items = res.types.map((insurance_type, i) => {
+                                                            insurance_type.selected = i === 0;
+                                                            return insurance_type;
+                                                        });
+                                                    }
+
+                                                    await setPopupItems(items);
+
+                                                    popupItemsRef.current.map((r, i) => {
+                                                        if (r && r.classList.contains('selected')) {
+                                                            r.scrollIntoView()
+                                                        }
+                                                        return true;
+                                                    });
+                                                } else {
+                                                    await setPopupItems([]);
+                                                }
+                                            }
+
+
+
+                                            refInsuranceType.current.focus();
+                                        })
+                                    }, 300);
                                 }}></span>
 
                             </div>
@@ -2410,17 +2724,103 @@ function Carriers(props) {
                         <div className="form-row">
                             <div className="input-box-container grow">
                                 <MaskedInput tabIndex={88 + props.tabTimes}
-                                    mask={[/[0-9]/, /\d/, '-', /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
-                                    guide={true}
-                                    type="text" placeholder="Expiration Date" onKeyDown={validateInsuranceForSaving} onChange={e => props.setSelectedInsurance({ ...props.selectedInsurance, expiration_date: e.target.value })} value={props.selectedInsurance.expiration_date || ''} />
+                                    mask={[/[0-9]/, /\d/, '/', /\d/, /\d/, '/', /\d/, /\d/, /\d/, /\d/]}
+                                    guide={false}
+                                    type="text" placeholder="Expiration Date"
+                                    onKeyDown={validateInsuranceForSaving}
+                                    onBlur={e => props.setSelectedInsurance({ ...props.selectedInsurance, expiration_date: getFormattedDates(props.selectedInsurance?.expiration_date) })}
+                                    onInput={e => props.setSelectedInsurance({ ...props.selectedInsurance, expiration_date: e.target.value })}
+                                    onChange={e => props.setSelectedInsurance({ ...props.selectedInsurance, expiration_date: e.target.value })}
+                                    value={props.selectedInsurance.expiration_date || ''}
+                                    ref={refExpirationDate}
+                                />
+
+                                <span className="fas fa-calendar-alt open-calendar-btn" onClick={(e) => {
+                                    e.stopPropagation();
+
+                                    if (moment((props.selectedInsurance?.expiration_date || '').trim(), 'MM/DD/YYYY').format('MM/DD/YYYY') === (props.selectedInsurance?.expiration_date || '').trim()) {
+                                        setPreSelectedExpirationDate(moment(props.selectedInsurance?.expiration_date, 'MM/DD/YYYY'));
+                                    } else {
+                                        setPreSelectedExpirationDate(moment());
+                                    }
+
+                                    const input = refExpirationDate.current.inputElement.getBoundingClientRect();
+
+                                    let popup = refCalendarPopup.current;
+
+                                    const { innerWidth, innerHeight } = window;
+
+                                    let screenWSection = innerWidth / 3;
+
+                                    popup && popup.childNodes[0].classList.add('vertical');
+
+                                    if ((innerHeight - 170 - 30) <= input.top) {
+                                        popup && popup.childNodes[0].classList.add('above');
+                                    }
+
+                                    if ((innerHeight - 170 - 30) > input.top) {
+                                        popup && popup.childNodes[0].classList.add('below');
+                                        popup && (popup.style.top = (input.top + 10) + 'px');
+                                    }
+
+                                    if (input.left <= (screenWSection * 1)) {
+                                        popup && popup.childNodes[0].classList.add('right');
+                                        popup && (popup.style.left = input.left + 'px');
+
+                                        if (input.width < 70) {
+                                            popup && (popup.style.left = (input.left - 60 + (input.width / 2)) + 'px');
+
+                                            if (input.left < 30) {
+                                                popup && popup.childNodes[0].classList.add('corner');
+                                                popup && (popup.style.left = (input.left + (input.width / 2)) + 'px');
+                                            }
+                                        }
+                                    }
+
+                                    if (input.left <= (screenWSection * 2)) {
+                                        popup && (popup.style.left = (input.left - 100) + 'px');
+                                    }
+
+                                    if (input.left > (screenWSection * 2)) {
+                                        popup && popup.childNodes[0].classList.add('left');
+                                        popup && (popup.style.left = (input.left - 200) + 'px');
+
+                                        if ((innerWidth - input.left) < 100) {
+                                            popup && popup.childNodes[0].classList.add('corner');
+                                            popup && (popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px');
+                                        }
+                                    }
+
+                                    setIsCalendarShown(true)
+
+                                    refExpirationDate.current.inputElement.focus();
+                                }}></span>
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container grow">
-                                <input tabIndex={89 + props.tabTimes} type="text" placeholder="Amount" onKeyDown={validateInsuranceForSaving} onChange={e => props.setSelectedInsurance({ ...props.selectedInsurance, amount: e.target.value })} value={props.selectedInsurance.amount || ''} />
+                                <span className="currency-symbol">{(props.selectedInsurance.amount || '') === '' ? '' : '$'}</span>
+
+                                <input tabIndex={89 + props.tabTimes}
+                                    className="currency"
+                                    type="text"
+                                    placeholder="Amount"
+                                    onKeyDown={validateInsuranceForSaving}
+                                    onBlur={async (e) => { await props.setSelectedInsurance({ ...props.selectedInsurance, amount: accounting.formatNumber(e.target.value, 2, ',', '.') }) }}
+                                    onChange={e => props.setSelectedInsurance({ ...props.selectedInsurance, amount: e.target.value })}
+                                    value={(props.selectedInsurance?.amount || '')} />
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container grow">
-                                <input tabIndex={90 + props.tabTimes} type="text" placeholder="Deductible" onKeyDown={validateInsuranceForSaving} onChange={e => props.setSelectedInsurance({ ...props.selectedInsurance, deductible: e.target.value })} value={props.selectedInsurance.deductible || ''} />
+                                <span className="currency-symbol">{(props.selectedInsurance.deductible || '') === '' ? '' : '$'}</span>
+
+                                <input tabIndex={90 + props.tabTimes}
+                                    className="currency"
+                                    type="text"
+                                    placeholder="Deductible"
+                                    onKeyDown={validateInsuranceForSaving}
+                                    onBlur={async (e) => { await props.setSelectedInsurance({ ...props.selectedInsurance, deductible: accounting.formatNumber(e.target.value, 2, ',', '.') }) }}
+                                    onChange={e => props.setSelectedInsurance({ ...props.selectedInsurance, deductible: e.target.value })}
+                                    value={(props.selectedInsurance?.deductible || '')} />
                             </div>
                         </div>
                         <div className="form-v-sep"></div>
@@ -2454,12 +2854,16 @@ function Carriers(props) {
                             <div className="insurances-list-wrapper">
                                 {
                                     (props.selectedCarrier.insurances || []).map((insurance, index) => {
+                                        const itemClasses = classnames({
+                                            'insurances-list-item': true,
+                                            'selected': insurance.id === props.selectedInsurance.id
+                                        })
                                         return (
-                                            <div className="insurances-list-item" key={index} onClick={() => props.setSelectedInsurance({ ...insurance })}>
+                                            <div className={itemClasses} key={index} onClick={() => props.setSelectedInsurance({ ...insurance })}>
                                                 <div className="contact-list-col tcol type">{insurance.insurance_type.name}</div>
                                                 <div className="contact-list-col tcol company">{insurance.company}</div>
                                                 <div className="contact-list-col tcol expiration-date">{insurance.expiration_date}</div>
-                                                <div className="contact-list-col tcol amount">{insurance.amount}</div>
+                                                <div className="contact-list-col tcol amount">{accounting.formatMoney(insurance.amount)}</div>
                                             </div>
                                         )
                                     })
@@ -2810,6 +3214,20 @@ function Carriers(props) {
                 popupItemKeydown={() => { }}
                 setPopupItems={setPopupItems}
             />
+
+            <CalendarPopup
+                popupRef={refCalendarPopup}
+                popupClasses={calendarPopupContainerClasses}
+                popupGetter={moment((props.selectedInsurance?.expiration_date || '').trim(), 'MM/DD/YYYY').format('MM/DD/YYYY') === (props.selectedInsurance?.expiration_date || '').trim()
+                    ? moment(props.selectedInsurance?.expiration_date, 'MM/DD/YYYY')
+                    : moment()}
+                popupSetter={(day) => {
+                    props.setSelectedInsurance({ ...props.selectedInsurance, expiration_date: day.format('MM/DD/YYYY') })
+                }}
+                closeCalendar={() => { setIsCalendarShown(false); }}
+                preDay={preSelectedExpirationDate}
+            />
+
         </div>
     )
 }
@@ -2822,6 +3240,7 @@ const mapStateToProps = state => {
         selectedCarrier: state.carrierReducers.selectedCarrier,
         serverUrl: state.systemReducers.serverUrl,
         panels: state.carrierReducers.panels,
+        carrierOpenedPanels: state.carrierReducers.carrierOpenedPanels,
         selectedContact: state.carrierReducers.selectedContact,
         selectedNote: state.carrierReducers.selectedNote,
         selectedDirection: state.carrierReducers.selectedDirection,
@@ -2869,5 +3288,6 @@ export default connect(mapStateToProps, {
     setFactoringCompanies,
     setCarrierInsurances,
     setSelectedInsurance,
-    setSelectedFactoringCompany
+    setSelectedFactoringCompany,
+    setCarrierOpenedPanels
 })(Carriers)

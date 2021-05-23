@@ -6,7 +6,8 @@ import classnames from 'classnames';
 import $ from 'jquery';
 import {
     setCarrierPanels,
-    setEquipmentInformation
+    setEquipmentInformation,
+    setCarrierOpenedPanels
 } from "./../../../../../actions";
 
 function EquipmentInformation(props) {
@@ -19,23 +20,14 @@ function EquipmentInformation(props) {
         'shown': popupItems.length > 0
     });
     const popupItemsRef = useRef([]);
-    const [popupActiveInput, setPopupActiveInput] = useState('');
+    const [popupActiveInput, setPopupActiveInput] = useState('');    
 
-    const closePanelBtnClick = () => {
-        let index = props.panels.length - 1;
-
-        let panels = props.panels.map((panel, i) => {
-            if (panel.name === 'equipment-information') {
-                index = i;
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
+    const closePanelBtnClick = (e, name) => {
         props.setEquipmentInformation({});
 
-        panels.splice(0, 0, panels.splice(index, 1)[0]);
-        props.setCarrierPanels(panels);
+        props.setCarrierOpenedPanels(props.carrierOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
 
     const popupItemClick = async (item) => {
@@ -273,9 +265,9 @@ function EquipmentInformation(props) {
 
     return (
         <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
-            <div className="title">{props.title}</div>
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'equipment-information')}><span className="fas fa-times"></span></div>
+            <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className='form-bordered-box' style={{ margin: '20px 0 10px 0', flexGrow: 'initial' }}>
                 <div className='form-header'>
@@ -382,11 +374,13 @@ const mapStateToProps = state => {
     return {
         serverUrl: state.systemReducers.serverUrl,
         panels: state.carrierReducers.panels,
+        carrierOpenedPanels: state.carrierReducers.carrierOpenedPanels,
         equipmentInformation: state.carrierReducers.equipmentInformation
     }
 }
 
 export default connect(mapStateToProps, {
     setCarrierPanels,
-    setEquipmentInformation
+    setEquipmentInformation,
+    setCarrierOpenedPanels
 })(EquipmentInformation)

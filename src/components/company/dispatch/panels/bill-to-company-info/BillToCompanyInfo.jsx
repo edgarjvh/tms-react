@@ -19,7 +19,8 @@ import {
     setBillToCompanyIsEditingContact,
     setSelectedBillToCompanyDocument,
     setBillToCompanyDocumentTags,
-    setSelectedBillToCompanyDocumentNote
+    setSelectedBillToCompanyDocumentNote,
+    setDispatchOpenedPanels
 } from './../../../../../actions';
 
 import CustomerModal from './../../modal/Modal.jsx';
@@ -64,15 +65,10 @@ function BillToCompanyInfo(props) {
         setPopupItems([]);
     }
 
-    const closePanelBtnClick = () => {
-        let panels = props.panels.map((panel) => {
-            if (panel.name === 'bill-to-company-info') {
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
-        props.setDispatchPanels(panels);
+    const closePanelBtnClick = (e, name) => {
+        props.setDispatchOpenedPanels(props.dispatchOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
 
     const searchCustomerByCode = (e) => {
@@ -141,22 +137,15 @@ function BillToCompanyInfo(props) {
             }
         ]
 
-        $.post(props.serverUrl + '/customerSearch', { search: customerSearch }).then(async res => {
+        $.post(props.serverUrl + '/customerSearch', { search: customerSearch }).then(res => {
             if (res.result === 'OK') {
-                await props.setCustomerSearch(customerSearch);
-                await props.setBillToCompanies(res.customers);
+                props.setBillToCompanySearch(customerSearch);
+                props.setBillToCompanies(res.customers);
 
-                let index = props.panels.length - 1;
-                let panels = props.panels.map((p, i) => {
-                    if (p.name === 'bill-to-company-search') {
-                        index = i;
-                        p.isOpened = true;
-                    }
-                    return p;
-                });
-
-                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                await props.setDispatchPanels(panels);
+                if (!props.dispatchOpenedPanels.includes('bill-to-company-search')) {
+                    console.log('here');
+                    props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'bill-to-company-search']);
+                }
             }
         });
     }
@@ -206,64 +195,29 @@ function BillToCompanyInfo(props) {
                 await props.setBillToCompanyContactSearch({ ...props.billToCompanyContactSearch, filters: filters });
                 await props.setBillToCompanyContacts(res.contacts);
 
-                let index = props.panels.length - 1;
-                let panels = props.panels.map((p, i) => {
-                    if (p.name === 'bill-to-company-contact-search') {
-                        index = i;
-                        p.isOpened = true;
-                    }
-                    return p;
-                });
-
-                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                await props.setDispatchPanels(panels);
+                if (!props.dispatchOpenedPanels.includes('bill-to-company-contact-search')){
+                    props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'bill-to-company-contact-search'])
+                }
             }
         });
     }
 
     const revenueInformationBtnClick = () => {
-        let index = props.panels.length - 1;
-        let panels = props.panels.map((p, i) => {
-            if (p.name === 'bill-to-company-revenue-information') {
-                index = i;
-                p.isOpened = true;
-            }
-            return p;
-        });
-
-        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-        props.setDispatchPanels(panels);
+        if (!props.dispatchOpenedPanels.includes('bill-to-company-revenue-information')){
+            props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'bill-to-company-revenue-information'])
+        }
     }
 
     const orderHistoryBtnClick = () => {
-        let index = props.panels.length - 1;
-        let panels = props.panels.map((p, i) => {
-            if (p.name === 'bill-to-company-order-history') {
-                index = i;
-                p.isOpened = true;
-            }
-            return p;
-        });
-
-        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-        props.setDispatchPanels(panels);
+        if (!props.dispatchOpenedPanels.includes('bill-to-company-order-history')){
+            props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'bill-to-company-order-history'])
+        }
     }
 
     const laneHistoryBtnClick = () => {
-        let index = props.panels.length - 1;
-        let panels = props.panels.map((p, i) => {
-            if (p.name === 'bill-to-company-lane-history') {
-                index = i;
-                p.isOpened = true;
-            }
-            return p;
-        });
-
-        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-        props.setDispatchPanels(panels);
+        if (!props.dispatchOpenedPanels.includes('bill-to-company-lane-history')){
+            props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'bill-to-company-lane-history'])
+        }
     }
 
     const documentsBtnClick = () => {
@@ -271,21 +225,12 @@ function BillToCompanyInfo(props) {
             props.setSelectedBillToCompanyDocument({
                 id: 0,
                 user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                date_entered: moment().format('MM-DD-YYYY')
+                date_entered: moment().format('MM/DD/YYYY')
             });
-
-            let index = props.panels.length - 1;
-            let panels = props.panels.map((p, i) => {
-                if (p.name === 'bill-to-company-documents') {
-                    index = i;
-                    p.isOpened = true;
-                }
-                return p;
-            });
-
-            panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-            props.setDispatchPanels(panels);
+            
+            if (!props.dispatchOpenedPanels.includes('bill-to-company-documents')){
+                props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'bill-to-company-documents'])
+            }
         } else {
             window.alert('You must select a customer first!');
         }
@@ -1089,9 +1034,9 @@ function BillToCompanyInfo(props) {
 
     return (
         <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
-            <div className="title">{props.title}</div>
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'bill-to-company-info')}><span className="fas fa-times"></span></div>
+            <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className="bill-to-company-info">
                 <div className="fields-container">
@@ -1365,20 +1310,12 @@ function BillToCompanyInfo(props) {
                                                 return;
                                             }
 
-                                            let index = props.panels.length - 1;
-                                            let panels = props.panels.map((p, i) => {
-                                                if (p.name === 'bill-to-company-contacts') {
-                                                    index = i;
-                                                    p.isOpened = true;
-                                                }
-                                                return p;
-                                            });
-
                                             await props.setBillToCompanyIsEditingContact(false);
                                             await props.setBillToCompanyContactSearchCustomer({ ...props.selectedBillToCompanyInfo, selectedBillToCompanyContact: props.selectedBillToCompanyContact });
 
-                                            panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                                            props.setDispatchPanels(panels);
+                                            if (!props.dispatchOpenedPanels.includes('bill-to-company-contacts')) {
+                                                props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'bill-to-company-contacts']);
+                                            }
                                         }}>
                                             <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                             <div className="mochi-button-base">More</div>
@@ -1388,22 +1325,14 @@ function BillToCompanyInfo(props) {
                                             if (props.selectedBillToCompanyInfo.id === undefined) {
                                                 window.alert('You must select a customer');
                                                 return;
-                                            }
-
-                                            let index = props.panels.length - 1;
-                                            let panels = props.panels.map((p, i) => {
-                                                if (p.name === 'bill-to-company-contacts') {
-                                                    index = i;
-                                                    p.isOpened = true;
-                                                }
-                                                return p;
-                                            });
+                                            }                                            
 
                                             props.setBillToCompanyContactSearchCustomer({ ...props.selectedBillToCompanyInfo, selectedBillToCompanyContact: { id: 0, customer_id: props.selectedBillToCompanyInfo.id } });
-                                            props.setBillToCompanyIsEditingContact(true);
+                                            props.setBillToCompanyIsEditingContact(true);                                          
 
-                                            panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                                            props.setDispatchPanels(panels);
+                                            if (!props.dispatchOpenedPanels.includes('bill-to-company-contacts')) {
+                                                props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'bill-to-company-contacts']);
+                                            }
                                         }}>
                                             <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                             <div className="mochi-button-base">Add contact</div>
@@ -1821,21 +1750,12 @@ function BillToCompanyInfo(props) {
                                                     (props.selectedBillToCompanyInfo.contacts || []).map((contact, index) => {
                                                         return (
                                                             <div className="contact-list-item" key={index} onDoubleClick={async () => {
-
-                                                                let index = props.panels.length - 1;
-                                                                let panels = props.panels.map((p, i) => {
-                                                                    if (p.name === 'bill-to-company-contacts') {
-                                                                        index = i;
-                                                                        p.isOpened = true;
-                                                                    }
-                                                                    return p;
-                                                                });
-
                                                                 await props.setBillToCompanyIsEditingContact(false);
                                                                 await props.setBillToCompanyContactSearchCustomer({ ...props.selectedBillToCompanyInfo, selectedBillToCompanyContact: contact });
 
-                                                                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                                                                props.setDispatchPanels(panels);
+                                                                if (!props.dispatchOpenedPanels.includes('bill-to-company-contacts')){
+                                                                    props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'bill-to-company-contacts'])
+                                                                }
                                                             }} onClick={() => props.setSelectedBillToCompanyContact(contact)}>
                                                                 <div className="contact-list-col tcol first-name">{contact.first_name}</div>
                                                                 <div className="contact-list-col tcol last-name">{contact.last_name}</div>
@@ -2259,6 +2179,7 @@ const mapStateToProps = state => {
     return {
         serverUrl: state.systemReducers.serverUrl,
         panels: state.dispatchReducers.panels,
+        dispatchOpenedPanels: state.dispatchReducers.dispatchOpenedPanels,
         scale: state.systemReducers.scale,
 
         billToCompanies: state.customerReducers.billToCompanies,
@@ -2302,5 +2223,6 @@ export default connect(mapStateToProps, {
     setBillToCompanyIsEditingContact,
     setSelectedBillToCompanyDocument,
     setBillToCompanyDocumentTags,
-    setSelectedBillToCompanyDocumentNote
+    setSelectedBillToCompanyDocumentNote,
+    setDispatchOpenedPanels
 })(BillToCompanyInfo)

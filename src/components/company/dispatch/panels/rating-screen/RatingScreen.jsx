@@ -1,26 +1,27 @@
 import React, { useState, useRef } from 'react';
 import { connect } from 'react-redux';
-import { setDispatchPanels } from "./../../../../../actions";
+import { setDispatchPanels, setDispatchOpenedPanels } from "./../../../../../actions";
 import classnames from 'classnames';
 import RatingScreenPopup from './../../popup/Popup.jsx';
 import $ from 'jquery';
+import MaskedInput from 'react-text-mask';
+import createNumberMask from 'text-mask-addons/dist/createNumberMask';
+import './RatingScreen.css';
 
 function RatingScreen(props) {
 
-    const closePanelBtnClick = () => {
-        let index = props.panels.length - 1;
-
-        let panels = props.panels.map((panel, i) => {
-            if (panel.name === 'rating-screen') {
-                index = i;
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
-        panels.splice(0, 0, panels.splice(index, 1)[0]);
-        props.setDispatchPanels(panels);
+    const closePanelBtnClick = (e, name) => {
+        props.setDispatchOpenedPanels(props.dispatchOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
+
+    const currencyMask = createNumberMask({
+        prefix: '$',
+        suffix: '',
+        allowDecimal: true,
+        requireDecimal: false
+    })
 
     const [rateTypesItems, setRateTypesItems] = useState([
         {
@@ -62,7 +63,7 @@ function RatingScreen(props) {
             case 'carrier-charges-rate-type':
                 setCarrierChargesRateType(item);
                 await setPopupItems([]);
-                break;            
+                break;
             default:
                 break;
         }
@@ -76,14 +77,14 @@ function RatingScreen(props) {
 
         const input = refBillToRateTypes.current.getBoundingClientRect();
 
-        
+
 
         let popup = refPopup.current;
 
         const { innerWidth, innerHeight } = window;
 
         let screenWSection = innerWidth / 3;
-        let offset = innerWidth - $(popup).parent().width() - 45;        
+        let offset = innerWidth - $(popup).parent().width() - 45;
 
         if (popup) {
             popup.childNodes[0].className = 'mochi-contextual-popup';
@@ -224,7 +225,7 @@ function RatingScreen(props) {
 
         let screenWSection = innerWidth / 3;
 
-        let offset = innerWidth - $(popup).parent().width() - 45;        
+        let offset = innerWidth - $(popup).parent().width() - 45;
 
         if (popup) {
             popup.childNodes[0].className = 'mochi-contextual-popup';
@@ -354,9 +355,9 @@ function RatingScreen(props) {
 
     return (
         <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
-            <div className="title">{props.title}</div>
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'rating-screen')}><span className="fas fa-times"></span></div>
+            <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className='form-bordered-box' style={{ borderBottom: 0, borderRight: 0, marginBottom: 15, marginTop: 10, boxShadow: 'none' }}>
                 <div className='form-header'>
@@ -376,7 +377,7 @@ function RatingScreen(props) {
                 }}>
                 </div>
                 <div className="form-footer">
-                    <div className="bottom-border bottom-border-left"></div>                    
+                    <div className="bottom-border bottom-border-left"></div>
                     <div className="bottom-border bottom-border-middle"></div>
                     <div className="form-buttons">
                         <div className="mochi-button" style={{ marginRight: 10 }}>
@@ -433,12 +434,16 @@ function RatingScreen(props) {
                     </div>
                     <div className="form-h-sep"></div>
                     <div className="input-box-container grow">
-                        <input type="text" placeholder="Total Charges" />
+                        <MaskedInput
+                            placeholder="Total Charges"
+                            mask={currencyMask}
+                            className="currency"
+                        />
                     </div>
                 </div>
                 <div className="form-v-sep"></div>
                 <div className="form-row" style={{ flexGrow: 1, padding: '5px 5px 15px 5px' }}>
-                    <div className="form-portal" style={{flexGrow: 1, border: '1px solid rgba(0,0,0,0.1)', borderRadius: 5}}></div>
+                    <div className="form-portal" style={{ flexGrow: 1, border: '1px solid rgba(0,0,0,0.1)', borderRadius: 5 }}></div>
                 </div>
             </div>
 
@@ -477,7 +482,10 @@ function RatingScreen(props) {
                             <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
                         </div>
                         <div className="input-box-container" style={{ width: '10rem' }}>
-                            <input type="text" placeholder="Total Carrier Payments" />
+                            <MaskedInput
+                                placeholder="Total Carrier Payments"
+                                mask={currencyMask}
+                                className="currency" />
                         </div>
                     </div>
                     <div className="bottom-border bottom-border-right"></div>
@@ -525,12 +533,15 @@ function RatingScreen(props) {
                     </div>
                     <div className="form-h-sep"></div>
                     <div className="input-box-container grow">
-                        <input type="text" placeholder="Total Payments" />
+                        <MaskedInput
+                            placeholder="Total Payments"
+                            mask={currencyMask}
+                            className="currency" />
                     </div>
                 </div>
                 <div className="form-v-sep"></div>
                 <div className="form-row" style={{ flexGrow: 1, padding: '5px 5px 15px 5px' }}>
-                <div className="form-portal" style={{flexGrow: 1, border: '1px solid rgba(0,0,0,0.1)', borderRadius: 5}}></div>
+                    <div className="form-portal" style={{ flexGrow: 1, border: '1px solid rgba(0,0,0,0.1)', borderRadius: 5 }}></div>
                 </div>
             </div>
 
@@ -549,10 +560,12 @@ function RatingScreen(props) {
 
 const mapStateToProps = state => {
     return {
-        panels: state.dispatchReducers.panels
+        panels: state.dispatchReducers.panels,
+        dispatchOpenedPanels: state.dispatchReducers.dispatchOpenedPanels,
     }
 }
 
 export default connect(mapStateToProps, {
-    setDispatchPanels
+    setDispatchPanels,
+    setDispatchOpenedPanels
 })(RatingScreen)

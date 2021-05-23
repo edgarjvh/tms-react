@@ -1,25 +1,16 @@
 import React, { useState, useRef } from 'react';
 import { connect } from 'react-redux';
-import { setDispatchPanels } from "../../../../../actions";
+import { setDispatchPanels, setDispatchOpenedPanels } from "../../../../../actions";
 import classnames from 'classnames';
 import AdjustRatePopup from '../../popup/Popup.jsx';
 import $ from 'jquery';
 
 function AdjustRate(props) {
 
-    const closePanelBtnClick = () => {
-        let index = props.panels.length - 1;
-
-        let panels = props.panels.map((panel, i) => {
-            if (panel.name === 'adjust-rate') {
-                index = i;
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
-        panels.splice(0, 0, panels.splice(index, 1)[0]);
-        props.setDispatchPanels(panels);
+    const closePanelBtnClick = (e, name) => {
+        props.setDispatchOpenedPanels(props.dispatchOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
 
     const [rateTypesItems, setRateTypesItems] = useState([
@@ -355,9 +346,9 @@ function AdjustRate(props) {
 
     return (
         <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
-            <div className="title">{props.title}</div>
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'adjust-rate')}><span className="fas fa-times"></span></div>
+            <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className='form-bordered-box' style={{ borderBottom: 0, borderRight: 0, marginBottom: 15, marginTop: 10, boxShadow: 'none' }}>
                 <div className='form-header'>
@@ -550,10 +541,12 @@ function AdjustRate(props) {
 
 const mapStateToProps = state => {
     return {
-        panels: state.dispatchReducers.panels
+        panels: state.dispatchReducers.panels,
+        dispatchOpenedPanels: state.dispatchReducers.dispatchOpenedPanels
     }
 }
 
 export default connect(mapStateToProps, {
-    setDispatchPanels
+    setDispatchPanels,
+    setDispatchOpenedPanels
 })(AdjustRate)

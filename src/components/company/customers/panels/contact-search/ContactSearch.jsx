@@ -11,23 +11,15 @@ import {
     setCustomerContacts, 
     setContactSearch, 
     setShowingContactList,
-    setContactSearchCustomer
+    setContactSearchCustomer,
+    setCustomerOpenedPanels
  } from '../../../../../actions';
 
 function ContactSearch(props) {
-    const closePanelBtnClick = () => {
-        let index = props.panels.length - 1;
-
-        let panels = props.panels.map((panel, i) => {
-            if (panel.name === 'customer-contact-search') {
-                index = i;
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
-        panels.splice(0, 0, panels.splice(index, 1)[0]);
-        props.setCustomerPanels(panels);
+    const closePanelBtnClick = (e, name) => {
+        props.setCustomerOpenedPanels(props.customerOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
 
     var clickCount = 0;
@@ -37,17 +29,7 @@ function ContactSearch(props) {
 
         window.setTimeout(async () => {
             if (clickCount === 1) {
-                let index = props.panels.length - 1;
-                let panels = props.panels.map((p, i) => {
-                    if (p.name === 'customer-contacts') {
-                        index = i;
-                        p.isOpened = true;
-                    }
-                    return p;
-                });
-                
                 let selectedContact = {};
-
                 c.customer.contacts.map(contact => {
                     if (c.id === contact.id){
                         selectedContact = contact;
@@ -56,9 +38,9 @@ function ContactSearch(props) {
 
                 await props.setContactSearchCustomer({...c.customer, selectedContact: selectedContact});
 
-                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-                props.setCustomerPanels(panels);
+                if (!props.customerOpenedPanels.includes('customer-contacts')) {
+                    props.setCustomerOpenedPanels([...props.customerOpenedPanels, 'customer-contacts']);
+                }
             } else {
                 await props.setSelectedCustomer(c.customer);
                 await c.customer.contacts.map(contact => {
@@ -73,7 +55,7 @@ function ContactSearch(props) {
                 await props.setContactSearch({});
                 await props.setShowingContactList(true);
 
-                closePanelBtnClick();
+                closePanelBtnClick(null, 'customer-contact-search');
             }
 
             clickCount = 0;
@@ -82,9 +64,9 @@ function ContactSearch(props) {
 
     return (
         <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
-            <div className="title">{props.title}</div>
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'customer-contact-search')}><span className="fas fa-times"></span></div>
+            <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className="input-box-container" style={{ marginTop: 20, display: 'flex', alignItems: 'center' }}>
                 {
@@ -159,6 +141,7 @@ function ContactSearch(props) {
 const mapStateToProps = state => {
     return {
         panels: state.customerReducers.panels,
+        customerOpenedPanels: state.customerReducers.customerOpenedPanels,
         customers: state.customerReducers.customers,
         contactSearch: state.customerReducers.contactSearch,
         contacts: state.customerReducers.contacts
@@ -172,5 +155,6 @@ export default connect(mapStateToProps, {
     setCustomerContacts,
     setContactSearch,
     setShowingContactList,
-    setContactSearchCustomer
+    setContactSearchCustomer,
+    setCustomerOpenedPanels
 })(ContactSearch)

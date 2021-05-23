@@ -10,6 +10,18 @@
   overflow: hidden;
   padding: 10px;
 }
+.carriers-main-container .input-box-container {
+  position: relative;
+}
+.carriers-main-container .currency-symbol {
+  font-size: 0.8rem;
+  position: absolute;
+  left: 2;
+}
+.carriers-main-container .currency {
+  text-align: right;
+  padding-left: 10px;
+}
 .carriers-main-container .fields-container-row {
   display: flex;
   flex-grow: 1;
@@ -219,8 +231,8 @@
   max-width: 5rem;
 }
 .carriers-main-container .insurances-list-container .tcol.amount {
-  min-width: 4rem;
-  max-width: 4rem;
+  min-width: 6rem;
+  max-width: 6rem;
   text-align: right;
 }
 .carriers-main-container .insurances-list-container .insurances-list-wrapper {
@@ -245,13 +257,17 @@
   justify-content: space-between;
   padding-right: 5px;
 }
+.carriers-main-container .insurances-list-container .insurances-list-wrapper .insurances-list-item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+.carriers-main-container .insurances-list-container .insurances-list-wrapper .insurances-list-item.selected {
+  background-color: rgba(0, 0, 0, 0.1);
+  font-weight: bold;
+}
 .carriers-main-container .insurances-list-container .insurances-list-wrapper .insurances-list-item > div {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-.carriers-main-container .insurances-list-container .insurances-list-wrapper .insurances-list-item:hover {
-  background-color: rgba(0, 0, 0, 0.1);
 }
 .carriers-main-container .notes-list-container {
   width: 100%;

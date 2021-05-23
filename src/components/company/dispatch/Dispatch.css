@@ -11,6 +11,18 @@
   transition: all ease 0.7s;
   padding: 10px;
 }
+.dispatch-main-container .loading-container {
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #333738;
+}
 .dispatch-main-container .fields-container-row {
   display: flex;
   width: 100%;
@@ -98,4 +110,293 @@
 }
 .dispatch-main-container .input-box-container.insurance-status.expired {
   background-color: lightcoral !important;
+}
+.dispatch-main-container .pickups-container {
+  display: 'flex' !important;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  flex-grow: 1;
+  flex-basis: 50%;
+  overflow: hidden;
+  margin-right: 10px;
+}
+.dispatch-main-container .pickups-container .swiper-pickup-prev-btn {
+  font-size: 1.1rem;
+  color: #4096ee;
+  margin-right: 7px;
+  cursor: pointer;
+  transition: ease 0.3s;
+}
+.dispatch-main-container .pickups-container .swiper-pickup-prev-btn:hover {
+  color: #095bac;
+}
+.dispatch-main-container .pickups-container .swiper-pickup-next-btn {
+  font-size: 1.1rem;
+  color: #4096ee;
+  margin-left: 7px;
+  cursor: pointer;
+  transition: ease 0.3s;
+}
+.dispatch-main-container .pickups-container .swiper-pickup-next-btn:hover {
+  color: #095bac;
+}
+.dispatch-main-container .pickups-container .swiper-button-disabled {
+  pointer-events: none;
+  color: rgba(0, 0, 0, 0.3);
+}
+.dispatch-main-container .pickups-container .swiper-container {
+  width: 100%;
+  padding: 0 1px;
+  z-index: 0;
+}
+.dispatch-main-container .pickups-container .swiper-container .swiper-wrapper {
+  display: flex;
+  align-items: center;
+  padding: 1px 0;
+}
+.dispatch-main-container .pickups-container .order-pickup {
+  position: relative;
+  background-color: white;
+  border-radius: 15px;
+  min-width: 80px !important;
+  max-width: 80px !important;
+  height: 22px;
+  padding: 5px;
+  font-size: 0.7rem;
+  margin-right: 3px;
+  border: solid 1px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  transition: ease 0.3s;
+  display: flex;
+  align-items: center;
+}
+.dispatch-main-container .pickups-container .order-pickup .pu-remove-btn {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  font-size: 0.7rem;
+  cursor: pointer;
+  background-color: transparent;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  transition: ease 0.3s;
+  transform: translateY(-50%);
+}
+.dispatch-main-container .pickups-container .order-pickup .pu-remove-btn:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+.dispatch-main-container .pickups-container .order-pickup:last-child {
+  margin-right: 0;
+}
+.dispatch-main-container .pickups-container .order-pickup:hover {
+  box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.3);
+}
+.dispatch-main-container .pickups-container .order-pickup:hover .pu-remove-btn {
+  display: flex;
+}
+.dispatch-main-container .pickups-container .order-pickup.selected {
+  box-shadow: 0 0 2px 1px #4096ee;
+}
+.dispatch-main-container .pickups-container .order-pickup.adding {
+  background-color: rgba(0, 0, 0, 0.3);
+  min-width: 22px !important;
+  max-width: 22px !important;
+  height: 22px !important;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.dispatch-main-container .pickups-container .order-pickup.adding span {
+  color: white;
+  font-size: 1rem;
+}
+.dispatch-main-container .pickups-container .order-pickup.active {
+  background-color: lightgreen;
+}
+.dispatch-main-container .pickups-container .order-pickup.warning {
+  background-color: yellow;
+}
+.dispatch-main-container .pickups-container .order-pickup.expired {
+  background-color: lightcoral;
+}
+.dispatch-main-container .deliveries-container {
+  display: 'flex' !important;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  flex-grow: 1;
+  flex-basis: 50%;
+  overflow: hidden;
+  margin-left: 10px;
+}
+.dispatch-main-container .deliveries-container .swiper-delivery-prev-btn {
+  font-size: 1.1rem;
+  color: #4096ee;
+  margin-right: 7px;
+  cursor: pointer;
+  transition: ease 0.3s;
+}
+.dispatch-main-container .deliveries-container .swiper-delivery-prev-btn:hover {
+  color: #095bac;
+}
+.dispatch-main-container .deliveries-container .swiper-delivery-next-btn {
+  font-size: 1.1rem;
+  color: #4096ee;
+  margin-left: 7px;
+  cursor: pointer;
+  transition: ease 0.3s;
+}
+.dispatch-main-container .deliveries-container .swiper-delivery-next-btn:hover {
+  color: #095bac;
+}
+.dispatch-main-container .deliveries-container .swiper-button-disabled {
+  pointer-events: none;
+  color: rgba(0, 0, 0, 0.3);
+}
+.dispatch-main-container .deliveries-container .swiper-container {
+  width: 100%;
+  padding: 0 1px;
+  z-index: 0;
+}
+.dispatch-main-container .deliveries-container .swiper-container .swiper-wrapper {
+  display: flex;
+  align-items: center;
+  padding: 1px 0;
+}
+.dispatch-main-container .deliveries-container .order-delivery {
+  position: relative;
+  background-color: white;
+  border-radius: 15px;
+  min-width: 80px !important;
+  max-width: 80px !important;
+  height: 22px;
+  padding: 5px;
+  font-size: 0.7rem;
+  margin-right: 3px;
+  border: solid 1px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  transition: ease 0.3s;
+  display: flex;
+  align-items: center;
+}
+.dispatch-main-container .deliveries-container .order-delivery .delivery-remove-btn {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  font-size: 0.7rem;
+  cursor: pointer;
+  background-color: transparent;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  transition: ease 0.3s;
+  transform: translateY(-50%);
+}
+.dispatch-main-container .deliveries-container .order-delivery .delivery-remove-btn:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+.dispatch-main-container .deliveries-container .order-delivery:last-child {
+  margin-right: 0;
+}
+.dispatch-main-container .deliveries-container .order-delivery:hover {
+  box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.3);
+}
+.dispatch-main-container .deliveries-container .order-delivery:hover .delivery-remove-btn {
+  display: flex;
+}
+.dispatch-main-container .deliveries-container .order-delivery.selected {
+  box-shadow: 0 0 2px 1px #4096ee;
+}
+.dispatch-main-container .deliveries-container .order-delivery.adding {
+  background-color: rgba(0, 0, 0, 0.3);
+  min-width: 22px !important;
+  max-width: 22px !important;
+  height: 22px !important;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.dispatch-main-container .deliveries-container .order-delivery.adding span {
+  color: white;
+  font-size: 1rem;
+}
+.dispatch-main-container .deliveries-container .order-delivery.active {
+  background-color: lightgreen;
+}
+.dispatch-main-container .deliveries-container .order-delivery.warning {
+  background-color: yellow;
+}
+.dispatch-main-container .deliveries-container .order-delivery.expired {
+  background-color: lightcoral;
+}
+.dispatch-main-container .order-events-container {
+  flex-grow: 1;
+  position: relative;
+}
+.dispatch-main-container .order-events-container .order-events-wrapper {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  overflow-y: auto;
+}
+.dispatch-main-container .order-events-container .order-events-wrapper .order-events-item {
+  font-size: 0.7rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 5px 0;
+  cursor: pointer;
+  transition: ease 0.3s;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+.dispatch-main-container .order-events-container .order-events-wrapper .order-events-item:first-child {
+  border-bottom: 0;
+}
+.dispatch-main-container .order-events-container .order-events-wrapper .order-events-item:first-child div {
+  text-decoration: underline;
+  font-weight: bold;
+}
+.dispatch-main-container .order-events-container .order-events-wrapper .order-events-item:not(:first-child):hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+.dispatch-main-container .order-events-container .order-events-wrapper .order-events-item .event-time {
+  min-width: 3rem;
+}
+.dispatch-main-container .order-events-container .order-events-wrapper .order-events-item .event-date {
+  min-width: 5rem;
+}
+.dispatch-main-container .order-events-container .order-events-wrapper .order-events-item .event-user-id {
+  min-width: 3.5rem;
+}
+.dispatch-main-container .order-events-container .order-events-wrapper .order-events-item .event-type {
+  min-width: 15rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.dispatch-main-container .order-events-container .order-events-wrapper .order-events-item .event-location {
+  min-width: 15rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.dispatch-main-container .order-events-container .order-events-wrapper .order-events-item .event-notes {
+  flex-grow: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 }

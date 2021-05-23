@@ -11,23 +11,15 @@ import {
     setShipperCompanyContacts,
     setShipperCompanyContactSearch, 
     setShipperCompanyShowingContactList,
-    setShipperCompanyContactSearchCustomer
+    setShipperCompanyContactSearchCustomer,
+    setDispatchOpenedPanels
  } from '../../../../../actions';
 
 function ShipperCompanyContactSearch(props) {
-    const closePanelBtnClick = () => {
-        let index = props.panels.length - 1;
-
-        let panels = props.panels.map((panel, i) => {
-            if (panel.name === 'shipper-company-contact-search') {
-                index = i;
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
-        panels.splice(0, 0, panels.splice(index, 1)[0]);
-        props.setDispatchPanels(panels);
+    const closePanelBtnClick = (e, name) => {
+        props.setDispatchOpenedPanels(props.dispatchOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
 
     var clickCount = 0;
@@ -36,16 +28,7 @@ function ShipperCompanyContactSearch(props) {
         clickCount++;
 
         window.setTimeout(async () => {
-            if (clickCount === 1) {
-                let index = props.panels.length - 1;
-                let panels = props.panels.map((p, i) => {
-                    if (p.name === 'shipper-company-contacts') {
-                        index = i;
-                        p.isOpened = true;
-                    }
-                    return p;
-                });
-                
+            if (clickCount === 1) {                
                 let selectedShipperCompanyContact = {};
 
                 c.customer.contacts.map(contact => {
@@ -56,8 +39,9 @@ function ShipperCompanyContactSearch(props) {
 
                 await props.setShipperCompanyContactSearchCustomer({...c.customer, selectedShipperCompanyContact: selectedShipperCompanyContact});
 
-                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                props.setDispatchPanels(panels);
+                if (!props.dispatchOpenedPanels.includes('shipper-company-contacts')){
+                    props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'shipper-company-contacts'])
+                }
             } else {
                 await props.setSelectedShipperCompanyInfo(c.customer);
                 await c.customer.contacts.map(contact => {
@@ -72,7 +56,7 @@ function ShipperCompanyContactSearch(props) {
                 await props.setShipperCompanyContactSearch({});
                 await props.setShipperCompanyShowingContactList(true);
 
-                closePanelBtnClick();
+                closePanelBtnClick(null, 'shipper-company-contact-search');
             }
 
             clickCount = 0;
@@ -81,9 +65,9 @@ function ShipperCompanyContactSearch(props) {
 
     return (
         <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
-            <div className="title">{props.title}</div>
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'shipper-company-contact-search')}><span className="fas fa-times"></span></div>
+            <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className="input-box-container" style={{ marginTop: 20, display: 'flex', alignItems: 'center' }}>
                 {
@@ -158,6 +142,7 @@ function ShipperCompanyContactSearch(props) {
 const mapStateToProps = state => {
     return {
         panels: state.dispatchReducers.panels,
+        dispatchOpenedPanels: state.dispatchReducers.dispatchOpenedPanels,
         shipperCompanies: state.customerReducers.shipperCompanies,
         shipperCompanyContactSearch: state.customerReducers.shipperCompanyContactSearch,
         shipperCompanyContactSearchCustomer: state.customerReducers.shipperCompanyContactSearchCustomer,
@@ -172,5 +157,6 @@ export default connect(mapStateToProps, {
     setShipperCompanyContacts,
     setShipperCompanyContactSearch,
     setShipperCompanyShowingContactList,
-    setShipperCompanyContactSearchCustomer
+    setShipperCompanyContactSearchCustomer,
+    setDispatchOpenedPanels
 })(ShipperCompanyContactSearch)

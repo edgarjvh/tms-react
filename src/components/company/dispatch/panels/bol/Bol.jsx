@@ -2,26 +2,18 @@ import React, { useRef } from 'react';
 import { connect } from "react-redux";
 import moment from 'moment';
 import {
-    setDispatchPanels
+    setDispatchPanels,
+    setDispatchOpenedPanels
 } from "./../../../../../actions";
 
 function Bol(props) {
 
     const refPage = useRef();
 
-    const closePanelBtnClick = () => {
-        let index = props.panels.length - 1;
-
-        let panels = props.panels.map((panel, i) => {
-            if (panel.name === 'bol') {
-                index = i;
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
-        panels.splice(0, 0, panels.splice(index, 1)[0]);
-        props.setDispatchPanels(panels);
+    const closePanelBtnClick = (e, name) => {
+        props.setDispatchOpenedPanels(props.dispatchOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
 
     const styleFlexRow = {
@@ -67,9 +59,9 @@ function Bol(props) {
 
     return (
         <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
-            <div className="title">{props.title}</div>
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'bol')}><span className="fas fa-times"></span></div>
+            <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className="header-buttons" style={{ marginTop: 10, marginBottom: 20, display: 'flex', justifyContent: 'space-between' }}>
                 <div className="mochi-button" onClick={() => {
@@ -1030,6 +1022,7 @@ function Bol(props) {
 const mapStateToProps = state => {
     return {
         panels: state.dispatchReducers.panels,
+        dispatchOpenedPanels: state.dispatchReducers.dispatchOpenedPanels,
         billToCompanies: state.dispatchReducers.billToCompanies,
         selectedBillToCompanyInfo: state.dispatchReducers.selectedBillToCompanyInfo,
         selectedBillToCompanyContact: state.dispatchReducers.selectedBillToCompanyContact,
@@ -1086,5 +1079,6 @@ const mapStateToProps = state => {
 }
 
 export default connect(mapStateToProps, {
-    setDispatchPanels
+    setDispatchPanels,
+    setDispatchOpenedPanels
 })(Bol)

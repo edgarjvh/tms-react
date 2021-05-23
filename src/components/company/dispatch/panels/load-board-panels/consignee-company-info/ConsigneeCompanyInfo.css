@@ -1,0 +1,182 @@
+.consignee-company-info {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  font-size: 24px;
+  background-color: transparent;
+  transition: all ease 0.7s;
+  overflow: hidden;
+  padding: 10px 0;
+  flex-direction: row !important;
+}
+.consignee-company-info .fields-container {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+.consignee-company-info .fields-container .fields-container-row.grow {
+  flex-grow: 1;
+}
+.consignee-company-info .fields-container .fields-container-row:nth-child(3) {
+  flex-grow: 1;
+}
+.consignee-company-info .fields-container .fields-container-row:not(:last-child) {
+  margin-bottom: 10px;
+}
+.consignee-company-info .fields-container .fields-container-row {
+  display: flex;
+}
+.consignee-company-info .fields-container .fields-container-row .fields-container-col {
+  margin-right: 10px;
+  display: flex;
+}
+.consignee-company-info .fields-container .fields-container-row .fields-container-col:nth-child(1) {
+  max-width: 35%;
+  min-width: 35%;
+}
+.consignee-company-info .fields-container .fields-container-row .fields-container-col:nth-child(2) {
+  max-width: 48%;
+  min-width: 48%;
+}
+.consignee-company-info .fields-container .fields-container-row .fields-container-col:nth-child(3) {
+  flex-grow: 1;
+}
+.consignee-company-info .fields-container .form-slider {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.consignee-company-info .fields-container .form-slider .form-slider-wrapper {
+  width: 200%;
+  position: absolute;
+  height: 100%;
+  left: 0;
+  display: flex;
+  transition: ease 0.3s;
+}
+.consignee-company-info .fields-container .form-slider .form-slider-wrapper .contact-list-box {
+  width: 50%;
+  position: relative;
+}
+.consignee-company-info .fields-container .form-slider .form-slider-wrapper .contact-list-box .contact-list-header {
+  display: flex;
+  font-size: 0.7rem;
+  font-weight: bold;
+  text-decoration: underline;
+  color: rgba(0, 0, 0, 0.7);
+  min-height: 1rem;
+  max-height: 1rem;
+}
+.consignee-company-info .fields-container .form-slider .form-slider-wrapper .contact-list-box .tcol.first-name {
+  min-width: 5rem;
+  max-width: 5rem;
+}
+.consignee-company-info .fields-container .form-slider .form-slider-wrapper .contact-list-box .tcol.last-name {
+  min-width: 5rem;
+  max-width: 5rem;
+}
+.consignee-company-info .fields-container .form-slider .form-slider-wrapper .contact-list-box .tcol.phone-work {
+  min-width: 5rem;
+  max-width: 5rem;
+}
+.consignee-company-info .fields-container .form-slider .form-slider-wrapper .contact-list-box .tcol.email-work {
+  flex-grow: 1;
+}
+.consignee-company-info .fields-container .form-slider .form-slider-wrapper .contact-list-box .tcol.pri {
+  min-width: 0.65rem;
+  max-width: 0.65rem;
+  text-align: center;
+}
+.consignee-company-info .fields-container .form-slider .form-slider-wrapper .contact-list-box .contact-list-wrapper {
+  position: absolute;
+  width: 100%;
+  height: calc(100% - 1rem);
+  bottom: 0;
+  overflow-y: auto;
+  padding-top: 5px;
+}
+.consignee-company-info .fields-container .form-slider .form-slider-wrapper .contact-list-box .contact-list-wrapper .contact-list-item {
+  font-size: 0.7rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 5px 0;
+  cursor: pointer;
+  transition: ease 0.3s;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 5px;
+}
+.consignee-company-info .fields-container .form-slider .form-slider-wrapper .contact-list-box .contact-list-wrapper .contact-list-item > div {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.consignee-company-info .fields-container .form-slider .form-slider-wrapper .contact-list-box .contact-list-wrapper .contact-list-item:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+.consignee-company-info .fields-container .form-slider .form-slider-wrapper .contact-search-box {
+  width: 50%;
+}
+.consignee-company-info .fields-container .notes-list-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.consignee-company-info .fields-container .notes-list-container .notes-list-wrapper {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+}
+.consignee-company-info .fields-container .notes-list-container .notes-list-wrapper .notes-list-item {
+  font-size: 0.7rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 5px 0;
+  cursor: pointer;
+  transition: ease 0.3s;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.consignee-company-info .fields-container .notes-list-container .notes-list-wrapper .notes-list-item:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+.consignee-company-info .fields-container .directions-list-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.consignee-company-info .fields-container .directions-list-container .directions-list-wrapper {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.consignee-company-info .fields-container .directions-list-container .directions-list-wrapper .directions-list-item {
+  font-size: 0.7rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 5px 0;
+  cursor: pointer;
+  transition: ease 0.3s;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.consignee-company-info .fields-container .directions-list-container .directions-list-wrapper .directions-list-item:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+.consignee-company-info .buttons-container {
+  display: flex;
+  flex-direction: column;
+  width: 130px;
+  margin-top: -5px;
+}
+.consignee-company-info .buttons-container > div {
+  margin-bottom: 20px;
+}

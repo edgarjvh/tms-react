@@ -1,0 +1,55 @@
+.change-carrier-content {
+  width: 400px;
+  height: 300px;
+  border-radius: 15px;
+  box-shadow: 0 0 5px 1px rgba(0, 0, 0, 0.7);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem;
+  /* Permalink - use to edit and share this gradient: https://colorzilla.com/gradient-editor/#ffffff+18,ffffff+18,d3d3d3+100 */
+  background: #ffffff;
+  /* Old browsers */
+  background: -moz-radial-gradient(center, ellipse cover, #ffffff 18%, #ffffff 18%, #d3d3d3 100%);
+  /* FF3.6-15 */
+  background: -webkit-radial-gradient(center, ellipse cover, #ffffff 18%, #ffffff 18%, #d3d3d3 100%);
+  /* Chrome10-25,Safari5.1-6 */
+  background: radial-gradient(ellipse at center, #ffffff 18%, #ffffff 18%, #d3d3d3 100%);
+  /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#d3d3d3', GradientType=1);
+  /* IE6-9 fallback on horizontal gradient */
+}
+.change-carrier-content .form-container {
+  display: grid;
+  grid-gap: 0.6rem;
+  grid-template-rows: 1fr 1fr;
+  flex-grow: 1;
+}
+.change-carrier-content .form-container .form-title {
+  font-size: 0.7rem;
+}
+.change-carrier-content .form-container .mochi-button-decorator,
+.change-carrier-content .form-container .mochi-button-base {
+  font-size: 0.7rem !important;
+}
+.change-carrier-content .form-container .loading-container2 {
+  display: flex;
+  flex-grow: 1;
+  justify-content: center;
+  align-items: center;
+}
+.change-carrier-content .button-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+}
+.change-carrier-content .button-container .mochi-button {
+  pointer-events: all;
+}
+.change-carrier-content .button-container .mochi-button.disabled {
+  pointer-events: none;
+}
+.change-carrier-content .button-container .mochi-button.disabled .mochi-button-decorator,
+.change-carrier-content .button-container .mochi-button.disabled .mochi-button-base {
+  color: rgba(0, 0, 0, 0.8);
+}

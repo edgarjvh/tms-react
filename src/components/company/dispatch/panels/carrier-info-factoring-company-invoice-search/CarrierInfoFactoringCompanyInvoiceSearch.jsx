@@ -4,49 +4,33 @@ import classnames from 'classnames';
 import $ from 'jquery';
 import Draggable from 'react-draggable';
 import './CarrierInfoFactoringCompanyInvoiceSearch.css';
-import { 
-    setDispatchPanels, 
+import {
+    setDispatchPanels,
     setSelectedDispatchCarrierInfoFactoringCompany,
     setSelectedDispatchCarrierInfoFactoringCompanyInvoice,
-    setSelectedDispatchCarrierInfoFactoringCompanyInvoiceSearch
- } from '../../../../../actions';
+    setSelectedDispatchCarrierInfoFactoringCompanyInvoiceSearch,
+    setDispatchOpenedPanels
+} from '../../../../../actions';
 
 function CarrierInfoFactoringCompanyInvoiceSearch(props) {
-    const closePanelBtnClick = () => {       
-        let index = props.panels.length - 1;
-
-        let panels = props.panels.map((panel, i) => {
-            if (panel.name === 'carrier-info-factoring-company-invoice-search') {
-                index = i;
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
-        panels.splice(0, 0, panels.splice(index, 1)[0]);
-        props.setDispatchPanels(panels);
+    const closePanelBtnClick = (e, name) => {
+        props.setDispatchOpenedPanels(props.dispatchOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
 
     var clickCount = 0;
 
     const rowClick = (e, f) => {
-        
+
         // clickCount++;
 
         // window.setTimeout(() => {
         //     if (clickCount === 1) {
-        //         let index = props.panels.length - 1;
-        //         let panels = props.panels.map((p, i) => {
-        //             if (p.name === 'carrier-factoring-company') {
-        //                 index = i;
-        //                 p.isOpened = true;
-        //             }
-        //             return p;
-        //         });                                
 
-        //         panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-        //         props.setDispatchPanels(panels);
+        //          if (!props.dispatchOpenedPanels.includes('carrier-factoring-company')){
+        //              props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'carrier-factoring-company'])
+        //          }
         //     } else {
         //          props.setSelectedCarrier({...props.selectedCarrier, factoring_company: f});
 
@@ -61,9 +45,9 @@ function CarrierInfoFactoringCompanyInvoiceSearch(props) {
 
     return (
         <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
-            <div className="title">{props.title}</div>
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'carrier-info-factoring-company-invoice-search')}><span className="fas fa-times"></span></div>
+            <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className="input-box-container" style={{ marginTop: 20, display: 'flex', alignItems: 'center' }}>
                 {
@@ -114,7 +98,7 @@ function CarrierInfoFactoringCompanyInvoiceSearch(props) {
                             (props.selectedDispatchCarrierInfoFactoringCompany.invoices || []).length > 0
                                 ? props.selectedDispatchCarrierInfoFactoringCompany.invoices.map((f, i) => {
                                     return (
-                                        <div className="trow" onClick={(e) => { rowClick(e, {...f}) }} key={i}>
+                                        <div className="trow" onClick={(e) => { rowClick(e, { ...f }) }} key={i}>
                                             <div className="tcol code">{f.code + (f.code_number === 0 ? '' : f.code_number)}</div>
                                             <div className="tcol name">{f.name}</div>
                                             <div className="tcol address1">{f.address1}</div>
@@ -138,14 +122,16 @@ function CarrierInfoFactoringCompanyInvoiceSearch(props) {
 const mapStateToProps = state => {
     return {
         panels: state.dispatchReducers.panels,
+        dispatchOpenedPanels: state.dispatchReducers.dispatchOpenedPanels,
         selectedDispatchCarrierInfoFactoringCompany: state.carrierReducers.selectedDispatchCarrierInfoFactoringCompany,
         selectedDispatchCarrierInfoFactoringCompanyInvoiceSearch: state.carrierReducers.selectedDispatchCarrierInfoFactoringCompanyInvoiceSearch
     }
 }
 
 export default connect(mapStateToProps, {
-    setDispatchPanels, 
+    setDispatchPanels,
     setSelectedDispatchCarrierInfoFactoringCompany,
     setSelectedDispatchCarrierInfoFactoringCompanyInvoice,
-    setSelectedDispatchCarrierInfoFactoringCompanyInvoiceSearch
+    setSelectedDispatchCarrierInfoFactoringCompanyInvoiceSearch,
+    setDispatchOpenedPanels
 })(CarrierInfoFactoringCompanyInvoiceSearch)

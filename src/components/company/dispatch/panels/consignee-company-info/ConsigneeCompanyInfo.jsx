@@ -19,7 +19,8 @@ import {
     setConsigneeCompanyIsEditingContact,
     setSelectedConsigneeCompanyDocument,
     setConsigneeCompanyDocumentTags,
-    setSelectedConsigneeCompanyDocumentNote
+    setSelectedConsigneeCompanyDocumentNote,
+    setDispatchOpenedPanels
 } from './../../../../../actions';
 
 import CustomerModal from './../../modal/Modal.jsx';
@@ -64,15 +65,10 @@ function ConsigneeCompanyInfo(props) {
         setPopupItems([]);
     }
 
-    const closePanelBtnClick = () => {
-        let panels = props.panels.map((panel) => {
-            if (panel.name === 'consignee-company-info') {
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
-        props.setDispatchPanels(panels);
+    const closePanelBtnClick = (e, name) => {
+        props.setDispatchOpenedPanels(props.dispatchOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
 
     const searchCustomerByCode = (e) => {
@@ -145,18 +141,10 @@ function ConsigneeCompanyInfo(props) {
             if (res.result === 'OK') {
                 await props.setCustomerSearch(customerSearch);
                 await props.setConsigneeCompanies(res.customers);
-
-                let index = props.panels.length - 1;
-                let panels = props.panels.map((p, i) => {
-                    if (p.name === 'consignee-company-search') {
-                        index = i;
-                        p.isOpened = true;
-                    }
-                    return p;
-                });
-
-                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                await props.setDispatchPanels(panels);
+               
+                if (!props.dispatchOpenedPanels.includes('consignee-company-search')){
+                    props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'consignee-company-search'])
+                }
             }
         });
     }
@@ -206,64 +194,29 @@ function ConsigneeCompanyInfo(props) {
                 await props.setConsigneeCompanyContactSearch({ ...props.consigneeCompanyContactSearch, filters: filters });
                 await props.setConsigneeCompanyContacts(res.contacts);
 
-                let index = props.panels.length - 1;
-                let panels = props.panels.map((p, i) => {
-                    if (p.name === 'consignee-company-contact-search') {
-                        index = i;
-                        p.isOpened = true;
-                    }
-                    return p;
-                });
-
-                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                await props.setDispatchPanels(panels);
+                if (!props.dispatchOpenedPanels.includes('consignee-company-contact-search')){
+                    props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'consignee-company-contact-search'])
+                }
             }
         });
     }
 
     const revenueInformationBtnClick = () => {
-        let index = props.panels.length - 1;
-        let panels = props.panels.map((p, i) => {
-            if (p.name === 'consignee-company-revenue-information') {
-                index = i;
-                p.isOpened = true;
-            }
-            return p;
-        });
-
-        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-        props.setDispatchPanels(panels);
+        if (!props.dispatchOpenedPanels.includes('consignee-company-revenue-information')){
+            props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'consignee-company-revenue-information'])
+        }
     }
 
     const orderHistoryBtnClick = () => {
-        let index = props.panels.length - 1;
-        let panels = props.panels.map((p, i) => {
-            if (p.name === 'consignee-company-order-history') {
-                index = i;
-                p.isOpened = true;
-            }
-            return p;
-        });
-
-        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-        props.setDispatchPanels(panels);
+        if (!props.dispatchOpenedPanels.includes('consignee-company-order-history')){
+            props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'consignee-company-order-history'])
+        }
     }
 
     const laneHistoryBtnClick = () => {
-        let index = props.panels.length - 1;
-        let panels = props.panels.map((p, i) => {
-            if (p.name === 'consignee-company-lane-history') {
-                index = i;
-                p.isOpened = true;
-            }
-            return p;
-        });
-
-        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-        props.setDispatchPanels(panels);
+        if (!props.dispatchOpenedPanels.includes('consignee-company-lane-history')){
+            props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'consignee-company-lane-history'])
+        }
     }
 
     const documentsBtnClick = () => {
@@ -271,21 +224,12 @@ function ConsigneeCompanyInfo(props) {
             props.setSelectedConsigneeCompanyDocument({
                 id: 0,
                 user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                date_entered: moment().format('MM-DD-YYYY')
+                date_entered: moment().format('MM/DD/YYYY')
             });
 
-            let index = props.panels.length - 1;
-            let panels = props.panels.map((p, i) => {
-                if (p.name === 'consignee-company-documents') {
-                    index = i;
-                    p.isOpened = true;
-                }
-                return p;
-            });
-
-            panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-            props.setDispatchPanels(panels);
+            if (!props.dispatchOpenedPanels.includes('consignee-company-documents')){
+                props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'consignee-company-documents'])
+            }
         } else {
             window.alert('You must select a customer first!');
         }
@@ -1082,9 +1026,9 @@ function ConsigneeCompanyInfo(props) {
 
     return (
         <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
-            <div className="title">{props.title}</div>
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'consignee-company-info')}><span className="fas fa-times"></span></div>
+            <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className="consignee-company-info">
                 <div className="fields-container">
@@ -1356,22 +1300,14 @@ function ConsigneeCompanyInfo(props) {
                                             if (props.selectedConsigneeCompanyContact.id === undefined) {
                                                 window.alert('You must select a contact');
                                                 return;
-                                            }
-
-                                            let index = props.panels.length - 1;
-                                            let panels = props.panels.map((p, i) => {
-                                                if (p.name === 'consignee-company-contacts') {
-                                                    index = i;
-                                                    p.isOpened = true;
-                                                }
-                                                return p;
-                                            });
+                                            }                                            
 
                                             await props.setConsigneeCompanyIsEditingContact(false);
                                             await props.setConsigneeCompanyContactSearchCustomer({ ...props.selectedConsigneeCompanyInfo, selectedConsigneeCompanyContact: props.selectedConsigneeCompanyContact });
 
-                                            panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                                            props.setDispatchPanels(panels);
+                                            if (!props.dispatchOpenedPanels.includes('consignee-company-contacts')){
+                                                props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'consignee-company-contacts'])
+                                            }
                                         }}>
                                             <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                             <div className="mochi-button-base">More</div>
@@ -1383,20 +1319,12 @@ function ConsigneeCompanyInfo(props) {
                                                 return;
                                             }
 
-                                            let index = props.panels.length - 1;
-                                            let panels = props.panels.map((p, i) => {
-                                                if (p.name === 'consignee-company-contacts') {
-                                                    index = i;
-                                                    p.isOpened = true;
-                                                }
-                                                return p;
-                                            });
-
                                             props.setConsigneeCompanyContactSearchCustomer({ ...props.selectedConsigneeCompanyInfo, selectedConsigneeCompanyContact: { id: 0, customer_id: props.selectedConsigneeCompanyInfo.id } });
                                             props.setConsigneeCompanyIsEditingContact(true);
 
-                                            panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                                            props.setDispatchPanels(panels);
+                                            if (!props.dispatchOpenedPanels.includes('consignee-company-contacts')){
+                                                props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'consignee-company-contacts'])
+                                            }
                                         }}>
                                             <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                             <div className="mochi-button-base">Add contact</div>
@@ -1813,21 +1741,13 @@ function ConsigneeCompanyInfo(props) {
                                                     (props.selectedConsigneeCompanyInfo.contacts || []).map((contact, index) => {
                                                         return (
                                                             <div className="contact-list-item" key={index} onDoubleClick={async () => {
-
-                                                                let index = props.panels.length - 1;
-                                                                let panels = props.panels.map((p, i) => {
-                                                                    if (p.name === 'consignee-company-contacts') {
-                                                                        index = i;
-                                                                        p.isOpened = true;
-                                                                    }
-                                                                    return p;
-                                                                });
-
+                                                             
                                                                 await props.setConsigneeCompanyIsEditingContact(false);
                                                                 await props.setConsigneeCompanyContactSearchCustomer({ ...props.selectedConsigneeCompanyInfo, selectedConsigneeCompanyContact: contact });
 
-                                                                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                                                                props.setDispatchPanels(panels);
+                                                                if (!props.dispatchOpenedPanels.includes('consignee-company-contacts')){
+                                                                    props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'consignee-company-contacts'])
+                                                                }
                                                             }} onClick={() => props.setSelectedConsigneeCompanyContact(contact)}>
                                                                 <div className="contact-list-col tcol first-name">{contact.first_name}</div>
                                                                 <div className="contact-list-col tcol last-name">{contact.last_name}</div>
@@ -2251,6 +2171,7 @@ const mapStateToProps = state => {
     return {
         serverUrl: state.systemReducers.serverUrl,
         panels: state.dispatchReducers.panels,
+        dispatchOpenedPanels: state.dispatchReducers.dispatchOpenedPanels,
         scale: state.systemReducers.scale,
 
         consigneeCompanies: state.customerReducers.consigneeCompanies,
@@ -2294,5 +2215,6 @@ export default connect(mapStateToProps, {
     setConsigneeCompanyIsEditingContact,
     setSelectedConsigneeCompanyDocument,
     setConsigneeCompanyDocumentTags,
-    setSelectedConsigneeCompanyDocumentNote
+    setSelectedConsigneeCompanyDocumentNote,
+    setDispatchOpenedPanels
 })(ConsigneeCompanyInfo)

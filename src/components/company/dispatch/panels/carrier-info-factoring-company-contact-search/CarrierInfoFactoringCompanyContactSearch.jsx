@@ -9,23 +9,15 @@ import {
     setSelectedDispatchCarrierInfoFactoringCompany, 
     setSelectedDispatchCarrierInfoFactoringCompanyContact, 
     setSelectedDispatchCarrierInfoFactoringCompanyIsShowingContactList,
-    setSelectedDispatchCarrierInfoFactoringCompanyContactSearch
+    setSelectedDispatchCarrierInfoFactoringCompanyContactSearch,
+    setDispatchOpenedPanels
  } from '../../../../../actions';
 
 function CarrierInfoFactoringCompanyContactSearch(props) {
-    const closePanelBtnClick = () => {
-        let index = props.panels.length - 1;
-
-        let panels = props.panels.map((panel, i) => {
-            if (panel.name === 'carrier-info-factoring-company-contact-search') {
-                index = i;
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
-        panels.splice(0, 0, panels.splice(index, 1)[0]);
-        props.setDispatchPanels(panels);
+    const closePanelBtnClick = (e, name) => {
+        props.setDispatchOpenedPanels(props.dispatchOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
 
     var clickCount = 0;
@@ -34,16 +26,7 @@ function CarrierInfoFactoringCompanyContactSearch(props) {
         clickCount++;
 
         window.setTimeout(async () => {
-            if (clickCount === 1) {
-                let index = props.panels.length - 1;
-                let panels = props.panels.map((p, i) => {
-                    if (p.name === 'carrier-info-factoring-company-contacts') {
-                        index = i;
-                        p.isOpened = true;
-                    }
-                    return p;
-                });
-                
+            if (clickCount === 1) {                               
                 let selectedContact = {};
 
                 c.factoring_company.contacts.map(contact => {
@@ -54,9 +37,9 @@ function CarrierInfoFactoringCompanyContactSearch(props) {
 
                 await props.setSelectedDispatchCarrierInfoFactoringCompanyContactSearch({...c.factoring_company, selectedContact: selectedContact});
 
-                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-                props.setDispatchPanels(panels);
+                if (!props.dispatchOpenedPanels.includes('carrier-info-factoring-company-contacts')){
+                    props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'carrier-info-factoring-company-contacts'])
+                }
             } else {
                 await props.setSelectedDispatchCarrierInfoFactoringCompany(c.factoring_company);
                 await c.factoring_company.contacts.map(contact => {
@@ -71,7 +54,7 @@ function CarrierInfoFactoringCompanyContactSearch(props) {
                 await props.setSelectedDispatchCarrierInfoFactoringCompanyContactSearch({selectedContact: {}});
                 await props.setSelectedDispatchCarrierInfoFactoringCompanyIsShowingContactList(true);
 
-                closePanelBtnClick();
+                closePanelBtnClick(null, 'carrier-info-factoring-company-contact-search');
             }
 
             clickCount = 0;
@@ -80,9 +63,9 @@ function CarrierInfoFactoringCompanyContactSearch(props) {
 
     return (
         <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
-            <div className="title">{props.title}</div>
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'carrier-info-factoring-company-contact-search')}><span className="fas fa-times"></span></div>
+            <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className="input-box-container" style={{ marginTop: 20, display: 'flex', alignItems: 'center' }}>
                 {
@@ -157,6 +140,7 @@ function CarrierInfoFactoringCompanyContactSearch(props) {
 const mapStateToProps = state => {
     return {
         panels: state.dispatchReducers.panels,
+        dispatchOpenedPanels: state.dispatchReducers.dispatchOpenedPanels,
         selectedDispatchCarrierInfoFactoringCompanyContactSearch: state.carrierReducers.selectedDispatchCarrierInfoFactoringCompanyContactSearch,
         dispatchCarrierInfoFactoringCompanyContacts: state.carrierReducers.dispatchCarrierInfoFactoringCompanyContacts
     }
@@ -167,5 +151,6 @@ export default connect(mapStateToProps, {
     setSelectedDispatchCarrierInfoFactoringCompany, 
     setSelectedDispatchCarrierInfoFactoringCompanyContact, 
     setSelectedDispatchCarrierInfoFactoringCompanyIsShowingContactList,
-    setSelectedDispatchCarrierInfoFactoringCompanyContactSearch
+    setSelectedDispatchCarrierInfoFactoringCompanyContactSearch,
+    setDispatchOpenedPanels
 })(CarrierInfoFactoringCompanyContactSearch)

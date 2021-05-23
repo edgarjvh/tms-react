@@ -6,7 +6,13 @@ import MaskedInput from 'react-text-mask';
 import InvoicePopup from './popup/Popup.jsx';
 import moment from 'moment';
 import PanelContainer from './panels/panel-container/PanelContainer.jsx';
-import { setSelectedDocument, setInvoicePanels, setDocumentTags, setSelectedDocumentNote } from './../../../actions/invoiceActions';
+import { 
+    setSelectedDocument, 
+    setInvoicePanels, 
+    setDocumentTags, 
+    setSelectedDocumentNote,
+    setInvoiceOpenedPanels
+ } from './../../../actions/invoiceActions';
 
 function Invoice(props) {
     const [rateTypesItems, setRateTypesItems] = useState([
@@ -709,21 +715,12 @@ function Invoice(props) {
                                     props.setSelectedDocument({
                                         id: 0,
                                         user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                                        date_entered: moment().format('MM-DD-YYYY')
+                                        date_entered: moment().format('MM/DD/YYYY')
                                     });
-
-                                    let index = props.panels.length - 1;
-                                    let panels = props.panels.map((p, i) => {
-                                        if (p.name === 'documents') {
-                                            index = i;
-                                            p.isOpened = true;
-                                        }
-                                        return p;
-                                    });
-
-                                    panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-                                    props.setInvoicePanels(panels); 
+                                
+                                    if (!props.invoiceOpenedPanels.includes('documents')) {
+                                        props.setInvoiceOpenedPanels([...props.invoiceOpenedPanels, 'documents']);
+                                    }
                                 }}>
                                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                     <div className="mochi-button-base">Docs</div>
@@ -1273,7 +1270,8 @@ function Invoice(props) {
 
 const mapStateToProps = state => {
     return {
-        panels: state.invoiceReducers.panels
+        panels: state.invoiceReducers.panels,
+        invoiceOpenedPanels: state.invoiceReducers.invoiceOpenedPanels
     }
 }
 
@@ -1281,5 +1279,6 @@ export default connect(mapStateToProps, {
     setSelectedDocument,
     setInvoicePanels,
     setDocumentTags,
-    setSelectedDocumentNote
+    setSelectedDocumentNote,
+    setInvoiceOpenedPanels
 })(Invoice)

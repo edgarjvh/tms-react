@@ -23,7 +23,8 @@ import {
     setSelectedFactoringCompanyIsShowingInvoiceList,
     setFactoringCompanySearch,
     setFactoringCompanies,
-    setSelectedFactoringCompanyDocument
+    setSelectedFactoringCompanyDocument,
+    setCarrierOpenedPanels
 } from '../../../../../actions';
 
 function FactoringCompany(props) {
@@ -40,21 +41,10 @@ function FactoringCompany(props) {
         props.setSelectedFactoringCompanyInvoiceSearch([]);
     }
 
-
-    const closePanelBtnClick = () => {
-        console.log('closing')
-        let index = props.panels.length - 1;
-
-        let panels = props.panels.map((panel, i) => {
-            if (panel.name === 'carrier-factoring-company') {
-                index = i;
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
-        panels.splice(0, 0, panels.splice(index, 1)[0]);
-        props.setCarrierPanels(panels);
+    const closePanelBtnClick = (e, name) => {
+        props.setCarrierOpenedPanels(props.carrierOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
 
     const searchFactoringCompanyBtnClick = () => {
@@ -95,17 +85,9 @@ function FactoringCompany(props) {
                 await props.setFactoringCompanySearch(factoringCompanySearch);
                 await props.setFactoringCompanies(res.factoring_companies);
 
-                let index = props.panels.length - 1;
-                let panels = props.panels.map((p, i) => {
-                    if (p.name === 'carrier-factoring-company-panel-search') {
-                        index = i;
-                        p.isOpened = true;
-                    }
-                    return p;
-                });
-
-                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                await props.setCarrierPanels(panels);
+                if (!props.carrierOpenedPanels.includes('carrier-factoring-company-panel-search')) {
+                    props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'carrier-factoring-company-panel-search']);
+                }
             }
         });
     }
@@ -360,17 +342,9 @@ function FactoringCompany(props) {
                 await props.setSelectedFactoringCompanyContactSearch({ ...props.selectedFactoringCompanyContactSearch, filters: filters });
                 await props.setFactoringCompanyContacts(res.contacts);
 
-                let index = props.panels.length - 1;
-                let panels = props.panels.map((p, i) => {
-                    if (p.name === 'factoring-company-contact-search') {
-                        index = i;
-                        p.isOpened = true;
-                    }
-                    return p;
-                });
-
-                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                await props.setCarrierPanels(panels);
+                if (!props.carrierOpenedPanels.includes('factoring-company-contact-search')) {
+                    props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'factoring-company-contact-search']);
+                }
             }
         });
     }
@@ -444,17 +418,9 @@ function FactoringCompany(props) {
 
         await props.setSelectedFactoringCompanyInvoiceSearch({ ...props.selectedFactoringCompanyInvoiceSearch, filters: filters })
 
-        let index = props.panels.length - 1;
-        let panels = props.panels.map((p, i) => {
-            if (p.name === 'factoring-company-invoice-search') {
-                index = i;
-                p.isOpened = true;
-            }
-            return p;
-        });
-
-        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-        await props.setCarrierPanels(panels);
+        if (!props.carrierOpenedPanels.includes('factoring-company-invoice-search')) {
+            props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'factoring-company-invoice-search']);
+        }
 
         // $.post(props.serverUrl + '/customerContactsSearch', { search: filters }).then(async res => {
         //     if (res.result === 'OK') {
@@ -478,9 +444,9 @@ function FactoringCompany(props) {
 
     return (
         <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
-            <div className="title">{props.title}</div>
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'carrier-factoring-company')}><span className="fas fa-times"></span></div>
+            <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className="factoring-company-container">
                 <div className="fields-container-col" style={{ marginRight: 10 }}>
@@ -800,21 +766,13 @@ function FactoringCompany(props) {
                                         window.alert('You must select a contact');
                                         return;
                                     }
-
-                                    let index = props.panels.length - 1;
-                                    let panels = props.panels.map((p, i) => {
-                                        if (p.name === 'factoring-company-contacts') {
-                                            index = i;
-                                            p.isOpened = true;
-                                        }
-                                        return p;
-                                    });
-
+                                    
                                     await props.setFactoringCompanyIsEditingContact(false);
                                     await props.setSelectedFactoringCompanyContactSearch({ ...props.selectedFactoringCompany, selectedContact: props.selectedFactoringCompanyContact });
 
-                                    panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                                    props.setCarrierPanels(panels);
+                                    if (!props.carrierOpenedPanels.includes('factoring-company-contacts')) {
+                                        props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'factoring-company-contacts']);
+                                    }
                                 }}>
                                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                     <div className="mochi-button-base">More</div>
@@ -826,20 +784,12 @@ function FactoringCompany(props) {
                                         return;
                                     }
 
-                                    let index = props.panels.length - 1;
-                                    let panels = props.panels.map((p, i) => {
-                                        if (p.name === 'factoring-company-contacts') {
-                                            index = i;
-                                            p.isOpened = true;
-                                        }
-                                        return p;
-                                    });
-
                                     props.setSelectedFactoringCompanyContactSearch({ ...props.selectedFactoringCompany, selectedContact: { id: 0, factoring_company_id: props.selectedFactoringCompany.id } });
                                     props.setFactoringCompanyIsEditingContact(true);
 
-                                    panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                                    props.setCarrierPanels(panels);
+                                    if (!props.carrierOpenedPanels.includes('factoring-company-contacts')) {
+                                        props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'factoring-company-contacts']);
+                                    }
                                 }}>
                                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                     <div className="mochi-button-base">Add contact</div>
@@ -966,21 +916,12 @@ function FactoringCompany(props) {
                                             (props.selectedFactoringCompany.contacts || []).map((contact, index) => {
                                                 return (
                                                     <div className="contact-list-item" key={index} onDoubleClick={async () => {
-
-                                                        let index = props.panels.length - 1;
-                                                        let panels = props.panels.map((p, i) => {
-                                                            if (p.name === 'factoring-company-contacts') {
-                                                                index = i;
-                                                                p.isOpened = true;
-                                                            }
-                                                            return p;
-                                                        });
-
                                                         await props.setFactoringCompanyIsEditingContact(false);
                                                         await props.setSelectedFactoringCompanyContactSearch({ ...props.selectedFactoringCompany, selectedContact: contact });
 
-                                                        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                                                        props.setCarrierPanels(panels);
+                                                        if (!props.carrierOpenedPanels.includes('factoring-company-contacts')) {
+                                                            props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'factoring-company-contacts']);
+                                                        }
                                                     }} onClick={() => props.setSelectedFactoringCompanyContact(contact)}>
                                                         <span>
                                                             {contact.first_name + (contact.middle_name === '' ? '' : ' ' + contact.middle_name) + ' ' + contact.last_name + ' ' + contact.phone_work + ' ' + contact.email_work}
@@ -1079,21 +1020,12 @@ function FactoringCompany(props) {
                                 props.setSelectedFactoringCompanyDocument({
                                     id: 0,
                                     user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                                    date_entered: moment().format('MM-DD-YYYY')
+                                    date_entered: moment().format('MM/DD/YYYY')
                                 });
 
-                                let index = props.panels.length - 1;
-                                let panels = props.panels.map((p, i) => {
-                                    if (p.name === 'factoring-company-documents') {
-                                        index = i;
-                                        p.isOpened = true;
-                                    }
-                                    return p;
-                                });
-
-                                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-                                props.setCarrierPanels(panels);
+                                if (!props.carrierOpenedPanels.includes('factoring-company-documents')) {
+                                    props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'factoring-company-documents']);
+                                }
                             } else {
                                 window.alert('You must select a factoring company first!');
                             }
@@ -1407,6 +1339,7 @@ const mapStateToProps = state => {
     return {
         serverUrl: state.systemReducers.serverUrl,
         panels: state.carrierReducers.panels,
+        carrierOpenedPanels: state.carrierReducers.carrierOpenedPanels,
         carriers: state.carrierReducers.carriers,
         factoringCompanySearch: state.carrierReducers.factoringCompanySearch,
         factoringCompanies: state.carrierReducers.factoringCompanies,
@@ -1439,5 +1372,6 @@ export default connect(mapStateToProps, {
     setSelectedFactoringCompanyIsShowingInvoiceList,
     setFactoringCompanySearch,
     setFactoringCompanies,
-    setSelectedFactoringCompanyDocument
+    setSelectedFactoringCompanyDocument,
+    setCarrierOpenedPanels
 })(FactoringCompany)

@@ -7,23 +7,15 @@ import './BillToCompanySearch.css';
 import { 
     setDispatchPanels, 
     setSelectedBillToCompanyInfo, 
-    setSelectedBillToCompanyContact 
+    setSelectedBillToCompanyContact,
+    setDispatchOpenedPanels 
 } from '../../../../../actions';
 
 function BillToCompanySearch(props) {
-    const closePanelBtnClick = () => {
-        let index = props.panels.length - 1;
-
-        let panels = props.panels.map((panel, i) => {
-            if (panel.name === 'bill-to-company-search') {
-                index = i;
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
-        panels.splice(0, 0, panels.splice(index, 1)[0]);
-        props.setDispatchPanels(panels);
+    const closePanelBtnClick = (e, name) => {
+        props.setDispatchOpenedPanels(props.dispatchOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
 
     const rowDoubleClick = (e, c) => {
@@ -35,14 +27,14 @@ function BillToCompanySearch(props) {
             return true;
         });
 
-        closePanelBtnClick();
+        closePanelBtnClick(null, 'bill-to-company-search');
     }
 
     return (
         <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
-            <div className="title">{props.title}</div>
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'bill-to-company-search')}><span className="fas fa-times"></span></div>
+            <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className="input-box-container" style={{ marginTop: 20, display: 'flex', alignItems: 'center' }}>
                 {
@@ -118,6 +110,7 @@ function BillToCompanySearch(props) {
 const mapStateToProps = state => {
     return {
         panels: state.dispatchReducers.panels,
+        dispatchOpenedPanels: state.dispatchReducers.dispatchOpenedPanels,
         billToCompanies: state.customerReducers.billToCompanies,
         billToCompanySearch: state.customerReducers.billToCompanySearch,
     }
@@ -126,5 +119,6 @@ const mapStateToProps = state => {
 export default connect(mapStateToProps, {
     setDispatchPanels, 
     setSelectedBillToCompanyInfo, 
-    setSelectedBillToCompanyContact 
+    setSelectedBillToCompanyContact,
+    setDispatchOpenedPanels
 })(BillToCompanySearch)

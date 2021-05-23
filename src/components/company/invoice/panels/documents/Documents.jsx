@@ -9,7 +9,8 @@ import {
     setSelectedDocument,
     setSelectedCarrier,
     setDocumentTags,
-    setSelectedDocumentNote
+    setSelectedDocumentNote,
+    setInvoiceOpenedPanels
 } from './../../../../../actions';
 import moment from 'moment';
 import DocViewer from "react-doc-viewer";
@@ -24,15 +25,10 @@ function Documents(props) {
     const modalTransitionProps = useSpring({ opacity: (props.selectedDocumentNote.id !== undefined) ? 1 : 0 });
 
 
-    const closePanelBtnClick = () => {
-        let panels = props.panels.map((panel) => {
-            if (panel.name === 'documents') {
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
-        props.setInvoicePanels(panels);
+    const closePanelBtnClick = (e, name) => {
+        props.setInvoiceOpenedPanels(props.invoiceOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
 
     const tagsOnKeydown = (e) => {
@@ -97,7 +93,7 @@ function Documents(props) {
                     props.setSelectedDocument({
                         id: 0,
                         user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                        date_entered: moment().format('MM-DD-YYYY')
+                        date_entered: moment().format('MM/DD/YYYY')
                     });
 
                     refTitleInput.current && refTitleInput.current.focus();
@@ -130,9 +126,9 @@ function Documents(props) {
 
     return (
         <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
-            <div className="title">{props.title}</div>
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'documents')}><span className="fas fa-times"></span></div>
+            <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className="documents-fields">
                 <div className="documents-left-side">
@@ -142,14 +138,14 @@ function Documents(props) {
                         </div>
 
                         <div className="input-box-container" style={{ marginRight: 5 }}>
-                            <input type="text" placeholder="Date Entered" readOnly={true} value={props.selectedDocument.date_entered || moment().format('MM-DD-YYYY')} />
+                            <input type="text" placeholder="Date Entered" readOnly={true} value={props.selectedDocument.date_entered || moment().format('MM/DD/YYYY')} />
                         </div>
 
                         <div className="mochi-button" onClick={() => {
                             props.setSelectedDocument({
                                 id: 0,
                                 user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                                date_entered: moment().format('MM-DD-YYYY')
+                                date_entered: moment().format('MM/DD/YYYY')
                             });
 
                             refTitleInput.current.focus();
@@ -312,7 +308,7 @@ function Documents(props) {
                                                             props.setSelectedDocument({
                                                                 id: 0,
                                                                 user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                                                                date_entered: moment().format('MM-DD-YYYY')
+                                                                date_entered: moment().format('MM/DD/YYYY')
                                                             });
 
                                                             refTitleInput.current.focus();
@@ -467,8 +463,8 @@ function Documents(props) {
 }
 
 const mapStateToProps = state => {
-    return {
-        panels: state.carrierReducers.panels,
+    return {        
+        invoiceOpenedPanels: state.invoiceReducers.invoiceOpenedPanels,
         serverUrl: state.systemReducers.serverUrl,
         selectedCarrier: state.carrierReducers.selectedCarrier,
         selectedDocument: state.carrierReducers.selectedDocument,
@@ -482,5 +478,6 @@ export default connect(mapStateToProps, {
     setSelectedDocument,
     setSelectedCarrier,
     setDocumentTags,
-    setSelectedDocumentNote
+    setSelectedDocumentNote,
+    setInvoiceOpenedPanels
 })(Documents)

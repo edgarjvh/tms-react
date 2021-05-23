@@ -1,18 +1,4 @@
 import { carriersConstants } from '../constants';
-import CarrierSearch from './../components/company/carriers/panels/carrier-search/CarrierSearch.jsx';
-import ContactSearch from './../components/company/carriers/panels/contact-search/ContactSearch.jsx';
-import Contacts from './../components/company/carriers/panels/contacts/Contacts.jsx';
-import FactoringCompanySearch from './../components/company/carriers/panels/factoring-company-search/FactoringCompanySearch.jsx';
-import FactoringCompanyPanelSearch from './../components/company/carriers/panels/factoring-company-panel-search/FactoringCompanyPanelSearch.jsx';
-import FactoringCompany from './../components/company/carriers/panels/factoring-company/FactoringCompany.jsx';
-import Documents from './../components/company/carriers/panels/documents/Documents.jsx';
-import RevenueInformation from './../components/company/carriers/panels/revenue-information/RevenueInformation.jsx';
-import OrderHistory from './../components/company/carriers/panels/order-history/OrderHistory.jsx';
-import EquipmentInformation from './../components/company/carriers/panels/equipment-information/EquipmentInformation.jsx';
-import FactoringCompanyContacts from './../components/company/carriers/panels/factoring-company-contacts/FactoringCompanyContacts.jsx';
-import FactoringCompanyContactSearch from './../components/company/carriers/panels/factoring-company-contact-search/FactoringCompanyContactSearch.jsx';
-import FactoringCompanyInvoiceSearch from './../components/company/carriers/panels/factoring-company-invoice-search/FactoringCompanyInvoiceSearch.jsx';
-import FactoringCompanyDocuments from './../components/company/carriers/panels/factoring-company-documents/FactoringCompanyDocuments.jsx';
 
 export const carrierReducers = (state = {
     carriers: [],
@@ -58,9 +44,13 @@ export const carrierReducers = (state = {
     selectedInsurance: {},
     equipmentInformation: {},
 
+    carrierOpenedPanels: [],
+
     // =============================== dispatch carrier info ===================================
 
-    dispatchCarrierInfoCarriers: [],
+    dispatchCarrierInfoCarriersChanging: [],
+    dispatchCarrierInfoCarrierSearchChanging: [],
+
     selectedDispatchCarrierInfoCarrier: {},
     selectedDispatchCarrierInfoContact: {},
     selectedDispatchCarrierInfoNote: {},
@@ -103,106 +93,53 @@ export const carrierReducers = (state = {
     selectedDispatchCarrierInfoInsurance: {},
     dispatchCarrierInfoEquipmentInformation: {},
 
-    panels: [
-        {
-            name: 'carrier-search',
-            component: <CarrierSearch title='Carrier Search Results' tabTimes={6000} />,
-            isOpened: false,
-            pos: -1,
-            maxWidth: 100
-        },
-        {
-            name: 'carrier-contact-search',
-            component: <ContactSearch title='Contact Search Results' tabTimes={7000} />,
-            isOpened: false,
-            pos: -1,
-            maxWidth: 100
-        },
-        {
-            name: 'carrier-contacts',
-            component: <Contacts title='Contacts' tabTimes={8000} />,
-            isOpened: false,
-            pos: -1,
-            maxWidth: 100
-        },
-        {
-            name: 'carrier-factoring-company-search',
-            component: <FactoringCompanySearch title='Factoring Company Search Results' tabTimes={9000} />,
-            isOpened: false,
-            pos: -1,
-            maxWidth: 100
-        },
-        {
-            name: 'carrier-factoring-company-panel-search',
-            component: <FactoringCompanyPanelSearch title='Factoring Company Search Results' tabTimes={10000} />,
-            isOpened: false,
-            pos: -1,
-            maxWidth: 100
-        },
-        {
-            name: 'carrier-factoring-company',
-            component: <FactoringCompany title='Factoring Company' tabTimes={11000} />,
-            isOpened: false,
-            pos: -1,
-            maxWidth: 75
-        },
-        {
-            name: 'documents',
-            component: <Documents title='Documents' tabTimes={12000} />,
-            isOpened: false,
-            pos: -1,
-            maxWidth: 100
-        },
-        {
-            name: 'revenue-information',
-            component: <RevenueInformation title='Revenue Information' tabTimes={13000} />,
-            isOpened: false,
-            pos: -1,
-            maxWidth: 100
-        },
-        {
-            name: 'order-history',
-            component: <OrderHistory title='Order History' tabTimes={14000} />,
-            isOpened: false,
-            pos: -1,
-            maxWidth: 100
-        },
-        {
-            name: 'equipment-information',
-            component: <EquipmentInformation title='Equipment Information' tabTimes={15000} />,
-            isOpened: false,
-            pos: -1,
-            maxWidth: 45
-        },
-        {
-            name: 'factoring-company-contacts',
-            component: <FactoringCompanyContacts title='Contacts' tabTimes={16000} />,
-            isOpened: false,
-            pos: -1,
-            maxWidth: 100
-        },
-        {
-            name: 'factoring-company-contact-search',
-            component: <FactoringCompanyContactSearch title='Factoring Company Contact Search Results' tabTimes={17000} />,
-            isOpened: false,
-            pos: -1,
-            maxWidth: 100
-        },
-        {
-            name: 'factoring-company-invoice-search',
-            component: <FactoringCompanyInvoiceSearch title='Factoring Company Invoice Search Results' tabTimes={18000} />,
-            isOpened: false,
-            pos: -1,
-            maxWidth: 100
-        },
-        {
-            name: 'factoring-company-documents',
-            component: <FactoringCompanyDocuments title='Documents' tabTimes={19000} />,
-            isOpened: false,
-            pos: -1,
-            maxWidth: 100
-        }
-    ]
+    // =============================== lod board carrier info ===================================
+
+    lbCarrierInfoCarriers: [],
+    selectedLbCarrierInfoCarrier: {},
+    selectedLbCarrierInfoContact: {},
+    selectedLbCarrierInfoNote: {},
+    selectedLbCarrierInfoDirection: {},
+    lbCarrierInfoContactSearch: {},
+    lbCarrierInfoFactoringCompanySearch: [],
+    lbCarrierInfoFactoringCompanies: [],
+    lbCarrierInfoFactoringCompanyContacts: [],
+    selectedLbCarrierInfoFactoringCompany: {},
+    selectedLbCarrierInfoFactoringCompanyContact: {},
+    selectedLbCarrierInfoFactoringCompanyContactSearch: { selectedLbCarrierInfoContact: {} },
+    selectedLbCarrierInfoFactoringCompanyIsShowingContactList: true,
+    selectedLbCarrierInfoFactoringCompanyNote: {},
+    lbCarrierInfoFactoringCompanyIsEditingContact: false,
+    lbCarrierInfoCarrierSearch: [],
+    lbCarrierInfoShowingContactList: true,
+    lbCarrierInfoContacts: [],
+    lbCarrierInfoIsEditingContact: false,
+    lbCarrierInfoContactSearchCarrier: { selectedLbCarrierInfoContact: {} },
+    selectedLbCarrierInfoDocument: {},
+    selectedLbCarrierInfoDocumentNote: {},
+    lbCarrierInfoDocumentTags: '',
+
+    selectedLbCarrierInfoFactoringCompanyInvoices: [],
+    selectedLbCarrierInfoFactoringCompanyInvoice: {},
+    selectedLbCarrierInfoFactoringCompanyIsShowingInvoiceList: true,
+    selectedLbCarrierInfoFactoringCompanyInvoiceSearch: { selectedLbCarrierInfoFactoringCompanyInvoice: {} },
+
+    selectedLbCarrierInfoFactoringCompanyDocument: {},
+    selectedLbCarrierInfoFactoringCompanyDocumentNote: {},
+    lbCarrierInfoFactoringCompanyDocumentTags: '',
+
+    lbCarrierInfoDrivers: [],
+    selectedLbCarrierInfoDriver: {},
+    lbCarrierInfoEquipments: [],
+    selectedLbCarrierInfoEquipment: {},
+    lbCarrierInfoInsuranceTypes: [],
+    selectedLbCarrierInfoInsuranceType: {},
+    lbCarrierInfoCarrierInsurances: [],
+    selectedLbCarrierInfoInsurance: {},
+    lbCarrierInfoEquipmentInformation: {},
+
+
+    panels: []
 }, action) => {
     switch (action.type) {
         case carriersConstants.SET_CARRIERS:
@@ -452,6 +389,20 @@ export const carrierReducers = (state = {
 
 
         // ======================= DISPATCH CARRIER INFO =========================
+        case carriersConstants.SET_DISPATCH_CARRIER_INFO_CARRIERS_CHANGING:
+            state = {
+                ...state,
+                dispatchCarrierInfoCarriersChanging: action.payload
+            }
+            break;
+        case carriersConstants.SET_DISPATCH_CARRIER_INFO_CARRIER_SEARCH_CHANGING:
+            state = {
+                ...state,
+                dispatchCarrierInfoCarrierSearchChanging: action.payload
+            }
+            break;
+
+
 
         case carriersConstants.SET_DISPATCH_CARRIER_INFO_CARRIERS:
             state = {
@@ -690,10 +641,269 @@ export const carrierReducers = (state = {
             }
             break;
 
+        case carriersConstants.SET_CARRIER_OPENED_PANELS:
+            state = {
+                ...state,
+                carrierOpenedPanels: action.payload
+            }
+            break;
+
         case carriersConstants.SET_DISPATCH_CARRIER_INFO_EQUIPMENT_INFORMATION:
             state = {
                 ...state,
                 dispatchCarrierInfoEquipmentInformation: action.payload
+            }
+            break;
+
+
+        // ======================= LOAD BOARD CARRIER INFO =========================
+
+        case carriersConstants.SET_LB_CARRIER_INFO_CARRIERS:
+            state = {
+                ...state,
+                lbCarrierInfoCarriers: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_LB_CARRIER_INFO_CARRIER:
+            state = {
+                ...state,
+                selectedLbCarrierInfoCarrier: action.payload,
+                selectedCarrier: (state.selectedCarrier.id || 0) === action.payload.id ? action.payload : state.selectedCarrier,
+            }
+            break;
+        case carriersConstants.SET_SELECTED_LB_CARRIER_INFO_CONTACT:
+            state = {
+                ...state,
+                selectedLbCarrierInfoContact: action.payload,
+                selectedDispatchCarrierInfoContact: (state.selectedDispatchCarrierInfoContact.id || 0) === action.payload.id ? action.payload : state.selectedDispatchCarrierInfoContact,
+                selectedContact: (state.selectedContact.id || 0) === action.payload.id ? action.payload : state.selectedContact,
+            }
+            break;
+        case carriersConstants.SET_SELECTED_LB_CARRIER_INFO_NOTE:
+            state = {
+                ...state,
+                selectedLbCarrierInfoNote: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_LB_CARRIER_INFO_DIRECTION:
+            state = {
+                ...state,
+                selectedLbCarrierInfoDirection: action.payload
+            }
+            break;
+        case carriersConstants.SET_LB_CARRIER_INFO_CONTACT_SEARCH:
+            state = {
+                ...state,
+                lbCarrierInfoContactSearch: action.payload
+            }
+            break;
+        case carriersConstants.SET_LB_CARRIER_INFO_CARRIER_SEARCH:
+            state = {
+                ...state,
+                lbCarrierInfoCarrierSearch: action.payload
+            }
+            break;
+        case carriersConstants.SET_LB_CARRIER_INFO_SHOWING_CONTACT_LIST:
+            state = {
+                ...state,
+                lbCarrierInfoShowingContactList: action.payload
+            }
+            break;
+        case carriersConstants.SET_LB_CARRIER_INFO_CARRIER_CONTACTS:
+            state = {
+                ...state,
+                lbCarrierInfoContacts: action.payload
+            }
+            break;
+        case carriersConstants.SET_LB_CARRIER_INFO_IS_EDITING_CONTACT:
+            state = {
+                ...state,
+                lbCarrierInfoIsEditingContact: action.payload
+            }
+            break;
+        case carriersConstants.SET_LB_CARRIER_INFO_CONTACT_SEARCH_CARRIER:
+            state = {
+                ...state,
+                lbCarrierInfoContactSearchCarrier: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_LB_CARRIER_INFO_DOCUMENT:
+            state = {
+                ...state,
+                selectedLbCarrierInfoDocument: action.payload
+            }
+            break;
+        case carriersConstants.SET_LB_CARRIER_INFO_DOCUMENT_TAGS:
+            state = {
+                ...state,
+                lbCarrierInfoDocumentTags: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_LB_CARRIER_INFO_DOCUMENT_NOTE:
+            state = {
+                ...state,
+                selectedLbCarrierInfoDocumentNote: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_LB_CARRIER_INFO_FACTORING_COMPANY_DOCUMENT:
+            state = {
+                ...state,
+                selectedLbCarrierInfoFactoringCompanyDocument: action.payload
+            }
+            break;
+        case carriersConstants.SET_LB_CARRIER_INFO_FACTORING_COMPANY_DOCUMENT_TAGS:
+            state = {
+                ...state,
+                lbCarrierInfoFactoringCompanyDocumentTags: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_LB_CARRIER_INFO_FACTORING_COMPANY_DOCUMENT_NOTE:
+            state = {
+                ...state,
+                selectedLbCarrierInfoFactoringCompanyDocumentNote: action.payload
+            }
+            break;
+        case carriersConstants.SET_LB_CARRIER_INFO_DRIVERS:
+            state = {
+                ...state,
+                lbCarrierInfoDrivers: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_LB_CARRIER_INFO_DRIVER:
+            state = {
+                ...state,
+                selectedLbCarrierInfoDriver: action.payload,
+                selectedDispatchCarrierInfoDriver: (state.selectedDispatchCarrierInfoDriver.id || 0) === action.payload.id ? action.payload : state.selectedDispatchCarrierInfoDriver,
+                selectedDriver: (state.selectedDriver.id || 0) === action.payload.id ? action.payload : state.selectedDriver,
+            }
+            break;
+        case carriersConstants.SET_LB_CARRIER_INFO_EQUIPMENTS:
+            state = {
+                ...state,
+                lbCarrierInfoEquipments: action.payload
+            }
+            break;
+        case carriersConstants.SET_LB_CARRIER_INFO_INSURANCE_TYPES:
+            state = {
+                ...state,
+                lbCarrierInfoInsuranceTypes: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_LB_CARRIER_INFO_EQUIPMENT:
+            state = {
+                ...state,
+                selectedLbCarrierInfoEquipment: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_LB_CARRIER_INFO_INSURANCE_TYPE:
+            state = {
+                ...state,
+                selectedLbCarrierInfoInsuranceType: action.payload
+            }
+            break;
+        case carriersConstants.SET_LB_CARRIER_INFO_FACTORING_COMPANY_SEARCH:
+            state = {
+                ...state,
+                lbCarrierInfoFactoringCompanySearch: action.payload
+            }
+            break;
+        case carriersConstants.SET_LB_CARRIER_INFO_FACTORING_COMPANIES:
+            state = {
+                ...state,
+                lbCarrierInfoFactoringCompanies: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_LB_CARRIER_INFO_FACTORING_COMPANY:
+            state = {
+                ...state,
+                selectedLbCarrierInfoFactoringCompany: action.payload,
+                selectedDispatchCarrierInfoFactoringCompany: (state.selectedDispatchCarrierInfoFactoringCompany.id || 0) === action.payload.id ? action.payload : state.selectedDispatchCarrierInfoFactoringCompany,
+                selectedFactoringCompany: (state.selectedFactoringCompany.id || 0) === action.payload.id ? action.payload : state.selectedFactoringCompany,
+            }
+            break;
+        case carriersConstants.SET_LB_CARRIER_INFO_FACTORING_COMPANY_CONTACTS:
+            state = {
+                ...state,
+                lbCarrierInfoFactoringCompanyContacts: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_LB_CARRIER_INFO_FACTORING_COMPANY_CONTACT:
+            state = {
+                ...state,
+                selectedLbCarrierInfoFactoringCompanyContact: action.payload,
+                selectedDispatchCarrierInfoFactoringCompanyContact: (state.selectedDispatchCarrierInfoFactoringCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedDispatchCarrierInfoFactoringCompanyContact,
+                selectedFactoringCompanyContact: (state.selectedFactoringCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedFactoringCompanyContact,
+            }
+            break;
+        case carriersConstants.SET_SELECTED_LB_CARRIER_INFO_FACTORING_COMPANY_CONTACT_SEARCH:
+            state = {
+                ...state,
+                selectedLbCarrierInfoFactoringCompanyContactSearch: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_LB_CARRIER_INFO_FACTORING_COMPANY_IS_SHOWING_CONTACT_LIST:
+            state = {
+                ...state,
+                selectedLbCarrierInfoFactoringCompanyIsShowingContactList: action.payload
+            }
+            break;
+        case carriersConstants.SET_LB_CARRIER_INFO_FACTORING_COMPANY_IS_EDITING_CONTACT:
+            state = {
+                ...state,
+                lbCarrierInfoFactoringCompanyIsEditingContact: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_LB_CARRIER_INFO_FACTORING_COMPANY_NOTE:
+            state = {
+                ...state,
+                selectedLbCarrierInfoFactoringCompanyNote: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_LB_CARRIER_INFO_FACTORING_COMPANY_INVOICE_SEARCH:
+
+            state = {
+                ...state,
+                selectedLbCarrierInfoFactoringCompanyInvoiceSearch: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_LB_CARRIER_INFO_FACTORING_COMPANY_INVOICES:
+            state = {
+                ...state,
+                selectedLbCarrierInfoFactoringCompanyInvoices: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_LB_CARRIER_INFO_FACTORING_COMPANY_INVOICE:
+            state = {
+                ...state,
+                selectedLbCarrierInfoFactoringCompanyInvoice: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_LB_CARRIER_INFO_FACTORING_COMPANY_IS_SHOWING_INVOICE_LIST:
+            state = {
+                ...state,
+                selectedLbCarrierInfoFactoringCompanyIsShowingInvoiceList: action.payload,
+                selectedLbCarrierInfoFactoringCompanyInvoiceSearch: action.payload ? { selectedLbCarrierInfoInvoice: {} } : state.selectedLbCarrierInfoFactoringCompanyInvoiceSearch,
+            }
+            break;
+        case carriersConstants.SET_LB_CARRIER_INFO_CARRIER_INSURANCES:
+            state = {
+                ...state,
+                lbCarrierInfoCarrierInsurances: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_LB_CARRIER_INFO_INSURANCE:
+            state = {
+                ...state,
+                selectedLbCarrierInfoInsurance: action.payload,
+                selectedDispatchCarrierInfoInsurance: (state.selectedDispatchCarrierInfoInsurance.id || 0) === action.payload.id ? action.payload : state.selectedDispatchCarrierInfoInsurance,
+                selectedInsurance: (state.selectedInsurance.id || 0) === action.payload.id ? action.payload : state.selectedInsurance,
+            }
+            break;
+
+        case carriersConstants.SET_LB_CARRIER_INFO_EQUIPMENT_INFORMATION:
+            state = {
+                ...state,
+                lbCarrierInfoEquipmentInformation: action.payload
             }
             break;
 

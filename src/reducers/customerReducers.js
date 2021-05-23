@@ -1,11 +1,4 @@
 import { customersConstants } from '../constants';
-import CustomerSearch from '../components/company/customers/panels/customer-search/CustomerSearch.jsx';
-import ContactSearch from '../components/company/customers/panels/contact-search/ContactSearch.jsx';
-import RevenueInformation from '../components/company/customers/panels/revenue-information/RevenueInformation.jsx';
-import OrderHistory from '../components/company/customers/panels/order-history/OrderHistory.jsx';
-import LaneHistory from '../components/company/customers/panels/lane-history/LaneHistory.jsx';
-import Documents from '../components/company/customers/panels/documents/Documents.jsx';
-import Contacts from '../components/company/customers/panels/contacts/Contacts.jsx';
 
 export const customerReducers = (state = {
     customers: [],
@@ -44,6 +37,24 @@ export const customerReducers = (state = {
     billToCompanyDocumentTags: '',
     selectedBillToCompanyDocumentNote: {},
 
+    lbBillToCompanies: [],
+    selectedLbBillToCompanyInfo: {},
+    selectedLbBillToCompanyContact: {},
+    lbBillToCompanySearch: [],
+    selectedLbBillToCompanyNote: {},
+    selectedLbBillToCompanyDirection: {},
+    lbBillToCompanyContactSearch: {},
+    lbBillToCompanyAutomaticEmailsTo: '',
+    lbBillToCompanyAutomaticEmailsCc: '',
+    lbBillToCompanyAutomaticEmailsBcc: '',
+    lbBillToCompanyShowingContactList: true,
+    lbBillToCompanyContacts: [],
+    lbBillToCompanyIsEditingContact: false,
+    lbBillToCompanyContactSearchCustomer: { selectedLbBillToCompanyContact: {} },
+    selectedLbBillToCompanyDocument: {},
+    lbBillToCompanyDocumentTags: '',
+    selectedLbBillToCompanyDocumentNote: {},
+
     shipperCompanies: [],
     selectedShipperCompanyInfo: {},
     selectedShipperCompanyContact: {},
@@ -61,6 +72,24 @@ export const customerReducers = (state = {
     selectedShipperCompanyDocument: {},
     shipperCompanyDocumentTags: '',
     selectedShipperCompanyDocumentNote: {},
+
+    lbShipperCompanies: [],
+    selectedLbShipperCompanyInfo: {},
+    selectedLbShipperCompanyContact: {},
+    lbShipperCompanySearch: [],
+    selectedLbShipperCompanyNote: {},
+    selectedLbShipperCompanyDirection: {},
+    lbShipperCompanyContactSearch: {},
+    lbShipperCompanyAutomaticEmailsTo: '',
+    lbShipperCompanyAutomaticEmailsCc: '',
+    lbShipperCompanyAutomaticEmailsBcc: '',
+    lbShipperCompanyShowingContactList: true,
+    lbShipperCompanyContacts: [],
+    lbShipperCompanyIsEditingContact: false,
+    lbShipperCompanyContactSearchCustomer: { selectedLbShipperCompanyContact: {} },
+    selectedLbShipperCompanyDocument: {},
+    lbShipperCompanyDocumentTags: '',
+    selectedLbShipperCompanyDocumentNote: {},
 
     consigneeCompanies: [],
     selectedConsigneeCompanyInfo: {},
@@ -80,58 +109,28 @@ export const customerReducers = (state = {
     consigneeCompanyDocumentTags: '',
     selectedConsigneeCompanyDocumentNote: {},
 
+    lbConsigneeCompanies: [],
+    selectedLbConsigneeCompanyInfo: {},
+    selectedLbConsigneeCompanyContact: {},
+    lbConsigneeCompanySearch: [],
+    selectedLbConsigneeCompanyNote: {},
+    selectedLbConsigneeCompanyDirection: {},
+    lbConsigneeCompanyContactSearch: {},
+    lbConsigneeCompanyAutomaticEmailsTo: '',
+    lbConsigneeCompanyAutomaticEmailsCc: '',
+    lbConsigneeCompanyAutomaticEmailsBcc: '',
+    lbConsigneeCompanyShowingContactList: true,
+    lbConsigneeCompanyContacts: [],
+    lbConsigneeCompanyIsEditingContact: false,
+    lbConsigneeCompanyContactSearchCustomer: { selectedLbConsigneeCompanyContact: {} },
+    selectedLbConsigneeCompanyDocument: {},
+    lbConsigneeCompanyDocumentTags: '',
+    selectedLbConsigneeCompanyDocumentNote: {},
 
-    panels: [
-        {
-            name: 'customer-search',
-            component: <CustomerSearch title='Customer Search Results' tabTimes={20000} />,
-            isOpened: false,
-            pos: -1,
-            maxWidth: 100
-        },
-        {
-            name: 'customer-contacts',
-            component: <Contacts title='Contacts' tabTimes={21000} />,
-            isOpened: false,
-            pos: -1,
-            maxWidth: 100
-        },
-        {
-            name: 'customer-contact-search',
-            component: <ContactSearch title='Contact Search Results' tabTimes={22000} />,
-            isOpened: false,
-            pos: -1,
-            maxWidth: 100
-        },
-        {
-            name: 'revenue-information',
-            component: <RevenueInformation title='Revenue Information' tabTimes={23000} />,
-            isOpened: false,
-            pos: -1,
-            maxWidth: 100
-        },
-        {
-            name: 'order-history',
-            component: <OrderHistory title='Order History' tabTimes={24000} />,
-            isOpened: false,
-            pos: -1,
-            maxWidth: 100
-        },
-        {
-            name: 'lane-history',
-            component: <LaneHistory title='Lane History' tabTimes={25000} />,
-            isOpened: false,
-            pos: -1,
-            maxWidth: 100
-        },
-        {
-            name: 'documents',
-            component: <Documents title='Documents' tabTimes={26000} />,
-            isOpened: false,
-            pos: -1,
-            maxWidth: 100
-        }
-    ]
+    customerOpenedPanels: [],
+
+
+    panels: []
 }, action) => {
     switch (action.type) {
         case customersConstants.SET_CUSTOMERS:
@@ -362,6 +361,124 @@ export const customerReducers = (state = {
             break;
 
 
+             // ==================================== LB BILL TO COMPANY ===================================
+
+        case customersConstants.SET_LB_BILL_TO_COMPANIES:
+            state = {
+                ...state,
+                lbBillToCompanies: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_SELECTED_BILL_TO_COMPANY_INFO:
+            state = {
+                ...state,
+                selectedLbBillToCompanyInfo: action.payload,
+                selectedBillToCompanyInfo: (state.selectedBillToCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyInfo,
+                selectedCustomer: (state.selectedCustomer.id || 0) === action.payload.id ? action.payload : state.selectedCustomer,
+                selectedShipperCompanyDirection: (state.selectedShipperCompanyDirection.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyDirection,
+                selectedConsigneeCompanyDirection: (state.selectedConsigneeCompanyDirection.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyDirection
+            }
+            break;
+        case customersConstants.SET_LB_SELECTED_BILL_TO_COMPANY_CONTACT:
+            state = {
+                ...state,
+                selectedLbBillToCompanyContact: action.payload,
+                selectedBillToCompanyContact: (state.selectedBillToCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyContact,
+                selectedContact: (state.selectedContact.id || 0) === action.payload.id ? action.payload : state.selectedContact,
+                selectedShipperCompanyContact: (state.selectedShipperCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyContact,
+                selectedConsigneeCompanyContact: (state.selectedConsigneeCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyContact
+            }
+            break;
+        case customersConstants.SET_LB_BILL_TO_COMPANY_SEARCH:
+            state = {
+                ...state,
+                lbBillToCompanySearch: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_SELECTED_BILL_TO_COMPANY_NOTE:
+            state = {
+                ...state,
+                selectedLbBillToCompanyNote: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_SELECTED_BILL_TO_COMPANY_DIRECTION:
+            state = {
+                ...state,
+                selectedLbBillToCompanyDirection: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_BILL_TO_COMPANY_CONTACT_SEARCH:
+            state = {
+                ...state,
+                lbBillToCompanyContactSearch: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_BILL_TO_COMPANY_AUTOMATIC_EMAILS_TO:
+            state = {
+                ...state,
+                lbBillToCompanyAutomaticEmailsTo: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_BILL_TO_COMPANY_AUTOMATIC_EMAILS_CC:
+            state = {
+                ...state,
+                lbBillToCompanyAutomaticEmailsCc: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_BILL_TO_COMPANY_AUTOMATIC_EMAILS_BCC:
+            state = {
+                ...state,
+                lbBillToCompanyAutomaticEmailsBcc: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_BILL_TO_COMPANY_SHOWING_CONTACT_LIST:
+            state = {
+                ...state,
+                lbBillToCompanyShowingContactList: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_BILL_TO_COMPANY_CONTACTS:
+            state = {
+                ...state,
+                lbBillToCompanyContacts: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_BILL_TO_COMPANY_CONTACT_SEARCH_CUSTOMER:
+            state = {
+                ...state,
+                lbBillToCompanyContactSearchCustomer: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_BILL_TO_COMPANY_IS_EDITING_CONTACT:
+            state = {
+                ...state,
+                lbBillToCompanyIsEditingContact: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_SELECTED_BILL_TO_COMPANY_DOCUMENT:
+            state = {
+                ...state,
+                selectedLbBillToCompanyDocument: action.payload,
+                selectedBillToCompanyDocument: (state.selectedBillToCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyDocument,
+                selectedDocument: (state.selectedDocument.id || 0) === action.payload.id ? action.payload : state.selectedDocument,
+                selectedShipperCompanyDocument: (state.selectedShipperCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyDocument,
+                selectedConsigneeCompanyDocument: (state.selectedConsigneeCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyDocument
+            }
+            break;
+        case customersConstants.SET_LB_BILL_TO_COMPANY_DOCUMENT_TAGS:
+            state = {
+                ...state,
+                lbBillToCompanyDocumentTags: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_SELECTED_BILL_TO_COMPANY_DOCUMENT_NOTE:
+            state = {
+                ...state,
+                selectedLbBillToCompanyDocumentNote: action.payload
+            }
+            break;
+
+
         // ==================================== SHIPPER COMPANY ===================================
 
         case customersConstants.SET_SHIPPER_COMPANIES:
@@ -477,6 +594,124 @@ export const customerReducers = (state = {
             break;
 
 
+            // ==================================== LB SHIPPER COMPANY ===================================
+
+        case customersConstants.SET_LB_SHIPPER_COMPANIES:
+            state = {
+                ...state,
+                lbShipperCompanies: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_SELECTED_SHIPPER_COMPANY_INFO:
+            state = {
+                ...state,
+                selectedLbShipperCompanyInfo: action.payload,
+                selectedShipperCompanyInfo: (state.selectedShipperCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyInfo,
+                selectedCustomer: (state.selectedCustomer.id || 0) === action.payload.id ? action.payload : state.selectedCustomer,
+                selectedBillToCompanyInfo: (state.selectedBillToCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyInfo,
+                selectedConsigneeCompanyInfo: (state.selectedConsigneeCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyInfo
+            }
+            break;
+        case customersConstants.SET_LB_SELECTED_SHIPPER_COMPANY_CONTACT:
+            state = {
+                ...state,
+                selectedLbShipperCompanyContact: action.payload,
+                selectedShipperCompanyContact: (state.selectedShipperCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyContact,
+                selectedContact: (state.selectedContact.id || 0) === action.payload.id ? action.payload : state.selectedContact,
+                selectedBillToCompanyContact: (state.selectedBillToCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyContact,
+                selectedConsigneeCompanyContact: (state.selectedConsigneeCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyContact
+            }
+            break;
+        case customersConstants.SET_LB_SHIPPER_COMPANY_SEARCH:
+            state = {
+                ...state,
+                lbShipperCompanySearch: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_SELECTED_SHIPPER_COMPANY_NOTE:
+            state = {
+                ...state,
+                selectedLbShipperCompanyNote: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_SELECTED_SHIPPER_COMPANY_DIRECTION:
+            state = {
+                ...state,
+                selectedLbShipperCompanyDirection: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_SHIPPER_COMPANY_CONTACT_SEARCH:
+            state = {
+                ...state,
+                lbShipperCompanyContactSearch: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_SHIPPER_COMPANY_AUTOMATIC_EMAILS_TO:
+            state = {
+                ...state,
+                lbShipperCompanyAutomaticEmailsTo: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_SHIPPER_COMPANY_AUTOMATIC_EMAILS_CC:
+            state = {
+                ...state,
+                lbShipperCompanyAutomaticEmailsCc: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_SHIPPER_COMPANY_AUTOMATIC_EMAILS_BCC:
+            state = {
+                ...state,
+                lbShipperCompanyAutomaticEmailsBcc: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_SHIPPER_COMPANY_SHOWING_CONTACT_LIST:
+            state = {
+                ...state,
+                lbShipperCompanyShowingContactList: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_SHIPPER_COMPANY_CONTACTS:
+            state = {
+                ...state,
+                lbShipperCompanyContacts: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_SHIPPER_COMPANY_CONTACT_SEARCH_CUSTOMER:
+            state = {
+                ...state,
+                lbShipperCompanyContactSearchCustomer: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_SHIPPER_COMPANY_IS_EDITING_CONTACT:
+            state = {
+                ...state,
+                lbShipperCompanyIsEditingContact: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_SELECTED_SHIPPER_COMPANY_DOCUMENT:
+            state = {
+                ...state,
+                selectedLbShipperCompanyDocument: action.payload,
+                selectedShipperCompanyDocument: (state.selectedShipperCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyDocument,
+                selectedDocument: (state.selectedDocument.id || 0) === action.payload.id ? action.payload : state.selectedDocument,
+                selectedBillToCompanyDocument: (state.selectedBillToCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyDocument,
+                selectedConsigneeCompanyDocument: (state.selectedConsigneeCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyDocument
+            }
+            break;
+        case customersConstants.SET_LB_SHIPPER_COMPANY_DOCUMENT_TAGS:
+            state = {
+                ...state,
+                lbShipperCompanyDocumentTags: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_SELECTED_SHIPPER_COMPANY_DOCUMENT_NOTE:
+            state = {
+                ...state,
+                selectedLbShipperCompanyDocumentNote: action.payload
+            }
+            break;
+
+
         // ==================================== CONSIGNEE COMPANY ===================================
 
         case customersConstants.SET_CONSIGNEE_COMPANIES:
@@ -588,6 +823,138 @@ export const customerReducers = (state = {
             state = {
                 ...state,
                 selectedConsigneeCompanyDocumentNote: action.payload
+            }
+            break;
+
+        case customersConstants.SET_CUSTOMER_OPENED_PANELS:
+            state = {
+                ...state,
+                customerOpenedPanels: action.payload
+            }
+            break;
+
+
+            // ==================================== LB CONSIGNEE COMPANY ===================================
+
+        case customersConstants.SET_LB_CONSIGNEE_COMPANIES:
+            state = {
+                ...state,
+                lbConsigneeCompanies: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_SELECTED_CONSIGNEE_COMPANY_INFO:
+            state = {
+                ...state,
+                selectedLbConsigneeCompanyInfo: action.payload,
+                selectedConsigneeCompanyInfo: (state.selectedConsigneeCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyInfo,
+                selectedCustomer: (state.selectedCustomer.id || 0) === action.payload.id ? action.payload : state.selectedCustomer,
+                selectedBillToCompanyInfo: (state.selectedBillToCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyInfo,
+                selectedShipperCompanyInfo: (state.selectedShipperCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyInfo
+            }
+            break;
+        case customersConstants.SET_LB_SELECTED_CONSIGNEE_COMPANY_CONTACT:
+            state = {
+                ...state,
+                selectedLbConsigneeCompanyContact: action.payload,
+                selectedConsigneeCompanyContact: (state.selectedConsigneeCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyContact,
+                selectedContact: (state.selectedContact.id || 0) === action.payload.id ? action.payload : state.selectedContact,
+                selectedBillToCompanyContact: (state.selectedBillToCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyContact,
+                selectedShipperCompanyContact: (state.selectedShipperCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyContact
+            }
+            break;
+        case customersConstants.SET_LB_CONSIGNEE_COMPANY_SEARCH:
+            state = {
+                ...state,
+                lbConsigneeCompanySearch: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_SELECTED_CONSIGNEE_COMPANY_NOTE:
+            state = {
+                ...state,
+                selectedLbConsigneeCompanyNote: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_SELECTED_CONSIGNEE_COMPANY_DIRECTION:
+            state = {
+                ...state,
+                selectedLbConsigneeCompanyDirection: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_CONSIGNEE_COMPANY_CONTACT_SEARCH:
+            state = {
+                ...state,
+                lbConsigneeCompanyContactSearch: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_CONSIGNEE_COMPANY_AUTOMATIC_EMAILS_TO:
+            state = {
+                ...state,
+                lbConsigneeCompanyAutomaticEmailsTo: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_CONSIGNEE_COMPANY_AUTOMATIC_EMAILS_CC:
+            state = {
+                ...state,
+                lbConsigneeCompanyAutomaticEmailsCc: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_CONSIGNEE_COMPANY_AUTOMATIC_EMAILS_BCC:
+            state = {
+                ...state,
+                lbConsigneeCompanyAutomaticEmailsBcc: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_CONSIGNEE_COMPANY_SHOWING_CONTACT_LIST:
+            state = {
+                ...state,
+                lbConsigneeCompanyShowingContactList: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_CONSIGNEE_COMPANY_CONTACTS:
+            state = {
+                ...state,
+                lbConsigneeCompanyContacts: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_CONSIGNEE_COMPANY_CONTACT_SEARCH_CUSTOMER:
+            state = {
+                ...state,
+                lbConsigneeCompanyContactSearchCustomer: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_CONSIGNEE_COMPANY_IS_EDITING_CONTACT:
+            state = {
+                ...state,
+                lbConsigneeCompanyIsEditingContact: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_SELECTED_CONSIGNEE_COMPANY_DOCUMENT:
+            state = {
+                ...state,
+                selectedLbConsigneeCompanyDocument: action.payload,
+                selectedConsigneeCompanyDocument: (state.selectedConsigneeCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyDocument,
+                selectedDocument: (state.selectedDocument.id || 0) === action.payload.id ? action.payload : state.selectedDocument,
+                selectedBillToCompanyDocument: (state.selectedBillToCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyDocument,
+                selectedShipperCompanyDocument: (state.selectedShipperCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyDocument
+            }
+            break;
+        case customersConstants.SET_LB_CONSIGNEE_COMPANY_DOCUMENT_TAGS:
+            state = {
+                ...state,
+                lbConsigneeCompanyDocumentTags: action.payload
+            }
+            break;
+        case customersConstants.SET_LB_SELECTED_CONSIGNEE_COMPANY_DOCUMENT_NOTE:
+            state = {
+                ...state,
+                selectedLbConsigneeCompanyDocumentNote: action.payload
+            }
+            break;
+
+        case customersConstants.SET_LB_CUSTOMER_OPENED_PANELS:
+            state = {
+                ...state,
+                customerOpenedPanels: action.payload
             }
             break;
 

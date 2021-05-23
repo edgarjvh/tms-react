@@ -9,7 +9,8 @@ import {
     setSelectedFactoringCompanyDocument,
     setSelectedFactoringCompany,
     setFactoringCompanyDocumentTags,
-    setSelectedFactoringCompanyDocumentNote
+    setSelectedFactoringCompanyDocumentNote,
+    setCarrierOpenedPanels
 } from './../../../../../actions';
 import moment from 'moment';
 import DocViewer from "react-doc-viewer";
@@ -23,16 +24,10 @@ function FactoringCompanyDocuments(props) {
     const refIframeImg = useRef(null);
     const modalTransitionProps = useSpring({ opacity: (props.selectedFactoringCompanyDocumentNote.id !== undefined) ? 1 : 0 });
 
-
-    const closePanelBtnClick = () => {
-        let panels = props.panels.map((panel) => {
-            if (panel.name === 'factoring-company-documents') {
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
-        props.setCarrierPanels(panels);
+    const closePanelBtnClick = (e, name) => {
+        props.setCarrierOpenedPanels(props.carrierOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
 
     const tagsOnKeydown = (e) => {
@@ -97,7 +92,7 @@ function FactoringCompanyDocuments(props) {
                     props.setSelectedFactoringCompanyDocument({
                         id: 0,
                         user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                        date_entered: moment().format('MM-DD-YYYY')
+                        date_entered: moment().format('MM/DD/YYYY')
                     });
 
                     refTitleInput.current && refTitleInput.current.focus();
@@ -130,9 +125,9 @@ function FactoringCompanyDocuments(props) {
 
     return (
         <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
-            <div className="title">{props.title}</div>
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'factoring-company-documents')}><span className="fas fa-times"></span></div>
+            <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className="documents-fields">
                 <div className="documents-left-side">
@@ -142,14 +137,14 @@ function FactoringCompanyDocuments(props) {
                         </div>
 
                         <div className="input-box-container" style={{ marginRight: 5 }}>
-                            <input type="text" placeholder="Date Entered" readOnly={true} value={props.selectedFactoringCompanyDocument.date_entered || moment().format('MM-DD-YYYY')} />
+                            <input type="text" placeholder="Date Entered" readOnly={true} value={props.selectedFactoringCompanyDocument.date_entered || moment().format('MM/DD/YYYY')} />
                         </div>
 
                         <div className="mochi-button" onClick={() => {
                             props.setSelectedFactoringCompanyDocument({
                                 id: 0,
                                 user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                                date_entered: moment().format('MM-DD-YYYY')
+                                date_entered: moment().format('MM/DD/YYYY')
                             });
 
                             refTitleInput.current.focus();
@@ -312,7 +307,7 @@ function FactoringCompanyDocuments(props) {
                                                             props.setSelectedFactoringCompanyDocument({
                                                                 id: 0,
                                                                 user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                                                                date_entered: moment().format('MM-DD-YYYY')
+                                                                date_entered: moment().format('MM/DD/YYYY')
                                                             });
 
                                                             refTitleInput.current.focus();
@@ -469,6 +464,7 @@ function FactoringCompanyDocuments(props) {
 const mapStateToProps = state => {
     return {
         panels: state.carrierReducers.panels,
+        carrierOpenedPanels: state.carrierReducers.carrierOpenedPanels,
         serverUrl: state.systemReducers.serverUrl,
         selectedFactoringCompany: state.carrierReducers.selectedFactoringCompany,
         selectedFactoringCompanyDocument: state.carrierReducers.selectedFactoringCompanyDocument,
@@ -482,5 +478,6 @@ export default connect(mapStateToProps, {
     setSelectedFactoringCompanyDocument,
     setSelectedFactoringCompany,
     setFactoringCompanyDocumentTags,
-    setSelectedFactoringCompanyDocumentNote
+    setSelectedFactoringCompanyDocumentNote,
+    setCarrierOpenedPanels
 })(FactoringCompanyDocuments)

@@ -4,45 +4,78 @@ import classnames from 'classnames';
 import $ from 'jquery';
 import Draggable from 'react-draggable';
 import './ConsigneeCompanySearch.css';
-import { 
-    setDispatchPanels, 
-    setSelectedConsigneeCompanyInfo, 
-    setSelectedConsigneeCompanyContact 
+import {
+    setDispatchPanels,
+    setSelectedConsigneeCompanyInfo,
+    setSelectedConsigneeCompanyContact,
+    setDispatchOpenedPanels,
+    setSelectedOrder,
+    setSelectedBillToCompanyInfo
 } from '../../../../../actions';
 
 function ConsigneeCompanySearch(props) {
-    const closePanelBtnClick = () => {
-        let index = props.panels.length - 1;
-
-        let panels = props.panels.map((panel, i) => {
-            if (panel.name === 'consignee-company-search') {
-                index = i;
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
-        panels.splice(0, 0, panels.splice(index, 1)[0]);
-        props.setDispatchPanels(panels);
+    const closePanelBtnClick = (e, name) => {
+        props.setDispatchOpenedPanels(props.dispatchOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
 
-    const rowDoubleClick = (e, c) => {
-        props.setSelectedConsigneeCompanyInfo(c);
-        c.contacts.map(async contact => {
-            if (contact.is_primary === 1){
-                props.setSelectedConsigneeCompanyContact(contact);
+    const rowDoubleClick = (e, customer) => {
+        let deliveries = props.selected_order?.deliveries || [];
+
+        if (deliveries.length > 0) {            
+            deliveries = deliveries.map((delivery, i) => {
+                if (delivery.id === (props.selectedConsigneeCompanyInfo.id || 0)) {
+                    delivery = customer;
+                }
+                return delivery;
+            })
+        } else {
+            deliveries.push(customer);
+        }
+
+        props.setSelectedConsigneeCompanyInfo(customer);
+
+        customer.contacts.map(c => {
+            if (c.is_primary === 1) {
+                props.setSelectedConsigneeCompanyContact(c);
             }
             return true;
         });
 
-        closePanelBtnClick();
+        let selected_order = { ...props.selected_order } || { order_number: 0 };
+
+        selected_order.consignee_customer_id = customer.id;
+        selected_order.shipper_customer_id = (props.selectedShipperCompanyInfo?.id || 0);
+        selected_order.bill_to_customer_id = (props.selectedBillToCompanyInfo?.id || 0);
+        selected_order.carrier_id = (props.selectedDispatchCarrierInfoCarrier?.id || 0);
+        selected_order.carrier_driver_id = (props.selectedDispatchCarrierInfoDriver?.id || 0);
+        selected_order.deliveries = deliveries;
+
+        if ((selected_order.ae_number || '') === '') {
+            selected_order.ae_number = getRandomInt(1, 100);
+        }
+
+        $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+            if (res.result === 'OK') {
+                await props.setSelectedOrder(res.order);
+            }
+
+            closePanelBtnClick(null, 'consignee-company-search');
+        });
+    }
+
+    const getRandomInt = (min, max) => {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
     return (
         <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
-            <div className="title">{props.title}</div>
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'consignee-company-search')}><span className="fas fa-times"></span></div>
+            <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className="input-box-container" style={{ marginTop: 20, display: 'flex', alignItems: 'center' }}>
                 {
@@ -117,14 +150,24 @@ function ConsigneeCompanySearch(props) {
 
 const mapStateToProps = state => {
     return {
+        serverUrl: state.systemReducers.serverUrl,
         panels: state.dispatchReducers.panels,
+        dispatchOpenedPanels: state.dispatchReducers.dispatchOpenedPanels,
         consigneeCompanies: state.customerReducers.consigneeCompanies,
         consigneeCompanySearch: state.customerReducers.consigneeCompanySearch,
+        selected_order: state.dispatchReducers.selected_order,
+        selectedConsigneeCompanyInfo: state.customerReducers.selectedConsigneeCompanyInfo,
+        selectedConsigneeCompanyContact: state.customerReducers.selectedConsigneeCompanyContact,
+        selectedBillToCompanyInfo: state.customerReducers.selectedBillToCompanyInfo,
+        selectedBillToCompanyContact: state.customerReducers.selectedBillToCompanyContact,
     }
 }
 
 export default connect(mapStateToProps, {
-    setDispatchPanels, 
-    setSelectedConsigneeCompanyInfo, 
-    setSelectedConsigneeCompanyContact 
+    setDispatchPanels,
+    setSelectedConsigneeCompanyInfo,
+    setSelectedConsigneeCompanyContact,
+    setDispatchOpenedPanels,
+    setSelectedOrder,
+    setSelectedBillToCompanyInfo
 })(ConsigneeCompanySearch)

@@ -4,45 +4,102 @@ import classnames from 'classnames';
 import $ from 'jquery';
 import Draggable from 'react-draggable';
 import './ShipperCompanySearch.css';
-import { 
-    setDispatchPanels, 
-    setSelectedShipperCompanyInfo, 
-    setSelectedShipperCompanyContact 
+import {
+    setDispatchPanels,
+    setSelectedShipperCompanyInfo,
+    setSelectedShipperCompanyContact,
+    setDispatchOpenedPanels,
+    setSelectedOrder,
+    setSelectedBillToCompanyInfo
 } from '../../../../../actions';
 
 function ShipperCompanySearch(props) {
-    const closePanelBtnClick = () => {
-        let index = props.panels.length - 1;
-
-        let panels = props.panels.map((panel, i) => {
-            if (panel.name === 'shipper-company-search') {
-                index = i;
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
-        panels.splice(0, 0, panels.splice(index, 1)[0]);
-        props.setDispatchPanels(panels);
+    const closePanelBtnClick = (e, name) => {
+        props.setDispatchOpenedPanels(props.dispatchOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
 
-    const rowDoubleClick = (e, c) => {
-        props.setSelectedShipperCompanyInfo(c);
-        c.contacts.map(async contact => {
-            if (contact.is_primary === 1){
-                props.setSelectedShipperCompanyContact(contact);
+    const rowDoubleClick = (e, customer) => {
+        let pickups = props.selected_order?.pickups || [];
+
+        if (pickups.length > 0) {            
+            pickups = pickups.map((pu, i) => {
+                if (pu.id === (props.selectedShipperCompanyInfo.id || 0)) {
+                    pu = customer;
+                }
+                return pu;
+            })
+        } else {
+            pickups.push(customer);
+        }
+
+        props.setSelectedShipperCompanyInfo(customer);
+
+        customer.contacts.map(c => {
+            if (c.is_primary === 1) {
+                props.setSelectedShipperCompanyContact(c);
             }
             return true;
         });
 
-        closePanelBtnClick();
+        let selected_order = { ...props.selected_order } || { order_number: 0 };
+        selected_order.shipper_customer_id = customer.id;
+        selected_order.pickups = pickups;
+
+        if ((props.selectedBillToCompanyInfo?.id || 0) === 0) {
+
+            if (customer.mailing_bll_to !== '') {
+
+                $.post(props.serverUrl + '/customers', {
+                    code: customer.mailing_bll_to
+                }).then(res => {
+                    if (res.result === 'OK') {
+                        if (res.customers.length > 0) {
+                            props.setSelectedBillToCompanyInfo(customer);
+
+                            selected_order.bill_to_customer_id = customer.id;
+                            selected_order.carrier_id = (props.selectedDispatchCarrierInfoCarrier?.id || 0);
+                            selected_order.carrier_driver_id = (props.selectedDispatchCarrierInfoDriver?.id || 0);
+
+                            if ((selected_order.ae_number || '') === '') {
+                                selected_order.ae_number = getRandomInt(1, 100);
+                            }
+
+                            $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                if (res.result === 'OK') {
+                                    await props.setSelectedOrder(res.order);
+                                }
+                                closePanelBtnClick(null, 'shipper-company-search');
+                            });
+                        }
+                    }
+                })
+
+            }
+
+            return;
+        } else {
+            $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                if (res.result === 'OK') {
+                    await props.setSelectedOrder(res.order);
+                }
+                closePanelBtnClick(null, 'shipper-company-search');
+            });
+        }
+    }
+
+    const getRandomInt = (min, max) => {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
     return (
         <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
-            <div className="title">{props.title}</div>
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'shipper-company-search')}><span className="fas fa-times"></span></div>
+            <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className="input-box-container" style={{ marginTop: 20, display: 'flex', alignItems: 'center' }}>
                 {
@@ -117,14 +174,24 @@ function ShipperCompanySearch(props) {
 
 const mapStateToProps = state => {
     return {
+        serverUrl: state.systemReducers.serverUrl,
         panels: state.dispatchReducers.panels,
+        dispatchOpenedPanels: state.dispatchReducers.dispatchOpenedPanels,
         shipperCompanies: state.customerReducers.shipperCompanies,
         shipperCompanySearch: state.customerReducers.shipperCompanySearch,
+        selected_order: state.dispatchReducers.selected_order,
+        selectedShipperCompanyInfo: state.customerReducers.selectedShipperCompanyInfo,
+        selectedShipperCompanyContact: state.customerReducers.selectedShipperCompanyContact,
+        selectedBillToCompanyInfo: state.customerReducers.selectedBillToCompanyInfo,
+        selectedBillToCompanyContact: state.customerReducers.selectedBillToCompanyContact,
     }
 }
 
 export default connect(mapStateToProps, {
-    setDispatchPanels, 
-    setSelectedShipperCompanyInfo, 
-    setSelectedShipperCompanyContact 
+    setDispatchPanels,
+    setSelectedShipperCompanyInfo,
+    setSelectedShipperCompanyContact,
+    setDispatchOpenedPanels,
+    setSelectedOrder,
+    setSelectedBillToCompanyInfo
 })(ShipperCompanySearch)

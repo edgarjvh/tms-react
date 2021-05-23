@@ -10,6 +10,21 @@
   overflow: hidden;
   padding: 10px;
 
+  .input-box-container{
+    position: relative;
+  }
+
+  .currency-symbol{
+    font-size: 0.8rem;
+    position: absolute;
+    left: 2;
+  }
+
+  .currency{
+    text-align: right;
+    padding-left: 10px;
+  }
+
   .fields-container-row {
     display: flex;
     flex-grow: 1;
@@ -245,8 +260,8 @@
       max-width: 5rem;
     }
     .tcol.amount {
-      min-width: 4rem;
-      max-width: 4rem;
+      min-width: 6rem;
+      max-width: 6rem;
       text-align: right;
     }
 
@@ -272,15 +287,20 @@
         justify-content: space-between;
         padding-right: 5px;
 
+        &:hover{
+          background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        &.selected{
+          background-color: rgba(0, 0, 0, 0.1);
+          font-weight: bold;
+        }
+
         > div {
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
         }
-      }
-
-      .insurances-list-item:hover {
-        background-color: rgba(0, 0, 0, 0.1);
       }
     }
   }

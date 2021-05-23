@@ -11,24 +11,15 @@ import {
     setCarrierContacts, 
     setContactSearch, 
     setShowingCarrierContactList,
-    setContactSearchCarrier
+    setContactSearchCarrier,
+    setCarrierOpenedPanels
  } from '../../../../../actions';
 
 function ContactSearch(props) {
-    const closePanelBtnClick = () => {
-        console.log('closing')
-        let index = props.panels.length - 1;
-
-        let panels = props.panels.map((panel, i) => {
-            if (panel.name === 'carrier-contact-search') {
-                index = i;
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
-        panels.splice(0, 0, panels.splice(index, 1)[0]);
-        props.setCarrierPanels(panels);
+    const closePanelBtnClick = (e, name) => {
+        props.setCarrierOpenedPanels(props.carrierOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
 
     var clickCount = 0;
@@ -39,15 +30,6 @@ function ContactSearch(props) {
 
         window.setTimeout(async () => {
             if (clickCount === 1) {
-                let index = props.panels.length - 1;
-                let panels = props.panels.map((p, i) => {
-                    if (p.name === 'carrier-contacts') {
-                        index = i;
-                        p.isOpened = true;
-                    }
-                    return p;
-                });
-                
                 let selectedContact = {};
 
                 c.carrier.contacts.map(contact => {
@@ -58,9 +40,9 @@ function ContactSearch(props) {
 
                 await props.setContactSearchCarrier({...c.carrier, selectedContact: selectedContact});
 
-                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-                props.setCarrierPanels(panels);
+                if (!props.carrierOpenedPanels.includes('carrier-contacts')) {
+                    props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'carrier-contacts']);
+                }
             } else {
                 await props.setSelectedCarrier(c.carrier);
                 await c.carrier.contacts.map(contact => {
@@ -75,7 +57,7 @@ function ContactSearch(props) {
                 await props.setContactSearch({});
                 await props.setShowingCarrierContactList(true);
 
-                closePanelBtnClick();
+                closePanelBtnClick(null, 'carrier-contact-search');
             }
 
             clickCount = 0;
@@ -84,9 +66,9 @@ function ContactSearch(props) {
 
     return (
         <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
-            <div className="title">{props.title}</div>
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'carrier-contact-search')}><span className="fas fa-times"></span></div>
+            <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className="input-box-container" style={{ marginTop: 20, display: 'flex', alignItems: 'center' }}>
                 {
@@ -161,6 +143,7 @@ function ContactSearch(props) {
 const mapStateToProps = state => {
     return {
         panels: state.carrierReducers.panels,
+        carrierOpenedPanels: state.carrierReducers.carrierOpenedPanels,
         carriers: state.carrierReducers.carriers,
         contactSearch: state.carrierReducers.contactSearch,
         contacts: state.carrierReducers.contacts
@@ -174,5 +157,6 @@ export default connect(mapStateToProps, {
     setCarrierContacts,
     setContactSearch,
     setShowingCarrierContactList,
-    setContactSearchCarrier
+    setContactSearchCarrier,
+    setCarrierOpenedPanels
 })(ContactSearch)

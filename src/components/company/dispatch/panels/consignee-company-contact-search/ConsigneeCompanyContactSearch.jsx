@@ -11,23 +11,15 @@ import {
     setConsigneeCompanyContacts,
     setConsigneeCompanyContactSearch, 
     setConsigneeCompanyShowingContactList,
-    setConsigneeCompanyContactSearchCustomer
+    setConsigneeCompanyContactSearchCustomer,
+    setDispatchOpenedPanels
  } from '../../../../../actions';
 
 function ConsigneeCompanyContactSearch(props) {
-    const closePanelBtnClick = () => {
-        let index = props.panels.length - 1;
-
-        let panels = props.panels.map((panel, i) => {
-            if (panel.name === 'consignee-company-contact-search') {
-                index = i;
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
-        panels.splice(0, 0, panels.splice(index, 1)[0]);
-        props.setDispatchPanels(panels);
+    const closePanelBtnClick = (e, name) => {
+        props.setDispatchOpenedPanels(props.dispatchOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
 
     var clickCount = 0;
@@ -36,16 +28,7 @@ function ConsigneeCompanyContactSearch(props) {
         clickCount++;
 
         window.setTimeout(async () => {
-            if (clickCount === 1) {
-                let index = props.panels.length - 1;
-                let panels = props.panels.map((p, i) => {
-                    if (p.name === 'consignee-company-contacts') {
-                        index = i;
-                        p.isOpened = true;
-                    }
-                    return p;
-                });
-                
+            if (clickCount === 1) {                                
                 let selectedConsigneeCompanyContact = {};
 
                 c.customer.contacts.map(contact => {
@@ -55,9 +38,10 @@ function ConsigneeCompanyContactSearch(props) {
                 });
 
                 await props.setConsigneeCompanyContactSearchCustomer({...c.customer, selectedConsigneeCompanyContact: selectedConsigneeCompanyContact});
-
-                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                props.setDispatchPanels(panels);
+                
+                if (!props.dispatchOpenedPanels.includes('consignee-company-contacts')){
+                    props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'consignee-company-contacts'])
+                }
             } else {
                 await props.setSelectedConsigneeCompanyInfo(c.customer);
                 await c.customer.contacts.map(contact => {
@@ -72,7 +56,7 @@ function ConsigneeCompanyContactSearch(props) {
                 await props.setConsigneeCompanyContactSearch({});
                 await props.setConsigneeCompanyShowingContactList(true);
 
-                closePanelBtnClick();
+                closePanelBtnClick(null, 'consignee-company-contact-search');
             }
 
             clickCount = 0;
@@ -81,9 +65,9 @@ function ConsigneeCompanyContactSearch(props) {
 
     return (
         <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
-            <div className="title">{props.title}</div>
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'consignee-company-contact-search')}><span className="fas fa-times"></span></div>
+            <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className="input-box-container" style={{ marginTop: 20, display: 'flex', alignItems: 'center' }}>
                 {
@@ -158,6 +142,7 @@ function ConsigneeCompanyContactSearch(props) {
 const mapStateToProps = state => {
     return {
         panels: state.dispatchReducers.panels,
+        dispatchOpenedPanels: state.dispatchReducers.dispatchOpenedPanels,
         consigneeCompanies: state.customerReducers.consigneeCompanies,
         consigneeCompanyContactSearch: state.customerReducers.consigneeCompanyContactSearch,
         consigneeCompanyContactSearchCustomer: state.customerReducers.consigneeCompanyContactSearchCustomer,
@@ -172,5 +157,6 @@ export default connect(mapStateToProps, {
     setConsigneeCompanyContacts,
     setConsigneeCompanyContactSearch,
     setConsigneeCompanyShowingContactList,
-    setConsigneeCompanyContactSearchCustomer
+    setConsigneeCompanyContactSearchCustomer,
+    setDispatchOpenedPanels
 })(ConsigneeCompanyContactSearch)

@@ -1,0 +1,86 @@
+.calendar {
+  display: flex;
+  flex-direction: column;
+}
+.calendar .header {
+  display: flex;
+  justify-content: space-between;
+  height: 20px;
+  align-items: center;
+  margin-bottom: 5px;
+}
+.calendar .header .prev-month-btn {
+  width: 16px;
+  height: 16px;
+  text-align: center;
+  cursor: pointer;
+}
+.calendar .header .month-name {
+  flex-grow: 1;
+  text-transform: uppercase;
+  display: flex;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+.calendar .header .month-name .month {
+  margin-right: 10px;
+}
+.calendar .header .month-name .year {
+  font-weight: bold;
+}
+.calendar .header .next-month-btn {
+  width: 16px;
+  height: 16px;
+  text-align: center;
+  cursor: pointer;
+}
+.calendar .week {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+.calendar .week .day {
+  position: relative;
+  width: calc(100% / 7);
+  height: 30px;
+  display: flex;
+  padding: 0;
+  margin: 0;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  font-size: 0.7rem;
+}
+.calendar .week .day div {
+  width: 23px;
+  height: 23px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: ease 0.1s;
+  padding: 5px;
+  border-radius: 5px;
+  font-weight: bold;
+  color: rgba(0, 0, 0, 0.5);
+}
+.calendar .week .day div.pre-selected {
+  border: solid 1px rgba(0, 0, 0, 0.3);
+}
+.calendar .week .day div:hover {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+.calendar .week .day div.selected {
+  background-color: #4096ee;
+  color: white;
+}
+.calendar .week .day div.today {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+.calendar .week .day div.not-same-month {
+  pointer-events: none;
+  color: rgba(0, 0, 0, 0.2);
+  background-color: transparent;
+  font-weight: normal;
+}

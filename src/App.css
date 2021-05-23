@@ -56,6 +56,18 @@ body {
   overflow: hidden;
   font-family: "Mochi Med Oblique";
 }
+.react-datepicker__input-container {
+  display: flex !important;
+}
+.open-calendar-btn {
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: ease 0.3s;
+  color: rgba(0, 0, 0, 0.7);
+}
+.open-calendar-btn:hover {
+  color: #000000;
+}
 input:focus,
 textarea:focus,
 select:focus {
@@ -189,6 +201,22 @@ select:focus {
   flex-direction: column;
   justify-content: space-between;
 }
+.label-box-container {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  padding: 5px;
+  background-color: transparent;
+  border-radius: 15px;
+  max-height: 1.5rem;
+  min-height: 1.5rem;
+}
+.label-box-container div {
+  font-size: 0.8rem;
+}
+.label-box-container.input-code {
+  width: 7.5rem;
+}
 .input-box-container {
   display: flex;
   align-items: center;
@@ -316,25 +344,34 @@ select:focus {
 .main-panel-container {
   position: absolute;
   height: 100%;
-  width: 95%;
+  width: 100%;
   top: 0;
   bottom: 0;
-  right: 0;
+  left: 100%;
   transform: translateX(0);
   z-index: 1;
   border-radius: 45px 0 0 0;
 }
 .main-panel-container .panel {
-  width: 100%;
+  width: 95%;
   height: 100%;
   border-radius: inherit;
   box-shadow: 0 0 5px 3px #4b4b4b;
-  background: #ededed;
+  /* Permalink - use to edit and share this gradient: https://colorzilla.com/gradient-editor/#ffffff+18,ffffff+18,d3d3d3+100 */
+  background: #ffffff;
+  /* Old browsers */
+  background: -moz-radial-gradient(center, ellipse cover, #ffffff 18%, #ffffff 18%, #d3d3d3 100%);
+  /* FF3.6-15 */
+  background: -webkit-radial-gradient(center, ellipse cover, #ffffff 18%, #ffffff 18%, #d3d3d3 100%);
+  /* Chrome10-25,Safari5.1-6 */
+  background: radial-gradient(ellipse at center, #ffffff 18%, #ffffff 18%, #d3d3d3 100%);
+  /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#d3d3d3', GradientType=1);
+  /* IE6-9 fallback on horizontal gradient */
   position: absolute;
   display: flex;
   flex-direction: column;
-  transition: left ease 0.3s, width ease 0.3s;
-  left: 110%;
+  right: 0;
 }
 .main-panel-container .panel .panel-content {
   width: 100%;
@@ -354,16 +391,17 @@ select:focus {
   width: 40px;
   border-top-left-radius: 45px;
   cursor: grab;
+  z-index: 1;
 }
 .main-panel-container .panel .panel-content .drag-handler:hover {
   /* Permalink - use to edit and share this gradient: https://colorzilla.com/gradient-editor/#ffffff+0,f6f6f6+47,ededed+100;White+3D+%231 */
   background: #ffffff;
   /* Old browsers */
-  background: -moz-linear-gradient(left, #ffffff 0%, #f6f6f6 47%, #e9e9e9 100%);
+  background: -moz-linear-gradient(left, rgba(255, 255, 255, 0.5) 0%, rgba(246, 246, 246, 0.5) 47%, rgba(233, 233, 233, 0.5) 100%);
   /* FF3.6-15 */
-  background: -webkit-linear-gradient(left, #ffffff 0%, #f6f6f6 47%, #e9e9e9 100%);
+  background: -webkit-linear-gradient(left, rgba(255, 255, 255, 0.5) 0%, rgba(246, 246, 246, 0.5) 47%, rgba(233, 233, 233, 0.5) 100%);
   /* Chrome10-25,Safari5.1-6 */
-  background: linear-gradient(to right, #ffffff 0%, #f6f6f6 47%, #e9e9e9 100%);
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.5) 0%, rgba(246, 246, 246, 0.5) 47%, rgba(233, 233, 233, 0.5) 100%);
   /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#ededed', GradientType=1);
   /* IE6-9 */
@@ -385,6 +423,28 @@ select:focus {
   font-family: "Mochi Light";
   font-size: 2.2rem;
   text-transform: uppercase;
+}
+.main-panel-container .panel .panel-content .side-title {
+  font-family: "Mochi Light";
+  position: absolute;
+  left: 0;
+  width: 40px;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+.main-panel-container .panel .panel-content .side-title div {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  position: absolute;
+  left: 0;
+  white-space: nowrap;
+  transform: rotate(270deg);
+  text-transform: uppercase;
+  font-size: 1.2rem;
+  color: rgba(0, 0, 0, 0.4);
 }
 .mochi-contextual-container {
   display: none;

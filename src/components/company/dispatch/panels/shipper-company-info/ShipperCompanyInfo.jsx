@@ -19,7 +19,8 @@ import {
     setShipperCompanyIsEditingContact,
     setSelectedShipperCompanyDocument,
     setShipperCompanyDocumentTags,
-    setSelectedShipperCompanyDocumentNote
+    setSelectedShipperCompanyDocumentNote,
+    setDispatchOpenedPanels
 } from './../../../../../actions';
 
 import CustomerModal from './../../modal/Modal.jsx';
@@ -64,15 +65,10 @@ function ShipperCompanyInfo(props) {
         setPopupItems([]);
     }
 
-    const closePanelBtnClick = () => {
-        let panels = props.panels.map((panel) => {
-            if (panel.name === 'shipper-company-info') {
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
-        props.setDispatchPanels(panels);
+    const closePanelBtnClick = (e, name) => {
+        props.setDispatchOpenedPanels(props.dispatchOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
 
     const searchCustomerByCode = (e) => {
@@ -146,17 +142,9 @@ function ShipperCompanyInfo(props) {
                 await props.setCustomerSearch(customerSearch);
                 await props.setShipperCompanies(res.customers);
 
-                let index = props.panels.length - 1;
-                let panels = props.panels.map((p, i) => {
-                    if (p.name === 'shipper-company-search') {
-                        index = i;
-                        p.isOpened = true;
-                    }
-                    return p;
-                });
-
-                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                await props.setDispatchPanels(panels);
+                if (!props.dispatchOpenedPanels.includes('shipper-company-search')){
+                    props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'shipper-company-search'])
+                }
             }
         });
     }
@@ -206,64 +194,29 @@ function ShipperCompanyInfo(props) {
                 await props.setShipperCompanyContactSearch({ ...props.shipperCompanyContactSearch, filters: filters });
                 await props.setShipperCompanyContacts(res.contacts);
 
-                let index = props.panels.length - 1;
-                let panels = props.panels.map((p, i) => {
-                    if (p.name === 'shipper-company-contact-search') {
-                        index = i;
-                        p.isOpened = true;
-                    }
-                    return p;
-                });
-
-                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                await props.setDispatchPanels(panels);
+                if (!props.dispatchOpenedPanels.includes('shipper-company-contact-search')){
+                    props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'shipper-company-contact-search'])
+                }
             }
         });
     }
 
-    const revenueInformationBtnClick = () => {
-        let index = props.panels.length - 1;
-        let panels = props.panels.map((p, i) => {
-            if (p.name === 'shipper-company-revenue-information') {
-                index = i;
-                p.isOpened = true;
-            }
-            return p;
-        });
-
-        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-        props.setDispatchPanels(panels);
+    const revenueInformationBtnClick = () => {    
+        if (!props.dispatchOpenedPanels.includes('shipper-company-revenue-information')){
+            props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'shipper-company-revenue-information'])
+        }
     }
 
     const orderHistoryBtnClick = () => {
-        let index = props.panels.length - 1;
-        let panels = props.panels.map((p, i) => {
-            if (p.name === 'shipper-company-order-history') {
-                index = i;
-                p.isOpened = true;
-            }
-            return p;
-        });
-
-        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-        props.setDispatchPanels(panels);
+        if (!props.dispatchOpenedPanels.includes('shipper-company-order-history')){
+            props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'shipper-company-order-history'])
+        }
     }
 
     const laneHistoryBtnClick = () => {
-        let index = props.panels.length - 1;
-        let panels = props.panels.map((p, i) => {
-            if (p.name === 'shipper-company-lane-history') {
-                index = i;
-                p.isOpened = true;
-            }
-            return p;
-        });
-
-        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-        props.setDispatchPanels(panels);
+        if (!props.dispatchOpenedPanels.includes('shipper-company-lane-history')){
+            props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'shipper-company-lane-history'])
+        }
     }
 
     const documentsBtnClick = () => {
@@ -271,21 +224,12 @@ function ShipperCompanyInfo(props) {
             props.setSelectedShipperCompanyDocument({
                 id: 0,
                 user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                date_entered: moment().format('MM-DD-YYYY')
+                date_entered: moment().format('MM/DD/YYYY')
             });
 
-            let index = props.panels.length - 1;
-            let panels = props.panels.map((p, i) => {
-                if (p.name === 'shipper-company-documents') {
-                    index = i;
-                    p.isOpened = true;
-                }
-                return p;
-            });
-
-            panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-            props.setDispatchPanels(panels);
+            if (!props.dispatchOpenedPanels.includes('shipper-company-documents')){
+                props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'shipper-company-documents'])
+            }
         } else {
             window.alert('You must select a customer first!');
         }
@@ -1082,9 +1026,9 @@ function ShipperCompanyInfo(props) {
 
     return (
         <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
-            <div className="title">{props.title}</div>
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'shipper-company-info')}><span className="fas fa-times"></span></div>
+            <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className="shipper-company-info">
                 <div className="fields-container">
@@ -1358,20 +1302,12 @@ function ShipperCompanyInfo(props) {
                                                 return;
                                             }
 
-                                            let index = props.panels.length - 1;
-                                            let panels = props.panels.map((p, i) => {
-                                                if (p.name === 'shipper-company-contacts') {
-                                                    index = i;
-                                                    p.isOpened = true;
-                                                }
-                                                return p;
-                                            });
-
                                             await props.setShipperCompanyIsEditingContact(false);
                                             await props.setShipperCompanyContactSearchCustomer({ ...props.selectedShipperCompanyInfo, selectedShipperCompanyContact: props.selectedShipperCompanyContact });
 
-                                            panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                                            props.setDispatchPanels(panels);
+                                            if (!props.dispatchOpenedPanels.includes('shipper-company-contacts')){
+                                                props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'shipper-company-contacts'])
+                                            }                                            
                                         }}>
                                             <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                             <div className="mochi-button-base">More</div>
@@ -1383,20 +1319,12 @@ function ShipperCompanyInfo(props) {
                                                 return;
                                             }
 
-                                            let index = props.panels.length - 1;
-                                            let panels = props.panels.map((p, i) => {
-                                                if (p.name === 'shipper-company-contacts') {
-                                                    index = i;
-                                                    p.isOpened = true;
-                                                }
-                                                return p;
-                                            });
-
                                             props.setShipperCompanyContactSearchCustomer({ ...props.selectedShipperCompanyInfo, selectedShipperCompanyContact: { id: 0, customer_id: props.selectedShipperCompanyInfo.id } });
                                             props.setShipperCompanyIsEditingContact(true);
 
-                                            panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                                            props.setDispatchPanels(panels);
+                                            if (!props.dispatchOpenedPanels.includes('shipper-company-contacts')){
+                                                props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'shipper-company-contacts'])
+                                            }                                            
                                         }}>
                                             <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                             <div className="mochi-button-base">Add contact</div>
@@ -1813,22 +1741,13 @@ function ShipperCompanyInfo(props) {
                                                 {
                                                     (props.selectedShipperCompanyInfo.contacts || []).map((contact, index) => {
                                                         return (
-                                                            <div className="contact-list-item" key={index} onDoubleClick={async () => {
-
-                                                                let index = props.panels.length - 1;
-                                                                let panels = props.panels.map((p, i) => {
-                                                                    if (p.name === 'shipper-company-contacts') {
-                                                                        index = i;
-                                                                        p.isOpened = true;
-                                                                    }
-                                                                    return p;
-                                                                });
-
+                                                            <div className="contact-list-item" key={index} onDoubleClick={async () => {                                                     
                                                                 await props.setShipperCompanyIsEditingContact(false);
                                                                 await props.setShipperCompanyContactSearchCustomer({ ...props.selectedShipperCompanyInfo, selectedShipperCompanyContact: contact });
 
-                                                                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                                                                props.setDispatchPanels(panels);
+                                                                if (!props.dispatchOpenedPanels.includes('shipper-company-contacts')){
+                                                                    props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'shipper-company-contacts'])
+                                                                }                                                                
                                                             }} onClick={() => props.setSelectedShipperCompanyContact(contact)}>
                                                                 <div className="contact-list-col tcol first-name">{contact.first_name}</div>
                                                                 <div className="contact-list-col tcol last-name">{contact.last_name}</div>
@@ -2252,6 +2171,7 @@ const mapStateToProps = state => {
     return {
         serverUrl: state.systemReducers.serverUrl,
         panels: state.dispatchReducers.panels,
+        dispatchOpenedPanels: state.dispatchReducers.dispatchOpenedPanels,
         scale: state.systemReducers.scale,
 
         shipperCompanies: state.customerReducers.shipperCompanies,
@@ -2295,5 +2215,6 @@ export default connect(mapStateToProps, {
     setShipperCompanyIsEditingContact,
     setSelectedShipperCompanyDocument,
     setShipperCompanyDocumentTags,
-    setSelectedShipperCompanyDocumentNote
+    setSelectedShipperCompanyDocumentNote,
+    setDispatchOpenedPanels
 })(ShipperCompanyInfo)

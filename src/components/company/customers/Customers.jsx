@@ -35,6 +35,7 @@ import {
 
     setSelectedConsigneeCompanyInfo,
     setSelectedConsigneeCompanyContact,
+    setCustomerOpenedPanels
 } from '../../../actions';
 
 function Customers(props) {
@@ -141,17 +142,9 @@ function Customers(props) {
                 await props.setCustomerSearch(customerSearch);
                 await props.setCustomers(res.customers);
 
-                let index = props.panels.length - 1;
-                let panels = props.panels.map((p, i) => {
-                    if (p.name === 'customer-search') {
-                        index = i;
-                        p.isOpened = true;
-                    }
-                    return p;
-                });
-
-                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                await props.setCustomerPanels(panels);
+                if (!props.customerOpenedPanels.includes('customer-search')) {
+                    props.setCustomerOpenedPanels([...props.customerOpenedPanels, 'customer-search']);
+                }
             }
         });
     }
@@ -200,65 +193,30 @@ function Customers(props) {
             if (res.result === 'OK') {
                 await props.setContactSearch({ ...props.contactSearch, filters: filters });
                 await props.setCustomerContacts(res.contacts);
-
-                let index = props.panels.length - 1;
-                let panels = props.panels.map((p, i) => {
-                    if (p.name === 'customer-contact-search') {
-                        index = i;
-                        p.isOpened = true;
-                    }
-                    return p;
-                });
-
-                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                await props.setCustomerPanels(panels);
+                
+                if (!props.customerOpenedPanels.includes('customer-contact-search')) {
+                    props.setCustomerOpenedPanels([...props.customerOpenedPanels, 'customer-contact-search']);
+                }
             }
         });
     }
 
     const revenueInformationBtnClick = () => {
-        let index = props.panels.length - 1;
-        let panels = props.panels.map((p, i) => {
-            if (p.name === 'revenue-information') {
-                index = i;
-                p.isOpened = true;
-            }
-            return p;
-        });
-
-        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-        props.setCustomerPanels(panels);
+        if (!props.customerOpenedPanels.includes('revenue-information')) {
+            props.setCustomerOpenedPanels([...props.customerOpenedPanels, 'revenue-information']);
+        }
     }
 
     const orderHistoryBtnClick = () => {
-        let index = props.panels.length - 1;
-        let panels = props.panels.map((p, i) => {
-            if (p.name === 'order-history') {
-                index = i;
-                p.isOpened = true;
-            }
-            return p;
-        });
-
-        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-        props.setCustomerPanels(panels);
+        if (!props.customerOpenedPanels.includes('order-history')) {
+            props.setCustomerOpenedPanels([...props.customerOpenedPanels, 'order-history']);
+        }
     }
 
     const laneHistoryBtnClick = () => {
-        let index = props.panels.length - 1;
-        let panels = props.panels.map((p, i) => {
-            if (p.name === 'lane-history') {
-                index = i;
-                p.isOpened = true;
-            }
-            return p;
-        });
-
-        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-        props.setCustomerPanels(panels);
+        if (!props.customerOpenedPanels.includes('lane-history')) {
+            props.setCustomerOpenedPanels([...props.customerOpenedPanels, 'lane-history']);
+        }
     }
 
     const documentsBtnClick = () => {
@@ -266,21 +224,12 @@ function Customers(props) {
             props.setSelectedDocument({
                 id: 0,
                 user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                date_entered: moment().format('MM-DD-YYYY')
+                date_entered: moment().format('MM/DD/YYYY')
             });
 
-            let index = props.panels.length - 1;
-            let panels = props.panels.map((p, i) => {
-                if (p.name === 'documents') {
-                    index = i;
-                    p.isOpened = true;
-                }
-                return p;
-            });
-
-            panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-            props.setCustomerPanels(panels);
+            if (!props.customerOpenedPanels.includes('documents')) {
+                props.setCustomerOpenedPanels([...props.customerOpenedPanels, 'documents']);
+            }
         } else {
             window.alert('You must select a customer first!');
         }
@@ -357,6 +306,8 @@ function Customers(props) {
                             }
 
                             await setIsSavingCustomer(false);
+                        }).catch(e => {
+                            setIsSavingCustomer(false);
                         });
                     }
                 }
@@ -1374,21 +1325,13 @@ function Customers(props) {
                                             window.alert('You must select a contact');
                                             return;
                                         }
-
-                                        let index = props.panels.length - 1;
-                                        let panels = props.panels.map((p, i) => {
-                                            if (p.name === 'customer-contacts') {
-                                                index = i;
-                                                p.isOpened = true;
-                                            }
-                                            return p;
-                                        });
-
+                                        
                                         await props.setIsEditingContact(false);
                                         await props.setContactSearchCustomer({ ...props.selectedCustomer, selectedContact: props.selectedContact });
 
-                                        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                                        props.setCustomerPanels(panels);
+                                        if (!props.customerOpenedPanels.includes('customer-contacts')) {
+                                            props.setCustomerOpenedPanels([...props.customerOpenedPanels, 'customer-contacts']);
+                                        }
                                     }}>
                                         <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                         <div className="mochi-button-base">More</div>
@@ -1400,20 +1343,12 @@ function Customers(props) {
                                             return;
                                         }
 
-                                        let index = props.panels.length - 1;
-                                        let panels = props.panels.map((p, i) => {
-                                            if (p.name === 'customer-contacts') {
-                                                index = i;
-                                                p.isOpened = true;
-                                            }
-                                            return p;
-                                        });
-
                                         props.setContactSearchCustomer({ ...props.selectedCustomer, selectedContact: { id: 0, customer_id: props.selectedCustomer.id } });
                                         props.setIsEditingContact(true);
 
-                                        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                                        props.setCustomerPanels(panels);
+                                        if (!props.customerOpenedPanels.includes('customer-contacts')) {
+                                            props.setCustomerOpenedPanels([...props.customerOpenedPanels, 'customer-contacts']);
+                                        }
                                     }}>
                                         <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                         <div className="mochi-button-base">Add contact</div>
@@ -1833,20 +1768,12 @@ function Customers(props) {
                                                     return (
                                                         <div className="contact-list-item" key={index} onDoubleClick={async () => {
 
-                                                            let index = props.panels.length - 1;
-                                                            let panels = props.panels.map((p, i) => {
-                                                                if (p.name === 'customer-contacts') {
-                                                                    index = i;
-                                                                    p.isOpened = true;
-                                                                }
-                                                                return p;
-                                                            });
-
                                                             await props.setIsEditingContact(false);
                                                             await props.setContactSearchCustomer({ ...props.selectedCustomer, selectedContact: contact });
 
-                                                            panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                                                            props.setCustomerPanels(panels);
+                                                            if (!props.customerOpenedPanels.includes('customer-contacts')) {
+                                                                props.setCustomerOpenedPanels([...props.customerOpenedPanels, 'customer-contacts']);
+                                                            }
                                                         }} onClick={() => props.setSelectedContact(contact)}>
                                                             <div className="contact-list-col tcol first-name">{contact.first_name}</div>
                                                             <div className="contact-list-col tcol last-name">{contact.last_name}</div>
@@ -2269,6 +2196,7 @@ const mapStateToProps = state => {
         selectedCustomer: state.customerReducers.selectedCustomer,
         serverUrl: state.systemReducers.serverUrl,
         panels: state.customerReducers.panels,
+        customerOpenedPanels: state.customerReducers.customerOpenedPanels,
         selectedContact: state.customerReducers.selectedContact,
         selectedNote: state.customerReducers.selectedNote,
         selectedDirection: state.customerReducers.selectedDirection,
@@ -2317,4 +2245,5 @@ export default connect(mapStateToProps, {
 
     setSelectedConsigneeCompanyInfo,
     setSelectedConsigneeCompanyContact,
+    setCustomerOpenedPanels
 })(Customers)

@@ -4,22 +4,18 @@ import classnames from 'classnames';
 import $ from 'jquery';
 import Draggable from 'react-draggable';
 import './CustomerSearch.css';
-import { setCustomerPanels, setSelectedCustomer, setSelectedContact } from '../../../../../actions';
+import { 
+    setCustomerPanels, 
+    setSelectedCustomer, 
+    setSelectedContact,
+    setCustomerOpenedPanels
+} from '../../../../../actions';
 
 function CustomerSearch(props) {
-    const closePanelBtnClick = () => {
-        let index = props.panels.length - 1;
-
-        let panels = props.panels.map((panel, i) => {
-            if (panel.name === 'customer-search') {
-                index = i;
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
-        panels.splice(0, 0, panels.splice(index, 1)[0]);
-        props.setCustomerPanels(panels);
+    const closePanelBtnClick = (e, name) => {
+        props.setCustomerOpenedPanels(props.customerOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
 
     const rowDoubleClick = async (e, c) => {
@@ -31,14 +27,14 @@ function CustomerSearch(props) {
             return true;
         });
 
-        closePanelBtnClick();
+        closePanelBtnClick(null, 'customer-search');
     }
 
     return (
         <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
-            <div className="title">{props.title}</div>
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'customer-search')}><span className="fas fa-times"></span></div>
+            <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className="input-box-container" style={{ marginTop: 20, display: 'flex', alignItems: 'center' }}>
                 {
@@ -114,6 +110,7 @@ function CustomerSearch(props) {
 const mapStateToProps = state => {
     return {
         panels: state.customerReducers.panels,
+        customerOpenedPanels: state.customerReducers.customerOpenedPanels,
         customers: state.customerReducers.customers,
         customerSearch: state.customerReducers.customerSearch,
     }
@@ -122,5 +119,6 @@ const mapStateToProps = state => {
 export default connect(mapStateToProps, {
     setCustomerPanels,
     setSelectedCustomer,
-    setSelectedContact
+    setSelectedContact,
+    setCustomerOpenedPanels
 })(CustomerSearch)

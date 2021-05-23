@@ -391,3 +391,87 @@ export const setIsShowingConsigneeSecondPage = bool => {
         payload: bool
     }
 }
+export const setDispatchOpenedPanels = panels => {
+    return {
+        type: dispatchConstants.SET_DISPATCH_OPENED_PANELS,
+        payload: panels
+    }
+}
+export const setOrderSelectedPickup = pickup => {
+    return {
+        type: dispatchConstants.SET_ORDER_SELECTED_PICKUP,
+        payload: pickup
+    }
+}
+export const setIsAddingPickup = bool => {
+    return {
+        type: dispatchConstants.SET_IS_ADDING_PICKUP,
+        payload: bool
+    }
+}
+export const setIsAddingDelivery = bool => {
+    return {
+        type: dispatchConstants.SET_IS_ADDING_DELIVERY,
+        payload: bool
+    }
+}
+export const setMileageLoaderVisible = bool => {
+    return {
+        type: dispatchConstants.SET_MILEAGE_LOADER_VISIBLE,
+        payload: bool
+    }
+}
+export const setSelectedOrderDocument = document => {
+    return {
+        type: dispatchConstants.SET_SELECTED_ORDER_DOCUMENT,
+        payload: document
+    }
+}
+export const setSelectedOrderDocumentNote = note => {
+    return {
+        type: dispatchConstants.SET_SELECTED_ORDER_DOCUMENT_NOTE,
+        payload: note
+    }
+}
+export const setOrderDocumentTags = tags => {
+    return {
+        type: dispatchConstants.SET_ORDER_DOCUMENT_TAGS,
+        payload: tags
+    }
+}
+export const setLbSelectedOrder = order => {
+    return {
+        type: dispatchConstants.SET_LB_SELECTED_ORDER,
+        payload: order
+    }
+}
+export const setLbMileageLoaderVisible = bool => {
+    return {
+        type: dispatchConstants.SET_LB_MILEAGE_LOADER_VISIBLE,
+        payload: bool
+    }
+}
+export const setLbOrderNumber = number => {
+    return {
+        type: dispatchConstants.SET_LB_ORDER_NUMBER,
+        payload: number
+    }
+}
+export const setLbTripNumber = number => {
+    return {
+        type: dispatchConstants.SET_LB_TRIP_NUMBER,
+        payload: number
+    }
+}
+export const setShowingChangeCarrier = bool => {
+    return {
+        type: dispatchConstants.SET_SHOWING_CHANGE_CARRIER,
+        payload: bool
+    }
+}
+export const setNewCarrier = carrier => {
+    return {
+        type: dispatchConstants.SET_NEW_CARRIER,
+        payload: carrier
+    }
+}

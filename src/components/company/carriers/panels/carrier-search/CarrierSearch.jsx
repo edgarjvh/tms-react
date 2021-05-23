@@ -4,22 +4,18 @@ import classnames from 'classnames';
 import $ from 'jquery';
 import Draggable from 'react-draggable';
 import './CarrierSearch.css';
-import { setCarrierPanels, setSelectedCarrier, setSelectedContact } from '../../../../../actions';
+import { 
+    setCarrierPanels, 
+    setSelectedCarrier, 
+    setSelectedContact,
+    setCarrierOpenedPanels 
+} from '../../../../../actions';
 
 function CarrierSearch(props) {
-    const closePanelBtnClick = () => {
-        let index = props.panels.length - 1;
-
-        let panels = props.panels.map((panel, i) => {
-            if (panel.name === 'carrier-search') {
-                index = i;
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
-        panels.splice(0, 0, panels.splice(index, 1)[0]);
-        props.setCarrierPanels(panels);
+    const closePanelBtnClick = (e, name) => {
+        props.setCarrierOpenedPanels(props.carrierOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
 
     const rowDoubleClick = async (e, c) => {
@@ -31,14 +27,14 @@ function CarrierSearch(props) {
             return true;
         });
 
-        closePanelBtnClick();
+        closePanelBtnClick(null, 'carrier-search');
     }
 
     return (
         <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
-            <div className="title">{props.title}</div>
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'carrier-search')}><span className="fas fa-times"></span></div>
+            <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className="input-box-container" style={{ marginTop: 20, display: 'flex', alignItems: 'center' }}>
                 {
@@ -114,6 +110,7 @@ function CarrierSearch(props) {
 const mapStateToProps = state => {
     return {
         panels: state.carrierReducers.panels,
+        carrierOpenedPanels: state.carrierReducers.carrierOpenedPanels,
         carriers: state.carrierReducers.carriers,
         carrierSearch: state.carrierReducers.carrierSearch,
     }
@@ -122,5 +119,6 @@ const mapStateToProps = state => {
 export default connect(mapStateToProps, {
     setCarrierPanels,
     setSelectedCarrier,
-    setSelectedContact
+    setSelectedContact,
+    setCarrierOpenedPanels
 })(CarrierSearch)

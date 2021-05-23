@@ -9,6 +9,8 @@ import CarrierPopup from './../../popup/Popup.jsx';
 import MaskedInput from 'react-text-mask';
 import CarrierModal from './../../modal/Modal.jsx';
 import ReactStars from "react-rating-stars-component";
+import CalendarPopup from './../../calendarPopup/CalendarPopup.jsx';
+import accounting from 'accounting';
 import {
     setDispatchCarrierInfoCarriers,
     setSelectedDispatchCarrierInfoCarrier,
@@ -33,10 +35,14 @@ import {
     setDispatchCarrierInfoCarrierInsurances,
     setSelectedDispatchCarrierInfoInsurance,
     setSelectedDispatchCarrierInfoFactoringCompany,
-    setSelectedDispatchCarrierInfoFactoringCompanyContact
+    setSelectedDispatchCarrierInfoFactoringCompanyContact,
+    setDispatchOpenedPanels
 } from '../../../../../actions';
 
 function CarrierInfo(props) {
+    const baseWidth = 0.95;
+    const panelGap = 70;
+    const [isCalendarShown, setIsCalendarShown] = useState(false);
     const [popupItems, setPopupItems] = useState([]);
     const [lastState, setLastState] = useState(0);
     const [isSavingCarrier, setIsSavingCarrier] = useState(false);
@@ -47,12 +53,19 @@ function CarrierInfo(props) {
     const refDispatchCarrierInfoEquipment = useRef();
     const refDispatchCarrierInfoInsuranceType = useRef();
     const refDispatchCarrierInfoInsuranceCompany = useRef();
+    const refDispatchCarrierInfoInsuranceExpirationDate = useRef();
     const popupItemsRef = useRef([]);
     const refPopup = useRef();
+    const refDispatchCarrierCalendarPopup = useRef();
     const popupContainerClasses = classnames({
         'mochi-contextual-container': true,
         'shown': popupItems.length > 0
     });
+    const calendarPopupContainerClasses = classnames({
+        'mochi-contextual-container': true,
+        'shown': isCalendarShown
+    });
+    const [preSelectedExpirationDate, setPreSelectedExpirationDate] = useState(moment());
     const [driverPendingSave, setDriverPendingSave] = useState(false);
     const [insurancePendingSave, setInsurancePendingSave] = useState(false);
     const [selectedEquipmentIndex, setSelectedDispatchCarrierInfoEquipmentIndex] = useState(-1);
@@ -75,15 +88,10 @@ function CarrierInfo(props) {
         })
     }, []);
 
-    const closePanelBtnClick = () => {
-        let panels = props.panels.map((panel) => {
-            if (panel.name === 'carrier-info') {
-                panel.isOpened = false;
-            }
-            return panel;
-        });
-
-        props.setDispatchPanels(panels);
+    const closePanelBtnClick = (e, name) => {
+        props.setDispatchOpenedPanels(props.dispatchOpenedPanels.filter((item, index) => {
+            return item !== name;
+        }));
     }
 
     const carrierStars = {
@@ -144,17 +152,9 @@ function CarrierInfo(props) {
                 await props.setDispatchCarrierInfoCarrierSearch(carrierSearch);
                 await props.setDispatchCarrierInfoCarriers(res.carriers);
 
-                let index = props.panels.length - 1;
-                let panels = props.panels.map((p, i) => {
-                    if (p.name === 'carrier-info-search') {
-                        index = i;
-                        p.isOpened = true;
-                    }
-                    return p;
-                });
-
-                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                await props.setDispatchPanels(panels);
+                if (!props.dispatchOpenedPanels.includes('carrier-info-search')) {
+                    props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'carrier-info-search'])
+                }
             }
         });
     }
@@ -382,17 +382,9 @@ function CarrierInfo(props) {
                 await props.setDispatchCarrierInfoContactSearch({ ...props.dispatchCarrierInfoContactSearch, filters: filters });
                 await props.setDispatchCarrierInfoCarrierContacts(res.contacts);
 
-                let index = props.panels.length - 1;
-                let panels = props.panels.map((p, i) => {
-                    if (p.name === 'carrier-info-contact-search') {
-                        index = i;
-                        p.isOpened = true;
-                    }
-                    return p;
-                });
-
-                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                await props.setDispatchPanels(panels);
+                if (!props.dispatchOpenedPanels.includes('carrier-info-contact-search')) {
+                    props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'carrier-info-contact-search'])
+                }
             }
         });
     }
@@ -494,9 +486,8 @@ function CarrierInfo(props) {
         if (key === 13) {
             popupItems.map((item, index) => {
                 if (item.selected) {
-                    props.setSelectedDispatchCarrierInfoDriver({ ...props.selectedDispatchCarrierInfoDriver, carrier_id: props.selectedDispatchCarrierInfoCarrier?.id, equipment_id: item.id, equipment: item });
-                    let driver = { ...props.selectedDispatchCarrierInfoDriver, carrier_id: props.selectedDispatchCarrierInfoCarrier?.id, equipment_id: item.id, equipment: item };
-
+                    props.setSelectedDispatchCarrierInfoDriver({ ...props.selectedDispatchCarrierInfoDriver, carrier_id: props.selectedDispatchCarrierInfoCarrier.id, equipment_id: item.id, equipment: item });
+                    let driver = { ...props.selectedDispatchCarrierInfoDriver, carrier_id: props.selectedDispatchCarrierInfoCarrier.id, equipment_id: item.id, equipment: item };
 
                     if ((driver.first_name || '').trim() !== '') {
                         if (!isSavingDriver) {
@@ -504,7 +495,7 @@ function CarrierInfo(props) {
 
                             $.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
                                 if (res.result === 'OK') {
-                                    await props.setSelectedDispatchCarrierInfoCarrier({ ...props.selectedCarrier, drivers: res.drivers });
+                                    await props.setSelectedCarrier({ ...props.selectedDispatchCarrierInfoCarrier, drivers: res.drivers });
                                     await props.setSelectedDispatchCarrierInfoDriver({ ...res.driver });
                                 }
                                 setIsSavingDriver(false);
@@ -529,16 +520,15 @@ function CarrierInfo(props) {
             } else {
                 popupItems.map((item, index) => {
                     if (item.selected) {
-                        props.setSelectedDispatchCarrierInfoDriver({ ...props.selectedDispatchCarrierInfoDriver, carrier_id: props.selectedDispatchCarrierInfoCarrier?.id, equipment_id: item.id, equipment: item });
-                        let driver = { ...props.selectedDispatchCarrierInfoDriver, carrier_id: props.selectedDispatchCarrierInfoCarrier?.id, equipment_id: item.id, equipment: item };
-
+                        props.setSelectedDispatchCarrierInfoDriver({ ...props.selectedDispatchCarrierInfoDriver, carrier_id: props.selectedDispatchCarrierInfoCarrier.id, equipment_id: item.id, equipment: item });
+                        let driver = { ...props.selectedDispatchCarrierInfoDriver, carrier_id: props.selectedDispatchCarrierInfoCarrier.id, equipment_id: item.id, equipment: item };
                         if ((driver.first_name || '').trim() !== '') {
                             if (!isSavingDriver) {
                                 setIsSavingDriver(true);
 
                                 $.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
                                     if (res.result === 'OK') {
-                                        await props.setSelectedDispatchCarrierInfoCarrier({ ...props.selectedCarrier, drivers: res.drivers });
+                                        await props.setSelectedCarrier({ ...props.selectedDispatchCarrierInfoCarrier, drivers: res.drivers });
                                         await props.setSelectedDispatchCarrierInfoDriver({ ...res.driver });
                                     }
                                     setIsSavingDriver(false);
@@ -1322,17 +1312,9 @@ function CarrierInfo(props) {
                 await props.setDispatchCarrierInfoFactoringCompanySearch(factoringCompanySearch);
                 await props.setDispatchCarrierInfoFactoringCompanies(res.factoring_companies);
 
-                let index = props.panels.length - 1;
-                let panels = props.panels.map((p, i) => {
-                    if (p.name === 'carrier-info-factoring-company-search') {
-                        index = i;
-                        p.isOpened = true;
-                    }
-                    return p;
-                });
-
-                panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                await props.setDispatchPanels(panels);
+                if (!props.dispatchOpenedPanels.includes('carrier-info-factoring-company-search')) {
+                    props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'carrier-info-factoring-company-search'])
+                }
             }
         });
     }
@@ -1348,15 +1330,6 @@ function CarrierInfo(props) {
             return;
         }
 
-        let index = props.panels.length - 1;
-        let panels = props.panels.map((p, i) => {
-            if (p.name === 'carrier-info-factoring-company') {
-                index = i;
-                p.isOpened = true;
-            }
-            return p;
-        });
-
         props.setSelectedDispatchCarrierInfoFactoringCompany({ ...props.selectedDispatchCarrierInfoCarrier?.factoring_company });
 
         (props.selectedDispatchCarrierInfoCarrier.factoring_company.contacts || []).map((contact, index) => {
@@ -1367,9 +1340,9 @@ function CarrierInfo(props) {
             return true;
         })
 
-        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-        props.setDispatchPanels(panels);
+        if (!props.dispatchOpenedPanels.includes('carrier-info-factoring-company')) {
+            props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'carrier-info-factoring-company'])
+        }
     }
 
     const clearFactoringCompanyBtnClick = async () => {
@@ -1485,7 +1458,7 @@ function CarrierInfo(props) {
         return true;
     }
 
-    const validateInsuranceForSaving = (e) => {
+    const validateInsuranceForSaving = async (e) => {
         let key = e.keyCode || e.which;
 
         if (key === 9 && (props.selectedDispatchCarrierInfoCarrier?.id || 0) > 0) {
@@ -1496,15 +1469,82 @@ function CarrierInfo(props) {
                 (insurance.expiration_date || '').trim() !== '' &&
                 (insurance.amount || '').trim() !== '') {
 
+                insurance.expiration_date = getFormattedDates(insurance.expiration_date);
+                insurance.amount = accounting.unformat(insurance.amount);
+                insurance.deductible = accounting.unformat(insurance.deductible);
+
                 if (!isSavingInsurance) {
                     setIsSavingInsurance(true);
                     $.post(props.serverUrl + '/saveInsurance', insurance).then(res => {
                         if (res.result === 'OK') {
-                            props.setSelectedDispatchCarrierInfoCarrier({ ...props.selectedCarrier, insurances: res.insurances });
-                            props.setSelectedDispatchCarrierInfoInsurance({ ...props.selectedInsurance, id: res.insurance.id });
+                            props.setSelectedDispatchCarrierInfoCarrier({ ...props.selectedDispatchCarrierInfoCarrier, insurances: res.insurances });
+                            props.setSelectedDispatchCarrierInfoInsurance({
+                                ...props.selectedDispatchCarrierInfoInsurance,
+                                id: res.insurance.id,
+                                amount: res.insurance.amount ? accounting.formatNumber(res.insurance.amount, 2, ',', '.') : res.insurance.amount,
+                                deductible: res.insurance.deductible ? accounting.formatNumber(res.insurance.deductible, 2, ',', '.') : res.insurance.deductible
+                            });
                         }
                         setIsSavingInsurance(false);
+                    }).catch(e => {
+                        setIsSavingInsurance(false);
                     });
+                }
+            }
+        }
+
+        let expiration_date = e.target.value.trim() === '' ? moment() : moment(getFormattedDates(props.selectedDispatchCarrierInfoInsurance?.expiration_date || ''), 'MM/DD/YYYY');
+
+        await setPreSelectedExpirationDate(expiration_date);
+
+        if (key === 13) {
+            if (isCalendarShown) {
+                expiration_date = preSelectedExpirationDate.clone().format('MM/DD/YYYY');
+
+                let insurance = { ...props.selectedDispatchCarrierInfoInsurance, carrier_id: props.selectedDispatchCarrierInfoCarrier.id };
+                insurance.expiration_date = expiration_date;
+
+                await props.setSelectedDispatchCarrierInfoInsurance(insurance);
+
+                if ((insurance.insurance_type_id || 0) >= 0 &&
+                    (insurance.company || '').trim() !== '' &&
+                    (insurance.expiration_date || '').trim() !== '' &&
+                    (insurance.amount || '').trim() !== '') {
+
+                    if (!isSavingInsurance) {
+                        setIsSavingInsurance(true);
+                        $.post(props.serverUrl + '/saveInsurance', insurance).then(async res => {
+                            if (res.result === 'OK') {
+                                await props.setSelectedDispatchCarrierInfoCarrier({ ...props.selectedDispatchCarrierInfoCarrier, insurances: res.insurances });
+                                await props.setSelectedDispatchCarrierInfoInsurance({ ...insurance, id: res.insurance.id });
+                            }
+                            setIsSavingInsurance(false);
+                        });
+                    }
+                }
+
+                await setIsCalendarShown(false);
+            }
+        }
+
+        if (key >= 37 && key <= 40) {
+            if (isCalendarShown) {
+                e.preventDefault();
+
+                if (key === 37) { // left - minus 1
+                    setPreSelectedExpirationDate(preSelectedExpirationDate.clone().subtract(1, 'day'));
+                }
+
+                if (key === 38) { // up - minus 7
+                    setPreSelectedExpirationDate(preSelectedExpirationDate.clone().subtract(7, 'day'));
+                }
+
+                if (key === 39) { // right - plus 1
+                    setPreSelectedExpirationDate(preSelectedExpirationDate.clone().add(1, 'day'));
+                }
+
+                if (key === 40) { // down - plus 7
+                    setPreSelectedExpirationDate(preSelectedExpirationDate.clone().add(7, 'day'));
                 }
             }
         }
@@ -1541,69 +1581,33 @@ function CarrierInfo(props) {
             props.setSelectedDispatchCarrierInfoDocument({
                 id: 0,
                 user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                date_entered: moment().format('MM-DD-YYYY')
+                date_entered: moment().format('MM/DD/YYYY')
             });
 
-            let index = props.panels.length - 1;
-            let panels = props.panels.map((p, i) => {
-                if (p.name === 'documents') {
-                    index = i;
-                    p.isOpened = true;
-                }
-                return p;
-            });
-
-            panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-            props.setDispatchPanels(panels);
+            if (!props.dispatchOpenedPanels.includes('carrier-info-documents')) {
+                props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'carrier-info-documents'])
+            }
         } else {
             window.alert('You must select a carrier first!');
         }
     }
 
     const revenueInformationBtnClick = () => {
-        let index = props.panels.length - 1;
-        let panels = props.panels.map((p, i) => {
-            if (p.name === 'revenue-information') {
-                index = i;
-                p.isOpened = true;
-            }
-            return p;
-        });
-
-        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-        props.setDispatchPanels(panels);
+        if (!props.dispatchOpenedPanels.includes('carrier-info-revenue-information')) {
+            props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'carrier-info-revenue-information'])
+        }
     }
 
     const equipmentInformationBtnClick = () => {
-        let index = props.panels.length - 1;
-        let panels = props.panels.map((p, i) => {
-            if (p.name === 'equipment-information') {
-                index = i;
-                p.isOpened = true;
-            }
-            return p;
-        });
-
-        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-        props.setDispatchPanels(panels);
+        if (!props.dispatchOpenedPanels.includes('carrier-info-equipment-information')) {
+            props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'carrier-info-equipment-information'])
+        }
     }
 
     const orderHistoryBtnClick = () => {
-        let index = props.panels.length - 1;
-        let panels = props.panels.map((p, i) => {
-            if (p.name === 'order-history') {
-                index = i;
-                p.isOpened = true;
-            }
-            return p;
-        });
-
-        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-
-        props.setDispatchPanels(panels);
+        if (!props.dispatchOpenedPanels.includes('carrier-info-order-history')) {
+            props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'carrier-info-order-history'])
+        }
     }
 
     const goToTabindex = (index) => {
@@ -1617,11 +1621,93 @@ function CarrierInfo(props) {
         }
     }
 
+    const getFormattedDates = (date) => {
+        let formattedDate = date;
+
+        try {
+            if (moment(date.trim(), 'MM/DD/YY').format('MM/DD/YY') === date.trim()) {
+                formattedDate = moment(date.trim(), 'MM/DD/YY').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'MM/DD/').format('MM/DD/') === date.trim()) {
+                formattedDate = moment(date.trim(), 'MM/DD/').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'MM/DD').format('MM/DD') === date.trim()) {
+                formattedDate = moment(date.trim(), 'MM/DD').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'MM/').format('MM/') === date.trim()) {
+                formattedDate = moment(date.trim(), 'MM/').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'MM').format('MM') === date.trim()) {
+                formattedDate = moment(date.trim(), 'MM').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'M/D/Y').format('M/D/Y') === date.trim()) {
+                formattedDate = moment(date.trim(), 'M/D/Y').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'MM/D/Y').format('MM/D/Y') === date.trim()) {
+                formattedDate = moment(date.trim(), 'MM/D/Y').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'MM/DD/Y').format('MM/DD/Y') === date.trim()) {
+                formattedDate = moment(date.trim(), 'MM/DD/Y').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'M/DD/Y').format('M/DD/Y') === date.trim()) {
+                formattedDate = moment(date.trim(), 'M/DD/Y').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'M/D/YY').format('M/D/YY') === date.trim()) {
+                formattedDate = moment(date.trim(), 'M/D/YY').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'M/D/YYYY').format('M/D/YYYY') === date.trim()) {
+                formattedDate = moment(date.trim(), 'M/D/YYYY').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'MM/D/YYYY').format('MM/D/YYYY') === date.trim()) {
+                formattedDate = moment(date.trim(), 'MM/D/YYYY').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'MM/DD/YYYY').format('MM/DD/YYYY') === date.trim()) {
+                formattedDate = moment(date.trim(), 'MM/DD/YYYY').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'M/DD/YYYY').format('M/DD/YYYY') === date.trim()) {
+                formattedDate = moment(date.trim(), 'M/DD/YYYY').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'M/D/').format('M/D/') === date.trim()) {
+                formattedDate = moment(date.trim(), 'M/D/').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'M/D').format('M/D') === date.trim()) {
+                formattedDate = moment(date.trim(), 'M/D').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'MM/D').format('MM/D') === date.trim()) {
+                formattedDate = moment(date.trim(), 'MM/D').format('MM/DD/YYYY');
+            }
+
+            if (moment(date.trim(), 'M').format('M') === date.trim()) {
+                formattedDate = moment(date.trim(), 'M').format('MM/DD/YYYY');
+            }
+        } catch (e) {
+            console.log(e);
+        }
+
+        return formattedDate;
+    }
+
     return (
-        <div className="panel-content">
-            <div className="drag-handler"></div>
-            <div className="close-btn" title="Close" onClick={closePanelBtnClick}><span className="fas fa-times"></span></div>
-            <div className="title">{props.title}</div>
+        <div className="panel-content carrier-info">
+            <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'carrier-info')}><span className="fas fa-times"></span></div>
+            <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className="carrier-info">
                 <div className="fields-container-row">
@@ -1796,20 +1882,12 @@ function CarrierInfo(props) {
                                             return;
                                         }
 
-                                        let index = props.panels.length - 1;
-                                        let panels = props.panels.map((p, i) => {
-                                            if (p.name === 'carrier-info-contacts') {
-                                                index = i;
-                                                p.isOpened = true;
-                                            }
-                                            return p;
-                                        });
-
                                         await props.setDispatchCarrierInfoIsEditingContact(false);
                                         await props.setDispatchCarrierInfoContactSearchCarrier({ ...props.selectedDispatchCarrierInfoCarrier, selectedContact: props.selectedDispatchCarrierInfoContact });
 
-                                        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                                        props.setDispatchPanels(panels);
+                                        if (!props.dispatchOpenedPanels.includes('carrier-info-contacts')) {
+                                            props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'carrier-info-contacts'])
+                                        }
                                     }}>
                                         <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                         <div className="mochi-button-base">More</div>
@@ -1821,20 +1899,12 @@ function CarrierInfo(props) {
                                             return;
                                         }
 
-                                        let index = props.panels.length - 1;
-                                        let panels = props.panels.map((p, i) => {
-                                            if (p.name === 'carrier-info-contacts') {
-                                                index = i;
-                                                p.isOpened = true;
-                                            }
-                                            return p;
-                                        });
-
                                         props.setDispatchCarrierInfoContactSearchCarrier({ ...props.selectedDispatchCarrierInfoCarrier, selectedContact: { id: 0, carrier_id: props.selectedDispatchCarrierInfoCarrier?.id } });
                                         props.setDispatchCarrierInfoIsEditingContact(true);
 
-                                        panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                                        props.setDispatchPanels(panels);
+                                        if (!props.dispatchOpenedPanels.includes('carrier-info-contacts')) {
+                                            props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'carrier-info-contacts'])
+                                        }
                                     }}>
                                         <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                         <div className="mochi-button-base">Add contact</div>
@@ -1951,21 +2021,12 @@ function CarrierInfo(props) {
                                                 (props.selectedDispatchCarrierInfoCarrier?.contacts || []).map((contact, index) => {
                                                     return (
                                                         <div className="contact-list-item" key={index} onDoubleClick={async () => {
-
-                                                            let index = props.panels.length - 1;
-                                                            let panels = props.panels.map((p, i) => {
-                                                                if (p.name === 'carrier-info-contacts') {
-                                                                    index = i;
-                                                                    p.isOpened = true;
-                                                                }
-                                                                return p;
-                                                            });
-
                                                             await props.setDispatchCarrierInfoIsEditingContact(false);
                                                             await props.setDispatchCarrierInfoContactSearchCarrier({ ...props.selectedDispatchCarrierInfoCarrier, selectedContact: contact });
 
-                                                            panels.splice(panels.length - 1, 0, panels.splice(index, 1)[0]);
-                                                            props.setDispatchPanels(panels);
+                                                            if (!props.dispatchOpenedPanels.includes('carrier-info-contacts')) {
+                                                                props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'carrier-info-contacts'])
+                                                            }
                                                         }} onClick={() => props.setSelectedDispatchCarrierInfoContact(contact)}>
                                                             <div className="contact-list-col tcol first-name">{contact.first_name}</div>
                                                             <div className="contact-list-col tcol last-name">{contact.last_name}</div>
@@ -2133,8 +2194,101 @@ function CarrierInfo(props) {
                                         fontSize: '1.1rem',
                                         cursor: 'pointer'
                                     }} onClick={() => {
-                                        onEquipmentInput({ target: { value: refDispatchCarrierInfoEquipment.current.value } });
-                                        refDispatchCarrierInfoEquipment.current.focus();
+                                        delayTimer = window.setTimeout(() => {
+                                            setPopupActiveInput('equipment');
+                                            $.post(props.serverUrl + '/getEquipments', {
+                                                name: ""
+                                            }).then(async res => {
+                                                const panelWidth = (window.innerWidth * baseWidth) - (panelGap * props.dispatchOpenedPanels.indexOf('carrier-info'));
+
+                                                const input = refDispatchCarrierInfoEquipment.current.getBoundingClientRect();
+
+                                                let popup = refPopup.current;
+
+                                                const { innerWidth, innerHeight } = window;
+
+                                                let screenWSection = innerWidth / 3;
+
+                                                popup && (popup.childNodes[0].className = 'mochi-contextual-popup');
+
+                                                popup && popup.childNodes[0].classList.add('vertical');
+
+                                                if ((innerHeight - 170 - 30) <= input.top) {
+                                                    popup && popup.childNodes[0].classList.add('above');
+                                                }
+
+                                                if ((innerHeight - 170 - 30) > input.top) {
+                                                    popup && popup.childNodes[0].classList.add('below');
+                                                    popup && (popup.style.top = (input.top + 10) + 'px');
+                                                }
+
+                                                if (input.left <= (screenWSection * 1)) {
+                                                    popup && popup.childNodes[0].classList.add('right');
+                                                    popup && (popup.style.left = input.left + 'px');
+
+                                                    if (input.width < 70) {
+                                                        popup && (popup.style.left = (input.left - 60 + (input.width / 2)) + 'px');
+
+                                                        if (input.left < 30) {
+                                                            popup && popup.childNodes[0].classList.add('corner');
+                                                            popup && (popup.style.left = (input.left + (input.width / 2)) + 'px');
+                                                        }
+                                                    }
+                                                }
+
+                                                if (input.left <= (screenWSection * 2)) {
+                                                    popup && (popup.style.left = (input.left - 100) + 'px');
+                                                }
+
+                                                if (input.left > (screenWSection * 2)) {
+                                                    popup && popup.childNodes[0].classList.add('left');
+                                                    popup && (popup.style.left = (input.left - 170 - (window.innerWidth - panelWidth)) + 'px');
+
+                                                    if ((innerWidth - input.left) < 100) {
+                                                        popup && popup.childNodes[0].classList.add('corner');
+                                                        popup && (popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px');
+                                                    }
+                                                }
+
+                                                if (res.result === 'OK') {
+                                                    if (res.equipments.length > 0) {
+                                                        let items = [];
+                                                        let matched = false;
+
+                                                        items = res.equipments.map((equipment, i) => {
+                                                            if (equipment.name === props.selectedDispatchCarrierInfoDriver.equipment?.name) {
+                                                                equipment.selected = true;
+                                                                matched = true;
+                                                            } else {
+                                                                equipment.selected = false;
+                                                            }
+
+                                                            return equipment;
+                                                        });
+
+                                                        if (!matched) {
+                                                            items = res.equipments.map((equipment, i) => {
+                                                                equipment.selected = i === 0;
+                                                                return equipment;
+                                                            });
+                                                        }
+
+                                                        await setPopupItems(items);
+
+                                                        popupItemsRef.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView()
+                                                            }
+                                                            return true;
+                                                        });
+                                                    } else {
+                                                        await setPopupItems([]);
+                                                    }
+                                                }
+
+                                                refDispatchCarrierInfoEquipment.current.focus();
+                                            });
+                                        }, 300);
                                     }}></span>
                                 </div>
                             </div>
@@ -2414,8 +2568,100 @@ function CarrierInfo(props) {
                                         fontSize: '1.1rem',
                                         cursor: 'pointer'
                                     }} onClick={() => {
-                                        refDispatchCarrierInfoInsuranceType.current.focus();
-                                        onInsuranceTypeKeydown({ key: 'click', preventDefault: () => { } });
+                                        delayTimer = window.setTimeout(async () => {
+                                            setPopupActiveInput('insurance-type');
+
+                                            $.post(props.serverUrl + '/getInsuranceTypes').then(async res => {
+                                                const panelWidth = (window.innerWidth * baseWidth) - (panelGap * props.dispatchOpenedPanels.indexOf('carrier-info'));
+
+                                                const input = refDispatchCarrierInfoInsuranceType.current.getBoundingClientRect();
+
+                                                let popup = refPopup.current;
+
+                                                const { innerWidth, innerHeight } = window;
+
+                                                let screenWSection = innerWidth / 3;
+
+                                                popup && (popup.childNodes[0].className = 'mochi-contextual-popup');
+
+                                                popup && popup.childNodes[0].classList.add('vertical');
+
+                                                if ((innerHeight - 170 - 30) <= input.top) {
+                                                    popup && popup.childNodes[0].classList.add('above');
+                                                }
+
+                                                if ((innerHeight - 170 - 30) > input.top) {
+                                                    popup && popup.childNodes[0].classList.add('below');
+                                                    popup && (popup.style.top = (input.top + 10) + 'px');
+                                                }
+
+                                                if (input.left <= (screenWSection * 1)) {
+                                                    popup && popup.childNodes[0].classList.add('right');
+                                                    popup && (popup.style.left = input.left + 'px');
+
+                                                    if (input.width < 70) {
+                                                        popup && (popup.style.left = (input.left - 60 + (input.width / 2)) + 'px');
+
+                                                        if (input.left < 30) {
+                                                            popup && popup.childNodes[0].classList.add('corner');
+                                                            popup && (popup.style.left = (input.left + (input.width / 2)) + 'px');
+                                                        }
+                                                    }
+                                                }
+
+                                                if (input.left <= (screenWSection * 2)) {
+                                                    popup && (popup.style.left = (input.left - 70 - (window.innerWidth - panelWidth)) + 'px');
+                                                }
+
+                                                if (input.left > (screenWSection * 2)) {
+                                                    popup && popup.childNodes[0].classList.add('left');
+                                                    popup && (popup.style.left = (input.left - 200) + 'px');
+
+                                                    if ((innerWidth - input.left) < 100) {
+                                                        popup && popup.childNodes[0].classList.add('corner');
+                                                        popup && (popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px');
+                                                    }
+                                                }
+
+                                                if (res.result === 'OK') {
+                                                    if (res.types.length > 0) {
+                                                        let items = [];
+                                                        let matched = false;
+
+                                                        items = res.types.map((insurance_type, i) => {
+                                                            if (insurance_type.name === props.selectedDispatchCarrierInfoInsurance.insurance_type?.name) {
+                                                                insurance_type.selected = true;
+                                                                matched = true;
+                                                            } else {
+                                                                insurance_type.selected = false;
+                                                            }
+
+                                                            return insurance_type;
+                                                        });
+
+                                                        if (!matched) {
+                                                            items = res.types.map((insurance_type, i) => {
+                                                                insurance_type.selected = i === 0;
+                                                                return insurance_type;
+                                                            });
+                                                        }
+
+                                                        await setPopupItems(items);
+
+                                                        popupItemsRef.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView()
+                                                            }
+                                                            return true;
+                                                        });
+                                                    } else {
+                                                        await setPopupItems([]);
+                                                    }
+                                                }
+
+                                                refDispatchCarrierInfoInsuranceType.current.focus();
+                                            })
+                                        }, 300);
                                     }}></span>
 
                                 </div>
@@ -2433,17 +2679,106 @@ function CarrierInfo(props) {
                             <div className="form-row">
                                 <div className="input-box-container grow">
                                     <MaskedInput tabIndex={88 + props.tabTimes}
-                                        mask={[/[0-9]/, /\d/, '-', /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
+                                        mask={[/[0-9]/, /\d/, '/', /\d/, /\d/, '/', /\d/, /\d/, /\d/, /\d/]}
                                         guide={true}
-                                        type="text" placeholder="Expiration Date" onKeyDown={validateInsuranceForSaving} onChange={e => props.setSelectedDispatchCarrierInfoInsurance({ ...props.selectedDispatchCarrierInfoInsurance, expiration_date: e.target.value })} value={props.selectedDispatchCarrierInfoInsurance.expiration_date || ''} />
+                                        type="text" placeholder="Expiration Date"
+                                        onKeyDown={validateInsuranceForSaving}
+                                        onBlur={e => props.setSelectedDispatchCarrierInfoInsurance({ ...props.selectedDispatchCarrierInfoInsurance, expiration_date: getFormattedDates(props.selectedDispatchCarrierInfoInsurance?.expiration_date) })}
+                                        onChange={e => props.setSelectedDispatchCarrierInfoInsurance({ ...props.selectedDispatchCarrierInfoInsurance, expiration_date: e.target.value })}
+                                        onChange={e => props.setSelectedDispatchCarrierInfoInsurance({ ...props.selectedDispatchCarrierInfoInsurance, expiration_date: e.target.value })}
+                                        value={props.selectedDispatchCarrierInfoInsurance.expiration_date || ''}
+                                        ref={refDispatchCarrierInfoInsuranceExpirationDate} />
+
+                                    <span className="fas fa-calendar-alt open-calendar-btn" onClick={(e) => {
+                                        e.stopPropagation();
+
+                                        if (moment((props.selectedDispatchCarrierInfoInsurance?.expiration_date || '').trim(), 'MM/DD/YYYY').format('MM/DD/YYYY') === (props.selectedDispatchCarrierInfoInsurance?.expiration_date || '').trim()) {
+                                            setPreSelectedExpirationDate(moment(props.selectedDispatchCarrierInfoInsurance?.expiration_date, 'MM/DD/YYYY'));
+                                        } else {
+                                            setPreSelectedExpirationDate(moment());
+                                        }
+
+                                        const panelWidth = (window.innerWidth * baseWidth) - (panelGap * props.dispatchOpenedPanels.indexOf('carrier-info'));
+
+                                        const input = refDispatchCarrierInfoInsuranceExpirationDate.current.inputElement.getBoundingClientRect();
+
+                                        let popup = refDispatchCarrierCalendarPopup.current;
+
+                                        const { innerWidth, innerHeight } = window;
+
+                                        let screenWSection = innerWidth / 3;
+
+                                        popup && (popup.childNodes[0].className = 'mochi-contextual-popup');
+
+                                        popup && popup.childNodes[0].classList.add('vertical');
+
+                                        if ((innerHeight - 170 - 30) <= input.top) {
+                                            popup && popup.childNodes[0].classList.add('above');
+                                        }
+
+                                        if ((innerHeight - 170 - 30) > input.top) {
+                                            popup && popup.childNodes[0].classList.add('below');
+                                            popup && (popup.style.top = (input.top + 10) + 'px');
+                                        }
+
+                                        if (input.left <= (screenWSection * 1)) {
+                                            popup && popup.childNodes[0].classList.add('right');
+                                            popup && (popup.style.left = input.left + 'px');
+
+                                            if (input.width < 70) {
+                                                popup && (popup.style.left = (input.left - 60 + (input.width / 2)) + 'px');
+
+                                                if (input.left < 30) {
+                                                    popup && popup.childNodes[0].classList.add('corner');
+                                                    popup && (popup.style.left = (input.left + (input.width / 2)) + 'px');
+                                                }
+                                            }
+                                        }
+
+                                        if (input.left <= (screenWSection * 2)) {
+                                            popup && (popup.style.left = (input.left - 70 - (window.innerWidth - panelWidth)) + 'px');
+                                        }
+
+                                        if (input.left > (screenWSection * 2)) {
+                                            popup && popup.childNodes[0].classList.add('left');
+                                            popup && (popup.style.left = (input.left - 200) + 'px');
+
+                                            if ((innerWidth - input.left) < 100) {
+                                                popup && popup.childNodes[0].classList.add('corner');
+                                                popup && (popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px');
+                                            }
+                                        }
+
+                                        setIsCalendarShown(true)
+
+                                        refDispatchCarrierInfoInsuranceExpirationDate.current.inputElement.focus();
+                                    }}></span>
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container grow">
-                                    <input tabIndex={89 + props.tabTimes} type="text" placeholder="Amount" onKeyDown={validateInsuranceForSaving} onChange={e => props.setSelectedDispatchCarrierInfoInsurance({ ...props.selectedDispatchCarrierInfoInsurance, amount: e.target.value })} value={props.selectedDispatchCarrierInfoInsurance.amount || ''} />
+                                    <span className="currency-symbol">{(props.selectedDispatchCarrierInfoInsurance.amount || '') === '' ? '' : '$'}</span>
+
+                                    <input tabIndex={89 + props.tabTimes}
+                                        className="currency"
+                                        type="text"
+                                        placeholder="Amount"
+                                        onKeyDown={validateInsuranceForSaving}
+                                        onBlur={async (e) => { await props.setSelectedDispatchCarrierInfoInsurance({ ...props.selectedDispatchCarrierInfoInsurance, amount: accounting.formatNumber(e.target.value, 2, ',', '.') }) }}
+                                        onChange={e => props.setSelectedDispatchCarrierInfoInsurance({ ...props.selectedDispatchCarrierInfoInsurance, amount: e.target.value })}
+                                        value={(props.selectedDispatchCarrierInfoInsurance?.amount || '')} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container grow">
-                                    <input tabIndex={90 + props.tabTimes} type="text" placeholder="Deductible" onKeyDown={validateInsuranceForSaving} onChange={e => props.setSelectedDispatchCarrierInfoInsurance({ ...props.selectedDispatchCarrierInfoInsurance, deductible: e.target.value })} value={props.selectedDispatchCarrierInfoInsurance.deductible || ''} />
+                                    <span className="currency-symbol">{(props.selectedDispatchCarrierInfoInsurance.deductible || '') === '' ? '' : '$'}</span>
+
+                                    <input tabIndex={89 + props.tabTimes}
+                                        className="currency"
+                                        type="text"
+                                        placeholder="Amount"
+                                        onKeyDown={validateInsuranceForSaving}
+                                        onBlur={async (e) => { await props.setSelectedDispatchCarrierInfoInsurance({ ...props.selectedDispatchCarrierInfoInsurance, deductible: accounting.formatNumber(e.target.value, 2, ',', '.') }) }}
+                                        onChange={e => props.setSelectedDispatchCarrierInfoInsurance({ ...props.selectedDispatchCarrierInfoInsurance, deductible: e.target.value })}
+                                        value={(props.selectedDispatchCarrierInfoInsurance?.deductible || '')} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
@@ -2477,12 +2812,17 @@ function CarrierInfo(props) {
                                 <div className="insurances-list-wrapper">
                                     {
                                         (props.selectedDispatchCarrierInfoCarrier?.insurances || []).map((insurance, index) => {
+                                            const itemClasses = classnames({
+                                                'insurances-list-item': true,
+                                                'selected': insurance.id === props.selectedDispatchCarrierInfoInsurance.id
+                                            })
+
                                             return (
-                                                <div className="insurances-list-item" key={index} onClick={() => props.setSelectedDispatchCarrierInfoInsurance({ ...insurance })}>
+                                                <div className={itemClasses} key={index} onClick={() => props.setSelectedDispatchCarrierInfoInsurance({ ...insurance })}>
                                                     <div className="contact-list-col tcol type">{insurance.insurance_type.name}</div>
                                                     <div className="contact-list-col tcol company">{insurance.company}</div>
                                                     <div className="contact-list-col tcol expiration-date">{insurance.expiration_date}</div>
-                                                    <div className="contact-list-col tcol amount">{insurance.amount}</div>
+                                                    <div className="contact-list-col tcol amount">{accounting.formatMoney(insurance.amount)}</div>
                                                 </div>
                                             )
                                         })
@@ -2834,6 +3174,19 @@ function CarrierInfo(props) {
                 setPopupItems={setPopupItems}
             />
 
+            <CalendarPopup
+                popupRef={refDispatchCarrierCalendarPopup}
+                popupClasses={calendarPopupContainerClasses}
+                popupGetter={moment((props.selectedDispatchCarrierInfoInsurance?.expiration_date || '').trim(), 'MM/DD/YYYY').format('MM/DD/YYYY') === (props.selectedDispatchCarrierInfoInsurance?.expiration_date || '').trim()
+                    ? moment(props.selectedDispatchCarrierInfoInsurance?.expiration_date, 'MM/DD/YYYY')
+                    : moment()}
+                popupSetter={(day) => {
+                    props.setSelectedDispatchCarrierInfoInsurance({ ...props.selectedDispatchCarrierInfoInsurance, expiration_date: day.format('MM/DD/YYYY') })
+                }}
+                closeCalendar={() => { setIsCalendarShown(false); }}
+                preDay={preSelectedExpirationDate}
+            />
+
         </div>
     )
 }
@@ -2843,6 +3196,7 @@ const mapStateToProps = state => {
         scale: state.systemReducers.scale,
         serverUrl: state.systemReducers.serverUrl,
         panels: state.dispatchReducers.panels,
+        dispatchOpenedPanels: state.dispatchReducers.dispatchOpenedPanels,
 
         dispatchCarrierInfoCarriers: state.carrierReducers.dispatchCarrierInfoCarriers,
         dispatchCarrierInfoContacts: state.carrierReducers.dispatchCarrierInfoContacts,
@@ -2881,5 +3235,6 @@ export default connect(mapStateToProps, {
     setDispatchCarrierInfoCarrierInsurances,
     setSelectedDispatchCarrierInfoInsurance,
     setSelectedDispatchCarrierInfoFactoringCompany,
-    setSelectedDispatchCarrierInfoFactoringCompanyContact
+    setSelectedDispatchCarrierInfoFactoringCompanyContact,
+    setDispatchOpenedPanels
 })(CarrierInfo)
