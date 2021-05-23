@@ -14,7 +14,7 @@ import {
 import moment from 'moment';
 import DocViewer from "react-doc-viewer";
 import { useSpring, animated } from 'react-spring';
-import CustomerModal from './../../../modal/Modal.jsx';
+import CustomerModal from './../../../modal/Modal.jsx'; 
 
 function ShipperCompanyDocuments(props) {
     const refTitleInput = useRef();

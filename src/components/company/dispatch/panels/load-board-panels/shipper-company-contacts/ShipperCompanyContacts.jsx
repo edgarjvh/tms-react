@@ -235,7 +235,7 @@ function ShipperCompanyContacts(props) {
 
                         </div>
                         <div className="contact-info">
-                            <div className="contact-name">
+                            <div className="contact-name"> 
                                 {(props.customer.selectedShipperCompanyContact?.prefix || '') + " " + (props.customer.selectedShipperCompanyContact?.first_name || '') + " " + (props.customer.selectedShipperCompanyContact?.middle_name || '') + " " + (props.customer.selectedShipperCompanyContact?.last_name || '')}
                             </div>
                             <div className="contact-company"><span style={{ fontWeight: 'bold' }}>{props.customer.selectedShipperCompanyContact?.id !== undefined ? props.customer.name : ''}</span> <span>{(props.customer.selectedShipperCompanyContact?.title || '')}</span> <span style={{ fontWeight: 'bold' }}>{(props.customer.selectedShipperCompanyContact?.department || '')}</span></div>
