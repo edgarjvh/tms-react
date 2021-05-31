@@ -1,17 +1,27 @@
 .customers-main-container {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  display: flex;
-  font-size: 24px;
-  background-color: #d3d3d3;
-  transition: all ease 0.7s;
-  overflow: hidden;
-  padding: 10px;
+  width                                             : 100%;
+  height                                            : 100%;
+  position                                          : relative;
+  display                                           : flex;
+  font-size                                         : 24px;
+  /* Permalink - use to edit and share this gradient: https://colorzilla.com/gradient-editor/#efefef+0,c8c8c8+100 */
+  background                                        : rgb(250, 250, 250);
+  /* Old browsers */
+  background                                        : -moz-radial-gradient(center, ellipse cover, rgba(250, 250, 250, 1) 0%, rgba(200, 200, 200, 1) 100%);
+  /* FF3.6-15 */
+  background                                        : -webkit-radial-gradient(center, ellipse cover, rgba(250, 250, 250, 1) 0%, rgba(200, 200, 200, 1) 100%);
+  /* Chrome10-25,Safari5.1-6 */
+  background                                        : radial-gradient(ellipse at center, rgba(250, 250, 250, 1) 0%, rgba(200, 200, 200, 1) 100%);
+  /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter                                            : progid:DXImageTransform.Microsoft.gradient(startColorstr='#efefef', endColorstr='#c8c8c8', GradientType=1);
+  /* IE6-9 fallback on horizontal gradient */
+  transition                                        : all ease 0.7s;
+  overflow                                          : hidden;
+  padding                                           : 10px;
 
   .fields-container {
-    flex-grow: 1;
-    display: flex;
+    flex-grow     : 1;
+    display       : flex;
     flex-direction: column;
 
     .fields-container-row.grow {
@@ -31,7 +41,7 @@
 
       .fields-container-col {
         margin-right: 10px;
-        display: flex;
+        display     : flex;
       }
 
       .fields-container-col:nth-child(1) {
@@ -51,78 +61,82 @@
 
     .form-slider {
       position: relative;
-      width: 100%;
-      height: 100%;
+      width   : 100%;
+      height  : 100%;
       overflow: hidden;
 
       .form-slider-wrapper {
-        width: 200%;
-        position: absolute;
-        height: 100%;
-        left: 0;
-        display: flex;
+        width     : 200%;
+        position  : absolute;
+        height    : 100%;
+        left      : 0;
+        display   : flex;
         transition: ease 0.3s;
 
         .contact-list-box {
-          width: 50%;
+          width   : 50%;
           position: relative;
 
-          .contact-list-header{
-            display: flex;
-            font-size: 0.7rem;
-            font-weight: bold;
+          .contact-list-header {
+            display        : flex;
+            font-size      : 0.7rem;
+            font-weight    : bold;
             text-decoration: underline;
-            color: rgba(0,0,0,0.7);
-            min-height: 1rem;
-            max-height: 1rem;
+            color          : rgba(0, 0, 0, 0.7);
+            min-height     : 1rem;
+            max-height     : 1rem;
           }
 
-          .tcol.first-name{
+          .tcol.first-name {
             min-width: 5rem;
             max-width: 5rem;
           }
-          .tcol.last-name{
+
+          .tcol.last-name {
             min-width: 5rem;
             max-width: 5rem;
           }
-          .tcol.phone-work{
+
+          .tcol.phone-work {
             min-width: 5rem;
             max-width: 5rem;
           }
-          .tcol.email-work{
+
+          .tcol.email-work {
             flex-grow: 1;
           }
-          .tcol.pri{
-            min-width: 0.65rem;
-            max-width: 0.65rem;
+
+          .tcol.pri {
+            min-width : 0.65rem;
+            max-width : 0.65rem;
             text-align: center;
           }
 
           .contact-list-wrapper {
-            position: absolute;
-            width: 100%;
-            height: calc(100% - 1rem);
-            bottom: 0;
-            overflow-y: auto;
+            position   : absolute;
+            width      : 100%;
+            height     : calc(100% - 1rem);
+            bottom     : 0;
+            overflow-y : scroll;
             padding-top: 5px;
 
             .contact-list-item {
-              font-size: 0.7rem;
-              border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-              padding: 5px 0;
-              cursor: pointer;
-              transition: ease 0.3s;
-              text-overflow: ellipsis;
-              white-space: nowrap;
-              overflow: hidden;
-              display: flex;
-              align-items: center;
+              font-size      : 0.7rem;
+              border-bottom  : 1px solid rgba(0, 0, 0, 0.1);
+              padding        : 5px 0;
+              cursor         : pointer;
+              transition     : ease 0.3s;
+              text-overflow  : ellipsis;
+              white-space    : nowrap;
+              overflow       : hidden;
+              display        : flex;
+              align-items    : center;
               justify-content: space-between;
-              padding-right: 5px;
+              padding-right  : 5px;
 
-              > div {
-                white-space: nowrap;
-                overflow: hidden;
+              >div {
+                white-space  : nowrap;
+                overflow     : hidden;
                 text-overflow: ellipsis;
               }
             }
@@ -140,25 +154,25 @@
     }
 
     .notes-list-container {
-      width: 100%;
-      height: 100%;
+      width   : 100%;
+      height  : 100%;
       position: relative;
 
       .notes-list-wrapper {
-        position: absolute;
-        width: 100%;
-        height: 100%;
+        position  : absolute;
+        width     : 100%;
+        height    : 100%;
         overflow-y: auto;
 
         .notes-list-item {
-          font-size: 0.7rem;
+          font-size    : 0.7rem;
           border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-          padding: 5px 0;
-          cursor: pointer;
-          transition: ease 0.3s;
+          padding      : 5px 0;
+          cursor       : pointer;
+          transition   : ease 0.3s;
           text-overflow: ellipsis;
-          white-space: nowrap;          
-          overflow: hidden;
+          white-space  : nowrap;
+          overflow     : hidden;
         }
 
         .notes-list-item:hover {
@@ -168,26 +182,26 @@
     }
 
     .directions-list-container {
-      width: 100%;
-      height: 100%;
+      width   : 100%;
+      height  : 100%;
       position: relative;
 
       .directions-list-wrapper {
-        position: absolute;
-        width: 100%;
-        height: 100%;
+        position  : absolute;
+        width     : 100%;
+        height    : 100%;
         overflow-y: auto;
         overflow-x: hidden;
 
         .directions-list-item {
-          font-size: 0.7rem;
+          font-size    : 0.7rem;
           border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-          padding: 5px 0;
-          cursor: pointer;
-          transition: ease 0.3s;
+          padding      : 5px 0;
+          cursor       : pointer;
+          transition   : ease 0.3s;
           text-overflow: ellipsis;
-          white-space: nowrap;
-          overflow: hidden;
+          white-space  : nowrap;
+          overflow     : hidden;
         }
 
         .directions-list-item:hover {
@@ -200,10 +214,10 @@
   }
 
   .buttons-container {
-    display: flex;
+    display       : flex;
     flex-direction: column;
-    width: 130px;
-    margin-top: -5px;
+    width         : 130px;
+    margin-top    : -5px;
 
     >div {
       margin-bottom: 20px;

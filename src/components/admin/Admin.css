@@ -69,7 +69,16 @@
 }
 .main-admin-container .main-content .screen-content {
   flex-grow: 1;
-  background-color: #eeeeee;
+  background: #ffffff;
+  /* Old browsers */
+  background: -moz-radial-gradient(center, ellipse cover, #ffffff 18%, #ffffff 18%, #d3d3d3 100%);
+  /* FF3.6-15 */
+  background: -webkit-radial-gradient(center, ellipse cover, #ffffff 18%, #ffffff 18%, #d3d3d3 100%);
+  /* Chrome10-25,Safari5.1-6 */
+  background: radial-gradient(ellipse at center, #ffffff 18%, #ffffff 18%, #d3d3d3 100%);
+  /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#d3d3d3', GradientType=1);
+  /* IE6-9 fallback on horizontal gradient */
 }
 .main-admin-container.is-showing {
   display: block;

@@ -5,7 +5,17 @@
   display: flex;
   flex-direction: column;
   font-size: 24px;
-  background-color: #d3d3d3;
+  /* Permalink - use to edit and share this gradient: https://colorzilla.com/gradient-editor/#efefef+0,c8c8c8+100 */
+  background: #fafafa;
+  /* Old browsers */
+  background: -moz-radial-gradient(center, ellipse cover, #fafafa 0%, #c8c8c8 100%);
+  /* FF3.6-15 */
+  background: -webkit-radial-gradient(center, ellipse cover, #fafafa 0%, #c8c8c8 100%);
+  /* Chrome10-25,Safari5.1-6 */
+  background: radial-gradient(ellipse at center, #fafafa 0%, #c8c8c8 100%);
+  /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#efefef', endColorstr='#c8c8c8', GradientType=1);
+  /* IE6-9 fallback on horizontal gradient */
   transition: all ease 0.7s;
   overflow: hidden;
   padding: 10px;
@@ -218,6 +228,7 @@
   color: rgba(0, 0, 0, 0.7);
   min-height: 1rem;
   max-height: 1rem;
+  padding-right: 15px;
 }
 .carriers-main-container .insurances-list-container .tcol.type {
   min-width: 6rem;
@@ -240,7 +251,7 @@
   width: 100%;
   height: calc(100% - 1rem);
   bottom: 0;
-  overflow-y: auto;
+  overflow-y: scroll;
   padding-top: 5px;
 }
 .carriers-main-container .insurances-list-container .insurances-list-wrapper .insurances-list-item {

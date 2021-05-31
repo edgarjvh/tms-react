@@ -13,6 +13,12 @@ import CarrierModal from './modal/Modal.jsx';
 import ReactStars from "react-rating-stars-component";
 import createNumberMask from 'text-mask-addons/dist/createNumberMask';
 import accounting from 'accounting';
+import { Transition, Spring, animated as animated2, config } from 'react-spring/renderprops';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCaretDown, faCaretRight, faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
+import { useDetectClickOutside } from "react-detect-click-outside";
+import Highlighter from "react-highlight-words";
+import Calendar from './calendar/Calendar.jsx';
 import {
     setCarriers,
     setSelectedCarrier,
@@ -44,9 +50,24 @@ import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 
 function Carriers(props) {
-    const [isCalendarShown, setIsCalendarShown] = useState(false);
     const [preSelectedExpirationDate, setPreSelectedExpirationDate] = useState(moment());
     const [popupItems, setPopupItems] = useState([]);
+
+    const [insuranceTypeDropdownItems, setInsuranceTypeDropdownItems] = useState([]);
+    const refInsuranceTypeDropDown = useDetectClickOutside({ onTriggered: async () => { await setInsuranceTypeDropdownItems([]) } });
+    const refInsuranceTypePopupItems = useRef([]);
+
+    const [insuranceCompanyDropdownItems, setInsuranceCompanyDropdownItems] = useState([]);
+    const refInsuranceCompanyDropDown = useDetectClickOutside({ onTriggered: async () => { await setInsuranceCompanyDropdownItems([]) } });
+    const refInsuranceCompanyPopupItems = useRef([]);
+
+    const [driverEquipmentDropdownItems, setDriverEquipmentDropdownItems] = useState([]);
+    const refDriverEquipmentDropDown = useDetectClickOutside({ onTriggered: async () => { await setDriverEquipmentDropdownItems([]) } });
+    const refDriverEquipmentPopupItems = useRef([]);
+
+    const [isCalendarShown, setIsCalendarShown] = useState(false);
+    const refInsuranceCalendarDropDown = useDetectClickOutside({ onTriggered: async () => { await setIsCalendarShown(false) } });
+
     const [isSavingCarrier, setIsSavingCarrier] = useState(false);
     const [isSavingContact, setIsSavingContact] = useState(false);
     const [isSavingDriver, setIsSavingDriver] = useState(false);
@@ -94,6 +115,13 @@ function Carriers(props) {
             }
         })
     }, []);
+
+    useEffect(() => {
+        if (isCalendarShown) {
+            setInsuranceCompanyDropdownItems([]);
+            setDriverEquipmentDropdownItems([]);
+        }
+    }, [isCalendarShown])
 
     const carrierStars = {
         size: 30,
@@ -503,7 +531,11 @@ function Carriers(props) {
 
                 popupItemsRef.current.map((r, i) => {
                     if (r && r.classList.contains('selected')) {
-                        r.scrollIntoView()
+                        r.scrollIntoView({
+                            behavior: 'auto',
+                            block: 'center',
+                            inline: 'nearest'
+                        })
                     }
                     return true;
                 });
@@ -536,7 +568,11 @@ function Carriers(props) {
 
                 popupItemsRef.current.map((r, i) => {
                     if (r && r.classList.contains('selected')) {
-                        r.scrollIntoView()
+                        r.scrollIntoView({
+                            behavior: 'auto',
+                            block: 'center',
+                            inline: 'nearest'
+                        })
                     }
                     return true;
                 });
@@ -1509,10 +1545,8 @@ function Carriers(props) {
         return true;
     }
 
-    const validateInsuranceForSaving = async (e) => {
-        let key = e.keyCode || e.which;
-
-        if (key === 9 && (props.selectedCarrier.id || 0) > 0) {
+    useEffect(() => {
+        if (isSavingInsurance) {
             let insurance = { ...props.selectedInsurance, carrier_id: props.selectedCarrier.id };
 
             if ((insurance.insurance_type_id || 0) >= 0 &&
@@ -1524,31 +1558,37 @@ function Carriers(props) {
                 insurance.amount = accounting.unformat(insurance.amount);
                 insurance.deductible = accounting.unformat(insurance.deductible);
 
-                if (!isSavingInsurance) {
-                    setIsSavingInsurance(true);
-                    $.post(props.serverUrl + '/saveInsurance', insurance).then(async res => {
-                        if (res.result === 'OK') {                            
-                            await props.setSelectedCarrier({ ...props.selectedCarrier, insurances: res.insurances });
-                            await props.setSelectedInsurance({ 
-                                ...insurance, 
-                                id: res.insurance.id, 
-                                amount: res.insurance.amount ? accounting.formatNumber(res.insurance.amount, 2, ',', '.') : res.insurance.amount,
-                                deductible: res.insurance.deductible ? accounting.formatNumber(res.insurance.deductible, 2, ',', '.') : res.insurance.deductible
-                            });
-                        }
-                        setIsSavingInsurance(false);
-                    }).catch(e => {
-                        setIsSavingInsurance(false);
-                    });
-                }
+                $.post(props.serverUrl + '/saveInsurance', insurance).then(async res => {
+                    if (res.result === 'OK') {
+                        await props.setSelectedCarrier({ ...props.selectedCarrier, insurances: res.insurances });
+                        await props.setSelectedInsurance({
+                            ...insurance,
+                            id: res.insurance.id,
+                            amount: res.insurance.amount ? accounting.formatNumber(res.insurance.amount, 2, ',', '.') : res.insurance.amount,
+                            deductible: res.insurance.deductible ? accounting.formatNumber(res.insurance.deductible, 2, ',', '.') : res.insurance.deductible
+                        });
+                    }
+                    setIsSavingInsurance(false);
+                }).catch(e => {
+                    setIsSavingInsurance(false);
+                });
             }
         }
+    }, [isSavingInsurance])
 
-        let expiration_date = e.target.value.trim() === '' ? moment() : moment(getFormattedDates(props.selectedInsurance?.expiration_date || ''), 'MM/DD/YYYY');
+    const validateInsuranceForSaving = async (e) => {
+        let key = e.keyCode || e.which;
 
-        await setPreSelectedExpirationDate(expiration_date);
+        if (key === 9 && (props.selectedCarrier.id || 0) > 0) {
+            setIsSavingInsurance(true);
+        }
+
+
 
         if (key === 13) {
+            let expiration_date = e.target.value.trim() === '' ? moment() : moment(getFormattedDates(props.selectedInsurance?.expiration_date || ''), 'MM/DD/YYYY');
+            await setPreSelectedExpirationDate(expiration_date);
+
             if (isCalendarShown) {
                 expiration_date = preSelectedExpirationDate.clone().format('MM/DD/YYYY');
 
@@ -1579,6 +1619,9 @@ function Carriers(props) {
         }
 
         if (key >= 37 && key <= 40) {
+            let expiration_date = e.target.value.trim() === '' ? moment() : moment(getFormattedDates(props.selectedInsurance?.expiration_date || ''), 'MM/DD/YYYY');
+            await setPreSelectedExpirationDate(expiration_date);
+            
             if (isCalendarShown) {
                 e.preventDefault();
 
@@ -2226,117 +2269,331 @@ function Carriers(props) {
                         </div>
                         <div className="form-v-sep"></div>
                         <div className="form-row">
-                            <div className="input-box-container grow" style={{ position: 'relative' }}>
+                            <div className="select-box-container" style={{ flexGrow: 1 }}>
+                                <div className="select-box-wrapper">
+                                    <input type="text"
+                                        tabIndex={96 + props.tabTimes}
+                                        placeholder="Equipment"
+                                        ref={refEquipment}
+                                        onKeyDown={async (e) => {
+                                            let key = e.keyCode || e.which;
 
-                                <input tabIndex={96 + props.tabTimes}
-                                    type="text"
-                                    placeholder="Equipment"
-                                    ref={refEquipment}
-                                    onKeyDown={equipmentOnKeydown}
-                                    onInput={onEquipmentInput}
-                                    onChange={onEquipmentInput}
-                                    value={props.selectedDriver.equipment?.name || ''} />
+                                            switch (key) {
+                                                case 37: case 38: // arrow left | arrow up
+                                                    e.preventDefault();
+                                                    if (driverEquipmentDropdownItems.length > 0) {
+                                                        let selectedIndex = driverEquipmentDropdownItems.findIndex(item => item.selected);
 
-                                <span className="fas fa-caret-down" style={{
-                                    position: 'absolute',
-                                    right: 10,
-                                    top: '50%',
-                                    transform: `translateY(-50%)`,
-                                    fontSize: '1.1rem',
-                                    cursor: 'pointer'
-                                }} onClick={() => {
-                                    delayTimer = window.setTimeout(() => {
-                                        setPopupActiveInput('equipment');
-                                        $.post(props.serverUrl + '/getEquipments', {
-                                            name: ""
-                                        }).then(async res => {
-                                            const input = refEquipment.current.getBoundingClientRect();
-
-                                            let popup = refPopup.current;
-
-                                            const { innerWidth, innerHeight } = window;
-
-                                            let screenWSection = innerWidth / 3;
-
-                                            popup && popup.childNodes[0].classList.add('vertical');
-
-                                            if ((innerHeight - 170 - 30) <= input.top) {
-                                                popup && popup.childNodes[0].classList.add('above');
-                                            }
-
-                                            if ((innerHeight - 170 - 30) > input.top) {
-                                                popup && popup.childNodes[0].classList.add('below');
-                                                popup && (popup.style.top = (input.top + 10) + 'px');
-                                            }
-
-                                            if (input.left <= (screenWSection * 1)) {
-                                                popup && popup.childNodes[0].classList.add('right');
-                                                popup && (popup.style.left = input.left + 'px');
-
-                                                if (input.width < 70) {
-                                                    popup && (popup.style.left = (input.left - 60 + (input.width / 2)) + 'px');
-
-                                                    if (input.left < 30) {
-                                                        popup && popup.childNodes[0].classList.add('corner');
-                                                        popup && (popup.style.left = (input.left + (input.width / 2)) + 'px');
-                                                    }
-                                                }
-                                            }
-
-                                            if (input.left <= (screenWSection * 2)) {
-                                                popup && (popup.style.left = (input.left - 100) + 'px');
-                                            }
-
-                                            if (input.left > (screenWSection * 2)) {
-                                                popup && popup.childNodes[0].classList.add('left');
-                                                popup && (popup.style.left = (input.left - 200) + 'px');
-
-                                                if ((innerWidth - input.left) < 100) {
-                                                    popup && popup.childNodes[0].classList.add('corner');
-                                                    popup && (popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px');
-                                                }
-                                            }
-
-                                            if (res.result === 'OK') {
-                                                if (res.equipments.length > 0) {
-                                                    let items = [];
-                                                    let matched = false;
-
-                                                    items = res.equipments.map((equipment, i) => {
-                                                        if (equipment.name === props.selectedDriver.equipment?.name) {
-                                                            equipment.selected = true;
-                                                            matched = true;
+                                                        if (selectedIndex === -1) {
+                                                            await setDriverEquipmentDropdownItems(driverEquipmentDropdownItems.map((item, index) => {
+                                                                item.selected = index === 0;
+                                                                return item;
+                                                            }))
                                                         } else {
-                                                            equipment.selected = false;
+                                                            await setDriverEquipmentDropdownItems(driverEquipmentDropdownItems.map((item, index) => {
+                                                                if (selectedIndex === 0) {
+                                                                    item.selected = index === (driverEquipmentDropdownItems.length - 1);
+                                                                } else {
+                                                                    item.selected = index === (selectedIndex - 1)
+                                                                }
+                                                                return item;
+                                                            }))
                                                         }
 
-                                                        return equipment;
-                                                    });
+                                                        refDriverEquipmentPopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    } else {
+                                                        $.post(props.serverUrl + '/getEquipments').then(async res => {
+                                                            if (res.result === 'OK') {
+                                                                await setDriverEquipmentDropdownItems(res.equipments.map((item, index) => {
+                                                                    item.selected = (props.selectedDriver?.equipment?.id || 0) === 0
+                                                                        ? index === 0
+                                                                        : item.id === props.selectedDriver.equipment.id
+                                                                    return item;
+                                                                }))
 
-                                                    if (!matched) {
-                                                        items = res.equipments.map((equipment, i) => {
-                                                            equipment.selected = i === 0;
-                                                            return equipment;
+                                                                refDriverEquipmentPopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
+                                                                });
+                                                            }
+                                                        }).catch(async e => {
+                                                            console.log('error getting driver equipments', e);
+                                                        })
+                                                    }
+                                                    break;
+
+                                                case 39: case 40: // arrow right | arrow down
+                                                    e.preventDefault();
+                                                    if (driverEquipmentDropdownItems.length > 0) {
+                                                        let selectedIndex = driverEquipmentDropdownItems.findIndex(item => item.selected);
+
+                                                        if (selectedIndex === -1) {
+                                                            await setDriverEquipmentDropdownItems(driverEquipmentDropdownItems.map((item, index) => {
+                                                                item.selected = index === 0;
+                                                                return item;
+                                                            }))
+                                                        } else {
+                                                            await setDriverEquipmentDropdownItems(driverEquipmentDropdownItems.map((item, index) => {
+                                                                if (selectedIndex === (driverEquipmentDropdownItems.length - 1)) {
+                                                                    item.selected = index === 0;
+                                                                } else {
+                                                                    item.selected = index === (selectedIndex + 1)
+                                                                }
+                                                                return item;
+                                                            }))
+                                                        }
+
+                                                        refDriverEquipmentPopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    } else {
+                                                        $.post(props.serverUrl + '/getEquipments').then(async res => {
+                                                            if (res.result === 'OK') {
+                                                                await setDriverEquipmentDropdownItems(res.equipments.map((item, index) => {
+                                                                    item.selected = (props.selectedDriver?.equipment?.id || 0) === 0
+                                                                        ? index === 0
+                                                                        : item.id === props.selectedDriver.equipment.id
+                                                                    return item;
+                                                                }))
+
+                                                                refDriverEquipmentPopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
+                                                                });
+                                                            }
+                                                        }).catch(async e => {
+                                                            console.log('error getting driver equipments', e);
+                                                        })
+                                                    }
+                                                    break;
+
+                                                case 27: // escape
+                                                    setDriverEquipmentDropdownItems([]);
+                                                    break;
+
+                                                case 13: // enter
+                                                    if (driverEquipmentDropdownItems.length > 0 && driverEquipmentDropdownItems.findIndex(item => item.selected) > -1) {
+                                                        await props.setSelectedDriver({
+                                                            ...props.selectedDriver,
+                                                            equipment: driverEquipmentDropdownItems[driverEquipmentDropdownItems.findIndex(item => item.selected)]
+                                                        });
+                                                        setDriverEquipmentDropdownItems([]);
+                                                        refEquipment.current.focus();
+                                                    }
+                                                    break;
+
+                                                case 9: // tab
+                                                    if (driverEquipmentDropdownItems.length > 0) {
+                                                        e.preventDefault();
+                                                        await props.setSelectedDriver({
+                                                            ...props.selectedDriver,
+                                                            equipment: driverEquipmentDropdownItems[driverEquipmentDropdownItems.findIndex(item => item.selected)]
+                                                        });
+                                                        setDriverEquipmentDropdownItems([]);
+                                                        refEquipment.current.focus();
+                                                    }
+                                                    break;
+
+                                                default:
+                                                    break;
+                                            }
+
+
+                                        }}
+                                        onBlur={async () => {
+                                            if ((props.selectedDriver?.equipment?.id || 0) === 0) {
+                                                await props.setSelectedDriver({ ...props.selectedDriver, equipment: {} });
+                                            }
+                                        }}
+                                        onInput={async (e) => {
+                                            let equipment = props.selectedDriver?.equipment || {};
+                                            equipment.id = 0;
+                                            equipment.name = e.target.value;
+                                            await props.setSelectedDriver({ ...props.selectedDriver, equipment: equipment });
+
+                                            if (e.target.value.trim() === '') {
+                                                setDriverEquipmentDropdownItems([]);
+                                            } else {
+                                                $.post(props.serverUrl + '/getEquipments', {
+                                                    name: e.target.value.trim()
+                                                }).then(async res => {
+                                                    if (res.result === 'OK') {
+                                                        await setDriverEquipmentDropdownItems(res.equipments.map((item, index) => {
+                                                            item.selected = (props.selectedDriver?.equipment?.id || 0) === 0
+                                                                ? index === 0
+                                                                : item.id === props.selectedDriver.equipment.id
+                                                            return item;
+                                                        }))
+                                                    }
+                                                }).catch(async e => {
+                                                    console.log('error getting driver equipments', e);
+                                                })
+                                            }
+                                        }}
+                                        onChange={async (e) => {
+                                            let equipment = props.selectedDriver?.equipment || {};
+                                            equipment.id = 0;
+                                            equipment.name = e.target.value;
+                                            await props.setSelectedDriver({ ...props.selectedDriver, equipment: equipment });
+                                        }}
+                                        value={props.selectedDriver?.equipment?.name || ''}
+                                    />
+                                    <FontAwesomeIcon className="dropdown-button" icon={faCaretDown} onClick={() => {
+                                        if (driverEquipmentDropdownItems.length > 0) {
+                                            setDriverEquipmentDropdownItems([]);
+                                        } else {
+                                            if ((props.selectedDriver?.equipment?.id || 0) === 0 && (props.selectedDriver?.equipment?.name || '') !== '') {
+                                                $.post(props.serverUrl + '/getEquipments', {
+                                                    name: props.selectedDriver?.equipment.name
+                                                }).then(async res => {
+                                                    if (res.result === 'OK') {
+                                                        await setDriverEquipmentDropdownItems(res.equipments.map((item, index) => {
+                                                            item.selected = (props.selectedDriver?.equipment?.id || 0) === 0
+                                                                ? index === 0
+                                                                : item.id === props.selectedDriver.equipment.id
+                                                            return item;
+                                                        }))
+
+                                                        refDriverEquipmentPopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
                                                         });
                                                     }
+                                                }).catch(async e => {
+                                                    console.log('error getting driver equipments', e);
+                                                })
+                                            } else {
+                                                $.post(props.serverUrl + '/getEquipments').then(async res => {
+                                                    if (res.result === 'OK') {
+                                                        await setDriverEquipmentDropdownItems(res.equipments.map((item, index) => {
+                                                            item.selected = (props.selectedDriver?.equipment?.id || 0) === 0
+                                                                ? index === 0
+                                                                : item.id === props.selectedDriver.equipment.id
+                                                            return item;
+                                                        }))
 
-                                                    await setPopupItems(items);
-
-                                                    popupItemsRef.current.map((r, i) => {
-                                                        if (r && r.classList.contains('selected')) {
-                                                            r.scrollIntoView()
-                                                        }
-                                                        return true;
-                                                    });
-                                                } else {
-                                                    await setPopupItems([]);
-                                                }
+                                                        refDriverEquipmentPopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    }
+                                                }).catch(async e => {
+                                                    console.log('error getting driver equipments', e);
+                                                })
                                             }
+                                        }
 
-                                            refEquipment.current.focus();
-                                        });
-                                    }, 300);
-                                }}></span>
+                                        refEquipment.current.focus();
+                                    }} />
+                                </div>
+
+                                <Transition
+                                    from={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                    enter={{ opacity: 1, top: 'calc(100% + 15px)' }}
+                                    leave={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                    items={driverEquipmentDropdownItems.length > 0}
+                                    config={{ duration: 100 }}
+                                >
+                                    {show => show && (styles => (
+                                        <div
+                                            className="mochi-contextual-container"
+                                            id="mochi-contextual-container-driver-equipment"
+                                            style={{
+                                                ...styles,
+                                                left: '-50%',
+                                                display: 'block'
+                                            }}
+                                            ref={refDriverEquipmentDropDown}
+                                        >
+                                            <div className="mochi-contextual-popup vertical below left">
+                                                <div className="mochi-contextual-popup-content">
+                                                    <div className="mochi-contextual-popup-wrapper">
+                                                        {
+                                                            driverEquipmentDropdownItems.map((item, index) => {
+                                                                const mochiItemClasses = classnames({
+                                                                    'mochi-item': true,
+                                                                    'selected': item.selected
+                                                                });
+
+                                                                const searchValue = (props.selectedDriver?.equipment?.id || 0) === 0 && (props.selectedDriver?.equipment?.name || '') !== ''
+                                                                    ? props.selectedDriver?.equipment?.name : undefined;
+
+                                                                return (
+                                                                    <div
+                                                                        key={index}
+                                                                        className={mochiItemClasses}
+                                                                        id={item.id}
+                                                                        onClick={async () => {
+                                                                            await props.setSelectedDriver({ ...props.selectedDriver, equipment: item });
+                                                                            setDriverEquipmentDropdownItems([]);
+                                                                            refEquipment.current.focus();
+                                                                        }}
+                                                                        ref={ref => refDriverEquipmentPopupItems.current.push(ref)}
+                                                                    >
+                                                                        {
+                                                                            searchValue === undefined
+                                                                                ? item.name
+                                                                                : <Highlighter
+                                                                                    highlightClassName="mochi-item-highlight-text"
+                                                                                    searchWords={[searchValue]}
+                                                                                    autoEscape={true}
+                                                                                    textToHighlight={item.name}
+                                                                                />
+                                                                        }
+                                                                        {
+                                                                            item.selected &&
+                                                                            <FontAwesomeIcon className="dropdown-selected" icon={faCaretRight} />
+                                                                        }
+                                                                    </div>
+                                                                )
+                                                            })
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </Transition>
                             </div>
                         </div>
                         <div className="form-v-sep"></div>
@@ -2599,202 +2856,650 @@ function Carriers(props) {
                         </div>
 
                         <div className="form-row">
-                            <div className="input-box-container" style={{ position: 'relative', width: '10rem' }}>
-                                <input tabIndex={86 + props.tabTimes} type="text" placeholder="Type"
-                                    ref={refInsuranceType}
-                                    onKeyDown={onInsuranceTypeKeydown}
-                                    onInput={() => { }}
-                                    onChange={() => { }}
-                                    value={props.selectedInsurance.insurance_type?.name || ''} />
+                            <div className="select-box-container" style={{ width: '10rem' }}>
+                                <div className="select-box-wrapper">
+                                    <input type="text"
+                                        tabIndex={86 + props.tabTimes}
+                                        placeholder="Type"
+                                        ref={refInsuranceType}
+                                        onKeyDown={async (e) => {
+                                            let key = e.keyCode || e.which;
 
-                                <span className="fas fa-caret-down" style={{
-                                    position: 'absolute',
-                                    right: 10,
-                                    top: '50%',
-                                    transform: `translateY(-50%)`,
-                                    fontSize: '1.1rem',
-                                    cursor: 'pointer'
-                                }} onClick={() => {
-                                    delayTimer = window.setTimeout(async () => {
-                                        setPopupActiveInput('insurance-type');
+                                            switch (key) {
+                                                case 37: case 38: // arrow left | arrow up
+                                                    e.preventDefault();
+                                                    if (insuranceTypeDropdownItems.length > 0) {
+                                                        let selectedIndex = insuranceTypeDropdownItems.findIndex(item => item.selected);
 
-                                        $.post(props.serverUrl + '/getInsuranceTypes').then(async res => {
-                                            const input = refInsuranceType.current.getBoundingClientRect();
-
-                                            let popup = refPopup.current;
-
-                                            const { innerWidth, innerHeight } = window;
-
-                                            let screenWSection = innerWidth / 3;
-
-                                            popup && popup.childNodes[0].classList.add('vertical');
-
-                                            if ((innerHeight - 170 - 30) <= input.top) {
-                                                popup && popup.childNodes[0].classList.add('above');
-                                            }
-
-                                            if ((innerHeight - 170 - 30) > input.top) {
-                                                popup && popup.childNodes[0].classList.add('below');
-                                                popup && (popup.style.top = (input.top + 10) + 'px');
-                                            }
-
-                                            if (input.left <= (screenWSection * 1)) {
-                                                popup && popup.childNodes[0].classList.add('right');
-                                                popup && (popup.style.left = input.left + 'px');
-
-                                                if (input.width < 70) {
-                                                    popup && (popup.style.left = (input.left - 60 + (input.width / 2)) + 'px');
-
-                                                    if (input.left < 30) {
-                                                        popup && popup.childNodes[0].classList.add('corner');
-                                                        popup && (popup.style.left = (input.left + (input.width / 2)) + 'px');
-                                                    }
-                                                }
-                                            }
-
-                                            if (input.left <= (screenWSection * 2)) {
-                                                popup && (popup.style.left = (input.left - 100) + 'px');
-                                            }
-
-                                            if (input.left > (screenWSection * 2)) {
-                                                popup && popup.childNodes[0].classList.add('left');
-                                                popup && (popup.style.left = (input.left - 200) + 'px');
-
-                                                if ((innerWidth - input.left) < 100) {
-                                                    popup && popup.childNodes[0].classList.add('corner');
-                                                    popup && (popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px');
-                                                }
-                                            }
-
-                                            if (res.result === 'OK') {
-                                                if (res.types.length > 0) {
-                                                    let items = [];
-                                                    let matched = false;
-
-                                                    items = res.types.map((insurance_type, i) => {
-                                                        if (insurance_type.name === props.selectedInsurance.insurance_type?.name) {
-                                                            insurance_type.selected = true;
-                                                            matched = true;
+                                                        if (selectedIndex === -1) {
+                                                            await setInsuranceTypeDropdownItems(insuranceTypeDropdownItems.map((item, index) => {
+                                                                item.selected = index === 0;
+                                                                return item;
+                                                            }))
                                                         } else {
-                                                            insurance_type.selected = false;
+                                                            await setInsuranceTypeDropdownItems(insuranceTypeDropdownItems.map((item, index) => {
+                                                                if (selectedIndex === 0) {
+                                                                    item.selected = index === (insuranceTypeDropdownItems.length - 1);
+                                                                } else {
+                                                                    item.selected = index === (selectedIndex - 1)
+                                                                }
+                                                                return item;
+                                                            }))
                                                         }
 
-                                                        return insurance_type;
-                                                    });
+                                                        refInsuranceTypePopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    } else {
+                                                        $.post(props.serverUrl + '/getInsuranceTypes').then(async res => {
+                                                            if (res.result === 'OK') {
+                                                                await setInsuranceTypeDropdownItems(res.types.map((item, index) => {
+                                                                    item.selected = (props.selectedInsurance?.insurance_type?.id || 0) === 0
+                                                                        ? index === 0
+                                                                        : item.id === props.selectedInsurance.insurance_type.id
+                                                                    return item;
+                                                                }))
 
-                                                    if (!matched) {
-                                                        items = res.types.map((insurance_type, i) => {
-                                                            insurance_type.selected = i === 0;
-                                                            return insurance_type;
+                                                                refInsuranceTypePopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
+                                                                });
+                                                            }
+                                                        }).catch(async e => {
+                                                            console.log('error getting insurance types', e);
+                                                        })
+                                                    }
+                                                    break;
+
+                                                case 39: case 40: // arrow right | arrow down
+                                                    e.preventDefault();
+                                                    if (insuranceTypeDropdownItems.length > 0) {
+                                                        let selectedIndex = insuranceTypeDropdownItems.findIndex(item => item.selected);
+
+                                                        if (selectedIndex === -1) {
+                                                            await setInsuranceTypeDropdownItems(insuranceTypeDropdownItems.map((item, index) => {
+                                                                item.selected = index === 0;
+                                                                return item;
+                                                            }))
+                                                        } else {
+                                                            await setInsuranceTypeDropdownItems(insuranceTypeDropdownItems.map((item, index) => {
+                                                                if (selectedIndex === (insuranceTypeDropdownItems.length - 1)) {
+                                                                    item.selected = index === 0;
+                                                                } else {
+                                                                    item.selected = index === (selectedIndex + 1)
+                                                                }
+                                                                return item;
+                                                            }))
+                                                        }
+
+                                                        refInsuranceTypePopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    } else {
+                                                        $.post(props.serverUrl + '/getInsuranceTypes').then(async res => {
+                                                            if (res.result === 'OK') {
+                                                                await setInsuranceTypeDropdownItems(res.types.map((item, index) => {
+                                                                    item.selected = (props.selectedInsurance?.insurance_type?.id || 0) === 0
+                                                                        ? index === 0
+                                                                        : item.id === props.selectedInsurance.insurance_type.id
+                                                                    return item;
+                                                                }))
+
+                                                                refInsuranceTypePopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
+                                                                });
+                                                            }
+                                                        }).catch(async e => {
+                                                            console.log('error getting insurance types', e);
+                                                        })
+                                                    }
+                                                    break;
+
+                                                case 27: // escape
+                                                    setInsuranceTypeDropdownItems([]);
+                                                    break;
+
+                                                case 13: // enter
+                                                    if (insuranceTypeDropdownItems.length > 0 && insuranceTypeDropdownItems.findIndex(item => item.selected) > -1) {
+                                                        await props.setSelectedInsurance({
+                                                            ...props.selectedInsurance,
+                                                            insurance_type: insuranceTypeDropdownItems[insuranceTypeDropdownItems.findIndex(item => item.selected)]
+                                                        });
+                                                        validateInsuranceForSaving({ keyCode: 9 });
+                                                        setInsuranceTypeDropdownItems([]);
+                                                        refInsuranceType.current.focus();
+                                                    }
+                                                    break;
+
+                                                case 9: // tab
+                                                    if (insuranceTypeDropdownItems.length > 0) {
+                                                        e.preventDefault();
+                                                        await props.setSelectedInsurance({
+                                                            ...props.selectedInsurance,
+                                                            insurance_type: insuranceTypeDropdownItems[insuranceTypeDropdownItems.findIndex(item => item.selected)]
+                                                        });
+                                                        validateInsuranceForSaving({ keyCode: 9 });
+                                                        setInsuranceTypeDropdownItems([]);
+                                                        refInsuranceType.current.focus();
+                                                    }
+                                                    break;
+
+                                                default:
+                                                    break;
+                                            }
+                                        }}
+                                        onBlur={async () => {
+                                            if ((props.selectedInsurance?.insurance_type?.id || 0) === 0) {
+                                                await props.setSelectedInsurance({ ...props.selectedInsurance, insurance_type: {} });
+                                            }
+                                        }}
+                                        onInput={async (e) => {
+                                            let insurance_type = props.selectedInsurance?.insurance_type || {};
+                                            insurance_type.id = 0;
+                                            insurance_type.name = e.target.value;
+                                            await props.setSelectedInsurance({ ...props.selectedInsurance, insurance_type: insurance_type });
+
+                                            if (e.target.value.trim() === '') {
+                                                setInsuranceTypeDropdownItems([]);
+                                            } else {
+                                                $.post(props.serverUrl + '/getInsuranceTypes', {
+                                                    name: e.target.value.trim()
+                                                }).then(async res => {
+                                                    if (res.result === 'OK') {
+                                                        await setInsuranceTypeDropdownItems(res.types.map((item, index) => {
+                                                            item.selected = (props.selectedInsurance?.insurance_type?.id || 0) === 0
+                                                                ? index === 0
+                                                                : item.id === props.selectedInsurance.insurance_type.id
+                                                            return item;
+                                                        }))
+                                                    }
+                                                }).catch(async e => {
+                                                    console.log('error getting insurance types', e);
+                                                })
+                                            }
+                                        }}
+                                        onChange={async (e) => {
+                                            let insurance_type = props.selectedInsurance?.insurance_type || {};
+                                            insurance_type.id = 0;
+                                            insurance_type.name = e.target.value;
+                                            await props.setSelectedInsurance({ ...props.selectedInsurance, insurance_type: insurance_type });
+                                        }}
+                                        value={props.selectedInsurance?.insurance_type?.name || ''}
+                                    />
+                                    <FontAwesomeIcon className="dropdown-button" icon={faCaretDown} onClick={() => {
+                                        if (insuranceTypeDropdownItems.length > 0) {
+                                            setInsuranceTypeDropdownItems([]);
+                                        } else {
+                                            if ((props.selectedInsurance?.insurance_type?.id || 0) === 0 && (props.selectedInsurance?.insurance_type?.name || '') !== '') {
+                                                $.post(props.serverUrl + '/getInsuranceTypes', {
+                                                    name: props.selectedInsurance?.insurance_type.name
+                                                }).then(async res => {
+                                                    if (res.result === 'OK') {
+                                                        await setInsuranceTypeDropdownItems(res.types.map((item, index) => {
+                                                            item.selected = (props.selectedInsurance?.insurance_type?.id || 0) === 0
+                                                                ? index === 0
+                                                                : item.id === props.selectedInsurance.insurance_type.id
+                                                            return item;
+                                                        }))
+
+                                                        refInsuranceTypePopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
                                                         });
                                                     }
+                                                }).catch(async e => {
+                                                    console.log('error getting insurance types', e);
+                                                })
+                                            } else {
+                                                $.post(props.serverUrl + '/getInsuranceTypes').then(async res => {
+                                                    if (res.result === 'OK') {
+                                                        await setInsuranceTypeDropdownItems(res.types.map((item, index) => {
+                                                            item.selected = (props.selectedInsurance?.insurance_type?.id || 0) === 0
+                                                                ? index === 0
+                                                                : item.id === props.selectedInsurance.insurance_type.id
+                                                            return item;
+                                                        }))
 
-                                                    await setPopupItems(items);
-
-                                                    popupItemsRef.current.map((r, i) => {
-                                                        if (r && r.classList.contains('selected')) {
-                                                            r.scrollIntoView()
-                                                        }
-                                                        return true;
-                                                    });
-                                                } else {
-                                                    await setPopupItems([]);
-                                                }
+                                                        refInsuranceTypePopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    }
+                                                }).catch(async e => {
+                                                    console.log('error getting insurance types', e);
+                                                })
                                             }
+                                        }
 
+                                        refInsuranceType.current.focus();
+                                    }} />
+                                </div>
 
+                                <Transition
+                                    from={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                    enter={{ opacity: 1, top: 'calc(100% + 15px)' }}
+                                    leave={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                    items={insuranceTypeDropdownItems.length > 0}
+                                    config={{ duration: 100 }}
+                                >
+                                    {show => show && (styles => (
+                                        <div
+                                            className="mochi-contextual-container"
+                                            id="mochi-contextual-container-insurance-type"
+                                            style={{
+                                                ...styles,
+                                                left: '-50%',
+                                                display: 'block'
+                                            }}
+                                            ref={refInsuranceTypeDropDown}
+                                        >
+                                            <div className="mochi-contextual-popup vertical below" style={{ height: 150 }}>
+                                                <div className="mochi-contextual-popup-content" >
+                                                    <div className="mochi-contextual-popup-wrapper">
+                                                        {
+                                                            insuranceTypeDropdownItems.map((item, index) => {
+                                                                const mochiItemClasses = classnames({
+                                                                    'mochi-item': true,
+                                                                    'selected': item.selected
+                                                                });
 
-                                            refInsuranceType.current.focus();
-                                        })
-                                    }, 300);
-                                }}></span>
+                                                                const searchValue = (props.selectedInsurance?.insurance_type?.id || 0) === 0 && (props.selectedInsurance?.insurance_type?.name || '') !== ''
+                                                                    ? props.selectedInsurance?.insurance_type?.name : undefined;
 
+                                                                return (
+                                                                    <div
+                                                                        key={index}
+                                                                        className={mochiItemClasses}
+                                                                        id={item.id}
+                                                                        onClick={async () => {
+                                                                            await props.setSelectedInsurance({ ...props.selectedInsurance, insurance_type: item });
+                                                                            validateInsuranceForSaving({ keyCode: 9 });
+                                                                            setInsuranceTypeDropdownItems([]);
+                                                                            refInsuranceType.current.focus();
+                                                                        }}
+                                                                        ref={ref => refInsuranceTypePopupItems.current.push(ref)}
+                                                                    >
+                                                                        {
+                                                                            searchValue === undefined
+                                                                                ? item.name
+                                                                                : <Highlighter
+                                                                                    highlightClassName="mochi-item-highlight-text"
+                                                                                    searchWords={[searchValue]}
+                                                                                    autoEscape={true}
+                                                                                    textToHighlight={item.name}
+                                                                                />
+                                                                        }
+                                                                        {
+                                                                            item.selected &&
+                                                                            <FontAwesomeIcon className="dropdown-selected" icon={faCaretRight} />
+                                                                        }
+                                                                    </div>
+                                                                )
+                                                            })
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </Transition>
                             </div>
                             <div className="form-h-sep"></div>
-                            <div className="input-box-container grow">
-                                <input tabIndex={87 + props.tabTimes} type="text" placeholder="Company"
-                                    ref={refInsuranceCompany}
-                                    onKeyDown={onInsuranceCompanyKeydown}
-                                    onInput={onInsuranceCompanyInput}
-                                    // onChange={onInsuranceCompanyInput}
-                                    value={props.selectedInsurance.company || ''} />
+                            <div className="select-box-container" style={{ flexGrow: 1 }}>
+                                <div className="select-box-wrapper">
+                                    <input type="text"
+                                        tabIndex={87 + props.tabTimes}
+                                        placeholder="Company"
+                                        ref={refInsuranceCompany}
+                                        onKeyDown={async (e) => {
+                                            let key = e.keyCode || e.which;
+
+                                            switch (key) {
+                                                case 37: case 38: // arrow left | arrow up
+                                                    e.preventDefault();
+                                                    if (insuranceCompanyDropdownItems.length > 0) {
+                                                        let selectedIndex = insuranceCompanyDropdownItems.findIndex(item => item.selected);
+
+                                                        if (selectedIndex === -1) {
+                                                            await setInsuranceCompanyDropdownItems(insuranceCompanyDropdownItems.map((item, index) => {
+                                                                item.selected = index === 0;
+                                                                return item;
+                                                            }))
+                                                        } else {
+                                                            await setInsuranceCompanyDropdownItems(insuranceCompanyDropdownItems.map((item, index) => {
+                                                                if (selectedIndex === 0) {
+                                                                    item.selected = index === (insuranceCompanyDropdownItems.length - 1);
+                                                                } else {
+                                                                    item.selected = index === (selectedIndex - 1)
+                                                                }
+                                                                return item;
+                                                            }))
+                                                        }
+
+                                                        refInsuranceCompanyPopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    } else {
+                                                        $.post(props.serverUrl + '/getInsuranceCompanies').then(async res => {
+                                                            if (res.result === 'OK') {
+                                                                await setInsuranceCompanyDropdownItems(res.companies.map((item, index) => {
+                                                                    item.selected = index === 0;
+                                                                    return item;
+                                                                }))
+
+                                                                refInsuranceCompanyPopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
+                                                                });
+                                                            }
+                                                        }).catch(async e => {
+                                                            console.log('error getting insurance companies', e);
+                                                        })
+                                                    }
+                                                    break;
+
+                                                case 39: case 40: // arrow right | arrow down
+                                                    e.preventDefault();
+                                                    if (insuranceCompanyDropdownItems.length > 0) {
+                                                        let selectedIndex = insuranceCompanyDropdownItems.findIndex(item => item.selected);
+
+                                                        if (selectedIndex === -1) {
+                                                            await setInsuranceCompanyDropdownItems(insuranceCompanyDropdownItems.map((item, index) => {
+                                                                item.selected = index === 0;
+                                                                return item;
+                                                            }))
+                                                        } else {
+                                                            await setInsuranceCompanyDropdownItems(insuranceCompanyDropdownItems.map((item, index) => {
+                                                                if (selectedIndex === (insuranceCompanyDropdownItems.length - 1)) {
+                                                                    item.selected = index === 0;
+                                                                } else {
+                                                                    item.selected = index === (selectedIndex + 1)
+                                                                }
+                                                                return item;
+                                                            }))
+                                                        }
+
+                                                        refInsuranceCompanyPopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    } else {
+                                                        $.post(props.serverUrl + '/getInsuranceCompanies').then(async res => {
+                                                            if (res.result === 'OK') {
+                                                                await setInsuranceCompanyDropdownItems(res.companies.map((item, index) => {
+                                                                    item.selected = index === 0;
+                                                                    return item;
+                                                                }))
+
+                                                                refInsuranceCompanyPopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
+                                                                });
+                                                            }
+                                                        }).catch(async e => {
+                                                            console.log('error getting insurance companies', e);
+                                                        })
+                                                    }
+                                                    break;
+
+                                                case 27: // escape
+                                                    setInsuranceCompanyDropdownItems([]);
+                                                    break;
+
+                                                case 13: // enter
+                                                    if (insuranceCompanyDropdownItems.length > 0 && insuranceCompanyDropdownItems.findIndex(item => item.selected) > -1) {
+                                                        await props.setSelectedInsurance({
+                                                            ...props.selectedInsurance,
+                                                            company: insuranceCompanyDropdownItems[insuranceCompanyDropdownItems.findIndex(item => item.selected)].company
+                                                        });
+                                                        setInsuranceCompanyDropdownItems([]);
+                                                        refInsuranceCompany.current.focus();
+                                                    }
+                                                    break;
+
+                                                case 9: // tab
+                                                    if (insuranceCompanyDropdownItems.length > 0) {
+                                                        e.preventDefault();
+                                                        await props.setSelectedInsurance({
+                                                            ...props.selectedInsurance,
+                                                            company: insuranceCompanyDropdownItems[insuranceCompanyDropdownItems.findIndex(item => item.selected)].company
+                                                        });
+                                                        setInsuranceCompanyDropdownItems([]);
+                                                        refInsuranceCompany.current.focus();
+                                                    }
+                                                    break;
+
+                                                default:
+                                                    break;
+                                            }
+                                        }}
+                                        onInput={async (e) => {
+                                            await props.setSelectedInsurance({ ...props.selectedInsurance, company: e.target.value });
+
+                                            if (e.target.value.trim() === '') {
+                                                setInsuranceCompanyDropdownItems([]);
+                                            } else {
+                                                $.post(props.serverUrl + '/getInsuranceCompanies', {
+                                                    company: e.target.value.trim()
+                                                }).then(async res => {
+                                                    if (res.result === 'OK') {
+                                                        await setInsuranceCompanyDropdownItems(res.companies.map((item, index) => {
+                                                            item.selected = index === 0;
+                                                            return item;
+                                                        }))
+                                                    }
+                                                }).catch(async e => {
+                                                    console.log('error getting insurance companies', e);
+                                                })
+                                            }
+                                        }}
+                                        onChange={async (e) => {
+                                            await props.setSelectedInsurance({ ...props.selectedInsurance, company: e.target.value });
+                                        }}
+                                        value={props.selectedInsurance?.company || ''}
+                                    />
+                                </div>
+
+                                <Transition
+                                    from={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                    enter={{ opacity: 1, top: 'calc(100% + 15px)' }}
+                                    leave={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                    items={insuranceCompanyDropdownItems.length > 0}
+                                    config={{ duration: 100 }}
+                                >
+                                    {show => show && (styles => (
+                                        <div
+                                            className="mochi-contextual-container"
+                                            id="mochi-contextual-container-insurance-company"
+                                            style={{
+                                                ...styles,
+                                                left: '-50%',
+                                                display: 'block'
+                                            }}
+                                            ref={refInsuranceCompanyDropDown}
+                                        >
+                                            <div className="mochi-contextual-popup vertical below" style={{ height: 150 }}>
+                                                <div className="mochi-contextual-popup-content"  >
+                                                    <div className="mochi-contextual-popup-wrapper">
+                                                        {
+                                                            insuranceCompanyDropdownItems.map((item, index) => {
+                                                                const mochiItemClasses = classnames({
+                                                                    'mochi-item': true,
+                                                                    'selected': item.selected
+                                                                });
+
+                                                                const searchValue = (props.selectedInsurance?.company || '') !== ''
+                                                                    ? props.selectedInsurance?.company : undefined;
+
+                                                                return (
+                                                                    <div
+                                                                        key={index}
+                                                                        className={mochiItemClasses}
+                                                                        id={item.id}
+                                                                        onClick={async () => {
+                                                                            await props.setSelectedInsurance({ ...props.selectedInsurance, company: item.company });
+                                                                            setInsuranceCompanyDropdownItems([]);
+                                                                            refInsuranceCompany.current.focus();
+                                                                        }}
+                                                                        ref={ref => refInsuranceCompanyPopupItems.current.push(ref)}
+                                                                    >
+                                                                        {
+                                                                            searchValue === undefined
+                                                                                ? item.company
+                                                                                : <Highlighter
+                                                                                    highlightClassName="mochi-item-highlight-text"
+                                                                                    searchWords={[searchValue]}
+                                                                                    autoEscape={true}
+                                                                                    textToHighlight={item.company}
+                                                                                />
+                                                                        }
+                                                                        {
+                                                                            item.selected &&
+                                                                            <FontAwesomeIcon className="dropdown-selected" icon={faCaretRight} />
+                                                                        }
+                                                                    </div>
+                                                                )
+                                                            })
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </Transition>
                             </div>
                         </div>
                         <div className="form-v-sep"></div>
                         <div className="form-row">
-                            <div className="input-box-container grow">
-                                <MaskedInput tabIndex={88 + props.tabTimes}
-                                    mask={[/[0-9]/, /\d/, '/', /\d/, /\d/, '/', /\d/, /\d/, /\d/, /\d/]}
-                                    guide={false}
-                                    type="text" placeholder="Expiration Date"
-                                    onKeyDown={validateInsuranceForSaving}
-                                    onBlur={e => props.setSelectedInsurance({ ...props.selectedInsurance, expiration_date: getFormattedDates(props.selectedInsurance?.expiration_date) })}
-                                    onInput={e => props.setSelectedInsurance({ ...props.selectedInsurance, expiration_date: e.target.value })}
-                                    onChange={e => props.setSelectedInsurance({ ...props.selectedInsurance, expiration_date: e.target.value })}
-                                    value={props.selectedInsurance.expiration_date || ''}
-                                    ref={refExpirationDate}
-                                />
+                            <div className="select-box-container" style={{ width: '8rem' }}>
+                                <div className="select-box-wrapper">
+                                    <MaskedInput tabIndex={88 + props.tabTimes}
+                                        mask={[/[0-9]/, /\d/, '/', /\d/, /\d/, '/', /\d/, /\d/, /\d/, /\d/]}
+                                        guide={false}
+                                        type="text" placeholder="Expiration Date"
+                                        onKeyDown={validateInsuranceForSaving}
+                                        onBlur={e => props.setSelectedInsurance({ ...props.selectedInsurance, expiration_date: getFormattedDates(props.selectedInsurance?.expiration_date) })}
+                                        onInput={e => props.setSelectedInsurance({ ...props.selectedInsurance, expiration_date: e.target.value })}
+                                        onChange={e => props.setSelectedInsurance({ ...props.selectedInsurance, expiration_date: e.target.value })}
+                                        value={props.selectedInsurance.expiration_date || ''}
+                                        ref={refExpirationDate}
+                                    />
 
-                                <span className="fas fa-calendar-alt open-calendar-btn" onClick={(e) => {
-                                    e.stopPropagation();
+                                    <FontAwesomeIcon className="dropdown-button calendar" icon={faCalendarAlt} onClick={(e) => {
+                                        e.stopPropagation();
+                                        setIsCalendarShown(true)
 
-                                    if (moment((props.selectedInsurance?.expiration_date || '').trim(), 'MM/DD/YYYY').format('MM/DD/YYYY') === (props.selectedInsurance?.expiration_date || '').trim()) {
-                                        setPreSelectedExpirationDate(moment(props.selectedInsurance?.expiration_date, 'MM/DD/YYYY'));
-                                    } else {
-                                        setPreSelectedExpirationDate(moment());
-                                    }
-
-                                    const input = refExpirationDate.current.inputElement.getBoundingClientRect();
-
-                                    let popup = refCalendarPopup.current;
-
-                                    const { innerWidth, innerHeight } = window;
-
-                                    let screenWSection = innerWidth / 3;
-
-                                    popup && popup.childNodes[0].classList.add('vertical');
-
-                                    if ((innerHeight - 170 - 30) <= input.top) {
-                                        popup && popup.childNodes[0].classList.add('above');
-                                    }
-
-                                    if ((innerHeight - 170 - 30) > input.top) {
-                                        popup && popup.childNodes[0].classList.add('below');
-                                        popup && (popup.style.top = (input.top + 10) + 'px');
-                                    }
-
-                                    if (input.left <= (screenWSection * 1)) {
-                                        popup && popup.childNodes[0].classList.add('right');
-                                        popup && (popup.style.left = input.left + 'px');
-
-                                        if (input.width < 70) {
-                                            popup && (popup.style.left = (input.left - 60 + (input.width / 2)) + 'px');
-
-                                            if (input.left < 30) {
-                                                popup && popup.childNodes[0].classList.add('corner');
-                                                popup && (popup.style.left = (input.left + (input.width / 2)) + 'px');
-                                            }
+                                        if (moment((props.selectedInsurance?.expiration_date || '').trim(), 'MM/DD/YYYY').format('MM/DD/YYYY') === (props.selectedInsurance?.expiration_date || '').trim()) {
+                                            setPreSelectedExpirationDate(moment(props.selectedInsurance?.expiration_date, 'MM/DD/YYYY'));
+                                        } else {
+                                            setPreSelectedExpirationDate(moment());
                                         }
-                                    }
 
-                                    if (input.left <= (screenWSection * 2)) {
-                                        popup && (popup.style.left = (input.left - 100) + 'px');
-                                    }
+                                        refExpirationDate.current.inputElement.focus();
+                                    }} />
+                                </div>
 
-                                    if (input.left > (screenWSection * 2)) {
-                                        popup && popup.childNodes[0].classList.add('left');
-                                        popup && (popup.style.left = (input.left - 200) + 'px');
-
-                                        if ((innerWidth - input.left) < 100) {
-                                            popup && popup.childNodes[0].classList.add('corner');
-                                            popup && (popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px');
-                                        }
-                                    }
-
-                                    setIsCalendarShown(true)
-
-                                    refExpirationDate.current.inputElement.focus();
-                                }}></span>
+                                <Transition
+                                    from={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                    enter={{ opacity: 1, top: 'calc(100% + 15px)' }}
+                                    leave={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                    items={isCalendarShown}
+                                    config={{ duration: 100 }}
+                                >
+                                    {show => show && (styles => (
+                                        <div
+                                            className="mochi-contextual-container"
+                                            id="mochi-contextual-container-insurance-expiration-date"
+                                            style={{
+                                                ...styles,
+                                                left: '-100px',
+                                                display: 'block'
+                                            }}
+                                            ref={refInsuranceCalendarDropDown}
+                                        >
+                                            <div className="mochi-contextual-popup vertical below" style={{ height: 275 }}>
+                                                <div className="mochi-contextual-popup-content" >
+                                                    <div className="mochi-contextual-popup-wrapper">
+                                                        <Calendar
+                                                            value={moment((props.selectedInsurance?.expiration_date || '').trim(), 'MM/DD/YYYY').format('MM/DD/YYYY') === (props.selectedInsurance?.expiration_date || '').trim()
+                                                                ? moment(props.selectedInsurance?.expiration_date, 'MM/DD/YYYY')
+                                                                : moment()}
+                                                            onChange={(day) => {
+                                                                props.setSelectedInsurance({ ...props.selectedInsurance, expiration_date: day.format('MM/DD/YYYY') })
+                                                            }}
+                                                            closeCalendar={() => { setIsCalendarShown(false); }}
+                                                            preDay={preSelectedExpirationDate}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </Transition>
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container grow">
@@ -2859,7 +3564,7 @@ function Carriers(props) {
                                             'selected': insurance.id === props.selectedInsurance.id
                                         })
                                         return (
-                                            <div className={itemClasses} key={index} onClick={() => props.setSelectedInsurance({ ...insurance })}>
+                                            <div className={itemClasses} key={index} onClick={() => { props.setSelectedInsurance({ ...insurance }) }}>
                                                 <div className="contact-list-col tcol type">{insurance.insurance_type.name}</div>
                                                 <div className="contact-list-col tcol company">{insurance.company}</div>
                                                 <div className="contact-list-col tcol expiration-date">{insurance.expiration_date}</div>
@@ -3204,30 +3909,6 @@ function Carriers(props) {
                 </animated.div>
 
             }
-
-            <CarrierPopup
-                popupRef={refPopup}
-                popupClasses={popupContainerClasses}
-                popupItems={popupItems}
-                popupItemsRef={popupItemsRef}
-                popupItemClick={popupItemClick}
-                popupItemKeydown={() => { }}
-                setPopupItems={setPopupItems}
-            />
-
-            <CalendarPopup
-                popupRef={refCalendarPopup}
-                popupClasses={calendarPopupContainerClasses}
-                popupGetter={moment((props.selectedInsurance?.expiration_date || '').trim(), 'MM/DD/YYYY').format('MM/DD/YYYY') === (props.selectedInsurance?.expiration_date || '').trim()
-                    ? moment(props.selectedInsurance?.expiration_date, 'MM/DD/YYYY')
-                    : moment()}
-                popupSetter={(day) => {
-                    props.setSelectedInsurance({ ...props.selectedInsurance, expiration_date: day.format('MM/DD/YYYY') })
-                }}
-                closeCalendar={() => { setIsCalendarShown(false); }}
-                preDay={preSelectedExpirationDate}
-            />
-
         </div>
     )
 }

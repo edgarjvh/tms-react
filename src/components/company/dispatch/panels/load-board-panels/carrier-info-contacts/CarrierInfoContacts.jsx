@@ -159,10 +159,9 @@ function CarrierInfoContacts(props) {
             <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
             <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'lb-carrier-info-contacts')}><span className="fas fa-times"></span></div>
 
-            <div className="contact-container">
-
+            <div className="contact-container" style={{overflow: 'initial'}}>
                 <div className="contact-list-container">
-                    <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
+                    <div className="title">{props.title}</div><div className="side-title" style={{left: '-45px'}}><div>{props.title}</div></div>
 
                     <div className="contact-list">
                         <div className="contact-list-wrapper">
@@ -238,8 +237,19 @@ function CarrierInfoContacts(props) {
                             <div className="contact-name">
                                 {(props.carrier.selectedContact?.prefix || '') + " " + (props.carrier.selectedContact?.first_name || '') + " " + (props.carrier.selectedContact?.middle_name || '') + " " + (props.carrier.selectedContact?.last_name || '')}
                             </div>
-                            <div className="contact-company"><span style={{ fontWeight: 'bold' }}>{props.carrier.selectedContact?.id !== undefined ? props.carrier.name : ''}</span> <span>{(props.carrier.selectedContact?.title || '')}</span> <span style={{ fontWeight: 'bold' }}>{(props.carrier.selectedContact?.department || '')}</span></div>
-                        </div>
+                            <div className="contact-company">
+                                <span>
+                                    {props.carrier.selectedContact.id !== undefined ? props.carrier.name : ''}
+                                </span>
+                                
+                                <span>
+                                    {(props.carrier.selectedContact.title || '')}
+                                </span>
+                                
+                                <span>
+                                    {(props.carrier.selectedContact.department || '')}
+                                </span>
+                            </div>                        </div>
                         <div className="contact-buttons">
                             <div className="input-toggle-container">
                                 <input type="checkbox" id="cbox-panel-carrier-info-contacts-primary-btn"

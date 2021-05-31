@@ -821,9 +821,8 @@ textarea::-webkit-scrollbar-thumb:vertical {
   background-color: #ffffff;
   min-width: 300px;
   margin-top: 2px;
-  max-width: 400px;
+  min-height: 150px;
   height: 150px;
-  max-height: 250px;
   position: relative;
 }
 .mochi-contextual-popup .mochi-contextual-popup-content {

@@ -182,6 +182,9 @@
   font-size: 0.9rem;
   padding-left: 3px;
 }
+.contact-container .contact-form .contact-form-header .contact-info .contact-company span:not(:last-child) {
+  margin-right: 1rem;
+}
 .contact-container .contact-form .contact-form-header .contact-buttons {
   display: flex;
   flex-direction: column;

@@ -14,7 +14,7 @@ import {
 } from './../../../../../actions';
 import MaskedInput from 'react-text-mask';
 
-function Contacts(props) {    
+function Contacts(props) {
     const refPrefix = useRef();
     const refInputAvatar = useRef();
 
@@ -109,7 +109,7 @@ function Contacts(props) {
         let files = e.target.files;
         const maxSize = 1048576;
 
-        if (FileReader && files && (files.length > 0)){
+        if (FileReader && files && (files.length > 0)) {
             if (files[0].size > maxSize) {
                 window.alert("Selected image is too large, please select an image below 1mb");
                 return;
@@ -131,8 +131,8 @@ function Contacts(props) {
                     if (res.result === "OK") {
                         if (props.selectedCustomer.id !== undefined) {
                             await props.setSelectedCustomer({ ...props.selectedCustomer, contacts: res.contacts });
-                        }                           
-    
+                        }
+
                         await props.setContactSearchCustomer({ ...props.customer, selectedContact: res.contact, contacts: res.contacts });
                     }
                 },
@@ -140,7 +140,7 @@ function Contacts(props) {
                     console.log("ajax error");
                 },
             });
-        }        
+        }
     }
 
     const removeContactAvatar = (e) => {
@@ -148,7 +148,7 @@ function Contacts(props) {
             if (res.result === "OK") {
                 if (props.selectedCustomer.id !== undefined) {
                     await props.setSelectedCustomer({ ...props.selectedCustomer, contacts: res.contacts });
-                }                           
+                }
 
                 await props.setContactSearchCustomer({ ...props.customer, selectedContact: res.contact, contacts: res.contacts });
             }
@@ -160,10 +160,9 @@ function Contacts(props) {
             <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
             <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'customer-contacts')}><span className="fas fa-times"></span></div>
 
-            <div className="contact-container">
-
+            <div className="contact-container" style={{ overflow: 'initial' }}>
                 <div className="contact-list-container">
-                    <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
+                    <div className="title">{props.title}</div><div className="side-title" style={{ left: '-45px' }}><div>{props.title}</div></div>
 
                     <div className="contact-list">
                         <div className="contact-list-wrapper">
@@ -223,10 +222,10 @@ function Contacts(props) {
                                 (props.isEditingContact && (props.customer.selectedContact.id || 0) > 0 && (props.customer.selectedContact.avatar || '') !== '') && <span className="fas fa-trash-alt remove-contact-avatar-btn" onClick={removeContactAvatar}></span>
                             }
                             {
-                                (props.isEditingContact && (props.customer.selectedContact.id || 0) > 0) && <span className="fas fa-sync change-contact-avatar-btn" onClick={() => {refInputAvatar.current.click()}}></span>
+                                (props.isEditingContact && (props.customer.selectedContact.id || 0) > 0) && <span className="fas fa-sync change-contact-avatar-btn" onClick={() => { refInputAvatar.current.click() }}></span>
                             }
-                            
-                            <form encType='multipart/form-data' style={{display: 'none'}}>
+
+                            <form encType='multipart/form-data' style={{ display: 'none' }}>
                                 <input type="file" ref={refInputAvatar} accept='image/*' onChange={contactAvatarChange} />
                             </form>
 
@@ -239,7 +238,19 @@ function Contacts(props) {
                             <div className="contact-name">
                                 {(props.customer.selectedContact.prefix || '') + " " + (props.customer.selectedContact.first_name || '') + " " + (props.customer.selectedContact.middle_name || '') + " " + (props.customer.selectedContact.last_name || '')}
                             </div>
-                            <div className="contact-company"><span style={{ fontWeight: 'bold' }}>{props.customer.selectedContact.id !== undefined ? props.customer.name : ''}</span> <span>{(props.customer.selectedContact.title || '')}</span> <span style={{ fontWeight: 'bold' }}>{(props.customer.selectedContact.department || '')}</span></div>
+                            <div className="contact-company">
+                                <span>
+                                    {props.customer.selectedContact.id !== undefined ? props.customer.name : ''}
+                                </span>
+                                
+                                <span>
+                                    {(props.customer.selectedContact.title || '')}
+                                </span>
+                                
+                                <span>
+                                    {(props.customer.selectedContact.department || '')}
+                                </span>
+                            </div>
                         </div>
                         <div className="contact-buttons">
                             <div className="input-toggle-container">
@@ -261,7 +272,7 @@ function Contacts(props) {
                                 pointerEvents: (props.customer.selectedContact.id !== undefined && props.customer.selectedContact.id > 0) ? 'all' : 'none'
                             }}>
                                 <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
-                                <div className="mochi-button-base" style={{color: (props.customer.selectedContact.id !== undefined && props.customer.selectedContact.id > 0) ? 'rgba(138,8,8,1)' : 'rgba(138,8,8,0.5)'}}>Delete</div>
+                                <div className="mochi-button-base" style={{ color: (props.customer.selectedContact.id !== undefined && props.customer.selectedContact.id > 0) ? 'rgba(138,8,8,1)' : 'rgba(138,8,8,0.5)' }}>Delete</div>
                                 <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
                             </div>
                         </div>
@@ -600,7 +611,7 @@ function Contacts(props) {
                 <div className="footer">
                     <div className="left-buttons">
                         <div className="mochi-button" onClick={() => {
-                            props.setContactSearchCustomer({...props.customer, selectedContact: {id: 0, customer_id: props.customer.id}});
+                            props.setContactSearchCustomer({ ...props.customer, selectedContact: { id: 0, customer_id: props.customer.id } });
                             props.setIsEditingContact(true);
                             refPrefix.current.focus();
                         }}>

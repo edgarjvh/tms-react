@@ -53,12 +53,14 @@ function LoadBoard(props) {
                 setInTransitOrders(res.orders.filter(item =>
                     ((item.carrier_id || 0) > 0) &&
                     (item.events.find(ev => ev.event_type === 'loaded') !== undefined) &&
-                    ((item.deliveries.length === 0) || (item.events.find(ev => ev.consignee_id === item.deliveries[item.deliveries.length - 1].id) === undefined))))
+                    // ((item.deliveries.length === 0) || (item.events.find(ev => ev.consignee_id === item.deliveries[item.deliveries.length - 1].id) === undefined))))
+                    ((item.deliveries.length === 0) || (item.deliveries.filter(del => item.events.find(el => el.consignee_id === del.id) === undefined).length > 0))))
 
                 setDeliveredNotInvoicedOrders(res.orders.filter(item =>
                     ((item.carrier_id || 0) > 0) &&
                     (item.events.find(ev => ev.event_type === 'loaded') !== undefined) &&
-                    ((item.deliveries.length > 0) && (item.events.find(ev => ev.consignee_id === item.deliveries[item.deliveries.length - 1].id) !== undefined))))
+                    // ((item.deliveries.length > 0) && (item.events.find(ev => ev.consignee_id === item.deliveries[item.deliveries.length - 1].id) !== undefined))))
+                    ((item.deliveries.length > 0) && (item.deliveries.filter(del => item.events.find(el => el.consignee_id === del.id) === undefined).length === 0))))
 
                 setIsLoading(false);
             }

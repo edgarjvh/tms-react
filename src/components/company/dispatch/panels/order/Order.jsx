@@ -504,10 +504,10 @@ function Order(props) {
                                 </div>
 
                                 {
-                                    props.selected_order.events.map(item => {
+                                    props.selected_order.events.map((item, index) => {
 
                                         return (
-                                            <div style={{ ...styleFlexRow, justifyContent: 'space-between', marginBottom: 5 }}>
+                                            <div key={index} style={{ ...styleFlexRow, justifyContent: 'space-between', marginBottom: 5 }}>
                                                 <span style={{ ...styleFieldData, width: '8rem' }}>{item.event_date}@{item.event_time}</span>
                                                 <span style={{ ...styleFieldData, width: '8rem' }}>{item.event_type.toUpperCase()}</span>
                                                 <span style={{ ...styleFieldData, width: '8rem' }}>{item.event_location}</span>

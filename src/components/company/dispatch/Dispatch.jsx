@@ -9,9 +9,14 @@ import DispatchPopup from './popup/Popup.jsx';
 import DispatchModal from './modal/Modal.jsx';
 import { useTransition, useSpring, animated } from 'react-spring';
 import { Transition, Spring, animated as animated2, config } from 'react-spring/renderprops';
+import Highlighter from "react-highlight-words";
 import moment from 'moment';
 import 'react-multi-carousel/lib/styles.css';
 import 'loaders.css';
+
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCaretDown, faCaretRight, faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
+import { useDetectClickOutside } from "react-detect-click-outside";
 
 import SwiperCore, { Navigation } from 'swiper';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -103,6 +108,7 @@ import {
 import ChangeCarrier from './popup/ChangeCarrier.jsx';
 
 function Dispatch(props) {
+    const [driverItems, setDriverItems] = useState([]);
     SwiperCore.use([Navigation]);
 
     var delayTimer;
@@ -137,7 +143,6 @@ function Dispatch(props) {
     const [deliveryDate1KeyCode, setDeliveryDate1KeyCode] = useState(0);
     const [deliveryDate2KeyCode, setDeliveryDate2KeyCode] = useState(0);
 
-
     const [preSelectedPickupDate1, setPreSelectedPickupDate1] = useState(moment());
     const [preSelectedPickupDate2, setPreSelectedPickupDate2] = useState(moment());
     const [preSelectedDeliveryDate1, setPreSelectedDeliveryDate1] = useState(moment());
@@ -147,6 +152,11 @@ function Dispatch(props) {
     const [isPickupDate2CalendarShown, setIsPickupDate2CalendarShown] = useState(false);
     const [isDeliveryDate1CalendarShown, setIsDeliveryDate1CalendarShown] = useState(false);
     const [isDeliveryDate2CalendarShown, setIsDeliveryDate2CalendarShown] = useState(false);
+
+    const refPickupDate1CalendarDropDown = useDetectClickOutside({ onTriggered: async () => { await setIsPickupDate1CalendarShown(false) } });
+    const refPickupDate2CalendarDropDown = useDetectClickOutside({ onTriggered: async () => { await setIsPickupDate2CalendarShown(false) } });
+    const refDeliveryDate1CalendarDropDown = useDetectClickOutside({ onTriggered: async () => { await setIsDeliveryDate1CalendarShown(false) } });
+    const refDeliveryDate2CalendarDropDown = useDetectClickOutside({ onTriggered: async () => { await setIsDeliveryDate2CalendarShown(false) } });
 
     const refPickupDate1 = useRef();
     const refPickupDate2 = useRef();
@@ -223,106 +233,165 @@ function Dispatch(props) {
     const [carrierEquipment, setCarrierEquipment] = useState({});
     const [dispatchEvent, setDispatchEvent] = useState({});
     const refDivision = useRef();
-    const refLoadTypes = useRef();
-    const refTemplates = useRef();
-    const refCarrierEquipment = useRef();
+    const refLoadType = useRef();
+    const refTemplate = useRef();
+    const refEquipment = useRef();
     const refDriverName = useRef();
     const refDispatchEvents = useRef();
 
-    const [divisionsItems, setDivisionsItems] = useState([
-        {
-            id: 1,
-            name: 'Division 1',
-            selected: false
-        },
-        {
-            id: 2,
-            name: 'Division 2',
-            selected: false
-        },
-        {
-            id: 3,
-            name: 'Division 3',
-            selected: false
-        }
-    ]);
+    const [divisionItems, setDivisionItems] = useState([]);
+    const refDivisionDropDown = useDetectClickOutside({ onTriggered: async () => { await setDivisionItems([]) } });
+    const refDivisionPopupItems = useRef([]);
 
-    const [loadTypesItems, setLoadTypesItems] = useState([
-        {
-            id: 1,
-            name: 'Truckload',
-            selected: false
-        },
-        {
-            id: 2,
-            name: 'LTL',
-            selected: false
-        },
-        {
-            id: 3,
-            name: 'Partial',
-            selected: false
-        },
-        {
-            id: 3,
-            name: 'Air Freight',
-            selected: false
-        }
-    ]);
+    const [loadTypeItems, setLoadTypeItems] = useState([]);
+    const refLoadTypeDropDown = useDetectClickOutside({ onTriggered: async () => { await setLoadTypeItems([]) } });
+    const refLoadTypePopupItems = useRef([]);
 
-    const [templatesItems, setTemplatesItems] = useState([
-        {
-            id: 1,
-            name: 'Template 1',
-            selected: false
-        },
-        {
-            id: 2,
-            name: 'Template 2',
-            selected: false
-        },
-        {
-            id: 3,
-            name: 'Template 3',
-            selected: false
-        }
-    ]);
+    const [templateItems, setTemplateItems] = useState([]);
+    const refTemplateDropDown = useDetectClickOutside({ onTriggered: async () => { await setTemplateItems([]) } });
+    const refTemplatePopupItems = useRef([]);
 
-    const [carrierEquipmentsItems, setCarrierEquipmentsItems] = useState([
-        {
-            id: 1,
-            name: 'Equipment 1',
-            selected: false
-        },
-        {
-            id: 2,
-            name: 'Equipment 2',
-            selected: false
-        },
-        {
-            id: 3,
-            name: 'Equipment 3',
-            selected: false
-        }
-    ]);
+    const [equipmentItems, setEquipmentItems] = useState([]);
+    const refEquipmentDropDown = useDetectClickOutside({ onTriggered: async () => { await setEquipmentItems([]) } });
+    const refEquipmentPopupItems = useRef([]);
 
-    const [dispatchEventsItems, setDispatchEventsItems] = useState([
+
+    const refDriverDropDown = useDetectClickOutside({ onTriggered: async () => { await setDriverItems([]) } });
+    const refDriverPopupItems = useRef([]);
+
+    const [dispatchEventItems, setDispatchEventItems] = useState([
         {
             id: 1,
-            name: 'Event 1',
+            type: 'arrived',
+            name: 'Arrived',
+            enabled: true,
+            selected: false
+        },
+        // {
+        //     id: 2,
+        //     type: 'carrier asigned',
+        //     name: 'Carrier Asigned',
+        //     enabled: true,
+        //     selected: false
+        // },
+        // {
+        //     id: 3,
+        //     type: 'changed carrier',
+        //     name: 'Changed Carrier',
+        //     enabled: true,
+        //     selected: false
+        // },
+        {
+            id: 4,
+            type: 'check call',
+            name: 'Check Call',
+            enabled: true,
             selected: false
         },
         {
-            id: 2,
-            name: 'Event 2',
+            id: 5,
+            type: 'damaged',
+            name: 'Damaged',
+            enabled: true,
             selected: false
         },
         {
-            id: 3,
-            name: 'Event 3',
+            id: 6,
+            type: 'delivered',
+            name: 'Delivered',
+            enabled: true,
+            selected: false
+        },
+        {
+            id: 7,
+            type: 'departed',
+            name: 'Departed',
+            enabled: true,
+            selected: false
+        },
+        {
+            id: 8,
+            type: 'general comment',
+            name: 'General Comment',
+            enabled: true,
+            selected: false
+        },
+        {
+            id: 9,
+            type: 'loaded',
+            name: 'Loaded',
+            enabled: true,
+            selected: false
+        },
+        {
+            id: 10,
+            type: 'overage',
+            name: 'Overage',
+            enabled: true,
+            selected: false
+        },
+
+        {
+            id: 11,
+            type: 'short',
+            name: 'Short',
+            enabled: true,
             selected: false
         }
     ]);
+    const [dispatchEventSecondPageItems, setDispatchEventSecondPageItems] = useState([]);
+    const [showDispatchEventItems, setShowDispatchEventItems] = useState(false);
+    const [showDispatchEventSecondPageItems, setShowDispatchEventSecondPageItems] = useState(false);
+    const refDispatchEventDropDown = useDetectClickOutside({ onTriggered: async () => { await setShowDispatchEventItems(false) } });
+    const refDispatchEventPopupItems = useRef([]);
+    const refDispatchEventSecondPagePopupItems = useRef([]);
+
+    useEffect( () => {
+        if (!showDispatchEventItems) {
+             setDispatchEventItems(dispatchEventItems.map(item => {
+                item.selected = false;
+                return item;
+            }));
+             setShowDispatchEventSecondPageItems(false);
+        }
+    }, [showDispatchEventItems]);
+
+    // useEffect(async () => {
+    //     if (showDispatchEventItems) {
+    //         await setDispatchEventSecondPageItems([]);
+
+    //         let selectedIndex = dispatchEventItems.findIndex(el => el.selected);
+
+    //         if (selectedIndex > -1) {
+    //             let item = dispatchEventItems[selectedIndex];
+    //             let items = [];
+
+    //             switch (item.type) {
+    //                 case 'arrived':
+    //                     items = [
+    //                         ...(props.selected_order?.pickups || []),
+    //                         ...(props.selected_order?.deliveries || [])
+    //                     ]
+    //                     await setDispatchEventSecondPageItems(items);
+    //                     break;
+
+    //                 case 'loaded':
+    //                     items = [
+    //                         ...(props.selected_order?.pickups || [])
+    //                     ]
+    //                     await setDispatchEventSecondPageItems(items);
+    //                     break;
+
+    //                 case 'delivered':
+    //                     items = [
+    //                         ...(props.selected_order?.deliveries || [])
+    //                     ]
+    //                     await setDispatchEventSecondPageItems(items);
+    //                     break;
+    //             }
+    //         }
+    //     }
+    // }, [dispatchEventItems])
 
     const dispatchClearBtnClick = () => {
         props.setSelectedOrder({});
@@ -772,7 +841,7 @@ function Dispatch(props) {
 
         $.post(props.serverUrl + '/getLoadTypes').then(async res => {
             setPopupActiveInput('load-type');
-            const input = refLoadTypes.current.getBoundingClientRect();
+            const input = refLoadType.current.getBoundingClientRect();
             setPopupPosition(input);
 
             if (res.result === 'OK') {
@@ -905,7 +974,7 @@ function Dispatch(props) {
 
         $.post(props.serverUrl + '/getTemplates').then(async res => {
             setPopupActiveInput('template');
-            const input = refTemplates.current.getBoundingClientRect();
+            const input = refTemplate.current.getBoundingClientRect();
             setPopupPosition(input);
 
             if (res.result === 'OK') {
@@ -1819,20 +1888,53 @@ function Dispatch(props) {
                                 selected_order.ae_number = getRandomInt(1, 100);
                             }
 
-                            if (!isSavingOrder) {
-                                setIsSavingOrder(true);
-                                $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                            if ((selected_order.events || []).find(el => el.event_type === 'carrier asigned') === undefined){
+                                let event_parameters = {
+                                    order_id: selected_order.id,
+                                    event_time: moment().format('HHmm'),
+                                    event_date: moment().format('MM/DD/YYYY'),
+                                    user_id: selected_order.ae_number,
+                                    event_location: '',
+                                    event_notes: 'Assigned Carrier ' + res.carriers[0].code + (res.carriers[0].code_number === 0 ? '' : res.carriers[0].code_number) + ' - ' + res.carriers[0].name,
+                                    event_type: 'carrier assigned',
+                                    new_carrier_id: res.carriers[0].id
+                                }
+
+                                $.post(props.serverUrl + '/saveOrderEvent', event_parameters).then(async res => {
                                     if (res.result === 'OK') {
-                                        await props.setSelectedOrder(res.order);
+                                        $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                            if (res.result === 'OK') {
+                                                await props.setSelectedOrder(res.order);
+                                            }
+        
+                                            setIsSavingOrder(false);
+                                        }).catch(e => {
+                                            console.log('error saving order', e);
+                                            setIsSavingOrder(false);
+                                        });
+                                    } else if (res.result === 'ORDER ID NOT VALID') {
+                                        window.alert('The order number is not valid!');
+                                        goToTabindex((73 + props.tabTimes).toString());
                                     }
-
-                                    setIsSavingOrder(false);
                                 }).catch(e => {
-                                    console.log('error saving order', e);
-                                    setIsSavingOrder(false);
-                                });
-                            }
+                                    console.log('error saving order event', e);
+                                })
 
+                            }else{
+                                if (!isSavingOrder) {
+                                    setIsSavingOrder(true);
+                                    $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                        if (res.result === 'OK') {
+                                            await props.setSelectedOrder(res.order);
+                                        }
+    
+                                        setIsSavingOrder(false);
+                                    }).catch(e => {
+                                        console.log('error saving order', e);
+                                        setIsSavingOrder(false);
+                                    });
+                                }
+                            }
                         } else {
                             props.setSelectedDispatchCarrierInfoCarrier({});
                             props.setSelectedDispatchCarrierInfoDriver({});
@@ -2127,7 +2229,7 @@ function Dispatch(props) {
                     $.post(props.serverUrl + '/getEquipments', {
                         name: e.target.value.toLowerCase().trim()
                     }).then(async res => {
-                        const input = refCarrierEquipment.current.getBoundingClientRect();
+                        const input = refEquipment.current.getBoundingClientRect();
 
                         let popup = refPopup.current;
 
@@ -2675,172 +2777,49 @@ function Dispatch(props) {
 
     const validateCarrierDriverForSaving = async (e) => {
         let key = e.keyCode || e.which;
-        let selectedIndex = -1;
-        let items = popupItems.map((a, b) => {
-            if (a.selected) selectedIndex = b;
-            return a;
-        });
-
-        if (key === 37 || key === 38) {
-            e.preventDefault();
-            if (selectedIndex === -1) {
-                // items[0].selected = true;
-            } else {
-                items = items.map((a, b) => {
-                    if (selectedIndex === 0) {
-                        if (b === items.length - 1) {
-                            a.selected = true;
-                        } else {
-                            a.selected = false;
-                        }
-                    } else {
-                        if (b === selectedIndex - 1) {
-                            a.selected = true;
-                        } else {
-                            a.selected = false;
-                        }
-                    }
-                    return a;
-                });
-
-                await setPopupItems(items);
-
-                popupItemsRef.current.map((r, i) => {
-                    if (r && r.classList.contains('selected')) {
-                        r.scrollIntoView()
-                    }
-                    return true;
-                });
-            }
-        }
-
-        if (key === 39 || key === 40) {
-            e.preventDefault();
-            if (selectedIndex === -1) {
-                // items[0].selected = true;
-            } else {
-                items = items.map((a, b) => {
-                    if (selectedIndex === items.length - 1) {
-                        if (b === 0) {
-                            a.selected = true;
-                        } else {
-                            a.selected = false;
-                        }
-                    } else {
-                        if (b === selectedIndex + 1) {
-                            a.selected = true;
-                        } else {
-                            a.selected = false;
-                        }
-                    }
-                    return a;
-                });
-
-                await setPopupItems(items);
-
-                popupItemsRef.current.map((r, i) => {
-                    if (r && r.classList.contains('selected')) {
-                        r.scrollIntoView()
-                    }
-                    return true;
-                });
-            }
-        }
-
-        if (key === 13) {
-            await popupItems.map(async (item, index) => {
-                if (item.selected) {
-                    await props.setSelectedDispatchCarrierInfoDriver(item);
-                }
-
-                return true;
-            });
-
-            setPopupItems([]);
-        }
 
         if (key === 9) {
-            if (popupItems.length === 0) {
-                if ((props.selectedDispatchCarrierInfoDriver.id || 0) === 0) {
-                    await props.setSelectedDispatchCarrierInfoDriver({});
-                } else {
-                    // validateDriverForSaving(e);
-                }
-            } else {
-                popupItems.map(async (item, index) => {
-                    if (item.selected) {
-                        await props.setSelectedDispatchCarrierInfoDriver(item);
-                    }
-
-                    return true;
-                });
-
-                // validateDriverForSaving(e);
-                await setPopupItems([]);
-            }
-        }
-
-        if (key === 9) {
-            let driver = { ...props.selectedDispatchCarrierInfoDriver, id: (props.selectedDispatchCarrierInfoDriver?.id || 0), carrier_id: props.selectedDispatchCarrierInfoCarrier?.id };
-
-            if (popupItems.length === 0) {
-                if ((props.selectedDispatchCarrierInfoDriver.id || 0) === 0) {
-                    await props.setSelectedDispatchCarrierInfoDriver({});
-                } else {
-                    if ((props.selectedDispatchCarrierInfoCarrier?.id || 0) > 0) {
-                        if ((driver.first_name || '').trim() !== '') {
-                            if (!isSavingCarrierDriver) {
-                                setIsSavingCarrierDriver(true);
-
-                                $.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
-                                    if (res.result === 'OK') {
-                                        await props.setSelectedDispatchCarrierInfoCarrier({ ...props.selectedDispatchCarrierInfoCarrier, drivers: res.drivers });
-                                        await props.setSelectedDispatchCarrierInfoDriver({ ...props.selectedDispatchCarrierInfoDriver, id: res.driver.id });
-                                    }
-
-                                    await setIsSavingCarrierDriver(false);
-                                    await setPopupItems([]);
-                                });
-                            }
-                        }
-                    }
-                }
-            } else {
-                popupItems.map(async (item, index) => {
-                    if (item.selected) {
-                        driver = item;
-                        await props.setSelectedDispatchCarrierInfoDriver(item);
-                    }
-
-                    return true;
-                });
-
-                if ((props.selectedDispatchCarrierInfoCarrier?.id || 0) > 0) {
-                    if ((driver.first_name || '').trim() !== '') {
-                        if (!isSavingCarrierDriver) {
-                            setIsSavingCarrierDriver(true);
-
-                            $.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
-                                if (res.result === 'OK') {
-                                    await props.setSelectedDispatchCarrierInfoCarrier({ ...props.selectedDispatchCarrierInfoCarrier, drivers: res.drivers });
-                                    await props.setSelectedDispatchCarrierInfoDriver({ ...props.selectedDispatchCarrierInfoDriver, id: res.driver.id });
-                                }
-
-                                await setIsSavingCarrierDriver(false);
-                            });
-                        }
-                    }
-                }
-                await setPopupItems([]);
-            }
+            setIsSavingCarrierDriver(true);
         }
     }
 
+    useEffect(() => {
+        if (isSavingCarrierDriver) {
+            let driver = {
+                ...props.selectedDispatchCarrierInfoDriver,
+                id: (props.selectedDispatchCarrierInfoDriver?.id || 0),
+                carrier_id: props.selectedDispatchCarrierInfoCarrier.id
+            };
+
+            if ((props.selectedDispatchCarrierInfoCarrier?.id || 0) > 0) {
+                if ((driver.first_name || '').trim() !== '') {
+                    $.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
+                        if (res.result === 'OK') {
+                            await props.setSelectedDispatchCarrierInfoCarrier({ ...props.selectedDispatchCarrierInfoCarrier, drivers: res.drivers });
+                            await props.setSelectedDispatchCarrierInfoDriver({ ...props.selectedDispatchCarrierInfoDriver, id: res.driver.id });
+                        }
+
+                        await setIsSavingCarrierDriver(false);
+                    }).catch(e => {
+                        console.log('error saving carrier driver', e);
+                    });
+                }
+            }
+        }
+    }, [isSavingCarrierDriver])
+
     const validateOrderForSaving = (e) => {
         let key = e.keyCode || e.which;
-        let selected_order = { ...props.selected_order } || { order_number: 0 };
 
         if (key === 9) {
+            setIsSavingOrder(true);
+        }
+    }
+
+    useEffect(() => {
+        if (isSavingOrder) {
+            let selected_order = { ...props.selected_order } || { order_number: 0 };
+
             // check if there's a bill-to-company loaded
             if ((props.selectedBillToCompanyInfo?.id || 0) === 0) {
                 return;
@@ -2874,23 +2853,20 @@ function Dispatch(props) {
                 return delivery;
             });
 
-            if (!isSavingOrder) {
-                setIsSavingOrder(true);
-                $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
-                    console.log(res);
-                    if (res.result === 'OK') {
-                        await props.setSelectedOrder(res.order);
-                    }
+            setIsSavingOrder(true);
+            $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                console.log(res);
+                if (res.result === 'OK') {
+                    await props.setSelectedOrder(res.order);
+                }
 
-                    setIsSavingOrder(false);
-                }).catch(e => {
-                    console.log('error saving order', e);
-                    setIsSavingOrder(false);
-                });
-            }
-
+                setIsSavingOrder(false);
+            }).catch(e => {
+                console.log('error saving order', e);
+                setIsSavingOrder(false);
+            });
         }
-    }
+    }, [isSavingOrder])
 
     const getOrderByOrderNumber = (e) => {
         let key = e.keyCode || e.which;
@@ -2899,6 +2875,7 @@ function Dispatch(props) {
             if ((props.order_number || '') !== '') {
                 $.post(props.serverUrl + '/getOrderByOrderNumber', { order_number: props.order_number }).then(async res => {
                     if (res.result === 'OK') {
+                        await props.setSelectedOrder({});
                         await props.setSelectedOrder(res.order);
                         await props.setOrderNumber(res.order.order_number);
                         await props.setTripNumber(res.order.trip_number === 0 ? '' : res.order.trip_number);
@@ -2970,6 +2947,7 @@ function Dispatch(props) {
             if ((props.trip_number || '') !== '') {
                 $.post(props.serverUrl + '/getOrderByTripNumber', { trip_number: props.trip_number }).then(async res => {
                     if (res.result === 'OK') {
+                        await props.setSelectedOrder({});
                         await props.setSelectedOrder(res.order);
                         await props.setOrderNumber(res.order.order_number);
                         await props.setTripNumber(res.order.trip_number === 0 ? '' : res.order.trip_number);
@@ -3261,188 +3239,996 @@ function Dispatch(props) {
                         <div style={{ minWidth: '38%', maxWidth: '38%', marginRight: 10 }}>
                             <div className="form-borderless-box">
                                 <div className="form-row" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <div className="input-box-container" style={{ position: 'relative', width: '9rem' }}>
-                                        <input tabIndex={3 + props.tabTimes} type="text" placeholder="Division"
-                                            ref={refDivision}
-                                            onKeyDown={divisionOnKeydown}
-                                            onChange={() => { }}
-                                            value={props.division.name || ''}
-                                        />
-                                        <span className="fas fa-caret-down" style={{
-                                            position: 'absolute',
-                                            right: 5,
-                                            top: 'calc(50% + 2px)',
-                                            transform: `translateY(-50%)`,
-                                            fontSize: '1.1rem',
-                                            cursor: 'pointer'
-                                        }} onClick={async () => {
-                                            delayTimer = window.setTimeout(async () => {
-                                                await setPopupActiveInput('division');
 
-                                                $.post(props.serverUrl + '/getDivisions').then(async res => {
-                                                    const input = refDivision.current.getBoundingClientRect();
-                                                    setPopupPosition(input);
+                                    <div className="select-box-container" style={{ width: '9rem' }}>
+                                        <div className="select-box-wrapper">
+                                            <input type="text"
+                                                tabIndex={3 + props.tabTimes}
+                                                placeholder="Division"
+                                                ref={refDivision}
+                                                onKeyDown={async (e) => {
+                                                    let key = e.keyCode || e.which;
 
-                                                    if (res.result === 'OK') {
-                                                        if (res.divisions.length > 0) {
-                                                            let items = [];
-                                                            let matched = false;
+                                                    switch (key) {
+                                                        case 37: case 38: // arrow left | arrow up
+                                                            e.preventDefault();
+                                                            if (divisionItems.length > 0) {
+                                                                let selectedIndex = divisionItems.findIndex(item => item.selected);
 
-                                                            items = res.divisions.map((division, i) => {
-                                                                if (division.name === props.division?.name) {
-                                                                    division.selected = true;
-                                                                    matched = true;
+                                                                if (selectedIndex === -1) {
+                                                                    await setDivisionItems(divisionItems.map((item, index) => {
+                                                                        item.selected = index === 0;
+                                                                        return item;
+                                                                    }))
                                                                 } else {
-                                                                    division.selected = false;
+                                                                    await setDivisionItems(divisionItems.map((item, index) => {
+                                                                        if (selectedIndex === 0) {
+                                                                            item.selected = index === (divisionItems.length - 1);
+                                                                        } else {
+                                                                            item.selected = index === (selectedIndex - 1)
+                                                                        }
+                                                                        return item;
+                                                                    }))
                                                                 }
 
-                                                                return division;
-                                                            });
+                                                                refDivisionPopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
+                                                                });
+                                                            } else {
+                                                                $.post(props.serverUrl + '/getDivisions').then(async res => {
+                                                                    if (res.result === 'OK') {
+                                                                        await setDivisionItems(res.divisions.map((item, index) => {
+                                                                            item.selected = (props.selected_order?.division?.id || 0) === 0
+                                                                                ? index === 0
+                                                                                : item.id === props.selected_order.division.id
+                                                                            return item;
+                                                                        }))
 
-                                                            if (!matched) {
-                                                                items = res.divisions.map((division, i) => {
-                                                                    division.selected = i === 0;
-                                                                    return division;
+                                                                        refDivisionPopupItems.current.map((r, i) => {
+                                                                            if (r && r.classList.contains('selected')) {
+                                                                                r.scrollIntoView({
+                                                                                    behavior: 'auto',
+                                                                                    block: 'center',
+                                                                                    inline: 'nearest'
+                                                                                })
+                                                                            }
+                                                                            return true;
+                                                                        });
+                                                                    }
+                                                                }).catch(async e => {
+                                                                    console.log('error getting divisions', e);
+                                                                })
+                                                            }
+                                                            break;
+
+                                                        case 39: case 40: // arrow right | arrow down
+                                                            e.preventDefault();
+                                                            if (divisionItems.length > 0) {
+                                                                let selectedIndex = divisionItems.findIndex(item => item.selected);
+
+                                                                if (selectedIndex === -1) {
+                                                                    await setDivisionItems(divisionItems.map((item, index) => {
+                                                                        item.selected = index === 0;
+                                                                        return item;
+                                                                    }))
+                                                                } else {
+                                                                    await setDivisionItems(divisionItems.map((item, index) => {
+                                                                        if (selectedIndex === (divisionItems.length - 1)) {
+                                                                            item.selected = index === 0;
+                                                                        } else {
+                                                                            item.selected = index === (selectedIndex + 1)
+                                                                        }
+                                                                        return item;
+                                                                    }))
+                                                                }
+
+                                                                refDivisionPopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
+                                                                });
+                                                            } else {
+                                                                $.post(props.serverUrl + '/getDivisions').then(async res => {
+                                                                    if (res.result === 'OK') {
+                                                                        await setDivisionItems(res.divisions.map((item, index) => {
+                                                                            item.selected = (props.selected_order?.division?.id || 0) === 0
+                                                                                ? index === 0
+                                                                                : item.id === props.selected_order.division.id
+                                                                            return item;
+                                                                        }))
+
+                                                                        refDivisionPopupItems.current.map((r, i) => {
+                                                                            if (r && r.classList.contains('selected')) {
+                                                                                r.scrollIntoView({
+                                                                                    behavior: 'auto',
+                                                                                    block: 'center',
+                                                                                    inline: 'nearest'
+                                                                                })
+                                                                            }
+                                                                            return true;
+                                                                        });
+                                                                    }
+                                                                }).catch(async e => {
+                                                                    console.log('error getting divisions', e);
+                                                                })
+                                                            }
+                                                            break;
+
+                                                        case 27: // escape
+                                                            setDivisionItems([]);
+                                                            break;
+
+                                                        case 13: // enter
+                                                            if (divisionItems.length > 0 && divisionItems.findIndex(item => item.selected) > -1) {
+                                                                await props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    division: divisionItems[divisionItems.findIndex(item => item.selected)],
+                                                                    division_id: divisionItems[divisionItems.findIndex(item => item.selected)].id
+                                                                });
+
+                                                                validateOrderForSaving({ keyCode: 9 });
+                                                                setDivisionItems([]);
+                                                                refDivision.current.focus();
+                                                            }
+                                                            break;
+
+                                                        case 9: // tab
+                                                            if (divisionItems.length > 0) {
+                                                                e.preventDefault();
+                                                                await props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    division: divisionItems[divisionItems.findIndex(item => item.selected)],
+                                                                    division_id: divisionItems[divisionItems.findIndex(item => item.selected)].id
+                                                                });
+                                                                validateOrderForSaving({ keyCode: 9 });
+                                                                setDivisionItems([]);
+                                                                refDivision.current.focus();
+                                                            }
+                                                            break;
+
+                                                        default:
+                                                            break;
+                                                    }
+                                                }}
+                                                onBlur={async () => {
+                                                    if ((props.selected_order?.division?.id || 0) === 0) {
+                                                        await props.setSelectedOrder({ ...props.selected_order, division: {} });
+                                                    }
+                                                }}
+                                                onInput={async (e) => {
+                                                    let division = props.selected_order?.division || {};
+                                                    division.id = 0;
+                                                    division.name = e.target.value;
+                                                    await props.setSelectedOrder({ ...props.selected_order, division: division, division_id: division.id });
+
+                                                    if (e.target.value.trim() === '') {
+                                                        setDivisionItems([]);
+                                                    } else {
+                                                        $.post(props.serverUrl + '/getDivisions', {
+                                                            name: e.target.value.trim()
+                                                        }).then(async res => {
+                                                            if (res.result === 'OK') {
+                                                                await setDivisionItems(res.divisions.map((item, index) => {
+                                                                    item.selected = (props.selected_order?.division?.id || 0) === 0
+                                                                        ? index === 0
+                                                                        : item.id === props.selected_order.division.id
+                                                                    return item;
+                                                                }))
+                                                            }
+                                                        }).catch(async e => {
+                                                            console.log('error getting divisions', e);
+                                                        })
+                                                    }
+                                                }}
+                                                onChange={async (e) => {
+                                                    let division = props.selected_order?.division || {};
+                                                    division.id = 0;
+                                                    division.name = e.target.value;
+                                                    await props.setSelectedOrder({ ...props.selected_order, division: division, division_id: division.id });
+                                                }}
+                                                value={props.selected_order?.division?.name || ''}
+                                            />
+                                            <FontAwesomeIcon className="dropdown-button" icon={faCaretDown} onClick={() => {
+                                                if (divisionItems.length > 0) {
+                                                    setDivisionItems([]);
+                                                } else {
+                                                    if ((props.selected_order?.division?.id || 0) === 0 && (props.selected_order?.division?.name || '') !== '') {
+                                                        $.post(props.serverUrl + '/getDivisions', {
+                                                            name: props.selected_order?.division.name
+                                                        }).then(async res => {
+                                                            if (res.result === 'OK') {
+                                                                await setDivisionItems(res.divisions.map((item, index) => {
+                                                                    item.selected = (props.selected_order?.division?.id || 0) === 0
+                                                                        ? index === 0
+                                                                        : item.id === props.selected_order.division.id
+                                                                    return item;
+                                                                }))
+
+                                                                refDivisionPopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
                                                                 });
                                                             }
+                                                        }).catch(async e => {
+                                                            console.log('error getting divisions', e);
+                                                        })
+                                                    } else {
+                                                        $.post(props.serverUrl + '/getDivisions').then(async res => {
+                                                            if (res.result === 'OK') {
+                                                                await setDivisionItems(res.divisions.map((item, index) => {
+                                                                    item.selected = (props.selected_order?.division?.id || 0) === 0
+                                                                        ? index === 0
+                                                                        : item.id === props.selected_order.division.id
+                                                                    return item;
+                                                                }))
 
-                                                            await setPopupItems(items);
-
-                                                            popupItemsRef.current.map((r, i) => {
-                                                                if (r && r.classList.contains('selected')) {
-                                                                    r.scrollIntoView()
-                                                                }
-                                                                return true;
-                                                            });
-                                                        } else {
-                                                            await setPopupItems([]);
-                                                        }
+                                                                refDivisionPopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
+                                                                });
+                                                            }
+                                                        }).catch(async e => {
+                                                            console.log('error getting divisions', e);
+                                                        })
                                                     }
-                                                });
+                                                }
 
                                                 refDivision.current.focus();
-                                            }, 100);
-                                        }}></span>
+                                            }} />
+                                        </div>
+
+                                        <Transition
+                                            from={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                            enter={{ opacity: 1, top: 'calc(100% + 15px)' }}
+                                            leave={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                            items={divisionItems.length > 0}
+                                            config={{ duration: 100 }}
+                                        >
+                                            {show => show && (styles => (
+                                                <div
+                                                    className="mochi-contextual-container"
+                                                    id="mochi-contextual-container-division"
+                                                    style={{
+                                                        ...styles,
+                                                        left: '-50%',
+                                                        display: 'block'
+                                                    }}
+                                                    ref={refDivisionDropDown}
+                                                >
+                                                    <div className="mochi-contextual-popup vertical below" style={{ height: 150 }}>
+                                                        <div className="mochi-contextual-popup-content" >
+                                                            <div className="mochi-contextual-popup-wrapper">
+                                                                {
+                                                                    divisionItems.map((item, index) => {
+                                                                        const mochiItemClasses = classnames({
+                                                                            'mochi-item': true,
+                                                                            'selected': item.selected
+                                                                        });
+
+                                                                        const searchValue = (props.selected_order?.division?.id || 0) === 0 && (props.selected_order?.division?.name || '') !== ''
+                                                                            ? props.selected_order?.division?.name : undefined;
+
+                                                                        return (
+                                                                            <div
+                                                                                key={index}
+                                                                                className={mochiItemClasses}
+                                                                                id={item.id}
+                                                                                onClick={async () => {
+                                                                                    await props.setSelectedOrder({ ...props.selected_order, division: item });
+                                                                                    validateOrderForSaving({ keyCode: 9 });
+                                                                                    setDivisionItems([]);
+                                                                                    refDivision.current.focus();
+                                                                                }}
+                                                                                ref={ref => refDivisionPopupItems.current.push(ref)}
+                                                                            >
+                                                                                {
+                                                                                    searchValue === undefined
+                                                                                        ? item.name
+                                                                                        : <Highlighter
+                                                                                            highlightClassName="mochi-item-highlight-text"
+                                                                                            searchWords={[searchValue]}
+                                                                                            autoEscape={true}
+                                                                                            textToHighlight={item.name}
+                                                                                        />
+                                                                                }
+                                                                                {
+                                                                                    item.selected &&
+                                                                                    <FontAwesomeIcon className="dropdown-selected" icon={faCaretRight} />
+                                                                                }
+                                                                            </div>
+                                                                        )
+                                                                    })
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </Transition>
                                     </div>
 
-                                    <div className="input-box-container" style={{ position: 'relative', width: '9rem' }}>
-                                        <input tabIndex={4 + props.tabTimes} type="text" placeholder="Load Types"
-                                            ref={refLoadTypes}
-                                            onKeyDown={loadTypesOnKeydown}
-                                            onChange={() => { }}
-                                            value={props.load_type.name || ''}
-                                        />
-                                        <span className="fas fa-caret-down" style={{
-                                            position: 'absolute',
-                                            right: 5,
-                                            top: 'calc(50% + 2px)',
-                                            transform: `translateY(-50%)`,
-                                            fontSize: '1.1rem',
-                                            cursor: 'pointer'
-                                        }} onClick={() => {
-                                            delayTimer = window.setTimeout(async () => {
-                                                await setPopupActiveInput('load-type');
+                                    <div className="select-box-container" style={{ width: '9rem' }}>
+                                        <div className="select-box-wrapper">
+                                            <input type="text"
+                                                tabIndex={4 + props.tabTimes}
+                                                placeholder="Load Type"
+                                                ref={refLoadType}
+                                                onKeyDown={async (e) => {
+                                                    let key = e.keyCode || e.which;
 
-                                                $.post(props.serverUrl + '/getLoadTypes').then(async res => {
-                                                    const input = refLoadTypes.current.getBoundingClientRect();
-                                                    setPopupPosition(input);
+                                                    switch (key) {
+                                                        case 37: case 38: // arrow left | arrow up
+                                                            e.preventDefault();
+                                                            if (loadTypeItems.length > 0) {
+                                                                let selectedIndex = loadTypeItems.findIndex(item => item.selected);
 
-                                                    if (res.result === 'OK') {
-                                                        if (res.load_types.length > 0) {
-                                                            let items = [];
-                                                            let matched = false;
-
-                                                            items = res.load_types.map((load_type, i) => {
-                                                                if (load_type.name === props.load_type?.name) {
-                                                                    load_type.selected = true;
-                                                                    matched = true;
+                                                                if (selectedIndex === -1) {
+                                                                    await setLoadTypeItems(loadTypeItems.map((item, index) => {
+                                                                        item.selected = index === 0;
+                                                                        return item;
+                                                                    }))
                                                                 } else {
-                                                                    load_type.selected = false;
+                                                                    await setLoadTypeItems(loadTypeItems.map((item, index) => {
+                                                                        if (selectedIndex === 0) {
+                                                                            item.selected = index === (loadTypeItems.length - 1);
+                                                                        } else {
+                                                                            item.selected = index === (selectedIndex - 1)
+                                                                        }
+                                                                        return item;
+                                                                    }))
                                                                 }
 
-                                                                return load_type;
-                                                            });
+                                                                refLoadTypePopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
+                                                                });
+                                                            } else {
+                                                                $.post(props.serverUrl + '/getLoadTypes').then(async res => {
+                                                                    if (res.result === 'OK') {
+                                                                        await setLoadTypeItems(res.load_types.map((item, index) => {
+                                                                            item.selected = (props.selected_order?.load_type?.id || 0) === 0
+                                                                                ? index === 0
+                                                                                : item.id === props.selected_order.load_type.id
+                                                                            return item;
+                                                                        }))
 
-                                                            if (!matched) {
-                                                                items = res.load_types.map((load_type, i) => {
-                                                                    load_type.selected = i === 0;
-                                                                    return load_type;
+                                                                        refLoadTypePopupItems.current.map((r, i) => {
+                                                                            if (r && r.classList.contains('selected')) {
+                                                                                r.scrollIntoView({
+                                                                                    behavior: 'auto',
+                                                                                    block: 'center',
+                                                                                    inline: 'nearest'
+                                                                                })
+                                                                            }
+                                                                            return true;
+                                                                        });
+                                                                    }
+                                                                }).catch(async e => {
+                                                                    console.log('error getting load types', e);
+                                                                })
+                                                            }
+                                                            break;
+
+                                                        case 39: case 40: // arrow right | arrow down
+                                                            e.preventDefault();
+                                                            if (loadTypeItems.length > 0) {
+                                                                let selectedIndex = loadTypeItems.findIndex(item => item.selected);
+
+                                                                if (selectedIndex === -1) {
+                                                                    await setLoadTypeItems(loadTypeItems.map((item, index) => {
+                                                                        item.selected = index === 0;
+                                                                        return item;
+                                                                    }))
+                                                                } else {
+                                                                    await setLoadTypeItems(loadTypeItems.map((item, index) => {
+                                                                        if (selectedIndex === (loadTypeItems.length - 1)) {
+                                                                            item.selected = index === 0;
+                                                                        } else {
+                                                                            item.selected = index === (selectedIndex + 1)
+                                                                        }
+                                                                        return item;
+                                                                    }))
+                                                                }
+
+                                                                refLoadTypePopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
+                                                                });
+                                                            } else {
+                                                                $.post(props.serverUrl + '/getLoadTypes').then(async res => {
+                                                                    if (res.result === 'OK') {
+                                                                        await setLoadTypeItems(res.load_types.map((item, index) => {
+                                                                            item.selected = (props.selected_order?.load_type?.id || 0) === 0
+                                                                                ? index === 0
+                                                                                : item.id === props.selected_order.load_type.id
+                                                                            return item;
+                                                                        }))
+
+                                                                        refLoadTypePopupItems.current.map((r, i) => {
+                                                                            if (r && r.classList.contains('selected')) {
+                                                                                r.scrollIntoView({
+                                                                                    behavior: 'auto',
+                                                                                    block: 'center',
+                                                                                    inline: 'nearest'
+                                                                                })
+                                                                            }
+                                                                            return true;
+                                                                        });
+                                                                    }
+                                                                }).catch(async e => {
+                                                                    console.log('error getting load types', e);
+                                                                })
+                                                            }
+                                                            break;
+
+                                                        case 27: // escape
+                                                            setLoadTypeItems([]);
+                                                            break;
+
+                                                        case 13: // enter
+                                                            if (loadTypeItems.length > 0 && loadTypeItems.findIndex(item => item.selected) > -1) {
+                                                                await props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    load_type: loadTypeItems[loadTypeItems.findIndex(item => item.selected)],
+                                                                    load_type_id: loadTypeItems[loadTypeItems.findIndex(item => item.selected)].id
+                                                                });
+                                                                validateOrderForSaving({ keyCode: 9 });
+                                                                setLoadTypeItems([]);
+                                                                refLoadType.current.focus();
+                                                            }
+                                                            break;
+
+                                                        case 9: // tab
+                                                            if (loadTypeItems.length > 0) {
+                                                                e.preventDefault();
+                                                                await props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    load_type: loadTypeItems[loadTypeItems.findIndex(item => item.selected)],
+                                                                    load_type_id: loadTypeItems[loadTypeItems.findIndex(item => item.selected)].id
+                                                                });
+                                                                validateOrderForSaving({ keyCode: 9 });
+                                                                setLoadTypeItems([]);
+                                                                refLoadType.current.focus();
+                                                            }
+                                                            break;
+
+                                                        default:
+                                                            break;
+                                                    }
+                                                }}
+                                                onBlur={async () => {
+                                                    if ((props.selected_order?.load_type?.id || 0) === 0) {
+                                                        await props.setSelectedOrder({ ...props.selected_order, load_type: {} });
+                                                    }
+                                                }}
+                                                onInput={async (e) => {
+                                                    let load_type = props.selected_order?.load_type || {};
+                                                    load_type.id = 0;
+                                                    load_type.name = e.target.value;
+                                                    await props.setSelectedOrder({ ...props.selected_order, load_type: load_type, load_type_id: load_type.id });
+
+                                                    if (e.target.value.trim() === '') {
+                                                        setLoadTypeItems([]);
+                                                    } else {
+                                                        $.post(props.serverUrl + '/getLoadTypes', {
+                                                            name: e.target.value.trim()
+                                                        }).then(async res => {
+                                                            if (res.result === 'OK') {
+                                                                await setLoadTypeItems(res.load_types.map((item, index) => {
+                                                                    item.selected = (props.selected_order?.load_type?.id || 0) === 0
+                                                                        ? index === 0
+                                                                        : item.id === props.selected_order.load_type.id
+                                                                    return item;
+                                                                }))
+                                                            }
+                                                        }).catch(async e => {
+                                                            console.log('error getting load types', e);
+                                                        })
+                                                    }
+                                                }}
+                                                onChange={async (e) => {
+                                                    let load_type = props.selected_order?.load_type || {};
+                                                    load_type.id = 0;
+                                                    load_type.name = e.target.value;
+                                                    await props.setSelectedOrder({ ...props.selected_order, load_type: load_type, load_type_id: load_type.id });
+                                                }}
+                                                value={props.selected_order?.load_type?.name || ''}
+                                            />
+                                            <FontAwesomeIcon className="dropdown-button" icon={faCaretDown} onClick={() => {
+                                                if (loadTypeItems.length > 0) {
+                                                    setLoadTypeItems([]);
+                                                } else {
+                                                    if ((props.selected_order?.load_type?.id || 0) === 0 && (props.selected_order?.load_type?.name || '') !== '') {
+                                                        $.post(props.serverUrl + '/getLoadTypes', {
+                                                            name: props.selected_order?.load_type.name
+                                                        }).then(async res => {
+                                                            if (res.result === 'OK') {
+                                                                await setLoadTypeItems(res.load_types.map((item, index) => {
+                                                                    item.selected = (props.selected_order?.load_type?.id || 0) === 0
+                                                                        ? index === 0
+                                                                        : item.id === props.selected_order.load_type.id
+                                                                    return item;
+                                                                }))
+
+                                                                refLoadTypePopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
                                                                 });
                                                             }
+                                                        }).catch(async e => {
+                                                            console.log('error getting load types', e);
+                                                        })
+                                                    } else {
+                                                        $.post(props.serverUrl + '/getLoadTypes').then(async res => {
+                                                            if (res.result === 'OK') {
+                                                                await setLoadTypeItems(res.load_types.map((item, index) => {
+                                                                    item.selected = (props.selected_order?.load_type?.id || 0) === 0
+                                                                        ? index === 0
+                                                                        : item.id === props.selected_order.load_type.id
+                                                                    return item;
+                                                                }))
 
-                                                            await setPopupItems(items);
-
-                                                            popupItemsRef.current.map((r, i) => {
-                                                                if (r && r.classList.contains('selected')) {
-                                                                    r.scrollIntoView()
-                                                                }
-                                                                return true;
-                                                            });
-                                                        }
+                                                                refLoadTypePopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
+                                                                });
+                                                            }
+                                                        }).catch(async e => {
+                                                            console.log('error getting load types', e);
+                                                        })
                                                     }
-                                                });
-                                            }, 100);
-                                        }}></span>
+                                                }
+
+                                                refLoadType.current.focus();
+                                            }} />
+                                        </div>
+
+                                        <Transition
+                                            from={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                            enter={{ opacity: 1, top: 'calc(100% + 15px)' }}
+                                            leave={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                            items={loadTypeItems.length > 0}
+                                            config={{ duration: 100 }}
+                                        >
+                                            {show => show && (styles => (
+                                                <div
+                                                    className="mochi-contextual-container"
+                                                    id="mochi-contextual-container-load-type"
+                                                    style={{
+                                                        ...styles,
+                                                        left: '-50%',
+                                                        display: 'block'
+                                                    }}
+                                                    ref={refLoadTypeDropDown}
+                                                >
+                                                    <div className="mochi-contextual-popup vertical below" style={{ height: 150 }}>
+                                                        <div className="mochi-contextual-popup-content" >
+                                                            <div className="mochi-contextual-popup-wrapper">
+                                                                {
+                                                                    loadTypeItems.map((item, index) => {
+                                                                        const mochiItemClasses = classnames({
+                                                                            'mochi-item': true,
+                                                                            'selected': item.selected
+                                                                        });
+
+                                                                        const searchValue = (props.selected_order?.load_type?.id || 0) === 0 && (props.selected_order?.load_type?.name || '') !== ''
+                                                                            ? props.selected_order?.load_type?.name : undefined;
+
+                                                                        return (
+                                                                            <div
+                                                                                key={index}
+                                                                                className={mochiItemClasses}
+                                                                                id={item.id}
+                                                                                onClick={async () => {
+                                                                                    await props.setSelectedOrder({ ...props.selected_order, load_type: item });
+                                                                                    validateOrderForSaving({ keyCode: 9 });
+                                                                                    setLoadTypeItems([]);
+                                                                                    refLoadType.current.focus();
+                                                                                }}
+                                                                                ref={ref => refLoadTypePopupItems.current.push(ref)}
+                                                                            >
+                                                                                {
+                                                                                    searchValue === undefined
+                                                                                        ? item.name
+                                                                                        : <Highlighter
+                                                                                            highlightClassName="mochi-item-highlight-text"
+                                                                                            searchWords={[searchValue]}
+                                                                                            autoEscape={true}
+                                                                                            textToHighlight={item.name}
+                                                                                        />
+                                                                                }
+                                                                                {
+                                                                                    item.selected &&
+                                                                                    <FontAwesomeIcon className="dropdown-selected" icon={faCaretRight} />
+                                                                                }
+                                                                            </div>
+                                                                        )
+                                                                    })
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </Transition>
                                     </div>
 
-                                    <div className="input-box-container" style={{ position: 'relative', width: '9rem' }}>
-                                        <input tabIndex={5 + props.tabTimes} type="text" placeholder="Templates"
-                                            ref={refTemplates}
-                                            onKeyDown={templatesOnKeydown}
-                                            onChange={() => { }}
-                                            value={props.template.name || ''}
-                                        />
-                                        <span className="fas fa-caret-down" style={{
-                                            position: 'absolute',
-                                            right: 5,
-                                            top: 'calc(50% + 2px)',
-                                            transform: `translateY(-50%)`,
-                                            fontSize: '1.1rem',
-                                            cursor: 'pointer'
-                                        }} onClick={() => {
-                                            delayTimer = window.setTimeout(async () => {
-                                                await setPopupActiveInput('template');
+                                    <div className="select-box-container" style={{ width: '9rem' }}>
+                                        <div className="select-box-wrapper">
+                                            <input type="text"
+                                                tabIndex={5 + props.tabTimes}
+                                                placeholder="Template"
+                                                ref={refTemplate}
+                                                onKeyDown={async (e) => {
+                                                    let key = e.keyCode || e.which;
 
-                                                $.post(props.serverUrl + '/getTemplates').then(async res => {
-                                                    const input = refTemplates.current.getBoundingClientRect();
-                                                    setPopupPosition(input);
+                                                    switch (key) {
+                                                        case 37: case 38: // arrow left | arrow up
+                                                            e.preventDefault();
+                                                            if (templateItems.length > 0) {
+                                                                let selectedIndex = templateItems.findIndex(item => item.selected);
 
-                                                    if (res.result === 'OK') {
-                                                        if (res.templates.length > 0) {
-                                                            let items = [];
-                                                            let matched = false;
-
-                                                            items = res.templates.map((template, i) => {
-                                                                if (template.name === props.template?.name) {
-                                                                    template.selected = true;
-                                                                    matched = true;
+                                                                if (selectedIndex === -1) {
+                                                                    await setTemplateItems(templateItems.map((item, index) => {
+                                                                        item.selected = index === 0;
+                                                                        return item;
+                                                                    }))
                                                                 } else {
-                                                                    template.selected = false;
+                                                                    await setTemplateItems(templateItems.map((item, index) => {
+                                                                        if (selectedIndex === 0) {
+                                                                            item.selected = index === (templateItems.length - 1);
+                                                                        } else {
+                                                                            item.selected = index === (selectedIndex - 1)
+                                                                        }
+                                                                        return item;
+                                                                    }))
                                                                 }
 
-                                                                return template;
-                                                            });
+                                                                refTemplatePopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
+                                                                });
+                                                            } else {
+                                                                $.post(props.serverUrl + '/getTemplates').then(async res => {
+                                                                    if (res.result === 'OK') {
+                                                                        await setTemplateItems(res.templates.map((item, index) => {
+                                                                            item.selected = (props.selected_order?.template?.id || 0) === 0
+                                                                                ? index === 0
+                                                                                : item.id === props.selected_order.template.id
+                                                                            return item;
+                                                                        }))
 
-                                                            if (!matched) {
-                                                                items = res.templates.map((template, i) => {
-                                                                    template.selected = i === 0;
-                                                                    return template;
+                                                                        refTemplatePopupItems.current.map((r, i) => {
+                                                                            if (r && r.classList.contains('selected')) {
+                                                                                r.scrollIntoView({
+                                                                                    behavior: 'auto',
+                                                                                    block: 'center',
+                                                                                    inline: 'nearest'
+                                                                                })
+                                                                            }
+                                                                            return true;
+                                                                        });
+                                                                    }
+                                                                }).catch(async e => {
+                                                                    console.log('error getting templates', e);
+                                                                })
+                                                            }
+                                                            break;
+
+                                                        case 39: case 40: // arrow right | arrow down
+                                                            e.preventDefault();
+                                                            if (templateItems.length > 0) {
+                                                                let selectedIndex = templateItems.findIndex(item => item.selected);
+
+                                                                if (selectedIndex === -1) {
+                                                                    await setTemplateItems(templateItems.map((item, index) => {
+                                                                        item.selected = index === 0;
+                                                                        return item;
+                                                                    }))
+                                                                } else {
+                                                                    await setTemplateItems(templateItems.map((item, index) => {
+                                                                        if (selectedIndex === (templateItems.length - 1)) {
+                                                                            item.selected = index === 0;
+                                                                        } else {
+                                                                            item.selected = index === (selectedIndex + 1)
+                                                                        }
+                                                                        return item;
+                                                                    }))
+                                                                }
+
+                                                                refTemplatePopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
+                                                                });
+                                                            } else {
+                                                                $.post(props.serverUrl + '/getTemplates').then(async res => {
+                                                                    if (res.result === 'OK') {
+                                                                        await setTemplateItems(res.templates.map((item, index) => {
+                                                                            item.selected = (props.selected_order?.template?.id || 0) === 0
+                                                                                ? index === 0
+                                                                                : item.id === props.selected_order.template.id
+                                                                            return item;
+                                                                        }))
+
+                                                                        refTemplatePopupItems.current.map((r, i) => {
+                                                                            if (r && r.classList.contains('selected')) {
+                                                                                r.scrollIntoView({
+                                                                                    behavior: 'auto',
+                                                                                    block: 'center',
+                                                                                    inline: 'nearest'
+                                                                                })
+                                                                            }
+                                                                            return true;
+                                                                        });
+                                                                    }
+                                                                }).catch(async e => {
+                                                                    console.log('error getting templates', e);
+                                                                })
+                                                            }
+                                                            break;
+
+                                                        case 27: // escape
+                                                            setTemplateItems([]);
+                                                            break;
+
+                                                        case 13: // enter
+                                                            if (templateItems.length > 0 && templateItems.findIndex(item => item.selected) > -1) {
+                                                                await props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    template: templateItems[templateItems.findIndex(item => item.selected)],
+                                                                    template_id: templateItems[templateItems.findIndex(item => item.selected)].id
+                                                                });
+                                                                validateOrderForSaving({ keyCode: 9 });
+                                                                setTemplateItems([]);
+                                                                refTemplate.current.focus();
+                                                            }
+                                                            break;
+
+                                                        case 9: // tab
+                                                            if (templateItems.length > 0) {
+                                                                e.preventDefault();
+                                                                await props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    template: templateItems[templateItems.findIndex(item => item.selected)],
+                                                                    template_id: templateItems[templateItems.findIndex(item => item.selected)].id
+                                                                });
+                                                                validateOrderForSaving({ keyCode: 9 });
+                                                                setTemplateItems([]);
+                                                                refTemplate.current.focus();
+                                                            }
+                                                            break;
+
+                                                        default:
+                                                            break;
+                                                    }
+                                                }}
+                                                onBlur={async () => {
+                                                    if ((props.selected_order?.template?.id || 0) === 0) {
+                                                        await props.setSelectedOrder({ ...props.selected_order, template: {} });
+                                                    }
+                                                }}
+                                                onInput={async (e) => {
+                                                    let template = props.selected_order?.template || {};
+                                                    template.id = 0;
+                                                    template.name = e.target.value;
+                                                    await props.setSelectedOrder({ ...props.selected_order, template: template, template_id: template.id });
+
+                                                    if (e.target.value.trim() === '') {
+                                                        setTemplateItems([]);
+                                                    } else {
+                                                        $.post(props.serverUrl + '/getTemplates', {
+                                                            name: e.target.value.trim()
+                                                        }).then(async res => {
+                                                            if (res.result === 'OK') {
+                                                                await setTemplateItems(res.templates.map((item, index) => {
+                                                                    item.selected = (props.selected_order?.template?.id || 0) === 0
+                                                                        ? index === 0
+                                                                        : item.id === props.selected_order.template.id
+                                                                    return item;
+                                                                }))
+                                                            }
+                                                        }).catch(async e => {
+                                                            console.log('error getting templates', e);
+                                                        })
+                                                    }
+                                                }}
+                                                onChange={async (e) => {
+                                                    let template = props.selected_order?.template || {};
+                                                    template.id = 0;
+                                                    template.name = e.target.value;
+                                                    await props.setSelectedOrder({ ...props.selected_order, template: template, template_id: template.id });
+                                                }}
+                                                value={props.selected_order?.template?.name || ''}
+                                            />
+                                            <FontAwesomeIcon className="dropdown-button" icon={faCaretDown} onClick={() => {
+                                                if (templateItems.length > 0) {
+                                                    setTemplateItems([]);
+                                                } else {
+                                                    if ((props.selected_order?.template?.id || 0) === 0 && (props.selected_order?.template?.name || '') !== '') {
+                                                        $.post(props.serverUrl + '/getTemplates', {
+                                                            name: props.selected_order?.template.name
+                                                        }).then(async res => {
+                                                            if (res.result === 'OK') {
+                                                                await setTemplateItems(res.templates.map((item, index) => {
+                                                                    item.selected = (props.selected_order?.template?.id || 0) === 0
+                                                                        ? index === 0
+                                                                        : item.id === props.selected_order.template.id
+                                                                    return item;
+                                                                }))
+
+                                                                refTemplatePopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
                                                                 });
                                                             }
+                                                        }).catch(async e => {
+                                                            console.log('error getting templates', e);
+                                                        })
+                                                    } else {
+                                                        $.post(props.serverUrl + '/getTemplates').then(async res => {
+                                                            if (res.result === 'OK') {
+                                                                await setTemplateItems(res.templates.map((item, index) => {
+                                                                    item.selected = (props.selected_order?.template?.id || 0) === 0
+                                                                        ? index === 0
+                                                                        : item.id === props.selected_order.template.id
+                                                                    return item;
+                                                                }))
 
-                                                            await setPopupItems(items);
-
-                                                            popupItemsRef.current.map((r, i) => {
-                                                                if (r && r.classList.contains('selected')) {
-                                                                    r.scrollIntoView()
-                                                                }
-                                                                return true;
-                                                            });
-                                                        }
+                                                                refTemplatePopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
+                                                                });
+                                                            }
+                                                        }).catch(async e => {
+                                                            console.log('error getting templates', e);
+                                                        })
                                                     }
-                                                });
-                                            }, 100);
-                                        }}></span>
+                                                }
+
+                                                refTemplate.current.focus();
+                                            }} />
+                                        </div>
+
+                                        <Transition
+                                            from={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                            enter={{ opacity: 1, top: 'calc(100% + 15px)' }}
+                                            leave={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                            items={templateItems.length > 0}
+                                            config={{ duration: 100 }}
+                                        >
+                                            {show => show && (styles => (
+                                                <div
+                                                    className="mochi-contextual-container"
+                                                    id="mochi-contextual-container-template"
+                                                    style={{
+                                                        ...styles,
+                                                        left: '-50%',
+                                                        display: 'block'
+                                                    }}
+                                                    ref={refTemplateDropDown}
+                                                >
+                                                    <div className="mochi-contextual-popup vertical below" style={{ height: 150 }}>
+                                                        <div className="mochi-contextual-popup-content" >
+                                                            <div className="mochi-contextual-popup-wrapper">
+                                                                {
+                                                                    templateItems.map((item, index) => {
+                                                                        const mochiItemClasses = classnames({
+                                                                            'mochi-item': true,
+                                                                            'selected': item.selected
+                                                                        });
+
+                                                                        const searchValue = (props.selected_order?.template?.id || 0) === 0 && (props.selected_order?.template?.name || '') !== ''
+                                                                            ? props.selected_order?.template?.name : undefined;
+
+                                                                        return (
+                                                                            <div
+                                                                                key={index}
+                                                                                className={mochiItemClasses}
+                                                                                id={item.id}
+                                                                                onClick={async () => {
+                                                                                    await props.setSelectedOrder({ ...props.selected_order, template: item });
+                                                                                    validateOrderForSaving({ keyCode: 9 });
+                                                                                    setTemplateItems([]);
+                                                                                    refTemplate.current.focus();
+                                                                                }}
+                                                                                ref={ref => refTemplatePopupItems.current.push(ref)}
+                                                                            >
+                                                                                {
+                                                                                    searchValue === undefined
+                                                                                        ? item.name
+                                                                                        : <Highlighter
+                                                                                            highlightClassName="mochi-item-highlight-text"
+                                                                                            searchWords={[searchValue]}
+                                                                                            autoEscape={true}
+                                                                                            textToHighlight={item.name}
+                                                                                        />
+                                                                                }
+                                                                                {
+                                                                                    item.selected &&
+                                                                                    <FontAwesomeIcon className="dropdown-selected" icon={faCaretRight} />
+                                                                                }
+                                                                            </div>
+                                                                        )
+                                                                    })
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </Transition>
                                     </div>
                                 </div>
                             </div>
@@ -3789,276 +4575,769 @@ function Dispatch(props) {
                                     />
                                 </div>
                                 <div className="form-h-sep"></div>
-                                <div className="input-box-container grow" style={{ position: 'relative' }}>
-                                    <input tabIndex={56 + props.tabTimes} type="text" placeholder="Equipments"
-                                        ref={refCarrierEquipment}
-                                        onKeyDown={carrierEquipmentOnKeydown}
-                                        onInput={onEquipmentInput}
-                                        onChange={onEquipmentInput}
-                                        value={props.selectedDispatchCarrierInfoDriver.equipment?.name || ''}
-                                    />
-                                    <span className="fas fa-caret-down" style={{
-                                        position: 'absolute',
-                                        right: 5,
-                                        top: 'calc(50% + 2px)',
-                                        transform: `translateY(-50%)`,
-                                        fontSize: '1.1rem',
-                                        cursor: 'pointer'
-                                    }} onClick={() => {
-                                        delayTimer = window.setTimeout(() => {
-                                            setPopupActiveInput('equipment');
-                                            $.post(props.serverUrl + '/getEquipments', {
-                                                name: ""
-                                            }).then(async res => {
-                                                const input = refCarrierEquipment.current.getBoundingClientRect();
+                                <div className="select-box-container" style={{ width: '9rem' }}>
+                                    <div className="select-box-wrapper">
+                                        <input type="text"
+                                            tabIndex={56 + props.tabTimes}
+                                            placeholder="Equipment"
+                                            ref={refEquipment}
+                                            onKeyDown={async (e) => {
+                                                let key = e.keyCode || e.which;
 
-                                                let popup = refPopup.current;
+                                                switch (key) {
+                                                    case 37: case 38: // arrow left | arrow up
+                                                        e.preventDefault();
+                                                        if (equipmentItems.length > 0) {
+                                                            let selectedIndex = equipmentItems.findIndex(item => item.selected);
 
-                                                const { innerWidth, innerHeight } = window;
-
-                                                let screenWSection = innerWidth / 3;
-
-                                                popup && popup.childNodes[0].classList.add('vertical');
-
-                                                if ((innerHeight - 170 - 30) <= input.top) {
-                                                    popup && popup.childNodes[0].classList.add('above');
-                                                }
-
-                                                if ((innerHeight - 170 - 30) > input.top) {
-                                                    popup && popup.childNodes[0].classList.add('below');
-                                                    popup && (popup.style.top = (input.top + 10) + 'px');
-                                                }
-
-                                                if (input.left <= (screenWSection * 1)) {
-                                                    popup && popup.childNodes[0].classList.add('right');
-                                                    popup && (popup.style.left = input.left + 'px');
-
-                                                    if (input.width < 70) {
-                                                        popup && (popup.style.left = (input.left - 60 + (input.width / 2)) + 'px');
-
-                                                        if (input.left < 30) {
-                                                            popup && popup.childNodes[0].classList.add('corner');
-                                                            popup && (popup.style.left = (input.left + (input.width / 2)) + 'px');
-                                                        }
-                                                    }
-                                                }
-
-                                                if (input.left <= (screenWSection * 2)) {
-                                                    popup && (popup.style.left = (input.left - 100) + 'px');
-                                                }
-
-                                                if (input.left > (screenWSection * 2)) {
-                                                    popup && popup.childNodes[0].classList.add('left');
-                                                    popup && (popup.style.left = (input.left - 200) + 'px');
-
-                                                    if ((innerWidth - input.left) < 100) {
-                                                        popup && popup.childNodes[0].classList.add('corner');
-                                                        popup && (popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px');
-                                                    }
-                                                }
-
-                                                if (res.result === 'OK') {
-                                                    if (res.equipments.length > 0) {
-                                                        let items = [];
-                                                        let matched = false;
-
-                                                        items = res.equipments.map((equipment, i) => {
-                                                            if (equipment.name === props.selectedDispatchCarrierInfoDriver.equipment?.name) {
-                                                                equipment.selected = true;
-                                                                matched = true;
+                                                            if (selectedIndex === -1) {
+                                                                await setEquipmentItems(equipmentItems.map((item, index) => {
+                                                                    item.selected = index === 0;
+                                                                    return item;
+                                                                }))
                                                             } else {
-                                                                equipment.selected = false;
+                                                                await setEquipmentItems(equipmentItems.map((item, index) => {
+                                                                    if (selectedIndex === 0) {
+                                                                        item.selected = index === (equipmentItems.length - 1);
+                                                                    } else {
+                                                                        item.selected = index === (selectedIndex - 1)
+                                                                    }
+                                                                    return item;
+                                                                }))
                                                             }
 
-                                                            return equipment;
-                                                        });
+                                                            refEquipmentPopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
+                                                            });
+                                                        } else {
+                                                            $.post(props.serverUrl + '/getEquipments').then(async res => {
+                                                                if (res.result === 'OK') {
+                                                                    await setEquipmentItems(res.equipments.map((item, index) => {
+                                                                        item.selected = (props.selectedDispatchCarrierInfoDriver?.equipment?.id || 0) === 0
+                                                                            ? index === 0
+                                                                            : item.id === props.selectedDispatchCarrierInfoDriver.equipment.id
+                                                                        return item;
+                                                                    }))
 
-                                                        if (!matched) {
-                                                            items = res.equipments.map((equipment, i) => {
-                                                                equipment.selected = i === 0;
-                                                                return equipment;
+                                                                    refEquipmentPopupItems.current.map((r, i) => {
+                                                                        if (r && r.classList.contains('selected')) {
+                                                                            r.scrollIntoView({
+                                                                                behavior: 'auto',
+                                                                                block: 'center',
+                                                                                inline: 'nearest'
+                                                                            })
+                                                                        }
+                                                                        return true;
+                                                                    });
+                                                                }
+                                                            }).catch(async e => {
+                                                                console.log('error getting equipments', e);
+                                                            })
+                                                        }
+                                                        break;
+
+                                                    case 39: case 40: // arrow right | arrow down
+                                                        e.preventDefault();
+                                                        if (equipmentItems.length > 0) {
+                                                            let selectedIndex = equipmentItems.findIndex(item => item.selected);
+
+                                                            if (selectedIndex === -1) {
+                                                                await setEquipmentItems(equipmentItems.map((item, index) => {
+                                                                    item.selected = index === 0;
+                                                                    return item;
+                                                                }))
+                                                            } else {
+                                                                await setEquipmentItems(equipmentItems.map((item, index) => {
+                                                                    if (selectedIndex === (equipmentItems.length - 1)) {
+                                                                        item.selected = index === 0;
+                                                                    } else {
+                                                                        item.selected = index === (selectedIndex + 1)
+                                                                    }
+                                                                    return item;
+                                                                }))
+                                                            }
+
+                                                            refEquipmentPopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
+                                                            });
+                                                        } else {
+                                                            $.post(props.serverUrl + '/getEquipments').then(async res => {
+                                                                if (res.result === 'OK') {
+                                                                    await setEquipmentItems(res.equipments.map((item, index) => {
+                                                                        item.selected = (props.selectedDispatchCarrierInfoDriver?.equipment?.id || 0) === 0
+                                                                            ? index === 0
+                                                                            : item.id === props.selectedDispatchCarrierInfoDriver.equipment.id
+                                                                        return item;
+                                                                    }))
+
+                                                                    refEquipmentPopupItems.current.map((r, i) => {
+                                                                        if (r && r.classList.contains('selected')) {
+                                                                            r.scrollIntoView({
+                                                                                behavior: 'auto',
+                                                                                block: 'center',
+                                                                                inline: 'nearest'
+                                                                            })
+                                                                        }
+                                                                        return true;
+                                                                    });
+                                                                }
+                                                            }).catch(async e => {
+                                                                console.log('error getting equipments', e);
+                                                            })
+                                                        }
+                                                        break;
+
+                                                    case 27: // escape
+                                                        setEquipmentItems([]);
+                                                        break;
+
+                                                    case 13: // enter
+                                                        if (equipmentItems.length > 0 && equipmentItems.findIndex(item => item.selected) > -1) {
+                                                            await props.setSelectedDispatchCarrierInfoDriver({
+                                                                ...props.selectedDispatchCarrierInfoDriver,
+                                                                equipment: equipmentItems[equipmentItems.findIndex(item => item.selected)],
+                                                                equipment_id: equipmentItems[equipmentItems.findIndex(item => item.selected)].id
+                                                            });
+                                                            validateCarrierDriverForSaving({ keyCode: 9 });
+                                                            setEquipmentItems([]);
+                                                            refEquipment.current.focus();
+                                                        }
+                                                        break;
+
+                                                    case 9: // tab
+                                                        if (equipmentItems.length > 0) {
+                                                            e.preventDefault();
+                                                            await props.setSelectedDispatchCarrierInfoDriver({
+                                                                ...props.selectedDispatchCarrierInfoDriver,
+                                                                equipment: equipmentItems[equipmentItems.findIndex(item => item.selected)],
+                                                                equipment_id: equipmentItems[equipmentItems.findIndex(item => item.selected)].id
+                                                            });
+                                                            validateCarrierDriverForSaving({ keyCode: 9 });
+                                                            setEquipmentItems([]);
+                                                            refEquipment.current.focus();
+                                                        }
+                                                        break;
+
+                                                    default:
+                                                        break;
+                                                }
+                                            }}
+                                            onBlur={async () => {
+                                                if ((props.selectedDispatchCarrierInfoDriver?.equipment?.id || 0) === 0) {
+                                                    await props.setSelectedDispatchCarrierInfoDriver({ ...props.selectedDispatchCarrierInfoDriver, equipment: {} });
+                                                }
+                                            }}
+                                            onInput={async (e) => {
+                                                let equipment = props.selectedDispatchCarrierInfoDriver?.equipment || {};
+                                                equipment.id = 0;
+                                                equipment.name = e.target.value;
+                                                await props.setSelectedDispatchCarrierInfoDriver({ ...props.selectedDispatchCarrierInfoDriver, equipment: equipment, equipment_id: equipment.id });
+
+                                                if (e.target.value.trim() === '') {
+                                                    setEquipmentItems([]);
+                                                } else {
+                                                    $.post(props.serverUrl + '/getEquipments', {
+                                                        name: e.target.value.trim()
+                                                    }).then(async res => {
+                                                        if (res.result === 'OK') {
+                                                            await setEquipmentItems(res.equipments.map((item, index) => {
+                                                                item.selected = (props.selectedDispatchCarrierInfoDriver?.equipment?.id || 0) === 0
+                                                                    ? index === 0
+                                                                    : item.id === props.selectedDispatchCarrierInfoDriver.equipment.id
+                                                                return item;
+                                                            }))
+                                                        }
+                                                    }).catch(async e => {
+                                                        console.log('error getting equipments', e);
+                                                    })
+                                                }
+                                            }}
+                                            onChange={async (e) => {
+                                                let equipment = props.selectedDispatchCarrierInfoDriver?.equipment || {};
+                                                equipment.id = 0;
+                                                equipment.name = e.target.value;
+                                                await props.setSelectedDispatchCarrierInfoDriver({ ...props.selectedDispatchCarrierInfoDriver, equipment: equipment, equipment_id: equipment.id });
+                                            }}
+                                            value={props.selectedDispatchCarrierInfoDriver?.equipment?.name || ''}
+                                        />
+                                        <FontAwesomeIcon className="dropdown-button" icon={faCaretDown} onClick={() => {
+                                            if (equipmentItems.length > 0) {
+                                                setEquipmentItems([]);
+                                            } else {
+                                                if ((props.selectedDispatchCarrierInfoDriver?.equipment?.id || 0) === 0 && (props.selectedDispatchCarrierInfoDriver?.equipment?.name || '') !== '') {
+                                                    $.post(props.serverUrl + '/getEquipments', {
+                                                        name: props.selectedDispatchCarrierInfoDriver?.equipment.name
+                                                    }).then(async res => {
+                                                        if (res.result === 'OK') {
+                                                            await setEquipmentItems(res.equipments.map((item, index) => {
+                                                                item.selected = (props.selectedDispatchCarrierInfoDriver?.equipment?.id || 0) === 0
+                                                                    ? index === 0
+                                                                    : item.id === props.selectedDispatchCarrierInfoDriver.equipment.id
+                                                                return item;
+                                                            }))
+
+                                                            refEquipmentPopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
                                                             });
                                                         }
+                                                    }).catch(async e => {
+                                                        console.log('error getting equipments', e);
+                                                    })
+                                                } else {
+                                                    $.post(props.serverUrl + '/getEquipments').then(async res => {
+                                                        if (res.result === 'OK') {
+                                                            await setEquipmentItems(res.equipments.map((item, index) => {
+                                                                item.selected = (props.selectedDispatchCarrierInfoDriver?.equipment?.id || 0) === 0
+                                                                    ? index === 0
+                                                                    : item.id === props.selectedDispatchCarrierInfoDriver.equipment.id
+                                                                return item;
+                                                            }))
 
-                                                        await setPopupItems(items);
-
-                                                        popupItemsRef.current.map((r, i) => {
-                                                            if (r && r.classList.contains('selected')) {
-                                                                r.scrollIntoView()
-                                                            }
-                                                            return true;
-                                                        });
-                                                    } else {
-                                                        await setPopupItems([]);
-                                                    }
+                                                            refEquipmentPopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
+                                                            });
+                                                        }
+                                                    }).catch(async e => {
+                                                        console.log('error getting equipments', e);
+                                                    })
                                                 }
+                                            }
 
-                                                refCarrierEquipment.current.focus();
-                                            });
-                                        }, 300);
-                                    }}></span>
+                                            refEquipment.current.focus();
+                                        }} />
+                                    </div>
+
+                                    <Transition
+                                        from={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                        enter={{ opacity: 1, top: 'calc(100% + 15px)' }}
+                                        leave={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                        items={equipmentItems.length > 0}
+                                        config={{ duration: 100 }}
+                                    >
+                                        {show => show && (styles => (
+                                            <div
+                                                className="mochi-contextual-container"
+                                                id="mochi-contextual-container-equipment"
+                                                style={{
+                                                    ...styles,
+                                                    left: '-50%',
+                                                    display: 'block'
+                                                }}
+                                                ref={refEquipmentDropDown}
+                                            >
+                                                <div className="mochi-contextual-popup vertical below" style={{ height: 150 }}>
+                                                    <div className="mochi-contextual-popup-content" >
+                                                        <div className="mochi-contextual-popup-wrapper">
+                                                            {
+                                                                equipmentItems.map((item, index) => {
+                                                                    const mochiItemClasses = classnames({
+                                                                        'mochi-item': true,
+                                                                        'selected': item.selected
+                                                                    });
+
+                                                                    const searchValue = (props.selectedDispatchCarrierInfoDriver?.equipment?.id || 0) === 0 && (props.selectedDispatchCarrierInfoDriver?.equipment?.name || '') !== ''
+                                                                        ? props.selectedDispatchCarrierInfoDriver?.equipment?.name : undefined;
+
+                                                                    return (
+                                                                        <div
+                                                                            key={index}
+                                                                            className={mochiItemClasses}
+                                                                            id={item.id}
+                                                                            onClick={async () => {
+                                                                                await props.setSelectedDispatchCarrierInfoDriver({
+                                                                                    ...props.selectedDispatchCarrierInfoDriver,
+                                                                                    equipment: item,
+                                                                                    equipment_id: item.id
+                                                                                });
+
+                                                                                validateCarrierDriverForSaving({ keyCode: 9 });
+                                                                                setEquipmentItems([]);
+                                                                                refEquipment.current.focus();
+                                                                            }}
+                                                                            ref={ref => refEquipmentPopupItems.current.push(ref)}
+                                                                        >
+                                                                            {
+                                                                                searchValue === undefined
+                                                                                    ? item.name
+                                                                                    : <Highlighter
+                                                                                        highlightClassName="mochi-item-highlight-text"
+                                                                                        searchWords={[searchValue]}
+                                                                                        autoEscape={true}
+                                                                                        textToHighlight={item.name}
+                                                                                    />
+                                                                            }
+                                                                            {
+                                                                                item.selected &&
+                                                                                <FontAwesomeIcon className="dropdown-selected" icon={faCaretRight} />
+                                                                            }
+                                                                        </div>
+                                                                    )
+                                                                })
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </Transition>
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
-                                <div className="input-box-container grow" style={{ position: 'relative' }}>
-                                    <input tabIndex={57 + props.tabTimes} type="text" placeholder="Driver Name"
-                                        ref={refDriverName}
-                                        onKeyDown={validateCarrierDriverForSaving}
-                                        onChange={(e) => {
-                                            let driver = props.selectedDispatchCarrierInfoDriver || {};
+                                <div className="select-box-container" style={{ width: '9rem' }}>
+                                    <div className="select-box-wrapper">
+                                        <input type="text"
+                                            tabIndex={57 + props.tabTimes}
+                                            placeholder="Driver Name"
+                                            ref={refDriverName}
+                                            onKeyDown={async (e) => {
+                                                let key = e.keyCode || e.which;
 
-                                            if (e.target.value === '') {
-                                                driver = {};
-                                                props.setSelectedDispatchCarrierInfoDriver({ ...driver });
-                                            } else {
-                                                let splitted = e.target.value.split(' ');
-                                                let first_name = splitted[0];
+                                                switch (key) {
+                                                    case 37: case 38: // arrow left | arrow up
+                                                        e.preventDefault();
+                                                        if (driverItems.length > 0) {
+                                                            let selectedIndex = driverItems.findIndex(item => item.selected);
 
-                                                if (splitted.length > 1) {
-                                                    first_name += ' ';
-                                                }
+                                                            if (selectedIndex === -1) {
+                                                                await setDriverItems(driverItems.map((item, index) => {
+                                                                    item.selected = index === 0;
+                                                                    return item;
+                                                                }))
+                                                            } else {
+                                                                await setDriverItems(driverItems.map((item, index) => {
+                                                                    if (selectedIndex === 0) {
+                                                                        item.selected = index === (driverItems.length - 1);
+                                                                    } else {
+                                                                        item.selected = index === (selectedIndex - 1)
+                                                                    }
+                                                                    return item;
+                                                                }))
+                                                            }
 
-                                                let last_name = '';
+                                                            refDriverPopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
+                                                            });
+                                                        } else {
+                                                            if ((props.selectedDispatchCarrierInfoCarrier?.id || 0) > 0) {
+                                                                $.post(props.serverUrl + '/getDriversByCarrierId', {
+                                                                    carrier_id: props.selectedDispatchCarrierInfoCarrier.id
+                                                                }).then(async res => {
+                                                                    if (res.result === 'OK') {
+                                                                        if (res.count > 1) {
+                                                                            await setDriverItems(res.drivers.map((item, index) => {
+                                                                                item.selected = (props.selectedDispatchCarrierInfoDriver?.id || 0) === 0
+                                                                                    ? index === 0
+                                                                                    : item.id === props.selectedDispatchCarrierInfoDriver.id
+                                                                                return item;
+                                                                            }))
 
-                                                splitted.map((item, index) => {
-                                                    if (index > 0) {
-                                                        last_name += item;
-                                                    }
-                                                    return true;
-                                                })
-
-                                                props.setSelectedDispatchCarrierInfoDriver({ ...driver, first_name: first_name, last_name: last_name });
-                                            }
-                                        }}
-
-                                        onInput={(e) => {
-                                            let driver = props.selectedDispatchCarrierInfoDriver || {};
-
-                                            if (e.target.value === '') {
-                                                driver = {};
-                                                props.setSelectedDispatchCarrierInfoDriver({ ...driver });
-                                            } else {
-                                                let splitted = e.target.value.split(' ');
-                                                let first_name = splitted[0];
-
-                                                if (splitted.length > 1) {
-                                                    first_name += ' ';
-                                                }
-
-                                                let last_name = '';
-
-                                                splitted.map((item, index) => {
-                                                    if (index > 0) {
-                                                        last_name += item;
-                                                    }
-                                                    return true;
-                                                })
-
-                                                props.setSelectedDispatchCarrierInfoDriver({ ...driver, first_name: first_name, last_name: last_name });
-                                            }
-                                        }}
-
-                                        value={(props.selectedDispatchCarrierInfoDriver?.first_name || '') + ((props.selectedDispatchCarrierInfoDriver?.last_name || '').trim() === '' ? '' : ' ' + props.selectedDispatchCarrierInfoDriver?.last_name)}
-                                    />
-                                    {
-                                        (props.selectedDispatchCarrierInfoCarrier?.drivers || []).length > 1 &&
-                                        <span className="fas fa-caret-down" style={{
-                                            position: 'absolute',
-                                            right: 5,
-                                            top: 'calc(50% + 2px)',
-                                            transform: `translateY(-50%)`,
-                                            fontSize: '1.1rem',
-                                            cursor: 'pointer'
-                                        }} onClick={() => {
-                                            delayTimer = window.setTimeout(async () => {
-                                                await setPopupActiveInput('driver-name');
-
-                                                const input = refDriverName.current.getBoundingClientRect();
-
-                                                let popup = refPopup.current;
-
-                                                const { innerWidth, innerHeight } = window;
-
-                                                let screenWSection = innerWidth / 3;
-
-                                                popup && popup.childNodes[0].classList.add('vertical');
-
-                                                if ((innerHeight - 170 - 30) <= input.top) {
-                                                    popup && popup.childNodes[0].classList.add('above');
-                                                }
-
-                                                if ((innerHeight - 170 - 30) > input.top) {
-                                                    popup && popup.childNodes[0].classList.add('below');
-                                                    popup && (popup.style.top = (input.top + 10) + 'px');
-                                                }
-
-                                                if (input.left <= (screenWSection * 1)) {
-                                                    popup && popup.childNodes[0].classList.add('right');
-                                                    popup && (popup.style.left = input.left + 'px');
-
-                                                    if (input.width < 70) {
-                                                        popup && (popup.style.left = (input.left - 60 + (input.width / 2)) + 'px');
-
-                                                        if (input.left < 30) {
-                                                            popup && popup.childNodes[0].classList.add('corner');
-                                                            popup && (popup.style.left = (input.left + (input.width / 2)) + 'px');
+                                                                            refDriverPopupItems.current.map((r, i) => {
+                                                                                if (r && r.classList.contains('selected')) {
+                                                                                    r.scrollIntoView({
+                                                                                        behavior: 'auto',
+                                                                                        block: 'center',
+                                                                                        inline: 'nearest'
+                                                                                    })
+                                                                                }
+                                                                                return true;
+                                                                            });
+                                                                        }
+                                                                    }
+                                                                }).catch(async e => {
+                                                                    console.log('error getting carrier drivers', e);
+                                                                })
+                                                            }
                                                         }
-                                                    }
+                                                        break;
+
+                                                    case 39: case 40: // arrow right | arrow down
+                                                        e.preventDefault();
+                                                        if (driverItems.length > 0) {
+                                                            let selectedIndex = driverItems.findIndex(item => item.selected);
+
+                                                            if (selectedIndex === -1) {
+                                                                await setDriverItems(driverItems.map((item, index) => {
+                                                                    item.selected = index === 0;
+                                                                    return item;
+                                                                }))
+                                                            } else {
+                                                                await setDriverItems(driverItems.map((item, index) => {
+                                                                    if (selectedIndex === (driverItems.length - 1)) {
+                                                                        item.selected = index === 0;
+                                                                    } else {
+                                                                        item.selected = index === (selectedIndex + 1)
+                                                                    }
+                                                                    return item;
+                                                                }))
+                                                            }
+
+                                                            refDriverPopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
+                                                            });
+                                                        } else {
+                                                            if ((props.selectedDispatchCarrierInfoCarrier?.id || 0) > 0) {
+                                                                $.post(props.serverUrl + '/getDriversByCarrierId', {
+                                                                    carrier_id: props.selectedDispatchCarrierInfoCarrier.id
+                                                                }).then(async res => {
+                                                                    if (res.result === 'OK') {
+                                                                        if (res.count > 1) {
+                                                                            await setDriverItems(res.drivers.map((item, index) => {
+                                                                                item.selected = (props.selectedDispatchCarrierInfoDriver?.id || 0) === 0
+                                                                                    ? index === 0
+                                                                                    : item.id === props.selectedDispatchCarrierInfoDriver.id
+                                                                                return item;
+                                                                            }))
+
+                                                                            refDriverPopupItems.current.map((r, i) => {
+                                                                                if (r && r.classList.contains('selected')) {
+                                                                                    r.scrollIntoView({
+                                                                                        behavior: 'auto',
+                                                                                        block: 'center',
+                                                                                        inline: 'nearest'
+                                                                                    })
+                                                                                }
+                                                                                return true;
+                                                                            });
+                                                                        }
+                                                                    }
+                                                                }).catch(async e => {
+                                                                    console.log('error getting carrier drivers', e);
+                                                                })
+                                                            }
+                                                        }
+                                                        break;
+
+                                                    case 27: // escape
+                                                        setDriverItems([]);
+                                                        break;
+
+                                                    case 13: // enter
+                                                        if (driverItems.length > 0 && driverItems.findIndex(item => item.selected) > -1) {
+                                                            await props.setSelectedDispatchCarrierInfoDriver(driverItems[driverItems.findIndex(item => item.selected)]);
+
+                                                            await props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                carrier_driver_id: driverItems[driverItems.findIndex(item => item.selected)].id
+                                                            })
+
+                                                            validateOrderForSaving({ keyCode: 9 });
+                                                            setDriverItems([]);
+                                                            refDriverName.current.focus();
+                                                        }
+                                                        break;
+
+                                                    case 9: // tab
+                                                        if (driverItems.length > 0) {
+                                                            e.preventDefault();
+                                                            await props.setSelectedDispatchCarrierInfoDriver(driverItems[driverItems.findIndex(item => item.selected)]);
+
+                                                            await props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                carrier_driver_id: driverItems[driverItems.findIndex(item => item.selected)].id
+                                                            })
+
+                                                            validateOrderForSaving({ keyCode: 9 });
+                                                            setDriverItems([]);
+                                                            refDriverName.current.focus();
+                                                        }
+                                                        break;
+
+                                                    default:
+                                                        break;
                                                 }
+                                            }}
+                                            onBlur={async (e) => {
+                                                if ((props.selectedDispatchCarrierInfoDriver?.id || 0) === 0) {
+                                                    await props.setSelectedDispatchCarrierInfoDriver({});
+                                                    await props.setSelectedOrder({
+                                                        ...props.selected_order,
+                                                        carrier_driver_id: 0
+                                                    })
 
-                                                if (input.left <= (screenWSection * 2)) {
-                                                    popup && (popup.style.left = (input.left - 100) + 'px');
+                                                    validateOrderForSaving({ keyCode: 9 });
                                                 }
+                                            }}
+                                            onInput={async (e) => {
+                                                let driver = props.selectedDispatchCarrierInfoDriver || {};
+                                                driver.id = 0;
 
-                                                if (input.left > (screenWSection * 2)) {
-                                                    popup && popup.childNodes[0].classList.add('left');
-                                                    popup && (popup.style.left = (input.left - 200) + 'px');
+                                                if (e.target.value === '') {
+                                                    driver = {};
+                                                    await props.setSelectedDispatchCarrierInfoDriver({ ...driver });
+                                                    setDriverItems([]);
+                                                } else {
+                                                    let splitted = e.target.value.split(' ');
+                                                    let first_name = splitted[0];
 
-                                                    if ((innerWidth - input.left) < 100) {
-                                                        popup && popup.childNodes[0].classList.add('corner');
-                                                        popup && (popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px');
+                                                    if (splitted.length > 1) {
+                                                        first_name += ' ';
                                                     }
+
+                                                    let last_name = '';
+
+                                                    splitted.map((item, index) => {
+                                                        if (index > 0) {
+                                                            last_name += item;
+                                                        }
+                                                        return true;
+                                                    })
+
+                                                    props.setSelectedDispatchCarrierInfoDriver({ ...driver, first_name: first_name, last_name: last_name });
+
+                                                    // if ((props.selectedDispatchCarrierInfoCarrier?.id || 0) > 0) {
+                                                    //     $.post(props.serverUrl + '/getDriversByCarrierId', {
+                                                    //         carrier_id: props.selectedDispatchCarrierInfoCarrier.id
+                                                    //     }).then(async res => {
+                                                    //         if (res.result === 'OK') {
+                                                    //             if (res.count > 1) {
+                                                    //                 await setDriverItems(res.drivers.map((item, index) => {
+                                                    //                     item.selected = (props.selectedDispatchCarrierInfoDriver?.id || 0) === 0
+                                                    //                         ? index === 0
+                                                    //                         : item.id === props.selectedDispatchCarrierInfoDriver.id
+                                                    //                     return item;
+                                                    //                 }))
+
+                                                    //                 refDriverPopupItems.current.map((r, i) => {
+                                                    //                     if (r && r.classList.contains('selected')) {
+                                                    //                         r.scrollIntoView({
+                                                    //                             behavior: 'auto',
+                                                    //                             block: 'center',
+                                                    //                             inline: 'nearest'
+                                                    //                         })
+                                                    //                     }
+                                                    //                     return true;
+                                                    //                 });
+                                                    //             }
+                                                    //         }
+                                                    //     }).catch(async e => {
+                                                    //         console.log('error getting carrier drivers', e);
+                                                    //     })
+                                                    // }
                                                 }
+                                            }}
+                                            onChange={async (e) => {
+                                                let driver = props.selectedDispatchCarrierInfoDriver || {};
+                                                driver.id = 0;
 
-                                                let items = [];
-                                                let matched = false;
+                                                if (e.target.value === '') {
+                                                    driver = {};
+                                                    props.setSelectedDispatchCarrierInfoDriver({ ...driver });
+                                                    setDriverItems([]);
+                                                } else {
+                                                    let splitted = e.target.value.split(' ');
+                                                    let first_name = splitted[0];
 
-                                                items = props.selectedDispatchCarrierInfoCarrier.drivers.map((driver, i) => {
-                                                    if (((driver.first_name || '') + ((driver.last_name || '').trim() === '' ? '' : ' ' + driver.last_name))
-                                                        === ((props.selectedDispatchCarrierInfoDriver?.first_name || '') + ((props.selectedDispatchCarrierInfoDriver?.last_name || '').trim() === '' ? '' : ' ' + props.selectedDispatchCarrierInfoDriver?.last_name))) {
-                                                        driver.selected = true;
-                                                        matched = true;
-                                                    } else {
-                                                        driver.selected = false;
+                                                    if (splitted.length > 1) {
+                                                        first_name += ' ';
                                                     }
 
-                                                    driver.name = ((driver.first_name || '') + ((driver.last_name || '').trim() === '' ? '' : ' ' + driver.last_name));
+                                                    let last_name = '';
 
-                                                    return driver;
-                                                });
+                                                    splitted.map((item, index) => {
+                                                        if (index > 0) {
+                                                            last_name += item;
+                                                        }
+                                                        return true;
+                                                    })
 
-                                                if (!matched) {
-                                                    items = props.selectedDispatchCarrierInfoCarrier.drivers.map((driver, i) => {
-                                                        driver.selected = i === 0;
-                                                        return driver;
-                                                    });
+                                                    props.setSelectedDispatchCarrierInfoDriver({ ...driver, first_name: first_name, last_name: last_name });
+
+                                                    // if ((props.selectedDispatchCarrierInfoCarrier?.id || 0) > 0) {
+                                                    //     $.post(props.serverUrl + '/getDriversByCarrierId', {
+                                                    //         carrier_id: props.selectedDispatchCarrierInfoCarrier.id
+                                                    //     }).then(async res => {
+                                                    //         if (res.result === 'OK') {
+                                                    //             if (res.count > 1) {
+                                                    //                 await setDriverItems(res.drivers.map((item, index) => {
+                                                    //                     item.selected = (props.selectedDispatchCarrierInfoDriver?.id || 0) === 0
+                                                    //                         ? index === 0
+                                                    //                         : item.id === props.selectedDispatchCarrierInfoDriver.id
+                                                    //                     return item;
+                                                    //                 }))
+
+                                                    //                 refDriverPopupItems.current.map((r, i) => {
+                                                    //                     if (r && r.classList.contains('selected')) {
+                                                    //                         r.scrollIntoView({
+                                                    //                             behavior: 'auto',
+                                                    //                             block: 'center',
+                                                    //                             inline: 'nearest'
+                                                    //                         })
+                                                    //                     }
+                                                    //                     return true;
+                                                    //                 });
+                                                    //             }
+                                                    //         }
+                                                    //     }).catch(async e => {
+                                                    //         console.log('error getting carrier drivers', e);
+                                                    //     })
+                                                    // }
                                                 }
+                                            }}
+                                            value={(props.selectedDispatchCarrierInfoDriver?.first_name || '') + ((props.selectedDispatchCarrierInfoDriver?.last_name || '').trim() === '' ? '' : ' ' + props.selectedDispatchCarrierInfoDriver?.last_name)}
+                                        />
+                                        {
+                                            (props.selectedDispatchCarrierInfoCarrier?.drivers || []).length > 1 &&
 
-                                                await setPopupItems(items);
+                                            <FontAwesomeIcon className="dropdown-button" icon={faCaretDown} onClick={() => {
+                                                if (driverItems.length > 0) {
+                                                    setDriverItems([]);
+                                                } else {
+                                                    window.setTimeout(async () => {
+                                                        if ((props.selectedDispatchCarrierInfoCarrier?.id || 0) > 0) {
+                                                            $.post(props.serverUrl + '/getDriversByCarrierId', {
+                                                                carrier_id: props.selectedDispatchCarrierInfoCarrier.id
+                                                            }).then(async res => {
+                                                                if (res.result === 'OK') {
+                                                                    if (res.count > 1) {
+                                                                        await setDriverItems(res.drivers.map((item, index) => {
+                                                                            item.selected = (props.selectedDispatchCarrierInfoDriver?.id || 0) === 0
+                                                                                ? index === 0
+                                                                                : item.id === props.selectedDispatchCarrierInfoDriver.id
+                                                                            return item;
+                                                                        }))
 
-                                                popupItemsRef.current.map((r, i) => {
-                                                    if (r && r.classList.contains('selected')) {
-                                                        r.scrollIntoView()
-                                                    }
-                                                    return true;
-                                                });
+                                                                        refDriverPopupItems.current.map((r, i) => {
+                                                                            if (r && r.classList.contains('selected')) {
+                                                                                r.scrollIntoView({
+                                                                                    behavior: 'auto',
+                                                                                    block: 'center',
+                                                                                    inline: 'nearest'
+                                                                                })
+                                                                            }
+                                                                            return true;
+                                                                        });
+                                                                    }
+                                                                }
+                                                            }).catch(async e => {
+                                                                console.log('error getting carrier drivers', e);
+                                                            })
+                                                        }
 
-                                                refDriverName.current.focus();
-                                            }, 300);
-                                        }}></span>
-                                    }
+                                                        refDriverName.current.focus();
+                                                    }, 0)
+                                                }
+                                            }} />
+                                        }
+                                    </div>
+
+                                    <Transition
+                                        from={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                        enter={{ opacity: 1, top: 'calc(100% + 15px)' }}
+                                        leave={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                        items={driverItems.length > 0}
+                                        config={{ duration: 100 }}
+                                    >
+                                        {show => show && (styles => (
+                                            <div
+                                                className="mochi-contextual-container"
+                                                id="mochi-contextual-container-driver-name"
+                                                style={{
+                                                    ...styles,
+                                                    left: '-50%',
+                                                    display: 'block'
+                                                }}
+                                                ref={refDriverDropDown}
+                                            >
+                                                <div className="mochi-contextual-popup vertical below" style={{ height: 150 }}>
+                                                    <div className="mochi-contextual-popup-content" >
+                                                        <div className="mochi-contextual-popup-wrapper">
+                                                            {
+                                                                driverItems.map((item, index) => {
+                                                                    const mochiItemClasses = classnames({
+                                                                        'mochi-item': true,
+                                                                        'selected': item.selected
+                                                                    });
+
+                                                                    const searchValue = (props.selectedDispatchCarrierInfoDriver?.first_name || '') + ((props.selectedDispatchCarrierInfoDriver?.last_name || '').trim() === '' ? '' : ' ' + props.selectedDispatchCarrierInfoDriver?.last_name);
+
+                                                                    return (
+                                                                        <div
+                                                                            key={index}
+                                                                            className={mochiItemClasses}
+                                                                            id={item.id}
+                                                                            onClick={async () => {
+                                                                                await props.setSelectedDispatchCarrierInfoDriver(item);
+
+                                                                                await props.setSelectedOrder({
+                                                                                    ...props.selected_order,
+                                                                                    carrier_driver_id: item.id
+                                                                                })
+
+                                                                                validateOrderForSaving({ keyCode: 9 });
+                                                                                setDriverItems([]);
+                                                                                refDriverName.current.focus();
+                                                                            }}
+                                                                            ref={ref => refDriverPopupItems.current.push(ref)}
+                                                                        >
+                                                                            {
+                                                                                searchValue === undefined
+                                                                                    ? (item?.first_name || '') + ((item?.last_name || '') === '' ? '' : ' ' + item.last_name)
+                                                                                    : <Highlighter
+                                                                                        highlightClassName="mochi-item-highlight-text"
+                                                                                        searchWords={[(props.selectedDispatchCarrierInfoDriver?.first_name || ''), (props.selectedDispatchCarrierInfoDriver?.last_name || '')]}
+                                                                                        autoEscape={true}
+                                                                                        textToHighlight={(item?.first_name || '') + ((item?.last_name || '') === '' ? '' : ' ' + item.last_name)}
+                                                                                    />
+                                                                            }
+                                                                            {
+                                                                                item.selected &&
+                                                                                <FontAwesomeIcon className="dropdown-selected" icon={faCaretRight} />
+                                                                            }
+                                                                        </div>
+                                                                    )
+                                                                })
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </Transition>
                                 </div>
+
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container grow">
                                     <MaskedInput tabIndex={58 + props.tabTimes}
@@ -4145,21 +5424,13 @@ function Dispatch(props) {
                             <div className="form-row" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
                                 <div className="input-toggle-container">
                                     <input type="checkbox" id="cbox-dispatch-hazmat-btn"
-                                        onChange={(e) => {
-                                            let selected_order = { ...props.selected_order };
-                                            selected_order.haz_mat = e.target.checked ? 1 : 0;
+                                        onChange={async (e) => {
+                                            await props.setSelectedOrder({
+                                                ...props.selected_order,
+                                                haz_mat: e.target.checked ? 1 : 0
+                                            })
 
-                                            $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
-                                                if (res.result === 'OK') {
-                                                    await props.setSelectedOrder({
-                                                        ...props.selected_order,
-                                                        haz_mat: e.target.checked ? 1 : 0
-                                                    });
-                                                }
-                                            }).catch(e => {
-                                                console.log('error saving haz mat', e);
-                                            });
-                                            props.setSelectedOrder({ ...props.selected_order, haz_mat: e.target.checked ? 1 : 0 })
+                                            validateOrderForSaving({ keyCode: 9 });
                                         }}
                                         checked={(props.selected_order?.haz_mat || 0) === 1}
                                     />
@@ -4170,21 +5441,13 @@ function Dispatch(props) {
                                 </div>
                                 <div className="input-toggle-container">
                                     <input type="checkbox" id="cbox-dispatch-expedited-btn"
-                                        onChange={(e) => {
-                                            let selected_order = { ...props.selected_order };
-                                            selected_order.expedited = e.target.checked ? 1 : 0;
+                                        onChange={async (e) => {
+                                            await props.setSelectedOrder({
+                                                ...props.selected_order,
+                                                expedited: e.target.checked ? 1 : 0
+                                            })
 
-                                            $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
-                                                if (res.result === 'OK') {
-                                                    await props.setSelectedOrder({
-                                                        ...props.selected_order,
-                                                        expedited: e.target.checked ? 1 : 0
-                                                    });
-                                                }
-                                            }).catch(e => {
-                                                console.log('error saving expedited', e);
-                                            });
-                                            props.setSelectedOrder({ ...props.selected_order, expedited: e.target.checked ? 1 : 0 })
+                                            validateOrderForSaving({ keyCode: 9 });
                                         }}
                                         checked={(props.selected_order?.expedited || 0) === 1}
                                     />
@@ -4238,6 +5501,11 @@ function Dispatch(props) {
 
                 <div className="fields-container-col" style={{ display: 'flex', flexDirection: 'column', width: '10%', justifyContent: 'space-between', alignItems: 'flex-end', padding: '2px 0 10px 0' }}>
                     <div className='mochi-button' onClick={() => {
+                        if ((props.selected_order?.id || 0) === 0){
+                            window.alert('You must create or load an order first!');
+                            return;
+                        }
+
                         if (!props.dispatchOpenedPanels.includes('rate-conf')) {
                             props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'rate-conf'])
                         }
@@ -4247,6 +5515,11 @@ function Dispatch(props) {
                         <div className='mochi-button-decorator mochi-button-decorator-right'>)</div>
                     </div>
                     <div className='mochi-button' onClick={() => {
+                        if ((props.selected_order?.id || 0) === 0){
+                            window.alert('You must create or load an order first!');
+                            return;
+                        }
+
                         if (!props.dispatchOpenedPanels.includes('order')) {
                             props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'order'])
                         }
@@ -4256,6 +5529,11 @@ function Dispatch(props) {
                         <div className='mochi-button-decorator mochi-button-decorator-right'>)</div>
                     </div>
                     <div className='mochi-button' onClick={() => {
+                        if ((props.selected_order?.id || 0) === 0){
+                            window.alert('You must create or load an order first!');
+                            return;
+                        }
+
                         if (!props.dispatchOpenedPanels.includes('bol')) {
                             props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'bol'])
                         }
@@ -4296,6 +5574,11 @@ function Dispatch(props) {
                         <div className='mochi-button-decorator mochi-button-decorator-right'>)</div>
                     </div>
                     <div className='mochi-button' onClick={() => {
+                        if ((props.selected_order?.id || 0) === 0){
+                            window.alert('You must create or load an order first!');
+                            return;
+                        }
+                        
                         if (!props.dispatchOpenedPanels.includes('rating-screen')) {
                             props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'rating-screen'])
                         }
@@ -5167,6 +6450,7 @@ function Dispatch(props) {
                                                             await props.setShipperPuDate1(formatted);
                                                             let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
                                                             extra_data.pu_date1 = formatted;
+                                                            extra_data.pu_date2 = formatted;
                                                             await props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data })
 
                                                             let pickups = (props.selected_order?.pickups || []).map((pu, i) => {
@@ -5205,7 +6489,6 @@ function Dispatch(props) {
                                                         setPreSelectedPickupDate1(moment());
                                                     }
 
-                                                    e.stopPropagation();
                                                     const input = refPickupDate1.current.inputElement.getBoundingClientRect();
 
                                                     let popup = refCalendarPickupDate1.current;
@@ -5222,7 +6505,7 @@ function Dispatch(props) {
 
                                                     if ((innerHeight - 170 - 30) > input.top) {
                                                         popup && popup.childNodes[0].classList.add('below');
-                                                        popup && (popup.style.top = (input.top + 10) + 'px');
+                                                        popup && (popup.style.top = (input.top + 5) + 'px');
                                                     }
 
                                                     if (input.left <= (screenWSection * 1)) {
@@ -5253,9 +6536,10 @@ function Dispatch(props) {
                                                         }
                                                     }
 
-                                                    await setIsPickupDate1CalendarShown(true)
-
-                                                    refPickupDate1.current.inputElement.focus();
+                                                    window.setTimeout(async () => {
+                                                        await setIsPickupDate1CalendarShown(true);
+                                                        refPickupDate1.current.inputElement.focus();
+                                                    }, 0);
                                                 }}></span>
                                             </div>
                                             <div className="form-h-sep"></div>
@@ -5401,7 +6685,6 @@ function Dispatch(props) {
                                                         setPreSelectedPickupDate2(moment());
                                                     }
 
-                                                    e.stopPropagation();
                                                     const input = refPickupDate2.current.inputElement.getBoundingClientRect();
 
                                                     let popup = refCalendarPickupDate2.current;
@@ -5418,7 +6701,7 @@ function Dispatch(props) {
 
                                                     if ((innerHeight - 170 - 30) > input.top) {
                                                         popup && popup.childNodes[0].classList.add('below');
-                                                        popup && (popup.style.top = (input.top + 10) + 'px');
+                                                        popup && (popup.style.top = (input.top + 5) + 'px');
                                                     }
 
                                                     if (input.left <= (screenWSection * 1)) {
@@ -5449,9 +6732,10 @@ function Dispatch(props) {
                                                         }
                                                     }
 
-                                                    setIsPickupDate2CalendarShown(true)
-
-                                                    refPickupDate2.current.inputElement.focus();
+                                                    window.setTimeout(async () => {
+                                                        setIsPickupDate2CalendarShown(true);
+                                                        refPickupDate2.current.inputElement.focus();
+                                                    }, 0);
                                                 }}></span>
                                             </div>
                                             <div className="form-h-sep"></div>
@@ -5959,6 +7243,7 @@ function Dispatch(props) {
                                                             await props.setConsigneeDeliveryDate1(formatted);
                                                             let extra_data = props.selectedConsigneeCompanyInfo?.extra_data || {};
                                                             extra_data.delivery_date1 = formatted;
+                                                            extra_data.delivery_date2 = formatted;
                                                             await props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, extra_data: extra_data })
 
                                                             let deliveries = (props.selected_order?.deliveries || []).map((delivery, i) => {
@@ -5997,7 +7282,6 @@ function Dispatch(props) {
                                                         setPreSelectedDeliveryDate1(moment());
                                                     }
 
-                                                    e.stopPropagation();
                                                     const input = refDeliveryDate1.current.inputElement.getBoundingClientRect();
 
                                                     let popup = refCalendarDeliveryDate1.current;
@@ -6014,7 +7298,7 @@ function Dispatch(props) {
 
                                                     if ((innerHeight - 170 - 30) > input.top) {
                                                         popup && popup.childNodes[0].classList.add('below');
-                                                        popup && (popup.style.top = (input.top + 10) + 'px');
+                                                        popup && (popup.style.top = (input.top + 5) + 'px');
                                                     }
 
                                                     if (input.left <= (screenWSection * 1)) {
@@ -6045,9 +7329,10 @@ function Dispatch(props) {
                                                         }
                                                     }
 
-                                                    setIsDeliveryDate1CalendarShown(true)
-
-                                                    refDeliveryDate1.current.inputElement.focus();
+                                                    window.setTimeout(async () => {
+                                                        setIsDeliveryDate1CalendarShown(true);
+                                                        refDeliveryDate1.current.inputElement.focus();
+                                                    }, 0);
                                                 }}></span>
                                             </div>
                                             <div className="form-h-sep"></div>
@@ -6193,7 +7478,6 @@ function Dispatch(props) {
                                                         setPreSelectedDeliveryDate2(moment());
                                                     }
 
-                                                    e.stopPropagation();
                                                     const input = refDeliveryDate2.current.inputElement.getBoundingClientRect();
 
                                                     let popup = refCalendarDeliveryDate2.current;
@@ -6210,7 +7494,7 @@ function Dispatch(props) {
 
                                                     if ((innerHeight - 170 - 30) > input.top) {
                                                         popup && popup.childNodes[0].classList.add('below');
-                                                        popup && (popup.style.top = (input.top + 10) + 'px');
+                                                        popup && (popup.style.top = (input.top + 5) + 'px');
                                                     }
 
                                                     if (input.left <= (screenWSection * 1)) {
@@ -6241,9 +7525,10 @@ function Dispatch(props) {
                                                         }
                                                     }
 
-                                                    setIsDeliveryDate2CalendarShown(true)
-
-                                                    refDeliveryDate2.current.inputElement.focus();
+                                                    window.setTimeout(async () => {
+                                                        setIsDeliveryDate2CalendarShown(true);
+                                                        refDeliveryDate2.current.inputElement.focus();
+                                                    }, 0);
                                                 }}></span>
                                             </div>
                                             <div className="form-h-sep"></div>
@@ -6415,111 +7700,1142 @@ function Dispatch(props) {
 
             <div className="fields-container-row" style={{ marginBottom: 10 }}>
                 <div style={{ minWidth: '70%', maxWidth: '70%', display: 'flex', alignItems: 'center', marginRight: 10 }}>
-                    <div className="input-box-container" style={{ width: '10rem', position: 'relative' }}>
-                        <input tabIndex={71 + props.tabTimes} type="text" placeholder="Events"
-                            ref={refDispatchEvents}
-                            onKeyDown={dispatchEventsOnKeydown}
-                            onChange={() => { }}
-                            value={props.dispatchEvent.name || ''}
+                    <div className="select-box-container" style={{ width: '10rem', position: 'relative' }}>
+                        <div className="select-box-wrapper">
+                            <input tabIndex={71 + props.tabTimes} type="text" placeholder="Event"
+                                ref={refDispatchEvents}
+                                onKeyDown={async (e) => {
+                                    let key = e.keyCode || e.which;
 
-                        />
-                        <span className="fas fa-caret-down" style={{
-                            position: 'absolute',
-                            right: 5,
-                            top: 'calc(50% + 2px)',
-                            transform: `translateY(-50%)`,
-                            fontSize: '1.1rem',
-                            cursor: 'pointer'
-                        }} onClick={() => {
-                            window.clearTimeout(delayTimer);
-                            delayTimer = null;
+                                    switch (key) {
+                                        case 37: case 38: // arrow left | arrow up
+                                            e.preventDefault();
+                                            if (showDispatchEventItems) {
+                                                if (showDispatchEventSecondPageItems) {
+                                                    let selectedIndex = dispatchEventSecondPageItems.findIndex(item => item.selected);
 
-                            delayTimer = window.setTimeout(async () => {
-                                await setPopupActiveInput('dispatch-event');
-                                const input = refDispatchEvents.current.getBoundingClientRect();
-                                setPopupPosition(input);
+                                                    if (selectedIndex === -1) {
+                                                        await setDispatchEventSecondPageItems(dispatchEventSecondPageItems.map((item, index) => {
+                                                            item.selected = index === 0;
+                                                            return item;
+                                                        }))
+                                                    } else {
+                                                        await setDispatchEventSecondPageItems(dispatchEventSecondPageItems.map((item, index) => {
+                                                            if (selectedIndex === 0) {
+                                                                item.selected = index === (dispatchEventSecondPageItems.length - 1);
+                                                            } else {
+                                                                item.selected = index === (selectedIndex - 1)
+                                                            }
+                                                            return item;
+                                                        }))
+                                                    }
 
-                                if ((props.selected_order?.id || 0) === 0) {
-                                    await setPopupItems([]);
-                                    return;
-                                }
+                                                    refDispatchEventSecondPagePopupItems.current.map((r, i) => {
+                                                        if (r && r.classList.contains('selected')) {
+                                                            r.scrollIntoView({
+                                                                behavior: 'auto',
+                                                                block: 'center',
+                                                                inline: 'nearest'
+                                                            })
+                                                        }
+                                                        return true;
+                                                    });
+                                                } else {
+                                                    let selectedIndex = dispatchEventItems.findIndex(item => item.selected);
 
-                                let items = [];
+                                                    if (selectedIndex === -1) {
+                                                        await setDispatchEventItems(dispatchEventItems.map((item, index) => {
+                                                            item.selected = index === 0;
+                                                            return item;
+                                                        }))
+                                                    } else {
+                                                        await setDispatchEventItems(dispatchEventItems.map((item, index) => {
+                                                            if (selectedIndex === 0) {
+                                                                item.selected = index === (dispatchEventItems.length - 1);
+                                                            } else {
+                                                                item.selected = index === (selectedIndex - 1)
+                                                            }
+                                                            return item;
+                                                        }))
+                                                    }
 
-                                if ((props.selected_order?.carrier_id || 0) === 0) {
-                                    items.push({
-                                        name: 'Other',
-                                        type: 'other'
-                                    })
+                                                    refDispatchEventPopupItems.current.map((r, i) => {
+                                                        if (r && r.classList.contains('selected')) {
+                                                            r.scrollIntoView({
+                                                                behavior: 'auto',
+                                                                block: 'center',
+                                                                inline: 'nearest'
+                                                            })
+                                                        }
+                                                        return true;
+                                                    });
+                                                }
+                                            } else {
+                                                await setDispatchEventItems(dispatchEventItems.map((item, index) => {
+                                                    item.selected = (props.dispatchEvent?.id || 0) === 0
+                                                        ? index === 0
+                                                        : item.id === props.dispatchEvent.id
+                                                    return item;
+                                                }));
 
-                                    await setPopupItems(items);
+                                                window.setTimeout(async () => {
+                                                    await setShowDispatchEventItems(true);
 
-                                    return;
-                                }
-
-                                if ((props.selected_order?.routing || []).length > 0) {
-
-                                    for (let i = 0; i < props.selected_order.routing.length; i++) {
-                                        let route = props.selected_order.routing[i];
-
-                                        if (route.extra_data.type === 'pickup') {
-                                            if ((props.selected_order?.events || []).find(item => item.event_type === 'loaded' && item.shipper_id === route.id) === undefined) {
-                                                items.push({
-                                                    name: 'Loaded - ' + route.code,
-                                                    type: 'loaded',
-                                                    location: route.city + ', ' + route.state,
-                                                    notes: 'Loaded at Shipper ' + route.code + ((route.code_number || 0) === 0 ? '' : route.code_number),
-                                                    shipper_id: route.id,
-                                                })
-
-                                                items.push({
-                                                    name: 'Other',
-                                                    type: 'other'
-                                                })
-
-                                                await setPopupItems(items);
-
-                                                return;
+                                                    refDispatchEventPopupItems.current.map((r, i) => {
+                                                        if (r && r.classList.contains('selected')) {
+                                                            r.scrollIntoView({
+                                                                behavior: 'auto',
+                                                                block: 'center',
+                                                                inline: 'nearest'
+                                                            })
+                                                        }
+                                                        return true;
+                                                    });
+                                                }, 0);
                                             }
-                                        } else {
-                                            if ((props.selected_order?.events || []).find(item => item.event_type === 'delivered' && item.consignee_id === route.id) === undefined) {
-                                                items.push({
-                                                    name: 'Delivered - ' + route.code,
-                                                    type: 'delivered',
-                                                    location: route.city + ', ' + route.state,
-                                                    notes: 'Delivered at Consignee ' + route.code + ((route.code_number || 0) === 0 ? '' : route.code_number),
-                                                    consignee_id: route.id,
-                                                })
+                                            break;
 
-                                                items.push({
-                                                    name: 'Other',
-                                                    type: 'other'
-                                                })
+                                        case 39: case 40: // arrow right | arrow down
+                                            e.preventDefault();
+                                            if (showDispatchEventItems) {
+                                                if (showDispatchEventSecondPageItems) {
+                                                    let selectedIndex = dispatchEventSecondPageItems.findIndex(item => item.selected);
 
-                                                await setPopupItems(items);
+                                                    if (selectedIndex === -1) {
+                                                        await setDispatchEventSecondPageItems(dispatchEventSecondPageItems.map((item, index) => {
+                                                            item.selected = index === 0;
+                                                            return item;
+                                                        }))
+                                                    } else {
+                                                        await setDispatchEventSecondPageItems(dispatchEventSecondPageItems.map((item, index) => {
+                                                            if (selectedIndex === (dispatchEventSecondPageItems.length - 1)) {
+                                                                item.selected = index === 0;
+                                                            } else {
+                                                                item.selected = index === (selectedIndex + 1)
+                                                            }
+                                                            return item;
+                                                        }))
+                                                    }
 
-                                                return;
+                                                    refDispatchEventSecondPagePopupItems.current.map((r, i) => {
+                                                        if (r && r.classList.contains('selected')) {
+                                                            r.scrollIntoView({
+                                                                behavior: 'auto',
+                                                                block: 'center',
+                                                                inline: 'nearest'
+                                                            })
+                                                        }
+                                                        return true;
+                                                    });
+                                                } else {
+                                                    let selectedIndex = dispatchEventItems.findIndex(item => item.selected);
+
+                                                    if (selectedIndex === -1) {
+                                                        await setDispatchEventItems(dispatchEventItems.map((item, index) => {
+                                                            item.selected = index === 0;
+                                                            return item;
+                                                        }))
+                                                    } else {
+                                                        await setDispatchEventItems(dispatchEventItems.map((item, index) => {
+                                                            if (selectedIndex === (dispatchEventItems.length - 1)) {
+                                                                item.selected = index === 0;
+                                                            } else {
+                                                                item.selected = index === (selectedIndex + 1)
+                                                            }
+                                                            return item;
+                                                        }))
+                                                    }
+
+                                                    refDispatchEventPopupItems.current.map((r, i) => {
+                                                        if (r && r.classList.contains('selected')) {
+                                                            r.scrollIntoView({
+                                                                behavior: 'auto',
+                                                                block: 'center',
+                                                                inline: 'nearest'
+                                                            })
+                                                        }
+                                                        return true;
+                                                    });
+                                                }
+
+                                            } else {
+                                                await setDispatchEventItems(dispatchEventItems.map((item, index) => {
+                                                    item.selected = (props.dispatchEvent?.id || 0) === 0
+                                                        ? index === 0
+                                                        : item.id === props.dispatchEvent.id
+                                                    return item;
+                                                }));
+
+                                                window.setTimeout(async () => {
+                                                    await setShowDispatchEventItems(true);
+
+                                                    refDispatchEventPopupItems.current.map((r, i) => {
+                                                        if (r && r.classList.contains('selected')) {
+                                                            r.scrollIntoView({
+                                                                behavior: 'auto',
+                                                                block: 'center',
+                                                                inline: 'nearest'
+                                                            })
+                                                        }
+                                                        return true;
+                                                    });
+                                                }, 0);
                                             }
-                                        }
+                                            break;
+
+                                        case 27: // escape
+                                            e.preventDefault();                                            
+                                            if (showDispatchEventSecondPageItems) {
+                                                await setShowDispatchEventSecondPageItems(false);
+                                            } else {
+                                                await setShowDispatchEventItems(false);
+                                            }
+
+                                            // refDispatchEvents.current.focus();
+                                            break;
+
+                                        case 13: // enter
+                                            if (showDispatchEventItems && dispatchEventItems.findIndex(item => item.selected) > -1) {
+                                                if (showDispatchEventSecondPageItems) {
+                                                    let item = dispatchEventSecondPageItems.find(el => el.selected);
+
+                                                    if (item !== undefined) {
+                                                        let eventItem = dispatchEventItems.find(el => el.selected);
+
+                                                        await setSelectedOrderEvent(item);
+
+                                                        await props.setDispatchEvent(eventItem);
+                                                        await props.setDispatchEventLocation(item.city + ', ' + item.state);
+
+                                                        if (eventItem.type === 'arrived') {
+                                                            await props.setDispatchEventNotes('Arrived at ' + item.code + (item.code_number === 0 ? '' : item.code_number) + ' - ' + item.name);
+                                                        }
+
+                                                        if (eventItem.type === 'loaded') {
+                                                            await props.setDispatchEventNotes('Loaded at Shipper ' + item.code + (item.code_number === 0 ? '' : item.code_number) + ' - ' + item.name);
+                                                        }
+
+                                                        if (eventItem.type === 'delivered') {
+                                                            await props.setDispatchEventNotes('Delivered at Consignee ' + item.code + (item.code_number === 0 ? '' : item.code_number) + ' - ' + item.name);
+                                                        }
+
+                                                        window.setTimeout(() => {
+                                                            setShowDispatchEventSecondPageItems(false);
+                                                            setShowDispatchEventItems(false);
+                                                            goToTabindex((73 + props.tabTimes).toString());
+                                                        }, 0);
+                                                    }
+                                                } else {
+                                                    let item = dispatchEventItems[dispatchEventItems.findIndex(item => item.selected)];
+
+                                                    if (item.type === 'arrived') {
+                                                        if ((props.selected_order?.pickups || []).length > 0 || (props.selected_order?.deliveries || []).length > 0) {
+                                                            await setDispatchEventItems(dispatchEventItems.map((item, index) => {
+                                                                item.selected = item.type === 'arrived'
+                                                                return item;
+                                                            }));
+
+                                                            let arriveIndex = -1;
+                                                            let departureIndex = -1;
+
+                                                            for (let i = 0; i < (props.selected_order?.events || []).length; i++) {
+                                                                let event = (props.selected_order?.events || [])[i];
+
+                                                                if (event.event_type === 'arrived') {
+                                                                    arriveIndex = i;
+                                                                    break;
+                                                                }
+
+                                                            }
+
+                                                            for (let i = 0; i < (props.selected_order?.events || []).length; i++) {
+                                                                let event = (props.selected_order?.events || [])[i];
+
+                                                                if (event.event_type === 'departed') {
+                                                                    departureIndex = i;
+                                                                    break;
+                                                                }
+
+                                                            }
+
+                                                            if ((arriveIndex === -1 && departureIndex === -1) || (departureIndex > -1 && departureIndex < arriveIndex)) {
+                                                                let items = [
+                                                                    ...(props.selected_order?.pickups || []).filter(shipper => {
+                                                                        return (props.selected_order?.events.find(el => el.event_type === 'arrived' && el.shipper_id === shipper.id)) === undefined;
+                                                                    }),
+                                                                    ...(props.selected_order?.deliveries || []).filter(consignee => {
+                                                                        return (props.selected_order?.events.find(el => el.event_type === 'arrived' && el.consignee_id === consignee.id)) === undefined;
+                                                                    })
+                                                                ]
+
+                                                                if (items.length > 0) {
+                                                                    if (items.length === 1){
+                                                                        await props.setDispatchEvent(item);
+                                                                        await props.setDispatchEventLocation(items[0].city + ', ' + items[0].state);
+                                                                        await props.setDispatchEventNotes('Arrived at ' + items[0].code + (items[0].code_number === 0 ? '' : items[0].code_number) + ' - ' + items[0].name);
+                                                                        await setSelectedOrderEvent(items[0]);
+            
+                                                                        window.setTimeout(() => {
+                                                                            setShowDispatchEventItems(false);
+                                                                            goToTabindex((73 + props.tabTimes).toString());
+                                                                        }, 0);
+                                                                    }else{
+                                                                        items = items.map((x, i) => {
+                                                                            x.selected = i === 0;
+                                                                            return x;
+                                                                        })
+                                                                    }                                                                    
+                                                                } else {
+                                                                    window.alert('No shippers or consignees available!');
+                                                                    refDispatchEvents.current.focus();
+                                                                    return;
+                                                                }
+
+                                                                window.setTimeout(async () => {
+                                                                    await setDispatchEventSecondPageItems(items);
+                                                                    await setShowDispatchEventSecondPageItems(true);
+                                                                }, 0);
+                                                            } else {
+                                                                window.alert("You must enter a 'departed' event for the last 'arrived' event first!");
+                                                                refDispatchEvents.current.focus();
+                                                                return;
+                                                            }
+                                                        } else {
+                                                            window.alert('No shippers or consignees available!');
+                                                            refDispatchEvents.current.focus();
+                                                            return;
+                                                        }
+
+                                                    } else if (item.type === 'departed') {
+                                                        await setDispatchEventItems(dispatchEventItems.map((item, index) => {
+                                                            item.selected = item.type === 'arrived'
+                                                            return item;
+                                                        }));
+
+                                                        let arriveIndex = -1;
+                                                        let departureIndex = -1;
+                                                        let arrived_customer = {};
+
+                                                        for (let i = 0; i < (props.selected_order?.events || []).length; i++) {
+                                                            let event = (props.selected_order?.events || [])[i];
+
+                                                            if (event.event_type === 'arrived') {
+                                                                arrived_customer = { ...event.arrived_customer };
+                                                                arriveIndex = i;
+                                                                break;
+                                                            }
+                                                        }
+
+                                                        for (let i = 0; i < (props.selected_order?.events || []).length; i++) {
+                                                            let event = (props.selected_order?.events || [])[i];
+
+                                                            if (event.event_type === 'departed') {
+                                                                departureIndex = i;
+                                                                break;
+                                                            }
+                                                        }
+
+                                                        if ((arriveIndex === -1 && departureIndex === -1) || (departureIndex > -1 && departureIndex < arriveIndex)) {
+                                                            window.alert("You must enter an 'arrived' event first!");
+                                                            refDispatchEvents.current.focus();
+                                                            return;
+                                                        } else {
+                                                            await props.setDispatchEvent(item);
+                                                            await props.setDispatchEventLocation(arrived_customer.city + ', ' + arrived_customer.state);
+                                                            await props.setDispatchEventNotes('Departed at ' + arrived_customer.code + (arrived_customer.code_number === 0 ? '' : arrived_customer.code_number) + ' - ' + arrived_customer.name);
+                                                            await setSelectedOrderEvent(arrived_customer);
+
+                                                            window.setTimeout(() => {
+                                                                setShowDispatchEventItems(false);
+                                                                goToTabindex((73 + props.tabTimes).toString());
+                                                            }, 0);
+                                                        }
+                                                    } else if (item.type === 'loaded') {
+                                                        if ((props.selected_order?.pickups || []).length > 0 || (props.selected_order?.deliveries || []).length > 0) {
+                                                            await setDispatchEventItems(dispatchEventItems.map((item, index) => {
+                                                                item.selected = item.type === 'loaded'
+                                                                return item;
+                                                            }));
+
+                                                            let items = [
+                                                                ...(props.selected_order?.pickups || []).filter(shipper => {
+                                                                    return (props.selected_order?.events.find(el => el.event_type === 'loaded' && el.shipper_id === shipper.id)) === undefined;
+                                                                })
+                                                            ]
+
+                                                            if (items.length > 0) {
+                                                                if (items.length === 1){
+                                                                    await props.setDispatchEvent(item);
+                                                                    await props.setDispatchEventLocation(items[0].city + ', ' + items[0].state);
+                                                                    await props.setDispatchEventNotes('Loaded at Shipper ' + items[0].code + (items[0].code_number === 0 ? '' : items[0].code_number) + ' - ' + items[0].name);
+                                                                    await setSelectedOrderEvent(items[0]);
+        
+                                                                    window.setTimeout(() => {
+                                                                        setShowDispatchEventItems(false);
+                                                                        goToTabindex((73 + props.tabTimes).toString());
+                                                                    }, 0);
+                                                                }else{
+                                                                    items = items.map((x, i) => {
+                                                                        x.selected = i === 0;
+                                                                        return x;
+                                                                    })
+                                                                }
+                                                            } else {
+                                                                window.alert('No shippers available!');
+                                                                refDispatchEvents.current.focus();
+                                                                return;
+                                                            }
+
+                                                            window.setTimeout(async () => {
+                                                                await setDispatchEventSecondPageItems(items);
+                                                                await setShowDispatchEventSecondPageItems(true);
+                                                            }, 0);
+                                                        } else {
+                                                            window.alert('No shippers available!');
+                                                            refDispatchEvents.current.focus();
+                                                            return;
+                                                        }
+
+                                                    } else if (item.type === 'delivered') {
+                                                        if ((props.selected_order?.deliveries || []).length > 0) {
+                                                            await setDispatchEventItems(dispatchEventItems.map((item, index) => {
+                                                                item.selected = item.type === 'delivered'
+                                                                return item;
+                                                            }));
+
+                                                            let items = [
+                                                                ...(props.selected_order?.deliveries || []).filter(consignee => {
+                                                                    return (props.selected_order?.events.find(el => el.event_type === 'delivered' && el.consignee_id === consignee.id)) === undefined;
+                                                                })
+                                                            ]
+
+                                                            if (items.length > 0) {
+                                                                if (items.length === 1){
+                                                                    await props.setDispatchEvent(item);
+                                                                    await props.setDispatchEventLocation(items[0].city + ', ' + items[0].state);
+                                                                    await props.setDispatchEventNotes('Delivered at Consignee ' + items[0].code + (items[0].code_number === 0 ? '' : items[0].code_number) + ' - ' + items[0].name);
+                                                                    await setSelectedOrderEvent(items[0]);
+        
+                                                                    window.setTimeout(() => {
+                                                                        setShowDispatchEventItems(false);
+                                                                        goToTabindex((73 + props.tabTimes).toString());
+                                                                    }, 0);
+                                                                }else{
+                                                                    items = items.map((x, i) => {
+                                                                        x.selected = i === 0;
+                                                                        return x;
+                                                                    })
+                                                                }
+                                                            } else {
+                                                                window.alert('No consignees available!');
+                                                                refDispatchEvents.current.focus();
+                                                                return;
+                                                            }
+
+                                                            window.setTimeout(async () => {
+                                                                await setDispatchEventSecondPageItems(items);
+                                                                await setShowDispatchEventSecondPageItems(true);
+                                                            }, 0);
+                                                        } else {
+                                                            window.alert('No consignees available!');
+                                                            refDispatchEvents.current.focus();
+                                                            return;
+                                                        }
+
+                                                    } else {
+                                                        await props.setDispatchEvent(item);
+                                                        await props.setDispatchEventLocation('');
+                                                        await props.setDispatchEventNotes('');
+                                                        setShowDispatchEventItems(false);
+                                                        goToTabindex((72 + props.tabTimes).toString());
+                                                    }
+                                                }
+                                            }
+                                            break;
+
+                                        case 9: // tab
+
+                                            if (showDispatchEventItems || showDispatchEventSecondPageItems) {
+                                                e.preventDefault();
+                                                if (showDispatchEventItems && dispatchEventItems.findIndex(item => item.selected) > -1) {
+                                                    if (showDispatchEventSecondPageItems) {
+                                                        let item = dispatchEventSecondPageItems.find(el => el.selected);
+
+                                                        if (item !== undefined) {
+                                                            let eventItem = dispatchEventItems.find(el => el.selected);
+
+                                                            await setSelectedOrderEvent(item);
+
+                                                            await props.setDispatchEvent(eventItem);
+                                                            await props.setDispatchEventLocation(item.city + ', ' + item.state);
+
+                                                            if (eventItem.type === 'arrived') {
+                                                                await props.setDispatchEventNotes('Arrived at ' + item.code + (item.code_number === 0 ? '' : item.code_number) + ' - ' + item.name);
+                                                            }
+
+                                                            if (eventItem.type === 'loaded') {
+                                                                await props.setDispatchEventNotes('Loaded at Shipper ' + item.code + (item.code_number === 0 ? '' : item.code_number) + ' - ' + item.name);
+                                                            }
+
+                                                            if (eventItem.type === 'delivered') {
+                                                                await props.setDispatchEventNotes('Delivered at Consignee ' + item.code + (item.code_number === 0 ? '' : item.code_number) + ' - ' + item.name);
+                                                            }
+
+                                                            window.setTimeout(() => {
+                                                                setShowDispatchEventSecondPageItems(false);
+                                                                setShowDispatchEventItems(false);
+                                                                goToTabindex((73 + props.tabTimes).toString());
+                                                            }, 0);
+                                                        }
+                                                    } else {
+                                                        let item = dispatchEventItems[dispatchEventItems.findIndex(item => item.selected)];
+
+                                                        if (item.type === 'arrived') {
+                                                            if ((props.selected_order?.pickups || []).length > 0 || (props.selected_order?.deliveries || []).length > 0) {
+                                                                await setDispatchEventItems(dispatchEventItems.map((item, index) => {
+                                                                    item.selected = item.type === 'arrived'
+                                                                    return item;
+                                                                }));
+
+                                                                let arriveIndex = -1;
+                                                                let departureIndex = -1;
+
+                                                                for (let i = 0; i < (props.selected_order?.events || []).length; i++) {
+                                                                    let event = (props.selected_order?.events || [])[i];
+
+                                                                    if (event.event_type === 'arrived') {
+                                                                        arriveIndex = i;
+                                                                        break;
+                                                                    }
+
+                                                                }
+
+                                                                for (let i = 0; i < (props.selected_order?.events || []).length; i++) {
+                                                                    let event = (props.selected_order?.events || [])[i];
+
+                                                                    if (event.event_type === 'departed') {
+                                                                        departureIndex = i;
+                                                                        break;
+                                                                    }
+
+                                                                }
+
+                                                                if ((arriveIndex === -1 && departureIndex === -1) || (departureIndex > -1 && departureIndex < arriveIndex)) {
+                                                                    let items = [
+                                                                        ...(props.selected_order?.pickups || []).filter(shipper => {
+                                                                            return (props.selected_order?.events.find(el => el.event_type === 'arrived' && el.shipper_id === shipper.id)) === undefined;
+                                                                        }),
+                                                                        ...(props.selected_order?.deliveries || []).filter(consignee => {
+                                                                            return (props.selected_order?.events.find(el => el.event_type === 'arrived' && el.consignee_id === consignee.id)) === undefined;
+                                                                        })
+                                                                    ]
+
+                                                                    if (items.length > 0) {
+                                                                        if (items.length === 1){
+                                                                            await props.setDispatchEvent(item);
+                                                                            await props.setDispatchEventLocation(items[0].city + ', ' + items[0].state);
+                                                                            await props.setDispatchEventNotes('Arrived at ' + items[0].code + (items[0].code_number === 0 ? '' : items[0].code_number) + ' - ' + items[0].name);
+                                                                            await setSelectedOrderEvent(items[0]);
+                
+                                                                            window.setTimeout(() => {
+                                                                                setShowDispatchEventItems(false);
+                                                                                goToTabindex((73 + props.tabTimes).toString());
+                                                                            }, 0);
+                                                                        }else{
+                                                                            items = items.map((x, i) => {
+                                                                                x.selected = i === 0;
+                                                                                return x;
+                                                                            })
+                                                                        }    
+                                                                    } else {
+                                                                        window.alert('No shippers or consignees available!');
+                                                                        refDispatchEvents.current.focus();
+                                                                        return;
+                                                                    }
+
+                                                                    window.setTimeout(async () => {
+                                                                        await setDispatchEventSecondPageItems(items);
+                                                                        await setShowDispatchEventSecondPageItems(true);
+                                                                    }, 0);
+                                                                } else {
+                                                                    window.alert("You must enter a 'departed' event for the last 'arrived' event first!");
+                                                                    refDispatchEvents.current.focus();
+                                                                    return;
+                                                                }
+                                                            } else {
+                                                                window.alert('No shippers or consignees available!');
+                                                                refDispatchEvents.current.focus();
+                                                                return;
+                                                            }
+
+                                                        } else if (item.type === 'departed') {
+                                                            await setDispatchEventItems(dispatchEventItems.map((item, index) => {
+                                                                item.selected = item.type === 'arrived'
+                                                                return item;
+                                                            }));
+
+                                                            let arriveIndex = -1;
+                                                            let departureIndex = -1;
+                                                            let arrived_customer = {};
+
+                                                            for (let i = 0; i < (props.selected_order?.events || []).length; i++) {
+                                                                let event = (props.selected_order?.events || [])[i];
+
+                                                                if (event.event_type === 'arrived') {
+                                                                    arrived_customer = { ...event.arrived_customer };
+                                                                    arriveIndex = i;
+                                                                    break;
+                                                                }
+                                                            }
+
+                                                            for (let i = 0; i < (props.selected_order?.events || []).length; i++) {
+                                                                let event = (props.selected_order?.events || [])[i];
+
+                                                                if (event.event_type === 'departed') {
+                                                                    departureIndex = i;
+                                                                    break;
+                                                                }
+                                                            }
+
+                                                            if ((arriveIndex === -1 && departureIndex === -1) || (departureIndex > -1 && departureIndex < arriveIndex)) {
+                                                                window.alert("You must enter an 'arrived' event first!");
+                                                                refDispatchEvents.current.focus();
+                                                                return;
+                                                            } else {
+                                                                await props.setDispatchEvent(item);
+                                                                await props.setDispatchEventLocation(arrived_customer.city + ', ' + arrived_customer.state);
+                                                                await props.setDispatchEventNotes('Departed at ' + arrived_customer.code + (arrived_customer.code_number === 0 ? '' : arrived_customer.code_number) + ' - ' + arrived_customer.name);
+                                                                await setSelectedOrderEvent(arrived_customer);
+
+                                                                window.setTimeout(() => {
+                                                                    setShowDispatchEventItems(false);
+                                                                    goToTabindex((73 + props.tabTimes).toString());
+                                                                }, 0);
+                                                            }
+                                                        } else if (item.type === 'loaded') {
+                                                            if ((props.selected_order?.pickups || []).length > 0 || (props.selected_order?.deliveries || []).length > 0) {
+                                                                await setDispatchEventItems(dispatchEventItems.map((item, index) => {
+                                                                    item.selected = item.type === 'loaded'
+                                                                    return item;
+                                                                }));
+    
+                                                                let items = [
+                                                                    ...(props.selected_order?.pickups || []).filter(shipper => {
+                                                                        return (props.selected_order?.events.find(el => el.event_type === 'loaded' && el.shipper_id === shipper.id)) === undefined;
+                                                                    })
+                                                                ]
+    
+                                                                if (items.length > 0) {
+                                                                    if (items.length === 1){
+                                                                        await props.setDispatchEvent(item);
+                                                                        await props.setDispatchEventLocation(items[0].city + ', ' + items[0].state);
+                                                                        await props.setDispatchEventNotes('Loaded at Shipper ' + items[0].code + (items[0].code_number === 0 ? '' : items[0].code_number) + ' - ' + items[0].name);
+                                                                        await setSelectedOrderEvent(items[0]);
+            
+                                                                        window.setTimeout(() => {
+                                                                            setShowDispatchEventItems(false);
+                                                                            goToTabindex((73 + props.tabTimes).toString());
+                                                                        }, 0);
+                                                                    }else{
+                                                                        items = items.map((x, i) => {
+                                                                            x.selected = i === 0;
+                                                                            return x;
+                                                                        })
+                                                                    }
+                                                                } else {
+                                                                    window.alert('No shippers available!');
+                                                                    refDispatchEvents.current.focus();
+                                                                    return;
+                                                                }
+    
+                                                                window.setTimeout(async () => {
+                                                                    await setDispatchEventSecondPageItems(items);
+                                                                    await setShowDispatchEventSecondPageItems(true);
+                                                                }, 0);
+                                                            } else {
+                                                                window.alert('No shippers available!');
+                                                                refDispatchEvents.current.focus();
+                                                                return;
+                                                            }
+    
+                                                        } else if (item.type === 'delivered') {
+                                                            if ((props.selected_order?.deliveries || []).length > 0) {
+                                                                await setDispatchEventItems(dispatchEventItems.map((item, index) => {
+                                                                    item.selected = item.type === 'delivered'
+                                                                    return item;
+                                                                }));
+    
+                                                                let items = [
+                                                                    ...(props.selected_order?.deliveries || []).filter(consignee => {
+                                                                        return (props.selected_order?.events.find(el => el.event_type === 'delivered' && el.consignee_id === consignee.id)) === undefined;
+                                                                    })
+                                                                ]
+    
+                                                                if (items.length > 0) {
+                                                                    if (items.length === 1){
+                                                                        await props.setDispatchEvent(item);
+                                                                        await props.setDispatchEventLocation(items[0].city + ', ' + items[0].state);
+                                                                        await props.setDispatchEventNotes('Delivered at Consignee ' + items[0].code + (items[0].code_number === 0 ? '' : items[0].code_number) + ' - ' + items[0].name);
+                                                                        await setSelectedOrderEvent(items[0]);
+            
+                                                                        window.setTimeout(() => {
+                                                                            setShowDispatchEventItems(false);
+                                                                            goToTabindex((73 + props.tabTimes).toString());
+                                                                        }, 0);
+                                                                    }else{
+                                                                        items = items.map((x, i) => {
+                                                                            x.selected = i === 0;
+                                                                            return x;
+                                                                        })
+                                                                    }
+                                                                } else {
+                                                                    window.alert('No consignees available!');
+                                                                    refDispatchEvents.current.focus();
+                                                                    return;
+                                                                }
+    
+                                                                window.setTimeout(async () => {
+                                                                    await setDispatchEventSecondPageItems(items);
+                                                                    await setShowDispatchEventSecondPageItems(true);
+                                                                }, 0);
+                                                            } else {
+                                                                window.alert('No consignees available!');
+                                                                refDispatchEvents.current.focus();
+                                                                return;
+                                                            }
+    
+                                                        } else {
+                                                            await props.setDispatchEvent(item);
+                                                            await props.setDispatchEventLocation('');
+                                                            await props.setDispatchEventNotes('');
+                                                            setShowDispatchEventItems(false);
+                                                            goToTabindex((72 + props.tabTimes).toString());
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            break;
+                                        default:
+                                            break;
                                     }
+                                }}
+                                onChange={() => { }}
+                                value={(props.dispatchEvent.name || '').toUpperCase()}
+
+                            />
+
+                            <FontAwesomeIcon className="dropdown-button" icon={faCaretDown} onClick={async () => {
+                                if (showDispatchEventItems) {
+                                    setShowDispatchEventItems(false);
+                                } else {
+                                    await setDispatchEventItems(dispatchEventItems.map((item, index) => {
+                                        item.selected = (props.dispatchEvent?.id || 0) === 0
+                                            ? index === 0
+                                            : item.id === props.dispatchEvent.id
+                                        return item;
+                                    }));
+
+                                    window.setTimeout(async () => {
+                                        await setShowDispatchEventItems(true);
+
+                                        refDispatchEventPopupItems.current.map((r, i) => {
+                                            if (r && r.classList.contains('selected')) {
+                                                r.scrollIntoView({
+                                                    behavior: 'auto',
+                                                    block: 'center',
+                                                    inline: 'nearest'
+                                                })
+                                            }
+                                            return true;
+                                        });
+                                    }, 0);
                                 }
-
-                                items.push({
-                                    name: 'Other',
-                                    type: 'other'
-                                });
-
-                                await setPopupItems(items);
 
                                 refDispatchEvents.current.focus();
-                            }, 100);
-                        }}></span>
+                            }} />
+
+                        </div>
+
+                        <Transition
+                            from={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                            enter={{ opacity: 1, top: 'calc(100% + 15px)' }}
+                            leave={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                            items={showDispatchEventItems}
+                            config={{ duration: 100 }}
+                        >
+                            {show => show && (styles => (
+                                <div
+                                    className="mochi-contextual-container"
+                                    id="mochi-contextual-container-dispatch-event"
+                                    style={{
+                                        ...styles,
+                                        left: '0',
+                                        display: 'block'
+                                    }}
+                                    ref={refDispatchEventDropDown}
+                                >
+                                    <div className="mochi-contextual-popup vertical below right" style={{ height: 150 }}>
+                                        <div className="mochi-contextual-popup-content" >
+                                            <div className="mochi-contextual-popup-wrapper multipage">
+                                                <div className="mochi-contextual-popup-slider" style={{
+                                                    transform: `translateX(${showDispatchEventSecondPageItems ? '-50%' : '0'})`
+                                                }}>
+                                                    <div className="first-page">
+                                                        <div className="page-wrapper">
+                                                            {
+                                                                dispatchEventItems.map((item, index) => {
+                                                                    const mochiItemClasses = classnames({
+                                                                        'mochi-item': true,
+                                                                        'selected': item.selected
+                                                                    });
+
+                                                                    return (
+                                                                        <div
+                                                                            key={index}
+                                                                            className={mochiItemClasses}
+                                                                            id={item.id}
+                                                                            onMouseOver={async () => {
+                                                                                await setDispatchEventItems(dispatchEventItems.map((i, index) => {
+                                                                                    i.selected = i.id === item.id
+                                                                                    return i;
+                                                                                }));
+                                                                            }}
+                                                                            onClick={async () => {
+                                                                                if (item.type === 'arrived') {
+                                                                                    if ((props.selected_order?.pickups || []).length > 0 || (props.selected_order?.deliveries || []).length > 0) {
+                                                                                        await setDispatchEventItems(dispatchEventItems.map((item, index) => {
+                                                                                            item.selected = item.type === 'arrived'
+                                                                                            return item;
+                                                                                        }));
+
+                                                                                        let arriveIndex = -1;
+                                                                                        let departureIndex = -1;
+
+                                                                                        for (let i = 0; i < (props.selected_order?.events || []).length; i++) {
+                                                                                            let event = (props.selected_order?.events || [])[i];
+
+                                                                                            if (event.event_type === 'arrived') {
+                                                                                                arriveIndex = i;
+                                                                                                break;
+                                                                                            }
+
+                                                                                        }
+
+                                                                                        for (let i = 0; i < (props.selected_order?.events || []).length; i++) {
+                                                                                            let event = (props.selected_order?.events || [])[i];
+
+                                                                                            if (event.event_type === 'departed') {
+                                                                                                departureIndex = i;
+                                                                                                break;
+                                                                                            }
+
+                                                                                        }
+
+                                                                                        if ((arriveIndex === -1 && departureIndex === -1) || (departureIndex > -1 && departureIndex < arriveIndex)) {
+                                                                                            let items = [
+                                                                                                ...(props.selected_order?.pickups || []).filter(shipper => {
+                                                                                                    return (props.selected_order?.events.find(el => el.event_type === 'arrived' && el.shipper_id === shipper.id)) === undefined;
+                                                                                                }),
+                                                                                                ...(props.selected_order?.deliveries || []).filter(consignee => {
+                                                                                                    return (props.selected_order?.events.find(el => el.event_type === 'arrived' && el.consignee_id === consignee.id)) === undefined;
+                                                                                                })
+                                                                                            ]
+
+                                                                                            if (items.length > 0) {
+                                                                                                if (items.length === 1){
+                                                                                                    await props.setDispatchEvent(item);
+                                                                                                    await props.setDispatchEventLocation(items[0].city + ', ' + items[0].state);
+                                                                                                    await props.setDispatchEventNotes('Arrived at ' + items[0].code + (items[0].code_number === 0 ? '' : items[0].code_number) + ' - ' + items[0].name);
+                                                                                                    await setSelectedOrderEvent(items[0]);
+                                        
+                                                                                                    window.setTimeout(() => {
+                                                                                                        setShowDispatchEventItems(false);
+                                                                                                        goToTabindex((73 + props.tabTimes).toString());
+                                                                                                    }, 0);
+                                                                                                }else{
+                                                                                                    items = items.map((x, i) => {
+                                                                                                        x.selected = i === 0;
+                                                                                                        return x;
+                                                                                                    })
+                                                                                                }   
+                                                                                            } else {
+                                                                                                window.alert('No shippers or consignees available!');
+                                                                                                refDispatchEvents.current.focus();
+                                                                                                return;
+                                                                                            }
+
+                                                                                            window.setTimeout(async () => {
+                                                                                                await setDispatchEventSecondPageItems(items);
+                                                                                                await setShowDispatchEventSecondPageItems(true);
+                                                                                            }, 0);
+                                                                                        } else {
+                                                                                            window.alert("You must enter a 'departed' event for the last 'arrived' event first!");
+                                                                                            refDispatchEvents.current.focus();
+                                                                                            return;
+                                                                                        }
+                                                                                    } else {
+                                                                                        window.alert('No shippers or consignees available!');
+                                                                                        refDispatchEvents.current.focus();
+                                                                                        return;
+                                                                                    }
+
+                                                                                } else if (item.type === 'departed') {
+                                                                                    await setDispatchEventItems(dispatchEventItems.map((item, index) => {
+                                                                                        item.selected = item.type === 'arrived'
+                                                                                        return item;
+                                                                                    }));
+
+                                                                                    let arriveIndex = -1;
+                                                                                    let departureIndex = -1;
+                                                                                    let arrived_customer = {};
+
+                                                                                    for (let i = 0; i < (props.selected_order?.events || []).length; i++) {
+                                                                                        let event = (props.selected_order?.events || [])[i];
+
+                                                                                        if (event.event_type === 'arrived') {
+                                                                                            arrived_customer = { ...event.arrived_customer };
+                                                                                            arriveIndex = i;
+                                                                                            break;
+                                                                                        }
+                                                                                    }
+
+                                                                                    for (let i = 0; i < (props.selected_order?.events || []).length; i++) {
+                                                                                        let event = (props.selected_order?.events || [])[i];
+
+                                                                                        if (event.event_type === 'departed') {
+                                                                                            departureIndex = i;
+                                                                                            break;
+                                                                                        }
+                                                                                    }
+
+                                                                                    if ((arriveIndex === -1 && departureIndex === -1) || (departureIndex > -1 && departureIndex < arriveIndex)) {
+                                                                                        window.alert("You must enter an 'arrived' event first!");
+                                                                                        refDispatchEvents.current.focus();
+                                                                                        return;
+                                                                                    } else {
+                                                                                        await props.setDispatchEvent(item);
+                                                                                        await props.setDispatchEventLocation(arrived_customer.city + ', ' + arrived_customer.state);
+                                                                                        await props.setDispatchEventNotes('Departed at ' + arrived_customer.code + (arrived_customer.code_number === 0 ? '' : arrived_customer.code_number) + ' - ' + arrived_customer.name);
+                                                                                        await setSelectedOrderEvent(arrived_customer);
+
+                                                                                        window.setTimeout(() => {
+                                                                                            setShowDispatchEventItems(false);
+                                                                                            goToTabindex((73 + props.tabTimes).toString());
+                                                                                        }, 0);
+                                                                                    }
+
+                                                                                } else if (item.type === 'loaded') {
+                                                                                    if ((props.selected_order?.pickups || []).length > 0 || (props.selected_order?.deliveries || []).length > 0) {
+                                                                                        await setDispatchEventItems(dispatchEventItems.map((item, index) => {
+                                                                                            item.selected = item.type === 'loaded'
+                                                                                            return item;
+                                                                                        }));
+
+                                                                                        let items = [
+                                                                                            ...(props.selected_order?.pickups || []).filter(shipper => {
+                                                                                                return (props.selected_order?.events.find(el => el.event_type === 'loaded' && el.shipper_id === shipper.id)) === undefined;
+                                                                                            })
+                                                                                        ]
+
+                                                                                        if (items.length > 0) {
+                                                                                            if (items.length === 1){
+                                                                                                await props.setDispatchEvent(item);
+                                                                                                await props.setDispatchEventLocation(items[0].city + ', ' + items[0].state);
+                                                                                                await props.setDispatchEventNotes('Loaded at Shipper ' + items[0].code + (items[0].code_number === 0 ? '' : items[0].code_number) + ' - ' + items[0].name);
+                                                                                                await setSelectedOrderEvent(items[0]);
+                                    
+                                                                                                window.setTimeout(() => {
+                                                                                                    setShowDispatchEventItems(false);
+                                                                                                    goToTabindex((73 + props.tabTimes).toString());
+                                                                                                }, 0);
+                                                                                            }else{
+                                                                                                items = items.map((x, i) => {
+                                                                                                    x.selected = i === 0;
+                                                                                                    return x;
+                                                                                                })
+                                                                                            }   
+                                                                                        } else {
+                                                                                            window.alert('No shippers available!');
+                                                                                            refDispatchEvents.current.focus();
+                                                                                            return;
+                                                                                        }
+
+                                                                                        window.setTimeout(async () => {
+                                                                                            await setDispatchEventSecondPageItems(items);
+                                                                                            await setShowDispatchEventSecondPageItems(true);
+                                                                                        }, 0);
+                                                                                    } else {
+                                                                                        window.alert('No shippers available!');
+                                                                                        refDispatchEvents.current.focus();
+                                                                                        return;
+                                                                                    }
+
+                                                                                } else if (item.type === 'delivered') {
+                                                                                    if ((props.selected_order?.deliveries || []).length > 0) {
+                                                                                        await setDispatchEventItems(dispatchEventItems.map((item, index) => {
+                                                                                            item.selected = item.type === 'delivered'
+                                                                                            return item;
+                                                                                        }));
+
+                                                                                        let items = [
+                                                                                            ...(props.selected_order?.deliveries || []).filter(consignee => {
+                                                                                                return (props.selected_order?.events.find(el => el.event_type === 'delivered' && el.consignee_id === consignee.id)) === undefined;
+                                                                                            })
+                                                                                        ]
+
+                                                                                        if (items.length > 0) {
+                                                                                            if (items.length === 1){
+                                                                                                await props.setDispatchEvent(item);
+                                                                                                await props.setDispatchEventLocation(items[0].city + ', ' + items[0].state);
+                                                                                                await props.setDispatchEventNotes('Delivered at Consignee ' + items[0].code + (items[0].code_number === 0 ? '' : items[0].code_number) + ' - ' + items[0].name);
+                                                                                                await setSelectedOrderEvent(items[0]);
+                                    
+                                                                                                window.setTimeout(() => {
+                                                                                                    setShowDispatchEventItems(false);
+                                                                                                    goToTabindex((73 + props.tabTimes).toString());
+                                                                                                }, 0);
+                                                                                            }else{
+                                                                                                items = items.map((x, i) => {
+                                                                                                    x.selected = i === 0;
+                                                                                                    return x;
+                                                                                                })
+                                                                                            }   
+                                                                                        } else {
+                                                                                            window.alert('No consignees available!');
+                                                                                            refDispatchEvents.current.focus();
+                                                                                            return;
+                                                                                        }
+
+                                                                                        window.setTimeout(async () => {
+                                                                                            await setDispatchEventSecondPageItems(items);
+                                                                                            await setShowDispatchEventSecondPageItems(true);
+                                                                                        }, 0);
+                                                                                    } else {
+                                                                                        window.alert('No consignees available!');
+                                                                                        refDispatchEvents.current.focus();
+                                                                                        return;
+                                                                                    }
+
+                                                                                } else {
+                                                                                    await props.setDispatchEvent(item);
+                                                                                    await props.setDispatchEventLocation('');
+                                                                                    await props.setDispatchEventNotes('');
+                                                                                    setShowDispatchEventItems(false);
+                                                                                    goToTabindex((72 + props.tabTimes).toString());
+                                                                                }
+                                                                            }}
+                                                                            ref={ref => refDispatchEventPopupItems.current.push(ref)}
+                                                                        >
+                                                                            <Highlighter
+                                                                                highlightClassName="mochi-item-highlight-text"
+                                                                                searchWords={[]}
+                                                                                autoEscape={true}
+                                                                                textToHighlight={item.name}
+                                                                            />
+                                                                            {
+                                                                                item.selected &&
+                                                                                <FontAwesomeIcon className="dropdown-selected" icon={faCaretRight} />
+                                                                            }
+                                                                        </div>
+                                                                    )
+                                                                })
+                                                            }
+                                                        </div>
+
+                                                    </div>
+                                                    <div className="second-page">
+                                                        <div className="page-wrapper">
+                                                            {
+                                                                dispatchEventSecondPageItems.map((item, index) => {
+                                                                    const mochiItemClasses = classnames({
+                                                                        'mochi-item': true,
+                                                                        'selected': item.selected
+                                                                    });
+
+                                                                    return (
+                                                                        <div
+                                                                            key={index}
+                                                                            className={mochiItemClasses}
+                                                                            id={item.id}
+                                                                            onClick={async () => {
+                                                                                let eventItem = dispatchEventItems.find(el => el.selected);
+
+                                                                                await setSelectedOrderEvent(item);
+
+                                                                                await props.setDispatchEvent(eventItem);
+                                                                                await props.setDispatchEventLocation(item.city + ', ' + item.state);
+
+                                                                                if (eventItem.type === 'arrived') {
+                                                                                    await props.setDispatchEventNotes('Arrived at ' + item.code + (item.code_number === 0 ? '' : item.code_number) + ' - ' + item.name);
+                                                                                }
+
+                                                                                if (eventItem.type === 'loaded') {
+                                                                                    await props.setDispatchEventNotes('Loaded at Shipper ' + item.code + (item.code_number === 0 ? '' : item.code_number) + ' - ' + item.name);
+                                                                                }
+
+                                                                                if (eventItem.type === 'delivered') {
+                                                                                    await props.setDispatchEventNotes('Delivered at Consignee ' + item.code + (item.code_number === 0 ? '' : item.code_number) + ' - ' + item.name);
+                                                                                }
+
+                                                                                window.setTimeout(() => {
+                                                                                    setShowDispatchEventSecondPageItems(false);
+                                                                                    setShowDispatchEventItems(false);
+                                                                                    goToTabindex((73 + props.tabTimes).toString());
+                                                                                }, 0);
+                                                                            }}
+                                                                            onMouseOver={async () => {
+                                                                                await setDispatchEventSecondPageItems(dispatchEventSecondPageItems.map((i, index) => {
+                                                                                    i.selected = i.id === item.id
+                                                                                    return i;
+                                                                                }));
+                                                                            }}
+                                                                            ref={ref => refDispatchEventSecondPagePopupItems.current.push(ref)}
+                                                                        >
+                                                                            <Highlighter
+                                                                                highlightClassName="mochi-item-highlight-text"
+                                                                                searchWords={[]}
+                                                                                autoEscape={true}
+                                                                                textToHighlight={
+                                                                                    item.code + (item.code_number === 0 ? '' : item.code_number) + ' - ' + item.city + ', ' + item.state
+                                                                                }
+                                                                            />
+                                                                            {
+                                                                                item.selected &&
+                                                                                <FontAwesomeIcon className="dropdown-selected" icon={faCaretRight} />
+                                                                            }
+                                                                        </div>
+                                                                    )
+                                                                })
+                                                            }
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </Transition>
                     </div>
                     <div className="form-h-sep"></div>
                     <div className="input-box-container" style={{ width: '10rem' }}>
                         <input tabIndex={72 + props.tabTimes} type="text" placeholder="Event Location"
-                            onInput={(e) => { props.setDispatchEventLocation(e.target.value) }}
-                            onChange={(e) => { props.setDispatchEventLocation(e.target.value) }}
+                            onInput={(e) => {
+                                if ((props.dispatchEvent?.type || '') !== 'arrived' &&
+                                    (props.dispatchEvent?.type || '') !== 'departed' &&
+                                    (props.dispatchEvent?.type || '') !== 'loaded' &&
+                                    (props.dispatchEvent?.type || '') !== 'delivered')
+                                    props.setDispatchEventLocation(e.target.value)
+                            }}
+                            onChange={(e) => {
+                                if ((props.dispatchEvent?.type || '') !== 'arrived' &&
+                                    (props.dispatchEvent?.type || '') !== 'departed' &&
+                                    (props.dispatchEvent?.type || '') !== 'loaded' &&
+                                    (props.dispatchEvent?.type || '') !== 'delivered')
+                                    props.setDispatchEventLocation(e.target.value)
+                            }}
                             value={props.dispatchEventLocation || ''}
                         />
                     </div>
@@ -6534,8 +8850,7 @@ function Dispatch(props) {
 
                                     if ((props.dispatchEvent?.name || '') === '') {
                                         goToTabindex((1 + props.tabTimes).toString());
-                                    } else if (selectedOrderEvent.type === undefined) {
-                                        goToTabindex((1 + props.tabTimes).toString());
+
                                     } else {
 
                                         if ((props.selected_order?.id || 0) === 0) {
@@ -6547,29 +8862,31 @@ function Dispatch(props) {
                                             order_id: props.selected_order.id,
                                             event_time: moment().format('HHmm'),
                                             event_date: moment().format('MM/DD/YYYY'),
-                                            user_id: getRandomInt(1, 99),
+                                            user_id: props.selected_order.ae_number,
                                             event_location: props.dispatchEventLocation,
                                             event_notes: props.dispatchEventNotes,
-                                            event_type: selectedOrderEvent.type,
+                                            event_type: props.dispatchEvent.type,
                                         }
 
-                                        switch (selectedOrderEvent.type) {
-                                            case 'loaded':
-                                                event_parameters.shipper_id = selectedOrderEvent.shipper_id;
-                                                break;
-                                            case 'delivered':
-                                                event_parameters.consignee_id = selectedOrderEvent.consignee_id;
-                                                break;
-                                            default:
-                                                if (event_parameters.event_notes.trim() === '') {
-                                                    window.alert('You must include some notes!');
-                                                    goToTabindex((73 + props.tabTimes).toString());
-                                                    return;
-                                                }
-                                                break;
+                                        if (props.dispatchEvent.type === 'arrived') {
+                                            event_parameters.arrived_customer_id = selectedOrderEvent.id;
+                                            event_parameters.shipper_id = (selectedOrderEvent.extra_data?.type || '') === 'pickup' ? selectedOrderEvent.id : 0;
+                                            event_parameters.consignee_id = (selectedOrderEvent.extra_data?.type || '') === 'delivery' ? selectedOrderEvent.id : 0;
+                                        } else if (props.dispatchEvent.type === 'departed') {
+                                            event_parameters.departed_customer_id = selectedOrderEvent.id;
+                                        } else if (props.dispatchEvent.type === 'loaded') {
+                                            event_parameters.shipper_id = selectedOrderEvent.id;
+                                        } else if (props.dispatchEvent.type === 'delivered') {
+                                            event_parameters.consignee_id = selectedOrderEvent.id;
+                                        } else {
+                                            if (event_parameters.event_notes.trim() === '') {
+                                                window.alert('You must include some notes!');
+                                                goToTabindex((73 + props.tabTimes).toString());
+                                                return;
+                                            }
                                         }
 
-                                        if (window.confirm('Are you sure to save this event?')) {
+                                        if (window.confirm('Save this event?')) {
                                             $.post(props.serverUrl + '/saveOrderEvent', event_parameters).then(async res => {
                                                 if (res.result === 'OK') {
                                                     await props.setSelectedOrder({ ...props.selected_order, events: res.order_events });
@@ -6592,8 +8909,20 @@ function Dispatch(props) {
                                     }
                                 }
                             }}
-                            onInput={(e) => { props.setDispatchEventNotes(e.target.value) }}
-                            onChange={(e) => { props.setDispatchEventNotes(e.target.value) }}
+                            onInput={(e) => {
+                                if ((props.dispatchEvent?.type || '') !== 'arrived' &&
+                                    (props.dispatchEvent?.type || '') !== 'departed' &&
+                                    (props.dispatchEvent?.type || '') !== 'loaded' &&
+                                    (props.dispatchEvent?.type || '') !== 'delivered')
+                                    props.setDispatchEventNotes(e.target.value)
+                            }}
+                            onChange={(e) => {
+                                if ((props.dispatchEvent?.type || '') !== 'arrived' &&
+                                    (props.dispatchEvent?.type || '') !== 'departed' &&
+                                    (props.dispatchEvent?.type || '') !== 'loaded' &&
+                                    (props.dispatchEvent?.type || '') !== 'delivered')
+                                    props.setDispatchEventNotes(e.target.value)
+                            }}
                             value={props.dispatchEventNotes || ''}
                         />
                     </div>
@@ -6601,8 +8930,38 @@ function Dispatch(props) {
                     <div style={{ borderRight: 'solid 1px rgba(0,0,0,0.5)', width: 1, height: '100%', marginLeft: 8 }}></div>
                 </div>
 
-                <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div className="input-box-container" style={{ position: 'relative' }}>
+                <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginBottom: '2px'
+                    }}>
+                        <div style={{ minWidth: '15%', maxWidth: '15%', fontSize: '0.7rem', textDecoration: 'underline', fontWeight: 'bold' }}>Miles</div>
+                        <div style={{ minWidth: '25%', maxWidth: '25%', fontSize: '0.7rem', textDecoration: 'underline', fontWeight: 'bold', textAlign: 'right' }}>Charges</div>
+                        <div style={{ minWidth: '25%', maxWidth: '25%', fontSize: '0.7rem', textDecoration: 'underline', fontWeight: 'bold', textAlign: 'right' }}>Order Cost</div>
+                        <div style={{ minWidth: '25%', maxWidth: '25%', fontSize: '0.7rem', textDecoration: 'underline', fontWeight: 'bold', textAlign: 'right' }}>Profit</div>
+                        <div style={{ minWidth: '10%', maxWidth: '10%', fontSize: '0.7rem', textDecoration: 'underline', fontWeight: 'bold', textAlign: 'center' }}>%</div>
+                    </div>
+
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between'
+                    }}>
+                        <div style={{ minWidth: '15%', maxWidth: '15%', fontSize: '0.7rem', position: 'relative' }}>
+                            {props.mileageLoaderVisible ? <div className="loading-container" style={{ right: 'initial', left: 0 }}>
+                                <Loader type="ThreeDots" color="#333738" height={20} width={20} visible={props.mileageLoaderVisible} />
+                            </div> : ((props.selected_order?.miles || 0) / 1609.34).toFixed(0)}
+                        </div>
+                        <div style={{ minWidth: '25%', maxWidth: '25%', fontSize: '0.7rem', textAlign: 'right' }}>$2,300.00</div>
+                        <div style={{ minWidth: '25%', maxWidth: '25%', fontSize: '0.7rem', textAlign: 'right' }}>$2,000.00</div>
+                        <div style={{ minWidth: '25%', maxWidth: '25%', fontSize: '0.7rem', textAlign: 'right' }}>$300.00</div>
+                        <div style={{ minWidth: '10%', maxWidth: '10%', fontSize: '0.7rem', textAlign: 'center' }}>15</div>
+                    </div>
+
+
+                    {/* <div className="input-box-container" style={{ position: 'relative' }}>
                         <input type="text" placeholder="Miles" readOnly={true} value={((props.selected_order?.miles || 0) / 1609.34).toFixed(2)} />
                         <div className="loading-container">
                             <Loader type="ThreeDots" color="#333738" height={20} width={20} visible={props.mileageLoaderVisible} />
@@ -6623,7 +8982,7 @@ function Dispatch(props) {
                     <div className="form-h-sep"></div>
                     <div className="input-box-container" style={{ width: '4rem' }}>
                         <input type="text" placeholder="%" readOnly={true} />
-                    </div>
+                    </div> */}
                 </div>
             </div>
 
@@ -6656,13 +9015,15 @@ function Dispatch(props) {
                                 props.selected_order.events.map((item, index) => {
                                     html += `
                                     <div style="padding: 5px 0;display:flex;align-items:center;font-size: 0.7rem;font-weight:normal;margin-bottom:15px;color: rgba(0,0,0,1); borderTop:1px solid rgba(0,0,0,0.1);border-bottom:1px solid rgba(0,0,0,0.1)">
-                                        <div style="min-width:15%;max-width:15%;text-decoration:underline">${item.event_date}@${item.event_time}</div>
-                                        <div style="min-width:10%;max-width:10%;text-decoration:underline">${item.user_id}</div>
-                                        <div style="min-width:15%;max-width:15%;text-decoration:underline">${item.event_type.toUpperCase()}</div>
-                                        <div style="min-width:20%;max-width:20%;text-decoration:underline">${item.event_location}</div>
-                                        <div style="min-width:40%;max-width:40%;text-decoration:underline">${item.event_notes}</div> 
+                                        <div style="min-width:15%;max-width:15%;">${item.event_date}@${item.event_time}</div>
+                                        <div style="min-width:10%;max-width:10%;">${item.user_id}</div>
+                                        <div style="min-width:15%;max-width:15%;">${item.event_type.toUpperCase()}</div>
+                                        <div style="min-width:20%;max-width:20%;">${item.event_location || ''}</div>
+                                        <div style="min-width:40%;max-width:40%;">${item.event_notes || ''}</div> 
                                     </div>
                                     `;
+
+                                    return true;
                                 })
 
                                 printWindow(html);
@@ -6676,88 +9037,31 @@ function Dispatch(props) {
                     </div>
 
                     <div className="order-events-container">
+                        {
+                            (props.selected_order?.events || []).length > 0 &&
+                            <div className="order-events-item">
+                                <div className="event-time">Time</div>
+                                <div className="event-date">Date</div>
+                                <div className="event-user-id">User ID</div>
+                                <div className="event-type">Event</div>
+                                <div className="event-location">Location</div>
+                                <div className="event-notes">Notes</div>
+                            </div>
+                        }
+
                         <div className="order-events-wrapper">
                             {
-                                (props.selected_order?.events || []).length > 0 &&
-                                <div className="order-events-item">
-                                    <div className="event-time">Time</div>
-                                    <div className="event-date">Date</div>
-                                    <div className="event-user-id">User ID</div>
-                                    <div className="event-type">Event</div>
-                                    <div className="event-location">Location</div>
-                                    <div className="event-notes">Notes</div>
-                                </div>
-                            }
-                            {
-                                (props.selected_order?.events || []).map((item, index) => {
-                                    switch (item.event_type) {
-                                        case 'loaded':
-                                            return (
-                                                <div className="order-events-item">
-                                                    <div className="event-time">{item.event_time}</div>
-                                                    <div className="event-date">{item.event_date}</div>
-                                                    <div className="event-user-id">{item.user_id}</div>
-                                                    <div className="event-type">{item.event_type.toUpperCase()}</div>
-                                                    <div className="event-location">{item.event_location}</div>
-                                                    <div className="event-notes">{item.event_notes}</div>
+                                (props.selected_order?.events || []).map((item, index) => (
+                                    <div className="order-events-item" key={index}>
+                                        <div className="event-time">{item.event_time}</div>
+                                        <div className="event-date">{item.event_date}</div>
+                                        <div className="event-user-id">{item.user_id}</div>
+                                        <div className="event-type">{item.event_type.toUpperCase()}</div>
+                                        <div className="event-location">{item.event_location}</div>
+                                        <div className="event-notes">{item.event_notes}</div>
 
-                                                </div>
-                                            )
-                                            break;
-
-                                        case 'pickup carried out':
-                                            return (
-                                                <div className="order-events-item">
-                                                    <div className="event-time">{item.event_time}</div>
-                                                    <div className="event-date">{item.event_date}</div>
-                                                    <div className="event-user-id">{item.user_id}</div>
-                                                    <div className="event-type">{item.event_type.toUpperCase()} - {item.shipper.code}</div>
-                                                    <div className="event-location">{item.event_location}</div>
-                                                    <div className="event-notes">{item.event_notes}</div>
-                                                </div>
-                                            )
-                                            break;
-
-                                        case 'delivery carried out':
-                                            return (
-                                                <div className="order-events-item">
-                                                    <div className="event-time">{item.event_time}</div>
-                                                    <div className="event-date">{item.event_date}</div>
-                                                    <div className="event-user-id">{item.user_id}</div>
-                                                    <div className="event-type">{item.event_type.toUpperCase()} - {item.consignee.code}</div>
-                                                    <div className="event-location">{item.event_location}</div>
-                                                    <div className="event-notes">{item.event_notes}</div>
-                                                </div>
-                                            )
-                                            break;
-
-                                        case 'changed carrier':
-                                            return (
-                                                <div className="order-events-item">
-                                                    <div className="event-time">{item.event_time}</div>
-                                                    <div className="event-date">{item.event_date}</div>
-                                                    <div className="event-user-id">{item.user_id}</div>
-                                                    <div className="event-type">{item.event_type.toUpperCase()}</div>
-                                                    <div className="event-location">{item.event_location}</div>
-                                                    <div className="event-notes">Changed carrier from {item.old_carrier.code} - {item.old_carrier.name} to {item.new_carrier.code} - {item.new_carrier.name}</div>
-                                                </div>
-                                            )
-                                            break;
-
-                                        default:
-
-                                            return (
-                                                <div className="order-events-item">
-                                                    <div className="event-time">{item.event_time}</div>
-                                                    <div className="event-date">{item.event_date}</div>
-                                                    <div className="event-user-id">{item.user_id}</div>
-                                                    <div className="event-type">{item.event_type.toUpperCase()}</div>
-                                                    <div className="event-location">{item.event_location}</div>
-                                                    <div className="event-notes">{item.event_notes}</div>
-                                                </div>
-                                            )
-                                    }
-                                })
+                                    </div>
+                                ))
                             }
                         </div>
                     </div>
@@ -6843,7 +9147,7 @@ function Dispatch(props) {
                 </animated.div>
             }
 
-            <DispatchPopup
+            {/* <DispatchPopup
                 popupRef={refPopup}
                 popupClasses={popupContainerClasses}
                 popupItems={popupItems}
@@ -6851,7 +9155,7 @@ function Dispatch(props) {
                 popupItemClick={popupItemClick}
                 popupItemKeydown={() => { }}
                 setPopupItems={setPopupItems}
-            />
+            /> */}
 
             <CalendarPopup
                 popupRef={refCalendarPickupDate1}
@@ -6863,6 +9167,7 @@ function Dispatch(props) {
 
                     let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
                     extra_data.pu_date1 = day.format('MM/DD/YYYY');
+                    extra_data.pu_date2 = day.format('MM/DD/YYYY');
                     await props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data })
 
                     let pickups = (props.selected_order?.pickups || []).map((pu, i) => {
@@ -6928,6 +9233,7 @@ function Dispatch(props) {
 
                     let extra_data = props.selectedConsigneeCompanyInfo?.extra_data || {};
                     extra_data.delivery_date1 = day.format('MM/DD/YYYY');
+                    extra_data.delivery_date2 = day.format('MM/DD/YYYY');
                     await props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, extra_data: extra_data })
 
                     let deliveries = (props.selected_order?.deliveries || []).map((delivery, i) => {

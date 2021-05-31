@@ -357,7 +357,7 @@ function Routing(props) {
                 let waypointCount = 0;
 
                 routing.map((item, i) => {
-                    if (item.zip_data){
+                    if (item.zip_data) {
                         params['waypoint' + waypointCount] = 'geo!' + item.zip_data.latitude.toString() + ',' + item.zip_data.longitude.toString();
                         waypointCount += 1;
                     }
@@ -981,33 +981,38 @@ function Routing(props) {
             <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr 1fr 1fr',
+                gridGap: '1rem',
+                // justifyContent: 'space-between',
                 width: '50%',
                 marginTop: 15,
                 marginBottom: 10
             }}>
-                <div className="input-box-container">
-                    <input type="text" placeholder="A/E Number" disabled={true}
+                <div className="input-box-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>A/E Number:</div>
+                    <input style={{ textAlign: 'right' }} type="text" disabled={true}
                         onChange={(e) => { }}
                         value={props.selected_order?.ae_number || ''} />
                 </div>
 
-                <div className="input-box-container">
-                    <input type="text" placeholder="Order Number" disabled={true}
+                <div className="input-box-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Order Number:</div>
+                    <input style={{ textAlign: 'right' }} type="text" disabled={true}
                         onChange={(e) => { }}
                         value={props.order_number || ''} />
                 </div>
 
-                <div className="input-box-container">
-                    <input type="text" placeholder="Trip Number" disabled={true}
+                <div className="input-box-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Trip Number:</div>
+                    <input style={{ textAlign: 'right' }} type="text" disabled={true}
                         onChange={(e) => { }}
                         value={props.trip_number || ''} />
                 </div>
 
-                <div className="input-box-container" style={{ position: 'relative' }}>
-                    <input type="text" placeholder="Miles" readOnly={true} onChange={() => { }} value={((props.selected_order?.miles || 0) / 1609.34).toFixed(2)} />
-
+                <div className="input-box-container" style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Miles:</div>
+                    <input style={{ textAlign: 'right' }} type="text" readOnly={true} onChange={() => { }} value={props.mileageLoaderVisible ? '' : ((props.selected_order?.miles || 0) / 1609.34).toFixed(0)} />
                     <div className="loading-container">
                         <Loader type="ThreeDots" color="#333738" height={20} width={20} visible={props.mileageLoaderVisible} />
                     </div>
@@ -1041,7 +1046,8 @@ function Routing(props) {
                                     return <div
                                         key={grpI}
                                         className="routing-pickup-container"
-                                        onDragEnter={dragging && !grp.items.length ? (e) => handleDragEnter(e, { grpI, itemI: 0 }) : null}
+                                        // onDragEnter={dragging && !grp.items.length ? (e) => handleDragEnter(e, { grpI, itemI: 0 }) : null}
+                                        onDragEnter={dragging ? (e) => handleDragEnter(e, { grpI, itemI: grp.items.length }) : null}
                                     >
                                         {
                                             grp.items.map((item, itemI) => {
@@ -1613,9 +1619,9 @@ function Routing(props) {
                             <div className="bottom-border bottom-border-left"></div>
                             <div className="bottom-border bottom-border-middle"></div>
                             <div className="form-buttons">
-                                <div className="input-box-container" style={{ position: 'relative', width: '10rem' }}>
-                                    <input type="text" placeholder="Miles" readOnly={true} onChange={() => { }} value={((props.selected_order?.miles || 0) / 1609.34).toFixed(2)} />
-
+                                <div className="input-box-container" style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Miles:</div>
+                                    <input style={{ textAlign: 'right' }} type="text" readOnly={true} onChange={() => { }} value={props.mileageLoaderVisible ? '' : ((props.selected_order?.miles || 0) / 1609.34).toFixed(0)} />
                                     <div className="loading-container">
                                         <Loader type="ThreeDots" color="#333738" height={20} width={20} visible={props.mileageLoaderVisible} />
                                     </div>
@@ -1631,6 +1637,7 @@ function Routing(props) {
                                         key={grpI}
                                         className="routing-route-container"
                                         onDragEnter={dragging && !grp.items.length ? (e) => handleDragEnter(e, { grpI, itemI: 0 }) : null}
+                                        // onDragEnter={dragging ? (e) => handleDragEnter(e, { grpI, itemI: grp.items.length }) : null}
                                     >
                                         {
                                             grp.items.map((item, itemI) => {
@@ -1641,7 +1648,7 @@ function Routing(props) {
                                                     onDragStart={(e) => { handleDragStart(e, { grpI, itemI }) }}
                                                     onDragEnter={dragging ? (e) => { handleDragEnter(e, { grpI, itemI }) } : null}
                                                 >
-                                                    <span className={item.extra_data.type === 'pickup' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'}></span>
+                                                    {/* <span className={item.extra_data.type === 'pickup' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'}></span> */}
                                                     <span>{item.code}</span>
                                                     <span>{item.name}</span>
                                                     <span>{item.city}-{item.state}</span>

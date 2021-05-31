@@ -7,7 +7,17 @@
   justify-content: center;
   align-items: center;
   font-size: 24px;
-  background-color: #d3d3d3;
+  /* Permalink - use to edit and share this gradient: https://colorzilla.com/gradient-editor/#efefef+0,c8c8c8+100 */
+  background: #fafafa;
+  /* Old browsers */
+  background: -moz-radial-gradient(center, ellipse cover, #fafafa 0%, #c8c8c8 100%);
+  /* FF3.6-15 */
+  background: -webkit-radial-gradient(center, ellipse cover, #fafafa 0%, #c8c8c8 100%);
+  /* Chrome10-25,Safari5.1-6 */
+  background: radial-gradient(ellipse at center, #fafafa 0%, #c8c8c8 100%);
+  /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#efefef', endColorstr='#c8c8c8', GradientType=1);
+  /* IE6-9 fallback on horizontal gradient */
   transition: all ease 0.7s;
   padding: 10px;
 }
@@ -343,11 +353,51 @@
   flex-grow: 1;
   position: relative;
 }
+.dispatch-main-container .order-events-container > .order-events-item {
+  font-size: 0.7rem;
+  padding: 5px 0;
+  cursor: pointer;
+  transition: ease 0.3s;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+  text-decoration: underline;
+}
+.dispatch-main-container .order-events-container > .order-events-item .event-time {
+  min-width: 3rem;
+}
+.dispatch-main-container .order-events-container > .order-events-item .event-date {
+  min-width: 5rem;
+}
+.dispatch-main-container .order-events-container > .order-events-item .event-user-id {
+  min-width: 3.5rem;
+}
+.dispatch-main-container .order-events-container > .order-events-item .event-type {
+  min-width: 10rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.dispatch-main-container .order-events-container > .order-events-item .event-location {
+  min-width: 12rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.dispatch-main-container .order-events-container > .order-events-item .event-notes {
+  flex-grow: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
 .dispatch-main-container .order-events-container .order-events-wrapper {
   position: absolute;
   width: 100%;
-  height: 100%;
-  top: 0;
+  height: calc(100% - 1.5rem);
+  bottom: 0;
   left: 0;
   overflow-y: auto;
 }
@@ -363,13 +413,6 @@
   display: flex;
   align-items: center;
 }
-.dispatch-main-container .order-events-container .order-events-wrapper .order-events-item:first-child {
-  border-bottom: 0;
-}
-.dispatch-main-container .order-events-container .order-events-wrapper .order-events-item:first-child div {
-  text-decoration: underline;
-  font-weight: bold;
-}
 .dispatch-main-container .order-events-container .order-events-wrapper .order-events-item:not(:first-child):hover {
   background-color: rgba(0, 0, 0, 0.05);
 }
@@ -383,13 +426,13 @@
   min-width: 3.5rem;
 }
 .dispatch-main-container .order-events-container .order-events-wrapper .order-events-item .event-type {
-  min-width: 15rem;
+  min-width: 10rem;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
 }
 .dispatch-main-container .order-events-container .order-events-wrapper .order-events-item .event-location {
-  min-width: 15rem;
+  min-width: 12rem;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;

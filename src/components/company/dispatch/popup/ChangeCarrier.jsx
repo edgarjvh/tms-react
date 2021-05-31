@@ -104,13 +104,13 @@ function ChangeCarrier(props) {
             window.alert('You must select a new carrier first!');
             return;
         }
-        
-        if (props.selected_order.carrier.id === props.newCarrier.id){
+
+        if (props.selected_order.carrier.id === props.newCarrier.id) {
             window.alert('You must select a carrier different from the current one!');
             return;
         }
 
-        if (window.confirm('Are you sure to proceed to change the carrier?')) {
+        if (window.confirm('Are you sure you want to change the carrier?')) {
             setIsLoading(true);
 
             let selected_order = { ...props.selected_order } || { order_number: 0 };
@@ -121,44 +121,62 @@ function ChangeCarrier(props) {
                 selected_order.ae_number = getRandomInt(1, 100);
             }
 
-            if (!isSavingOrder) {
-                setIsSavingOrder(true);
-                $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
-                    if (res.result === 'OK') {
-                        await props.setSelectedOrder(res.order);
+            let event_parameters = {
+                order_id: selected_order.id,
+                event_time: moment().format('HHmm'),
+                event_date: moment().format('MM/DD/YYYY'),
+                user_id: selected_order.ae_number,
+                event_location: '',
+                event_notes: `Changed Carrier from: "Old Carrier (${selected_order.carrier.code + (selected_order.carrier.code_number === 0 ? '' : selected_order.carrier.code_number) + ' - ' + selected_order.carrier.name})" to "New Carrier (${props.newCarrier.code + (props.newCarrier.code_number === 0 ? '' : props.newCarrier.code_number) + ' - ' + props.newCarrier.name})"`,
+                event_type: 'changed carrier',
+                old_carrier_id: selected_order.carrier.id,
+                new_carrier_id: props.newCarrier.id
+            }
 
-                        await props.setSelectedDispatchCarrierInfoCarrier(props.newCarrier);
+            $.post(props.serverUrl + '/saveOrderEvent', event_parameters).then(async res => {
+                if (res.result === 'OK') {
 
-                        await props.setSelectedDispatchCarrierInfoContact({});
+                    $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                        if (res.result === 'OK') {
+                            await props.setSelectedOrder(res.order);
 
-                        await props.newCarrier.contacts.map(async c => {
-                            if (c.is_primary === 1) {
-                                await props.setSelectedDispatchCarrierInfoContact(c);
+                            await props.setSelectedDispatchCarrierInfoCarrier(props.newCarrier);
+
+                            await props.setSelectedDispatchCarrierInfoContact({});
+
+                            await props.newCarrier.contacts.map(async c => {
+                                if (c.is_primary === 1) {
+                                    await props.setSelectedDispatchCarrierInfoContact(c);
+                                }
+                                return true;
+                            });
+
+                            await props.setSelectedDispatchCarrierInfoInsurance({});
+
+                            await props.setSelectedDispatchCarrierInfoDriver({});
+
+                            if (props.newCarrier.drivers.length > 0) {
+                                await props.setSelectedDispatchCarrierInfoDriver(props.newCarrier.drivers[0]);
+                                selected_order.carrier_driver_id = props.newCarrier.drivers[0].id;
                             }
-                            return true;
-                        });
 
-                        await props.setSelectedDispatchCarrierInfoInsurance({});
-
-                        await props.setSelectedDispatchCarrierInfoDriver({});
-
-                        if (props.newCarrier.drivers.length > 0) {
-                            await props.setSelectedDispatchCarrierInfoDriver(props.newCarrier.drivers[0]);
-                            selected_order.carrier_driver_id = props.newCarrier.drivers[0].id;
+                            await props.setNewCarrier({});
+                            await props.setShowingChangeCarrier(false);
+                            await setIsLoading(false);
                         }
 
-                        await props.setNewCarrier({});
-                        await props.setShowingChangeCarrier(false);
-                        await setIsLoading(false);
-                    }
-
-                    setIsSavingOrder(false);
-                }).catch(e => {
-                    console.log('error saving order changing carrier', e);
-                    setIsSavingOrder(false);
-                    setIsLoading(false);
-                });
-            }
+                        setIsSavingOrder(false);
+                    }).catch(e => {
+                        console.log('error saving order changing carrier', e);
+                        setIsSavingOrder(false);
+                        setIsLoading(false);
+                    });
+                } else if (res.result === 'ORDER ID NOT VALID') {
+                    window.alert('The order number is not valid!');
+                }
+            }).catch(e => {
+                console.log('error saving order event', e);
+            })
         }
     }
 

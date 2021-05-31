@@ -159,10 +159,9 @@ function ConsigneeCompanyContacts(props) {
             <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
             <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, 'lb-consignee-company-contacts')}><span className="fas fa-times"></span></div>
 
-            <div className="contact-container">
-
+            <div className="contact-container" style={{overflow: 'initial'}}>
                 <div className="contact-list-container">
-                    <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
+                    <div className="title">{props.title}</div><div className="side-title" style={{left: '-45px'}}><div>{props.title}</div></div>
 
                     <div className="contact-list">
                         <div className="contact-list-wrapper">
@@ -238,8 +237,19 @@ function ConsigneeCompanyContacts(props) {
                             <div className="contact-name">
                                 {(props.customer.selectedConsigneeCompanyContact?.prefix || '') + " " + (props.customer.selectedConsigneeCompanyContact?.first_name || '') + " " + (props.customer.selectedConsigneeCompanyContact?.middle_name || '') + " " + (props.customer.selectedConsigneeCompanyContact?.last_name || '')}
                             </div>
-                            <div className="contact-company"><span style={{ fontWeight: 'bold' }}>{props.customer.selectedConsigneeCompanyContact?.id !== undefined ? props.customer.name : ''}</span> <span>{(props.customer.selectedConsigneeCompanyContact?.title || '')}</span> <span style={{ fontWeight: 'bold' }}>{(props.customer.selectedConsigneeCompanyContact?.department || '')}</span></div>
-                        </div>
+                            <div className="contact-company">
+                                <span>
+                                    {props.customer.selectedConsigneeCompanyContact.id !== undefined ? props.customer.name : ''}
+                                </span>
+                                
+                                <span>
+                                    {(props.customer.selectedConsigneeCompanyContact.title || '')}
+                                </span>
+                                
+                                <span>
+                                    {(props.customer.selectedConsigneeCompanyContact.department || '')}
+                                </span>
+                            </div>                        </div>
                         <div className="contact-buttons">
                             <div className="input-toggle-container">
                                 <input type="checkbox" id="cbox-panel-customer-contacts-primary-btn"
