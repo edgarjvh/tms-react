@@ -23,97 +23,18 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/swiper-bundle.css';
 
 import CalendarPopup from './calendarPopup/CalendarPopup.jsx';
+import Calendar from './calendar/Calendar.jsx';
 
 import Loader from 'react-loader-spinner';
 import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
 
-import CarrierChange from './popup/ChangeCarrier.jsx';
-
-import {
-    setDispatchPanels,
-    setSelectedOrder,
-    setSelectedBillToCompanyInfo,
-    setBillToCompanySearch,
-    setSelectedBillToCompanyContact,
-    setSelectedShipperCompanyInfo,
-    setShipperCompanySearch,
-    setSelectedShipperCompanyContact,
-    setSelectedConsigneeCompanyInfo,
-    setConsigneeCompanySearch,
-    setSelectedConsigneeCompanyContact,
-    setBillToCompanies,
-    setShipperCompanies,
-    setConsigneeCompanies,
-    setAeNumber,
-    setOrderNumber,
-    setTripNumber,
-    setDivision,
-    setLoadType,
-    setTemplate,
-    setPu1,
-    setPu2,
-    setPu3,
-    setPu4,
-    setPu5,
-    setDelivery1,
-    setDelivery2,
-    setDelivery3,
-    setDelivery4,
-    setDelivery5,
-    setShipperPuDate1,
-    setShipperPuDate2,
-    setShipperPuTime1,
-    setShipperPuTime2,
-    setShipperBolNumber,
-    setShipperPoNumber,
-    setShipperRefNumber,
-    setShipperSealNumber,
-    setShipperSpecialInstructions,
-    setConsigneeDeliveryDate1,
-    setConsigneeDeliveryDate2,
-    setConsigneeDeliveryTime1,
-    setConsigneeDeliveryTime2,
-    setConsigneeSpecialInstructions,
-    setDispatchEvent,
-    setDispatchEventLocation,
-    setDispatchEventNotes,
-    setDispatchEvents,
-    setHazMat,
-    setExpedited,
-    setNotesForCarrier,
-    setSelectedNoteForCarrier,
-    setInternalNotes,
-    setSelectedInternalNote,
-    setIsShowingShipperSecondPage,
-    setIsShowingConsigneeSecondPage,
-
-    setSelectedDispatchCarrierInfoCarrier,
-    setSelectedDispatchCarrierInfoContact,
-    setSelectedDispatchCarrierInfoDriver,
-    setSelectedDispatchCarrierInfoInsurance,
-
-    setDispatchCarrierInfoCarrierSearch,
-    setDispatchCarrierInfoCarriers,
-    setDispatchOpenedPanels,
-    setOrderSelectedPickup,
-    setIsAddingPickup,
-    setIsAddingDelivery,
-    setMileageLoaderVisible,
-    setSelectedOrderDocument,
-
-    setLbSelectedOrder,
-
-    setShowingChangeCarrier
-} from './../../../actions';
-import ChangeCarrier from './popup/ChangeCarrier.jsx';
+import ChangeCarrier from './../panels/change-carrier/ChangeCarrier.jsx';
 
 function Dispatch(props) {
     const [driverItems, setDriverItems] = useState([]);
     SwiperCore.use([Navigation]);
 
     var delayTimer;
-
-
 
     const refOrderNumber = useRef(null);
 
@@ -124,6 +45,14 @@ function Dispatch(props) {
 
         updateSystemDateTime();
     }, [])
+
+    useEffect(() => {
+        if (props.screenFocused){
+            refOrderNumber.current.focus({
+                preventScroll: true
+            });
+        }        
+    }, [props.screenFocused])
 
     const [currentSystemDateTime, setCurrentSystemDateTime] = useState(moment());
 
@@ -138,6 +67,7 @@ function Dispatch(props) {
     const [puTime2KeyCode, setPuTime2KeyCode] = useState(0);
     const [puDate1KeyCode, setPuDate1KeyCode] = useState(0);
     const [puDate2KeyCode, setPuDate2KeyCode] = useState(0);
+    const [dispatchEventTimeKeyCode, setDispatchEvebtTimeKeyCode] = useState(0);
     const [deliveryTime1KeyCode, setDeliveryTime1KeyCode] = useState(0);
     const [deliveryTime2KeyCode, setDeliveryTime2KeyCode] = useState(0);
     const [deliveryDate1KeyCode, setDeliveryDate1KeyCode] = useState(0);
@@ -168,6 +98,10 @@ function Dispatch(props) {
     const refCalendarDeliveryDate1 = useRef();
     const refCalendarDeliveryDate2 = useRef();
 
+    const refEventDate = useRef();
+    const [isDispatchEventDateCalendarShown, setIsDispatchEventDateCalendarShown] = useState(false);
+    const [preSelectedDispatchEventDate, setPreSelectedDispatchEventDate] = useState(moment());
+    const refDispatchEventDateCalendarDropDown = useDetectClickOutside({ onTriggered: async () => { await setIsDispatchEventDateCalendarShown(false) } });
 
     const popupCalendarPickupDate1Classes = classnames({
         'mochi-contextual-container': true,
@@ -197,6 +131,7 @@ function Dispatch(props) {
         app_id: "X4qy0Sva14BQxJCbVqXL"
     });
     const routingService = platform.getRoutingService();
+    // const routingService = {};
 
     const modalTransitionProps = useSpring({ opacity: (props.selectedNoteForCarrier.id !== undefined || props.selectedInternalNote.id !== undefined) ? 1 : 0 });
 
@@ -346,56 +281,22 @@ function Dispatch(props) {
     const refDispatchEventPopupItems = useRef([]);
     const refDispatchEventSecondPagePopupItems = useRef([]);
 
-    useEffect( () => {
+    useEffect(() => {
         if (!showDispatchEventItems) {
-             setDispatchEventItems(dispatchEventItems.map(item => {
+            setDispatchEventItems(dispatchEventItems.map(item => {
                 item.selected = false;
                 return item;
             }));
-             setShowDispatchEventSecondPageItems(false);
+            setShowDispatchEventSecondPageItems(false);
+            setDispatchEventSecondPageItems([]);
         }
     }, [showDispatchEventItems]);
 
-    // useEffect(async () => {
-    //     if (showDispatchEventItems) {
-    //         await setDispatchEventSecondPageItems([]);
 
-    //         let selectedIndex = dispatchEventItems.findIndex(el => el.selected);
-
-    //         if (selectedIndex > -1) {
-    //             let item = dispatchEventItems[selectedIndex];
-    //             let items = [];
-
-    //             switch (item.type) {
-    //                 case 'arrived':
-    //                     items = [
-    //                         ...(props.selected_order?.pickups || []),
-    //                         ...(props.selected_order?.deliveries || [])
-    //                     ]
-    //                     await setDispatchEventSecondPageItems(items);
-    //                     break;
-
-    //                 case 'loaded':
-    //                     items = [
-    //                         ...(props.selected_order?.pickups || [])
-    //                     ]
-    //                     await setDispatchEventSecondPageItems(items);
-    //                     break;
-
-    //                 case 'delivered':
-    //                     items = [
-    //                         ...(props.selected_order?.deliveries || [])
-    //                     ]
-    //                     await setDispatchEventSecondPageItems(items);
-    //                     break;
-    //             }
-    //         }
-    //     }
-    // }, [dispatchEventItems])
 
     const dispatchClearBtnClick = () => {
         props.setSelectedOrder({});
-        props.setAeNumber('');
+        
         props.setOrderNumber('');
         props.setTripNumber('');
 
@@ -410,44 +311,16 @@ function Dispatch(props) {
         props.setSelectedShipperCompanyContact({});
         props.setSelectedConsigneeCompanyInfo({});
         props.setSelectedConsigneeCompanyContact({});
-
-        props.setOrderSelectedPickup({})
-
-        props.setPu1('');
-        props.setPu2('');
-        props.setPu3('');
-        props.setPu4('');
-        props.setPu5('');
-        props.setDelivery1('');
-        props.setDelivery2('');
-        props.setDelivery3('');
-        props.setDelivery4('');
-        props.setDelivery5('');
-        props.setShipperPuDate1('');
-        props.setShipperPuDate2('');
-        props.setShipperPuTime1('');
-        props.setShipperPuTime2('');
+        
         props.setShipperBolNumber('');
         props.setShipperPoNumber('');
         props.setShipperRefNumber('');
-        props.setShipperSealNumber('');
-        props.setShipperSpecialInstructions('');
-        props.setConsigneeDeliveryDate1('');
-        props.setConsigneeDeliveryDate2('');
-        props.setConsigneeDeliveryTime1('');
-        props.setConsigneeDeliveryTime2('');
-        props.setConsigneeSpecialInstructions('');
-
-        props.setDispatchEvents([]);
+                
         props.setDispatchEvent({});
         setSelectedOrderEvent({});
         props.setDispatchEventLocation('');
-        props.setDispatchEventNotes('');
-
-        props.setHazMat(0);
-        props.setExpedited(0);
-        props.setNotesForCarrier([]);
-        props.setInternalNotes([]);
+        props.setDispatchEventNotes('');                
+        
         props.setSelectedNoteForCarrier({});
         props.setSelectedInternalNote({});
         props.setIsShowingShipperSecondPage(false);
@@ -457,203 +330,6 @@ function Dispatch(props) {
         props.setSelectedDispatchCarrierInfoDriver({});
         props.setSelectedDispatchCarrierInfoInsurance({});
         props.setSelectedDispatchCarrierInfoContact({});
-
-
-    }
-
-    const popupItemClick = async (item) => {
-        let selected_order = { ...props.selected_order } || { order_number: 0 };
-
-        switch (popupActiveInput) {
-            case 'division':
-                await props.setDivision(item);
-
-                if ((props.selectedBillToCompanyInfo?.id || 0) === 0) {
-                    await setPopupItems([]);
-                    return;
-                }
-
-                selected_order.bill_to_customer_id = (props.selectedBillToCompanyInfo?.id || 0);
-                selected_order.shipper_customer_id = (props.selectedShipperCompanyInfo?.id || 0);
-                selected_order.consignee_customer_id = (props.selectedConsigneeCompanyInfo?.id || 0);
-                selected_order.carrier_id = (props.selectedDispatchCarrierInfoCarrier?.id || 0);
-                selected_order.carrier_driver_id = (props.selectedDispatchCarrierInfoDriver?.id || 0);
-
-                selected_order.division = item.name;
-
-                if ((selected_order.ae_number || '') === '') {
-                    selected_order.ae_number = getRandomInt(1, 100);
-                }
-
-                if (!isSavingOrder) {
-                    setIsSavingOrder(true);
-                    $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
-                        if (res.result === 'OK') {
-                            await props.setSelectedOrder(res.order);
-                        }
-
-                        setIsSavingOrder(false);
-                    }).catch(e => {
-                        console.log('error saving order', e);
-                        setIsSavingOrder(false);
-                    });
-                }
-
-                await setPopupItems([]);
-                break;
-            case 'load-type':
-                await props.setLoadType(item);
-
-                if ((props.selectedBillToCompanyInfo?.id || 0) === 0) {
-                    await setPopupItems([]);
-                    return;
-                }
-
-                selected_order.bill_to_customer_id = (props.selectedBillToCompanyInfo?.id || 0);
-                selected_order.shipper_customer_id = (props.selectedShipperCompanyInfo?.id || 0);
-                selected_order.consignee_customer_id = (props.selectedConsigneeCompanyInfo?.id || 0);
-                selected_order.carrier_id = (props.selectedDispatchCarrierInfoCarrier?.id || 0);
-                selected_order.carrier_driver_id = (props.selectedDispatchCarrierInfoDriver?.id || 0);
-
-                selected_order.load_type = item.name;
-
-                if ((selected_order.ae_number || '') === '') {
-                    selected_order.ae_number = getRandomInt(1, 100);
-                }
-
-                if (!isSavingOrder) {
-                    setIsSavingOrder(true);
-                    $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
-                        if (res.result === 'OK') {
-                            await props.setSelectedOrder(res.order);
-                        }
-
-                        setIsSavingOrder(false);
-                    }).catch(e => {
-                        console.log('error saving order', e);
-                        setIsSavingOrder(false);
-                    });
-                }
-
-                await setPopupItems([]);
-                break;
-            case 'template':
-                await props.setTemplate(item);
-
-                if ((props.selectedBillToCompanyInfo?.id || 0) === 0) {
-                    await setPopupItems([]);
-                    return;
-                }
-
-                selected_order.bill_to_customer_id = (props.selectedBillToCompanyInfo?.id || 0);
-                selected_order.shipper_customer_id = (props.selectedShipperCompanyInfo?.id || 0);
-                selected_order.consignee_customer_id = (props.selectedConsigneeCompanyInfo?.id || 0);
-                selected_order.carrier_id = (props.selectedDispatchCarrierInfoCarrier?.id || 0);
-                selected_order.carrier_driver_id = (props.selectedDispatchCarrierInfoDriver?.id || 0);
-
-                selected_order.template = item.name;
-
-                if ((selected_order.ae_number || '') === '') {
-                    selected_order.ae_number = getRandomInt(1, 100);
-                }
-
-                if (!isSavingOrder) {
-                    setIsSavingOrder(true);
-                    $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
-                        if (res.result === 'OK') {
-                            await props.setSelectedOrder(res.order);
-                        }
-
-                        setIsSavingOrder(false);
-                    }).catch(e => {
-                        console.log('error saving order', e);
-                        setIsSavingOrder(false);
-                    });
-                }
-
-                await setPopupItems([]);
-                break;
-            case 'equipment':
-                await props.setSelectedDispatchCarrierInfoDriver({
-                    ...props.selectedDispatchCarrierInfoDriver,
-                    equipment: item,
-                    equipment_id: item.id,
-                    carrier_id: props.selectedDispatchCarrierInfoCarrier.id || 0
-                });
-
-                if ((props.selectedDispatchCarrierInfoCarrier?.id || 0) > 0) {
-                    let driver = {
-                        ...props.selectedDispatchCarrierInfoDriver,
-                        id: (props.selectedDispatchCarrierInfoDriver?.id || 0),
-                        carrier_id: props.selectedDispatchCarrierInfoCarrier.id || 0,
-                        equipment: item,
-                        equipment_id: item.id
-                    };
-
-                    if ((driver.first_name || '').trim() !== '') {
-                        if (!isSavingCarrierDriver) {
-                            setIsSavingCarrierDriver(true);
-
-                            $.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
-                                if (res.result === 'OK') {
-                                    await props.setSelectedDispatchCarrierInfoCarrier({ ...props.selectedDispatchCarrierInfoCarrier, drivers: res.drivers });
-                                    await props.setSelectedDispatchCarrierInfoDriver({ ...driver, id: res.driver.id });
-                                }
-
-                                await setIsSavingCarrierDriver(false);
-                            });
-                        }
-                    }
-                }
-                await setPopupItems([]);
-                break;
-            case 'dispatch-event':
-                await props.setDispatchEvent(item);
-                await setSelectedOrderEvent(item);
-                await setPopupItems([]);
-
-                props.setDispatchEventLocation(item.location || '');
-                props.setDispatchEventNotes(item.notes || '');
-                goToTabindex((72 + props.tabTimes).toString());
-                break;
-            case 'driver-name':
-
-                await props.setSelectedDispatchCarrierInfoDriver(item);
-
-                if ((props.selectedBillToCompanyInfo?.id || 0) === 0) {
-                    await setPopupItems([]);
-                    return;
-                }
-
-                selected_order.bill_to_customer_id = (props.selectedBillToCompanyInfo?.id || 0);
-                selected_order.shipper_customer_id = (props.selectedShipperCompanyInfo?.id || 0);
-                selected_order.consignee_customer_id = (props.selectedConsigneeCompanyInfo?.id || 0);
-                selected_order.carrier_id = (props.selectedDispatchCarrierInfoCarrier?.id || 0);
-                selected_order.carrier_driver_id = (item.id || 0);
-
-                if ((selected_order.ae_number || '') === '') {
-                    selected_order.ae_number = getRandomInt(1, 100);
-                }
-
-                if (!isSavingOrder) {
-                    setIsSavingOrder(true);
-                    $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
-                        if (res.result === 'OK') {
-                            await props.setSelectedOrder(res.order);
-                        }
-
-                        setIsSavingOrder(false);
-                    }).catch(e => {
-                        console.log('error saving order', e);
-                        setIsSavingOrder(false);
-                    });
-                }
-
-                await setPopupItems([]);
-                break;
-            default:
-                break;
-        }
     }
 
     const setPopupPosition = (input) => {
@@ -696,728 +372,6 @@ function Dispatch(props) {
                     popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px';
                 }
             }
-        }
-    }
-
-    const divisionOnKeydown = (e) => {
-        let key = e.key.toLowerCase();
-
-        $.post(props.serverUrl + '/getDivisions').then(async res => {
-            setPopupActiveInput('division');
-            const input = refDivision.current.getBoundingClientRect();
-            setPopupPosition(input);
-
-            if (res.result === 'OK') {
-                let selectedIndex = -1;
-
-                if (popupItems.length === 0) {
-                    if (key !== 'tab') {
-
-                        res.divisions.map((item, index) => {
-                            if (item.name === (props.division.name || '')) {
-                                selectedIndex = index;
-                            }
-                            return true;
-                        });
-
-                        setPopupItems(res.divisions.map((item, index) => {
-                            if (selectedIndex === -1) {
-                                item.selected = index === 0;
-                            } else {
-                                item.selected = selectedIndex === index;
-                            }
-                            return item;
-                        }));
-
-                    }
-                } else {
-                    if (key === 'arrowleft' || key === 'arrowup') {
-                        popupItems.map((item, index) => {
-                            if (item.selected) {
-                                selectedIndex = index;
-                            }
-                            return true;
-                        });
-
-                        if (selectedIndex === -1) {
-                            selectedIndex = 0;
-                        } else {
-                            if (selectedIndex === 0) {
-                                selectedIndex = popupItems.length - 1;
-                            } else {
-                                selectedIndex -= 1;
-                            }
-                        }
-
-                        setPopupItems(popupItems.map((item, index) => {
-                            item.selected = selectedIndex === index;
-                            return item;
-                        }));
-                    }
-
-                    if (key === 'arrowright' || key === 'arrowdown') {
-
-                        popupItems.map((item, index) => {
-                            if (item.selected) {
-                                selectedIndex = index;
-                            }
-                            return true;
-                        });
-
-                        if (selectedIndex === -1) {
-                            selectedIndex = 0;
-                        } else {
-                            if (selectedIndex === popupItems.length - 1) {
-                                selectedIndex = 0;
-                            } else {
-                                selectedIndex += 1;
-                            }
-                        }
-
-                        setPopupItems(popupItems.map((item, index) => {
-                            item.selected = selectedIndex === index;
-                            return item;
-                        }));
-                    }
-                }
-
-                if (key === 'enter' || key === 'tab') {
-                    if (popupItems.length > 0) {
-                        popupItems.map(async (item, index) => {
-                            if (item.selected) {
-                                await props.setDivision(item);
-
-                                if ((props.selectedBillToCompanyInfo?.id || 0) === 0) {
-                                    return;
-                                }
-
-                                let selected_order = { ...props.selected_order } || { order_number: 0 };
-
-                                selected_order.bill_to_customer_id = (props.selectedBillToCompanyInfo?.id || 0);
-                                selected_order.shipper_customer_id = (props.selectedShipperCompanyInfo?.id || 0);
-                                selected_order.consignee_customer_id = (props.selectedConsigneeCompanyInfo?.id || 0);
-                                selected_order.carrier_id = (props.selectedDispatchCarrierInfoCarrier?.id || 0);
-                                selected_order.carrier_driver_id = (props.selectedDispatchCarrierInfoDriver?.id || 0);
-
-                                selected_order.division = item.name;
-
-                                if ((selected_order.ae_number || '') === '') {
-                                    selected_order.ae_number = getRandomInt(1, 100);
-                                }
-
-                                if (!isSavingOrder) {
-                                    setIsSavingOrder(true);
-                                    $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
-                                        if (res.result === 'OK') {
-                                            await props.setSelectedOrder(res.order);
-                                        }
-
-                                        setIsSavingOrder(false);
-                                    }).catch(e => {
-                                        console.log('error saving order', e);
-                                        setIsSavingOrder(false);
-                                    });
-                                }
-
-                            }
-
-                            return true;
-                        });
-
-                        setPopupItems([]);
-                    }
-                }
-
-                if (key !== 'tab') {
-                    e.preventDefault();
-                }
-            }
-
-        });
-    }
-
-    const loadTypesOnKeydown = (e) => {
-        let key = e.key.toLowerCase();
-
-        $.post(props.serverUrl + '/getLoadTypes').then(async res => {
-            setPopupActiveInput('load-type');
-            const input = refLoadType.current.getBoundingClientRect();
-            setPopupPosition(input);
-
-            if (res.result === 'OK') {
-                let selectedIndex = -1;
-
-                if (popupItems.length === 0) {
-                    if (key !== 'tab') {
-                        res.load_types.map((item, index) => {
-                            if (item.name === (props.load_type.name || '')) {
-                                selectedIndex = index;
-                            }
-                            return true;
-                        });
-
-                        setPopupItems(res.load_types.map((item, index) => {
-                            if (selectedIndex === -1) {
-                                item.selected = index === 0;
-                            } else {
-                                item.selected = selectedIndex === index;
-                            }
-                            return item;
-                        }));
-                    }
-                } else {
-                    if (key === 'arrowleft' || key === 'arrowup') {
-                        popupItems.map((item, index) => {
-                            if (item.selected) {
-                                selectedIndex = index;
-                            }
-                            return true;
-                        });
-
-                        if (selectedIndex === -1) {
-                            selectedIndex = 0;
-                        } else {
-                            if (selectedIndex === 0) {
-                                selectedIndex = popupItems.length - 1;
-                            } else {
-                                selectedIndex -= 1;
-                            }
-                        }
-
-                        setPopupItems(popupItems.map((item, index) => {
-                            item.selected = selectedIndex === index;
-                            return item;
-                        }));
-                    }
-
-                    if (key === 'arrowright' || key === 'arrowdown') {
-                        popupItems.map((item, index) => {
-                            if (item.selected) {
-                                selectedIndex = index;
-                            }
-                            return true;
-                        });
-
-                        if (selectedIndex === -1) {
-                            selectedIndex = 0;
-                        } else {
-                            if (selectedIndex === popupItems.length - 1) {
-                                selectedIndex = 0;
-                            } else {
-                                selectedIndex += 1;
-                            }
-                        }
-
-                        setPopupItems(popupItems.map((item, index) => {
-                            item.selected = selectedIndex === index;
-                            return item;
-                        }));
-                    }
-                }
-
-                if (key === 'enter' || key === 'tab') {
-                    if (popupItems.length > 0) {
-                        popupItems.map(async (item, index) => {
-                            if (item.selected) {
-                                await props.setLoadType(item);
-
-                                if ((props.selectedBillToCompanyInfo?.id || 0) === 0) {
-                                    return;
-                                }
-
-                                let selected_order = { ...props.selected_order } || { order_number: 0 };
-
-                                selected_order.bill_to_customer_id = (props.selectedBillToCompanyInfo?.id || 0);
-                                selected_order.shipper_customer_id = (props.selectedShipperCompanyInfo?.id || 0);
-                                selected_order.consignee_customer_id = (props.selectedConsigneeCompanyInfo?.id || 0);
-                                selected_order.carrier_id = (props.selectedDispatchCarrierInfoCarrier?.id || 0);
-                                selected_order.carrier_driver_id = (props.selectedDispatchCarrierInfoDriver?.id || 0);
-
-                                selected_order.load_type = item.name;
-
-                                if ((selected_order.ae_number || '') === '') {
-                                    selected_order.ae_number = getRandomInt(1, 100);
-                                }
-
-                                if (!isSavingOrder) {
-                                    setIsSavingOrder(true);
-                                    $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
-                                        if (res.result === 'OK') {
-                                            await props.setSelectedOrder(res.order);
-                                        }
-
-                                        setIsSavingOrder(false);
-                                    }).catch(e => {
-                                        console.log('error saving order', e);
-                                        setIsSavingOrder(false);
-                                    });
-                                }
-                            }
-
-                            return true;
-                        });
-
-                        setPopupItems([]);
-
-                    }
-                }
-
-                if (key !== 'tab') {
-                    e.preventDefault();
-                }
-            }
-        });
-    }
-
-    const templatesOnKeydown = (e) => {
-        let key = e.key.toLowerCase();
-
-        $.post(props.serverUrl + '/getTemplates').then(async res => {
-            setPopupActiveInput('template');
-            const input = refTemplate.current.getBoundingClientRect();
-            setPopupPosition(input);
-
-            if (res.result === 'OK') {
-                let selectedIndex = -1;
-
-                if (popupItems.length === 0) {
-                    if (key !== 'tab') {
-                        res.templates.map((item, index) => {
-                            if (item.name === (props.template.name || '')) {
-                                selectedIndex = index;
-                            }
-                            return true;
-                        });
-
-                        setPopupItems(res.templates.map((item, index) => {
-                            if (selectedIndex === -1) {
-                                item.selected = index === 0;
-                            } else {
-                                item.selected = selectedIndex === index;
-                            }
-                            return item;
-                        }));
-                    }
-                } else {
-                    if (key === 'arrowleft' || key === 'arrowup') {
-                        popupItems.map((item, index) => {
-                            if (item.selected) {
-                                selectedIndex = index;
-                            }
-                            return true;
-                        });
-
-                        if (selectedIndex === -1) {
-                            selectedIndex = 0;
-                        } else {
-                            if (selectedIndex === 0) {
-                                selectedIndex = popupItems.length - 1;
-                            } else {
-                                selectedIndex -= 1;
-                            }
-                        }
-
-                        setPopupItems(popupItems.map((item, index) => {
-                            item.selected = selectedIndex === index;
-                            return item;
-                        }));
-                    }
-
-                    if (key === 'arrowright' || key === 'arrowdown') {
-                        popupItems.map((item, index) => {
-                            if (item.selected) {
-                                selectedIndex = index;
-                            }
-                            return true;
-                        });
-
-                        if (selectedIndex === -1) {
-                            selectedIndex = 0;
-                        } else {
-                            if (selectedIndex === popupItems.length - 1) {
-                                selectedIndex = 0;
-                            } else {
-                                selectedIndex += 1;
-                            }
-                        }
-
-                        setPopupItems(popupItems.map((item, index) => {
-                            item.selected = selectedIndex === index;
-                            return item;
-                        }));
-                    }
-                }
-
-                if (key === 'enter' || key === 'tab') {
-                    if (popupItems.length > 0) {
-                        popupItems.map(async (item, index) => {
-                            if (item.selected) {
-                                await props.setTemplate(item);
-
-                                if ((props.selectedBillToCompanyInfo?.id || 0) === 0) {
-                                    return;
-                                }
-
-                                let selected_order = { ...props.selected_order } || { order_number: 0 };
-
-                                selected_order.bill_to_customer_id = (props.selectedBillToCompanyInfo?.id || 0);
-                                selected_order.shipper_customer_id = (props.selectedShipperCompanyInfo?.id || 0);
-                                selected_order.consignee_customer_id = (props.selectedConsigneeCompanyInfo?.id || 0);
-                                selected_order.carrier_id = (props.selectedDispatchCarrierInfoCarrier?.id || 0);
-                                selected_order.carrier_driver_id = (props.selectedDispatchCarrierInfoDriver?.id || 0);
-
-                                selected_order.template = item.name;
-
-                                if ((selected_order.ae_number || '') === '') {
-                                    selected_order.ae_number = getRandomInt(1, 100);
-                                }
-
-                                if (!isSavingOrder) {
-                                    setIsSavingOrder(true);
-                                    $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
-                                        if (res.result === 'OK') {
-                                            await props.setSelectedOrder(res.order);
-                                        }
-
-                                        setIsSavingOrder(false);
-                                    }).catch(e => {
-                                        console.log('error saving order', e);
-                                        setIsSavingOrder(false);
-                                    });
-                                }
-                            }
-
-                            return true;
-                        });
-
-                        setPopupItems([]);
-
-                    }
-                }
-
-                if (key !== 'tab') {
-                    e.preventDefault();
-                }
-            }
-        });
-    }
-
-    const carrierEquipmentOnKeydown = async (e) => {
-        let key = e.keyCode || e.which;
-        let selectedIndex = -1;
-        let items = popupItems.map((a, b) => {
-            if (a.selected) selectedIndex = b;
-            return a;
-        });
-
-        if (key === 37 || key === 38) {
-            e.preventDefault();
-            if (selectedIndex === -1) {
-                // items[0].selected = true;
-            } else {
-                items = items.map((a, b) => {
-                    if (selectedIndex === 0) {
-                        if (b === items.length - 1) {
-                            a.selected = true;
-                        } else {
-                            a.selected = false;
-                        }
-                    } else {
-                        if (b === selectedIndex - 1) {
-                            a.selected = true;
-                        } else {
-                            a.selected = false;
-                        }
-                    }
-                    return a;
-                });
-
-                await setPopupItems(items);
-
-                popupItemsRef.current.map((r, i) => {
-                    if (r && r.classList.contains('selected')) {
-                        r.scrollIntoView()
-                    }
-                    return true;
-                });
-            }
-        }
-
-        if (key === 39 || key === 40) {
-            e.preventDefault();
-            if (selectedIndex === -1) {
-                // items[0].selected = true;
-            } else {
-                items = items.map((a, b) => {
-                    if (selectedIndex === items.length - 1) {
-                        if (b === 0) {
-                            a.selected = true;
-                        } else {
-                            a.selected = false;
-                        }
-                    } else {
-                        if (b === selectedIndex + 1) {
-                            a.selected = true;
-                        } else {
-                            a.selected = false;
-                        }
-                    }
-                    return a;
-                });
-
-                await setPopupItems(items);
-
-                popupItemsRef.current.map((r, i) => {
-                    if (r && r.classList.contains('selected')) {
-                        r.scrollIntoView()
-                    }
-                    return true;
-                });
-            }
-        }
-
-        if (key === 13) {
-            popupItems.map((item, index) => {
-                if (item.selected) {
-                    props.setSelectedDispatchCarrierInfoDriver({
-                        ...props.selectedDispatchCarrierInfoDriver,
-                        id: (props.selectedDispatchCarrierInfoDriver?.id || 0),
-                        carrier_id: props.selectedDispatchCarrierInfoCarrier.id,
-                        equipment_id: item.id, equipment: item
-                    });
-
-                    let driver = {
-                        ...props.selectedDispatchCarrierInfoDriver,
-                        id: (props.selectedDispatchCarrierInfoDriver?.id || 0),
-                        carrier_id: props.selectedDispatchCarrierInfoCarrier.id,
-                        equipment_id: item.id, equipment: item
-                    };
-
-                    if ((driver.first_name || '').trim() !== '') {
-                        if (!isSavingCarrierDriver) {
-                            setIsSavingCarrierDriver(true);
-
-                            $.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
-                                if (res.result === 'OK') {
-                                    await props.setSelectedDispatchCarrierInfoCarrier({ ...props.selectedDispatchCarrierInfoCarrier, drivers: res.drivers });
-                                    await props.setSelectedDispatchCarrierInfoDriver({ ...res.driver });
-                                }
-                                setIsSavingCarrierDriver(false);
-                            });
-                        }
-                    }
-                }
-
-                return true;
-            });
-
-            setPopupItems([]);
-        }
-
-        if (key === 9) {
-            if (popupItems.length === 0) {
-                if ((props.selectedDispatchCarrierInfoDriver.equipment_id || 0) === 0) {
-                    props.setSelectedDispatchCarrierInfoDriver({ ...props.selectedDispatchCarrierInfoDriver, equipment: {} });
-                } else {
-                    validateCarrierDriverForSaving(e);
-                }
-            } else {
-                popupItems.map((item, index) => {
-                    if (item.selected) {
-                        props.setSelectedDispatchCarrierInfoDriver({
-                            ...props.selectedDispatchCarrierInfoDriver,
-                            id: (props.selectedDispatchCarrierInfoDriver?.id || 0),
-                            carrier_id: props.selectedDispatchCarrierInfoCarrier.id,
-                            equipment_id: item.id, equipment: item
-                        });
-
-                        let driver = {
-                            ...props.selectedDispatchCarrierInfoDriver,
-                            id: (props.selectedDispatchCarrierInfoDriver?.id || 0),
-                            carrier_id: props.selectedDispatchCarrierInfoCarrier.id,
-                            equipment_id: item.id, equipment: item
-                        };
-
-                        if ((driver.first_name || '').trim() !== '') {
-                            if (!isSavingCarrierDriver) {
-                                setIsSavingCarrierDriver(true);
-
-                                $.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
-                                    if (res.result === 'OK') {
-                                        await props.setSelectedDispatchCarrierInfoCarrier({ ...props.selectedDispatchCarrierInfoCarrier, drivers: res.drivers });
-                                        await props.setSelectedDispatchCarrierInfoDriver({ ...res.driver });
-                                    }
-                                    setIsSavingCarrierDriver(false);
-                                });
-                            }
-                        }
-                    }
-
-                    return true;
-                });
-
-                // validateDriverForSaving(e);
-                setPopupItems([]);
-            }
-        }
-    }
-
-    const dispatchEventsOnKeydown = async (e) => {
-        let key = e.key.toLowerCase();
-        await setPopupActiveInput('dispatch-event');
-        const input = refDispatchEvents.current.getBoundingClientRect();
-        setPopupPosition(input);
-
-
-        if (key === 'arrowleft' || key === 'arrowup' || key === 'arrowright' || key === 'arrowdown') {
-            if (popupItems.length === 0) {
-                window.clearTimeout(delayTimer);
-                delayTimer = null;
-
-                delayTimer = window.setTimeout(async () => {
-
-                    if ((props.selected_order?.id || 0) === 0) {
-                        await setPopupItems([]);
-                        return;
-                    }
-
-                    let items = [];
-
-                    if ((props.selected_order?.carrier_id || 0) === 0) {
-                        items.push({
-                            name: 'Other',
-                            type: 'other'
-                        })
-
-                        await setPopupItems(items);
-
-                        return;
-                    }
-
-                    if ((props.selected_order?.routing || []).length > 0) {
-
-                        for (let i = 0; i < props.selected_order.routing.length; i++) {
-                            let route = props.selected_order.routing[i];
-
-                            if (route.extra_data.type === 'pickup') {
-                                if ((props.selected_order?.events || []).find(item => item.event_type === 'loaded' && item.shipper_id === route.id) === undefined) {
-                                    items.push({
-                                        name: 'Loaded - ' + route.code,
-                                        type: 'loaded',
-                                        location: route.city + ', ' + route.state,
-                                        notes: 'Loaded at Shipper ' + route.code + ((route.code_number || 0) === 0 ? '' : route.code_number),
-                                        shipper_id: route.id,
-                                    })
-
-                                    items.push({
-                                        name: 'Other',
-                                        type: 'other'
-                                    })
-
-                                    await setPopupItems(items);
-
-                                    return;
-                                }
-                            } else {
-                                if ((props.selected_order?.events || []).find(item => item.event_type === 'delivered' && item.consignee_id === route.id) === undefined) {
-                                    items.push({
-                                        name: 'Delivered - ' + route.code,
-                                        type: 'delivered',
-                                        location: route.city + ', ' + route.state,
-                                        notes: 'Delivered at Consignee ' + route.code + ((route.code_number || 0) === 0 ? '' : route.code_number),
-                                        consignee_id: route.id,
-                                    })
-
-                                    items.push({
-                                        name: 'Other',
-                                        type: 'other'
-                                    })
-
-                                    await setPopupItems(items);
-
-                                    return;
-                                }
-                            }
-                        }
-                    }
-
-                    items.push({
-                        name: 'Other',
-                        type: 'other'
-                    });
-
-                    await setPopupItems(items);
-
-                    refDispatchEvents.current.focus();
-                }, 100);
-            } else {
-                if (key === 'arrowright' || key === 'arrowdown') {
-                    let selectedIndex = popupItems.findIndex(item => item.selected);
-
-                    if (selectedIndex === -1) {
-                        selectedIndex = 0;
-                    } else {
-                        if (selectedIndex === popupItems.length - 1) {
-                            selectedIndex = 0;
-                        } else {
-                            selectedIndex += 1;
-                        }
-                    }
-
-                    setPopupItems(popupItems.map((item, index) => {
-                        item.selected = selectedIndex === index;
-                        return item;
-                    }));
-                }
-
-                if (key === 'arrowleft' || key === 'arrowup') {
-                    let selectedIndex = popupItems.findIndex(item => item.selected);
-
-                    if (selectedIndex === -1) {
-                        selectedIndex = 0;
-                    } else {
-                        if (selectedIndex === 0) {
-                            selectedIndex = popupItems.length - 1;
-                        } else {
-                            selectedIndex -= 1;
-                        }
-                    }
-
-                    setPopupItems(popupItems.map((item, index) => {
-                        item.selected = selectedIndex === index;
-                        return item;
-                    }));
-                }
-            }
-        } else if (key === 'enter' || key === 'tab') {
-            if (popupItems.length > 0) {
-                e.preventDefault();
-                let selectedIndex = popupItems.findIndex(item => item.selected);
-
-                if (selectedIndex === -1) {
-                    await props.setDispatchEvent(popupItems[0]);
-                    await setSelectedOrderEvent(popupItems[0]);
-                    props.setDispatchEventLocation(popupItems[0].location || '');
-                    props.setDispatchEventNotes(popupItems[0].notes || '');
-
-                    await setPopupItems([]);
-                    goToTabindex((72 + props.tabTimes).toString());
-                } else {
-                    await props.setDispatchEvent(popupItems[selectedIndex]);
-                    await setSelectedOrderEvent(popupItems[selectedIndex]);
-                    props.setDispatchEventLocation(popupItems[selectedIndex].location || '');
-                    props.setDispatchEventNotes(popupItems[selectedIndex].notes || '');
-
-                    await setPopupItems([]);
-                    goToTabindex((72 + props.tabTimes).toString());
-                }
-            } else {
-                if (key === 'enter') {
-                    e.preventDefault();
-                }
-            }
-        } else {
-            e.preventDefault();
         }
     }
 
@@ -1744,8 +698,8 @@ function Dispatch(props) {
                 props.setBillToCompanySearch(companySearch);
                 props.setBillToCompanies(res.customers);
 
-                if (!props.dispatchOpenedPanels.includes('bill-to-company-search')) {
-                    props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'bill-to-company-search']);
+                if (!props.openedPanels.includes(props.billToCompanySearchPanelName)) {
+                    props.setOpenedPanels([...props.openedPanels, props.billToCompanySearchPanelName]);
                 }
             }
         });
@@ -1788,8 +742,8 @@ function Dispatch(props) {
                 props.setShipperCompanySearch(companySearch);
                 props.setShipperCompanies(res.customers);
 
-                if (!props.dispatchOpenedPanels.includes('shipper-company-search')) {
-                    props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'shipper-company-search'])
+                if (!props.openedPanels.includes(props.shipperCompanySearchPanelName)) {
+                    props.setOpenedPanels([...props.openedPanels, props.shipperCompanySearchPanelName])
                 }
             }
         });
@@ -1832,8 +786,8 @@ function Dispatch(props) {
                 props.setConsigneeCompanySearch(companySearch);
                 props.setConsigneeCompanies(res.customers);
 
-                if (!props.dispatchOpenedPanels.includes('consignee-company-search')) {
-                    props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'consignee-company-search'])
+                if (!props.openedPanels.includes(props.consigneeCompanySearchPanelName)) {
+                    props.setOpenedPanels([...props.openedPanels, props.consigneeCompanySearchPanelName])
                 }
             }
         });
@@ -1888,11 +842,13 @@ function Dispatch(props) {
                                 selected_order.ae_number = getRandomInt(1, 100);
                             }
 
-                            if ((selected_order.events || []).find(el => el.event_type === 'carrier asigned') === undefined){
+                            if ((selected_order.events || []).find(el => el.event_type === 'carrier asigned') === undefined) {
                                 let event_parameters = {
                                     order_id: selected_order.id,
-                                    event_time: moment().format('HHmm'),
-                                    event_date: moment().format('MM/DD/YYYY'),
+                                    time: moment().format('HHmm'),
+                                    event_time: '',
+                                    date: moment().format('MM/DD/YYYY'),
+                                    event_date: '',
                                     user_id: selected_order.ae_number,
                                     event_location: '',
                                     event_notes: 'Assigned Carrier ' + res.carriers[0].code + (res.carriers[0].code_number === 0 ? '' : res.carriers[0].code_number) + ' - ' + res.carriers[0].name,
@@ -1906,7 +862,7 @@ function Dispatch(props) {
                                             if (res.result === 'OK') {
                                                 await props.setSelectedOrder(res.order);
                                             }
-        
+
                                             setIsSavingOrder(false);
                                         }).catch(e => {
                                             console.log('error saving order', e);
@@ -1920,14 +876,14 @@ function Dispatch(props) {
                                     console.log('error saving order event', e);
                                 })
 
-                            }else{
+                            } else {
                                 if (!isSavingOrder) {
                                     setIsSavingOrder(true);
                                     $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
                                         if (res.result === 'OK') {
                                             await props.setSelectedOrder(res.order);
                                         }
-    
+
                                         setIsSavingOrder(false);
                                     }).catch(e => {
                                         console.log('error saving order', e);
@@ -2205,8 +1161,8 @@ function Dispatch(props) {
                 await props.setDispatchCarrierInfoCarrierSearch(carrierSearch);
                 await props.setDispatchCarrierInfoCarriers(res.carriers);
 
-                if (!props.dispatchOpenedPanels.includes('carrier-info-search')) {
-                    props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'carrier-info-search'])
+                if (!props.openedPanels.includes(props.carrierInfoSearchPanelName)) {
+                    props.setOpenedPanels([...props.openedPanels, props.carrierInfoSearchPanelName])
                 }
             }
         });
@@ -3186,10 +2142,15 @@ function Dispatch(props) {
 
     return (
         <div className="dispatch-main-container" style={{
-            borderRadius: props.scale === 1 ? 0 : '20px'
+            borderRadius: props.scale === 1 ? 0 : '20px',
+            background: props.isOnPanel ? 'transparent' : 'rgb(250, 250, 250)',
+            background: props.isOnPanel ? 'transparent' : '-moz-radial-gradient(center, ellipse cover, rgba(250, 250, 250, 1) 0%, rgba(200, 200, 200, 1) 100%)',
+            background: props.isOnPanel ? 'transparent' : '-webkit-radial-gradient(center, ellipse cover, rgba(250, 250, 250, 1) 0%, rgba(200, 200, 200, 1) 100%)',
+            background: props.isOnPanel ? 'transparent' : 'radial-gradient(ellipse at center, rgba(250, 250, 250, 1) 0%, rgba(200, 200, 200, 1) 100%)',
+            padding: props.isOnPanel ? '10px 0' : 10
         }}>
 
-            <PanelContainer panels={props.panels} panelRefs={panelRefs} />
+            <PanelContainer />
 
             <div className="fields-container-row">
                 <div className="fields-container-col" style={{ minWidth: '91%', maxWidth: '91%', display: 'flex', flexDirection: 'column', marginRight: 10 }}>
@@ -3197,21 +2158,28 @@ function Dispatch(props) {
                         <div style={{ minWidth: '38%', maxWidth: '38%', marginRight: 10 }}>
                             <div className="form-borderless-box">
                                 <div className="form-row" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <div className="input-box-container" style={{ width: '9rem' }}>
-                                        <input type="text" readOnly={true} placeholder='A/E Number'
+
+                                    <div className="input-box-container" style={{ width: '9rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>A/E Number:</div>
+                                        <input style={{ textAlign: 'right', fontWeight: 'bold' }} type="text" readOnly={true}
                                             onChange={(e) => { }}
-                                            value={props.selected_order?.ae_number || ''} />
+                                            value={props.selected_order?.ae_number || ''}
+                                        />
                                     </div>
-                                    <div className="input-box-container" style={{ width: '9rem' }}>
-                                        <input tabIndex={1 + props.tabTimes} type="text" placeholder='Order Number'
+
+                                    <div className="input-box-container" style={{ width: '9rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Order Number:</div>
+                                        <input style={{ textAlign: 'right', fontWeight: 'bold' }} tabIndex={1 + props.tabTimes} type="text"
                                             ref={refOrderNumber}
                                             onKeyDown={getOrderByOrderNumber}
                                             onChange={(e) => { props.setOrderNumber(e.target.value) }}
                                             value={props.order_number || ''}
                                         />
                                     </div>
-                                    <div className="input-box-container" style={{ width: '9rem' }}>
-                                        <input tabIndex={2 + props.tabTimes} type="text" placeholder='Trip Number'
+
+                                    <div className="input-box-container" style={{ width: '9rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Trip Number:</div>
+                                        <input style={{ textAlign: 'right', fontWeight: 'bold' }} tabIndex={2 + props.tabTimes} type="text"
                                             onKeyDown={getOrderByTripNumber}
                                             onChange={(e) => { props.setTripNumber(e.target.value) }}
                                             value={
@@ -3226,7 +2194,8 @@ function Dispatch(props) {
                                                                     : props.trip_number
                                                             )
                                                     )
-                                            } />
+                                            }
+                                        />
                                     </div>
                                     <div className="mochi-button" onClick={dispatchClearBtnClick}>
                                         <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
@@ -4267,8 +3236,8 @@ function Dispatch(props) {
                                             return;
                                         }
 
-                                        if (!props.dispatchOpenedPanels.includes('bill-to-company-info')) {
-                                            props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'bill-to-company-info']);
+                                        if (!props.openedPanels.includes(props.billToCompanyInfoPanelName)) {
+                                            props.setOpenedPanels([...props.openedPanels, props.billToCompanyInfoPanelName]);
                                         }
                                     }}>
                                         <div className='mochi-button-decorator mochi-button-decorator-left'>(</div>
@@ -4276,8 +3245,8 @@ function Dispatch(props) {
                                         <div className='mochi-button-decorator mochi-button-decorator-right'>)</div>
                                     </div>
                                     <div className='mochi-button' onClick={() => {
-                                        if (!props.dispatchOpenedPanels.includes('rating-screen')) {
-                                            props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'rating-screen'])
+                                        if (!props.openedPanels.includes(props.ratingScreenPanelName)) {
+                                            props.setOpenedPanels([...props.openedPanels, props.ratingScreenPanelName])
                                         }
                                     }}>
                                         <div className='mochi-button-decorator mochi-button-decorator-left'>(</div>
@@ -4449,8 +3418,8 @@ function Dispatch(props) {
                                             return;
                                         }
 
-                                        if (!props.dispatchOpenedPanels.includes('carrier-info')) {
-                                            props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'carrier-info'])
+                                        if (!props.openedPanels.includes(props.carrierInfoPanelName)) {
+                                            props.setOpenedPanels([...props.openedPanels, props.carrierInfoPanelName])
                                         }
                                     }}>
                                         <div className='mochi-button-decorator mochi-button-decorator-left'>(</div>
@@ -5378,8 +4347,8 @@ function Dispatch(props) {
                             <div className="form-v-sep"></div>
                             <div className="form-row" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', flexGrow: 1, alignItems: 'flex-end' }}>
                                 <div className='mochi-button' style={{ fontSize: '1rem' }} onClick={() => {
-                                    if (!props.dispatchOpenedPanels.includes('rate-conf')) {
-                                        props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'rate-conf'])
+                                    if (!props.openedPanels.includes(props.rateConfPanelName)) {
+                                        props.setOpenedPanels([...props.openedPanels, props.rateConfPanelName])
                                     }
                                 }}>
                                     <div className='mochi-button-decorator mochi-button-decorator-left'>(</div>
@@ -5387,8 +4356,8 @@ function Dispatch(props) {
                                     <div className='mochi-button-decorator mochi-button-decorator-right'>)</div>
                                 </div>
                                 <div className='mochi-button' style={{ fontSize: '1rem' }} onClick={() => {
-                                    if (!props.dispatchOpenedPanels.includes('adjust-rate')) {
-                                        props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'adjust-rate'])
+                                    if (!props.openedPanels.includes(props.adjustRatePanelName)) {
+                                        props.setOpenedPanels([...props.openedPanels, props.adjustRatePanelName])
                                     }
                                 }}>
                                     <div className='mochi-button-decorator mochi-button-decorator-left'>(</div>
@@ -5501,13 +4470,13 @@ function Dispatch(props) {
 
                 <div className="fields-container-col" style={{ display: 'flex', flexDirection: 'column', width: '10%', justifyContent: 'space-between', alignItems: 'flex-end', padding: '2px 0 10px 0' }}>
                     <div className='mochi-button' onClick={() => {
-                        if ((props.selected_order?.id || 0) === 0){
+                        if ((props.selected_order?.id || 0) === 0) {
                             window.alert('You must create or load an order first!');
                             return;
                         }
 
-                        if (!props.dispatchOpenedPanels.includes('rate-conf')) {
-                            props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'rate-conf'])
+                        if (!props.openedPanels.includes(props.rateConfPanelName)) {
+                            props.setOpenedPanels([...props.openedPanels, props.rateConfPanelName])
                         }
                     }}>
                         <div className='mochi-button-decorator mochi-button-decorator-left'>(</div>
@@ -5515,13 +4484,13 @@ function Dispatch(props) {
                         <div className='mochi-button-decorator mochi-button-decorator-right'>)</div>
                     </div>
                     <div className='mochi-button' onClick={() => {
-                        if ((props.selected_order?.id || 0) === 0){
+                        if ((props.selected_order?.id || 0) === 0) {
                             window.alert('You must create or load an order first!');
                             return;
                         }
 
-                        if (!props.dispatchOpenedPanels.includes('order')) {
-                            props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'order'])
+                        if (!props.openedPanels.includes(props.orderPanelName)) {
+                            props.setOpenedPanels([...props.openedPanels, props.orderPanelName])
                         }
                     }}>
                         <div className='mochi-button-decorator mochi-button-decorator-left'>(</div>
@@ -5529,13 +4498,13 @@ function Dispatch(props) {
                         <div className='mochi-button-decorator mochi-button-decorator-right'>)</div>
                     </div>
                     <div className='mochi-button' onClick={() => {
-                        if ((props.selected_order?.id || 0) === 0){
+                        if ((props.selected_order?.id || 0) === 0) {
                             window.alert('You must create or load an order first!');
                             return;
                         }
 
-                        if (!props.dispatchOpenedPanels.includes('bol')) {
-                            props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'bol'])
+                        if (!props.openedPanels.includes(props.bolPanelName)) {
+                            props.setOpenedPanels([...props.openedPanels, props.bolPanelName])
                         }
                     }}>
                         <div className='mochi-button-decorator mochi-button-decorator-left'>(</div>
@@ -5554,8 +4523,8 @@ function Dispatch(props) {
                             date_entered: moment().format('MM/DD/YYYY')
                         });
 
-                        if (!props.dispatchOpenedPanels.includes('order-documents')) {
-                            props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'order-documents'])
+                        if (!props.openedPanels.includes(props.orderDocumentsPanelName)) {
+                            props.setOpenedPanels([...props.openedPanels, props.orderDocumentsPanelName])
                         }
                     }}>
                         <div className='mochi-button-decorator mochi-button-decorator-left'>(</div>
@@ -5565,8 +4534,8 @@ function Dispatch(props) {
                     <div className='mochi-button' onClick={async () => {
                         await props.setLbSelectedOrder({});
 
-                        if (!props.dispatchOpenedPanels.includes('load-board')) {
-                            props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'load-board'])
+                        if (!props.openedPanels.includes(props.loadBoardPanelName)) {
+                            props.setOpenedPanels([...props.openedPanels, props.loadBoardPanelName])
                         }
                     }}>
                         <div className='mochi-button-decorator mochi-button-decorator-left'>(</div>
@@ -5574,13 +4543,13 @@ function Dispatch(props) {
                         <div className='mochi-button-decorator mochi-button-decorator-right'>)</div>
                     </div>
                     <div className='mochi-button' onClick={() => {
-                        if ((props.selected_order?.id || 0) === 0){
+                        if ((props.selected_order?.id || 0) === 0) {
                             window.alert('You must create or load an order first!');
                             return;
                         }
-                        
-                        if (!props.dispatchOpenedPanels.includes('rating-screen')) {
-                            props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'rating-screen'])
+
+                        if (!props.openedPanels.includes(props.ratingScreenPanelName)) {
+                            props.setOpenedPanels([...props.openedPanels, props.ratingScreenPanelName])
                         }
                     }}>
                         <div className='mochi-button-decorator mochi-button-decorator-left'>(</div>
@@ -5887,8 +4856,8 @@ function Dispatch(props) {
                         return;
                     }
 
-                    if (!props.dispatchOpenedPanels.includes('routing')) {
-                        props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'routing']);
+                    if (!props.openedPanels.includes(props.routingPanelName)) {
+                        props.setOpenedPanels([...props.openedPanels, props.routingPanelName]);
                     };
                 }}>
                     <div className='mochi-button-decorator mochi-button-decorator-left'>(</div>
@@ -6209,8 +5178,8 @@ function Dispatch(props) {
                                             return;
                                         }
 
-                                        if (!props.dispatchOpenedPanels.includes('shipper-company-info')) {
-                                            props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'shipper-company-info'])
+                                        if (!props.openedPanels.includes(props.shipperCompanyInfoPanelName)) {
+                                            props.setOpenedPanels([...props.openedPanels, props.shipperCompanyInfoPanelName])
                                         }
                                     }}>
                                         <div className='mochi-button-decorator mochi-button-decorator-left'>(</div>
@@ -6447,7 +5416,7 @@ function Dispatch(props) {
                                                     onBlur={async (e) => {
                                                         if (puDate1KeyCode === 9) {
                                                             let formatted = getFormattedDates(e.target.value);
-                                                            await props.setShipperPuDate1(formatted);
+                                                            
                                                             let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
                                                             extra_data.pu_date1 = formatted;
                                                             extra_data.pu_date2 = formatted;
@@ -6552,7 +5521,7 @@ function Dispatch(props) {
                                                     onBlur={async (e) => {
                                                         if (puTime1KeyCode === 9) {
                                                             let formatted = getFormattedHours(e.target.value);
-                                                            await props.setShipperPuTime1(formatted);
+                                                            
                                                             let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
                                                             extra_data.pu_time1 = formatted;
                                                             await props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data })
@@ -6644,7 +5613,7 @@ function Dispatch(props) {
                                                     onBlur={async (e) => {
                                                         if (puDate2KeyCode === 9) {
                                                             let formatted = getFormattedDates(e.target.value);
-                                                            await props.setShipperPuDate2(formatted);
+                                                            
                                                             let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
                                                             extra_data.pu_date2 = formatted;
                                                             await props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data })
@@ -6748,7 +5717,7 @@ function Dispatch(props) {
                                                     onBlur={async (e) => {
                                                         if (puTime2KeyCode === 9) {
                                                             let formatted = getFormattedHours(e.target.value);
-                                                            await props.setShipperPuTime2(formatted);
+                                                            
                                                             let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
                                                             extra_data.pu_time2 = formatted;
                                                             await props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data })
@@ -7003,8 +5972,8 @@ function Dispatch(props) {
                                             return;
                                         }
 
-                                        if (!props.dispatchOpenedPanels.includes('consignee-company-info')) {
-                                            props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'consignee-company-info'])
+                                        if (!props.openedPanels.includes(props.consigneeCompanyInfoPanelName)) {
+                                            props.setOpenedPanels([...props.openedPanels, props.consigneeCompanyInfoPanelName])
                                         }
                                     }}>
                                         <div className='mochi-button-decorator mochi-button-decorator-left'>(</div>
@@ -7240,7 +6209,7 @@ function Dispatch(props) {
                                                     onBlur={async (e) => {
                                                         if (deliveryDate1KeyCode === 9) {
                                                             let formatted = getFormattedDates(e.target.value);
-                                                            await props.setConsigneeDeliveryDate1(formatted);
+                                                            
                                                             let extra_data = props.selectedConsigneeCompanyInfo?.extra_data || {};
                                                             extra_data.delivery_date1 = formatted;
                                                             extra_data.delivery_date2 = formatted;
@@ -7345,7 +6314,7 @@ function Dispatch(props) {
                                                     onBlur={async (e) => {
                                                         if (deliveryTime1KeyCode === 9) {
                                                             let formatted = getFormattedHours(e.target.value);
-                                                            await props.setConsigneeDeliveryTime1(formatted);
+                                                            
                                                             let extra_data = props.selectedConsigneeCompanyInfo?.extra_data || {};
                                                             extra_data.delivery_time1 = formatted;
                                                             await props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, extra_data: extra_data })
@@ -7437,7 +6406,7 @@ function Dispatch(props) {
                                                     onBlur={async (e) => {
                                                         if (deliveryDate2KeyCode === 9) {
                                                             let formatted = getFormattedDates(e.target.value);
-                                                            await props.setConsigneeDeliveryDate2(formatted);
+                                                            
                                                             let extra_data = props.selectedConsigneeCompanyInfo?.extra_data || {};
                                                             extra_data.delivery_date2 = formatted;
                                                             await props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, extra_data: extra_data })
@@ -7541,7 +6510,7 @@ function Dispatch(props) {
                                                     onBlur={async (e) => {
                                                         if (deliveryTime2KeyCode === 9) {
                                                             let formatted = getFormattedHours(e.target.value);
-                                                            await props.setConsigneeDeliveryTime2(formatted);
+                                                            
                                                             let extra_data = props.selectedConsigneeCompanyInfo?.extra_data || {};
                                                             extra_data.delivery_time2 = formatted;
                                                             await props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, extra_data: extra_data })
@@ -7710,6 +6679,12 @@ function Dispatch(props) {
                                     switch (key) {
                                         case 37: case 38: // arrow left | arrow up
                                             e.preventDefault();
+
+                                            if ((props.selected_order?.id || 0) === 0) {
+                                                // window.alert('You must create or load an order first!');
+                                                return;
+                                            }
+
                                             if (showDispatchEventItems) {
                                                 if (showDispatchEventSecondPageItems) {
                                                     let selectedIndex = dispatchEventSecondPageItems.findIndex(item => item.selected);
@@ -7797,6 +6772,12 @@ function Dispatch(props) {
 
                                         case 39: case 40: // arrow right | arrow down
                                             e.preventDefault();
+
+                                            if ((props.selected_order?.id || 0) === 0) {
+                                                // window.alert('You must create or load an order first!');
+                                                return;
+                                            }
+
                                             if (showDispatchEventItems) {
                                                 if (showDispatchEventSecondPageItems) {
                                                     let selectedIndex = dispatchEventSecondPageItems.findIndex(item => item.selected);
@@ -7884,7 +6865,7 @@ function Dispatch(props) {
                                             break;
 
                                         case 27: // escape
-                                            e.preventDefault();                                            
+                                            e.preventDefault();
                                             if (showDispatchEventSecondPageItems) {
                                                 await setShowDispatchEventSecondPageItems(false);
                                             } else {
@@ -7969,22 +6950,22 @@ function Dispatch(props) {
                                                                 ]
 
                                                                 if (items.length > 0) {
-                                                                    if (items.length === 1){
+                                                                    if (items.length === 1) {
                                                                         await props.setDispatchEvent(item);
                                                                         await props.setDispatchEventLocation(items[0].city + ', ' + items[0].state);
                                                                         await props.setDispatchEventNotes('Arrived at ' + items[0].code + (items[0].code_number === 0 ? '' : items[0].code_number) + ' - ' + items[0].name);
                                                                         await setSelectedOrderEvent(items[0]);
-            
+
                                                                         window.setTimeout(() => {
                                                                             setShowDispatchEventItems(false);
                                                                             goToTabindex((73 + props.tabTimes).toString());
                                                                         }, 0);
-                                                                    }else{
+                                                                    } else {
                                                                         items = items.map((x, i) => {
                                                                             x.selected = i === 0;
                                                                             return x;
                                                                         })
-                                                                    }                                                                    
+                                                                    }
                                                                 } else {
                                                                     window.alert('No shippers or consignees available!');
                                                                     refDispatchEvents.current.focus();
@@ -8064,17 +7045,17 @@ function Dispatch(props) {
                                                             ]
 
                                                             if (items.length > 0) {
-                                                                if (items.length === 1){
+                                                                if (items.length === 1) {
                                                                     await props.setDispatchEvent(item);
                                                                     await props.setDispatchEventLocation(items[0].city + ', ' + items[0].state);
                                                                     await props.setDispatchEventNotes('Loaded at Shipper ' + items[0].code + (items[0].code_number === 0 ? '' : items[0].code_number) + ' - ' + items[0].name);
                                                                     await setSelectedOrderEvent(items[0]);
-        
+
                                                                     window.setTimeout(() => {
                                                                         setShowDispatchEventItems(false);
                                                                         goToTabindex((73 + props.tabTimes).toString());
                                                                     }, 0);
-                                                                }else{
+                                                                } else {
                                                                     items = items.map((x, i) => {
                                                                         x.selected = i === 0;
                                                                         return x;
@@ -8110,17 +7091,17 @@ function Dispatch(props) {
                                                             ]
 
                                                             if (items.length > 0) {
-                                                                if (items.length === 1){
+                                                                if (items.length === 1) {
                                                                     await props.setDispatchEvent(item);
                                                                     await props.setDispatchEventLocation(items[0].city + ', ' + items[0].state);
                                                                     await props.setDispatchEventNotes('Delivered at Consignee ' + items[0].code + (items[0].code_number === 0 ? '' : items[0].code_number) + ' - ' + items[0].name);
                                                                     await setSelectedOrderEvent(items[0]);
-        
+
                                                                     window.setTimeout(() => {
                                                                         setShowDispatchEventItems(false);
                                                                         goToTabindex((73 + props.tabTimes).toString());
                                                                     }, 0);
-                                                                }else{
+                                                                } else {
                                                                     items = items.map((x, i) => {
                                                                         x.selected = i === 0;
                                                                         return x;
@@ -8231,22 +7212,22 @@ function Dispatch(props) {
                                                                     ]
 
                                                                     if (items.length > 0) {
-                                                                        if (items.length === 1){
+                                                                        if (items.length === 1) {
                                                                             await props.setDispatchEvent(item);
                                                                             await props.setDispatchEventLocation(items[0].city + ', ' + items[0].state);
                                                                             await props.setDispatchEventNotes('Arrived at ' + items[0].code + (items[0].code_number === 0 ? '' : items[0].code_number) + ' - ' + items[0].name);
                                                                             await setSelectedOrderEvent(items[0]);
-                
+
                                                                             window.setTimeout(() => {
                                                                                 setShowDispatchEventItems(false);
                                                                                 goToTabindex((73 + props.tabTimes).toString());
                                                                             }, 0);
-                                                                        }else{
+                                                                        } else {
                                                                             items = items.map((x, i) => {
                                                                                 x.selected = i === 0;
                                                                                 return x;
                                                                             })
-                                                                        }    
+                                                                        }
                                                                     } else {
                                                                         window.alert('No shippers or consignees available!');
                                                                         refDispatchEvents.current.focus();
@@ -8318,25 +7299,25 @@ function Dispatch(props) {
                                                                     item.selected = item.type === 'loaded'
                                                                     return item;
                                                                 }));
-    
+
                                                                 let items = [
                                                                     ...(props.selected_order?.pickups || []).filter(shipper => {
                                                                         return (props.selected_order?.events.find(el => el.event_type === 'loaded' && el.shipper_id === shipper.id)) === undefined;
                                                                     })
                                                                 ]
-    
+
                                                                 if (items.length > 0) {
-                                                                    if (items.length === 1){
+                                                                    if (items.length === 1) {
                                                                         await props.setDispatchEvent(item);
                                                                         await props.setDispatchEventLocation(items[0].city + ', ' + items[0].state);
                                                                         await props.setDispatchEventNotes('Loaded at Shipper ' + items[0].code + (items[0].code_number === 0 ? '' : items[0].code_number) + ' - ' + items[0].name);
                                                                         await setSelectedOrderEvent(items[0]);
-            
+
                                                                         window.setTimeout(() => {
                                                                             setShowDispatchEventItems(false);
                                                                             goToTabindex((73 + props.tabTimes).toString());
                                                                         }, 0);
-                                                                    }else{
+                                                                    } else {
                                                                         items = items.map((x, i) => {
                                                                             x.selected = i === 0;
                                                                             return x;
@@ -8347,7 +7328,7 @@ function Dispatch(props) {
                                                                     refDispatchEvents.current.focus();
                                                                     return;
                                                                 }
-    
+
                                                                 window.setTimeout(async () => {
                                                                     await setDispatchEventSecondPageItems(items);
                                                                     await setShowDispatchEventSecondPageItems(true);
@@ -8357,32 +7338,32 @@ function Dispatch(props) {
                                                                 refDispatchEvents.current.focus();
                                                                 return;
                                                             }
-    
+
                                                         } else if (item.type === 'delivered') {
                                                             if ((props.selected_order?.deliveries || []).length > 0) {
                                                                 await setDispatchEventItems(dispatchEventItems.map((item, index) => {
                                                                     item.selected = item.type === 'delivered'
                                                                     return item;
                                                                 }));
-    
+
                                                                 let items = [
                                                                     ...(props.selected_order?.deliveries || []).filter(consignee => {
                                                                         return (props.selected_order?.events.find(el => el.event_type === 'delivered' && el.consignee_id === consignee.id)) === undefined;
                                                                     })
                                                                 ]
-    
+
                                                                 if (items.length > 0) {
-                                                                    if (items.length === 1){
+                                                                    if (items.length === 1) {
                                                                         await props.setDispatchEvent(item);
                                                                         await props.setDispatchEventLocation(items[0].city + ', ' + items[0].state);
                                                                         await props.setDispatchEventNotes('Delivered at Consignee ' + items[0].code + (items[0].code_number === 0 ? '' : items[0].code_number) + ' - ' + items[0].name);
                                                                         await setSelectedOrderEvent(items[0]);
-            
+
                                                                         window.setTimeout(() => {
                                                                             setShowDispatchEventItems(false);
                                                                             goToTabindex((73 + props.tabTimes).toString());
                                                                         }, 0);
-                                                                    }else{
+                                                                    } else {
                                                                         items = items.map((x, i) => {
                                                                             x.selected = i === 0;
                                                                             return x;
@@ -8393,7 +7374,7 @@ function Dispatch(props) {
                                                                     refDispatchEvents.current.focus();
                                                                     return;
                                                                 }
-    
+
                                                                 window.setTimeout(async () => {
                                                                     await setDispatchEventSecondPageItems(items);
                                                                     await setShowDispatchEventSecondPageItems(true);
@@ -8403,7 +7384,7 @@ function Dispatch(props) {
                                                                 refDispatchEvents.current.focus();
                                                                 return;
                                                             }
-    
+
                                                         } else {
                                                             await props.setDispatchEvent(item);
                                                             await props.setDispatchEventLocation('');
@@ -8428,6 +7409,11 @@ function Dispatch(props) {
                                 if (showDispatchEventItems) {
                                     setShowDispatchEventItems(false);
                                 } else {
+                                    if ((props.selected_order?.id || 0) === 0) {
+                                        window.alert('You must create or load an order first!');
+                                        return;
+                                    }
+
                                     await setDispatchEventItems(dispatchEventItems.map((item, index) => {
                                         item.selected = (props.dispatchEvent?.id || 0) === 0
                                             ? index === 0
@@ -8542,22 +7528,22 @@ function Dispatch(props) {
                                                                                             ]
 
                                                                                             if (items.length > 0) {
-                                                                                                if (items.length === 1){
+                                                                                                if (items.length === 1) {
                                                                                                     await props.setDispatchEvent(item);
                                                                                                     await props.setDispatchEventLocation(items[0].city + ', ' + items[0].state);
                                                                                                     await props.setDispatchEventNotes('Arrived at ' + items[0].code + (items[0].code_number === 0 ? '' : items[0].code_number) + ' - ' + items[0].name);
                                                                                                     await setSelectedOrderEvent(items[0]);
-                                        
+
                                                                                                     window.setTimeout(() => {
                                                                                                         setShowDispatchEventItems(false);
                                                                                                         goToTabindex((73 + props.tabTimes).toString());
                                                                                                     }, 0);
-                                                                                                }else{
+                                                                                                } else {
                                                                                                     items = items.map((x, i) => {
                                                                                                         x.selected = i === 0;
                                                                                                         return x;
                                                                                                     })
-                                                                                                }   
+                                                                                                }
                                                                                             } else {
                                                                                                 window.alert('No shippers or consignees available!');
                                                                                                 refDispatchEvents.current.focus();
@@ -8638,22 +7624,22 @@ function Dispatch(props) {
                                                                                         ]
 
                                                                                         if (items.length > 0) {
-                                                                                            if (items.length === 1){
+                                                                                            if (items.length === 1) {
                                                                                                 await props.setDispatchEvent(item);
                                                                                                 await props.setDispatchEventLocation(items[0].city + ', ' + items[0].state);
                                                                                                 await props.setDispatchEventNotes('Loaded at Shipper ' + items[0].code + (items[0].code_number === 0 ? '' : items[0].code_number) + ' - ' + items[0].name);
                                                                                                 await setSelectedOrderEvent(items[0]);
-                                    
+
                                                                                                 window.setTimeout(() => {
                                                                                                     setShowDispatchEventItems(false);
                                                                                                     goToTabindex((73 + props.tabTimes).toString());
                                                                                                 }, 0);
-                                                                                            }else{
+                                                                                            } else {
                                                                                                 items = items.map((x, i) => {
                                                                                                     x.selected = i === 0;
                                                                                                     return x;
                                                                                                 })
-                                                                                            }   
+                                                                                            }
                                                                                         } else {
                                                                                             window.alert('No shippers available!');
                                                                                             refDispatchEvents.current.focus();
@@ -8684,22 +7670,22 @@ function Dispatch(props) {
                                                                                         ]
 
                                                                                         if (items.length > 0) {
-                                                                                            if (items.length === 1){
+                                                                                            if (items.length === 1) {
                                                                                                 await props.setDispatchEvent(item);
                                                                                                 await props.setDispatchEventLocation(items[0].city + ', ' + items[0].state);
                                                                                                 await props.setDispatchEventNotes('Delivered at Consignee ' + items[0].code + (items[0].code_number === 0 ? '' : items[0].code_number) + ' - ' + items[0].name);
                                                                                                 await setSelectedOrderEvent(items[0]);
-                                    
+
                                                                                                 window.setTimeout(() => {
                                                                                                     setShowDispatchEventItems(false);
                                                                                                     goToTabindex((73 + props.tabTimes).toString());
                                                                                                 }, 0);
-                                                                                            }else{
+                                                                                            } else {
                                                                                                 items = items.map((x, i) => {
                                                                                                     x.selected = i === 0;
                                                                                                     return x;
                                                                                                 })
-                                                                                            }   
+                                                                                            }
                                                                                         } else {
                                                                                             window.alert('No consignees available!');
                                                                                             refDispatchEvents.current.focus();
@@ -8846,67 +7832,7 @@ function Dispatch(props) {
                                 let key = e.keyCode || e.which;
 
                                 if (key === 9) {
-                                    e.preventDefault();
 
-                                    if ((props.dispatchEvent?.name || '') === '') {
-                                        goToTabindex((1 + props.tabTimes).toString());
-
-                                    } else {
-
-                                        if ((props.selected_order?.id || 0) === 0) {
-                                            goToTabindex((1 + props.tabTimes).toString());
-                                            return;
-                                        }
-
-                                        let event_parameters = {
-                                            order_id: props.selected_order.id,
-                                            event_time: moment().format('HHmm'),
-                                            event_date: moment().format('MM/DD/YYYY'),
-                                            user_id: props.selected_order.ae_number,
-                                            event_location: props.dispatchEventLocation,
-                                            event_notes: props.dispatchEventNotes,
-                                            event_type: props.dispatchEvent.type,
-                                        }
-
-                                        if (props.dispatchEvent.type === 'arrived') {
-                                            event_parameters.arrived_customer_id = selectedOrderEvent.id;
-                                            event_parameters.shipper_id = (selectedOrderEvent.extra_data?.type || '') === 'pickup' ? selectedOrderEvent.id : 0;
-                                            event_parameters.consignee_id = (selectedOrderEvent.extra_data?.type || '') === 'delivery' ? selectedOrderEvent.id : 0;
-                                        } else if (props.dispatchEvent.type === 'departed') {
-                                            event_parameters.departed_customer_id = selectedOrderEvent.id;
-                                        } else if (props.dispatchEvent.type === 'loaded') {
-                                            event_parameters.shipper_id = selectedOrderEvent.id;
-                                        } else if (props.dispatchEvent.type === 'delivered') {
-                                            event_parameters.consignee_id = selectedOrderEvent.id;
-                                        } else {
-                                            if (event_parameters.event_notes.trim() === '') {
-                                                window.alert('You must include some notes!');
-                                                goToTabindex((73 + props.tabTimes).toString());
-                                                return;
-                                            }
-                                        }
-
-                                        if (window.confirm('Save this event?')) {
-                                            $.post(props.serverUrl + '/saveOrderEvent', event_parameters).then(async res => {
-                                                if (res.result === 'OK') {
-                                                    await props.setSelectedOrder({ ...props.selected_order, events: res.order_events });
-
-                                                    props.setDispatchEvent({});
-                                                    props.setDispatchEventLocation('');
-                                                    props.setDispatchEventNotes('');
-
-                                                    refDispatchEvents.current.focus();
-                                                } else if (res.result === 'ORDER ID NOT VALID') {
-                                                    window.alert('The order number is not valid!');
-                                                    goToTabindex((73 + props.tabTimes).toString());
-                                                }
-                                            }).catch(e => {
-                                                console.log('error saving order event', e);
-                                            })
-                                        } else {
-                                            goToTabindex((73 + props.tabTimes).toString());
-                                        }
-                                    }
                                 }
                             }}
                             onInput={(e) => {
@@ -8927,11 +7853,262 @@ function Dispatch(props) {
                         />
                     </div>
                     <div className="form-h-sep"></div>
+                    <div className="select-box-container" style={{ width: '8rem' }}>
+                        <div className="select-box-wrapper">
+                            <MaskedInput tabIndex={74 + props.tabTimes}
+                                mask={[/[0-9]/, /\d/, '/', /\d/, /\d/, '/', /\d/, /\d/, /\d/, /\d/]}
+                                guide={false}
+                                type="text" placeholder="Event Date"
+                                onKeyDown={async (e) => {
+                                    let key = e.keyCode || e.which;
+
+                                    if (key >= 37 && key <= 40) {
+                                        let event_date = e.target.value.trim() === '' ? moment() : moment(getFormattedDates(props.dispatchEventDate || ''), 'MM/DD/YYYY');
+                                        await setPreSelectedDispatchEventDate(event_date);
+
+                                        if (isDispatchEventDateCalendarShown) {
+                                            e.preventDefault();
+
+                                            if (key === 37) { // left - minus 1
+                                                setPreSelectedDispatchEventDate(preSelectedDispatchEventDate.clone().subtract(1, 'day'));
+                                            }
+
+                                            if (key === 38) { // up - minus 7
+                                                setPreSelectedDispatchEventDate(preSelectedDispatchEventDate.clone().subtract(7, 'day'));
+                                            }
+
+                                            if (key === 39) { // right - plus 1
+                                                setPreSelectedDispatchEventDate(preSelectedDispatchEventDate.clone().add(1, 'day'));
+                                            }
+
+                                            if (key === 40) { // down - plus 7
+                                                setPreSelectedDispatchEventDate(preSelectedDispatchEventDate.clone().add(7, 'day'));
+                                            }
+                                        } else {
+                                            await setIsDispatchEventDateCalendarShown(true);
+                                        }
+                                    }
+
+                                    if (key === 13) {
+                                        let event_date = e.target.value.trim() === '' ? moment() : moment(getFormattedDates(props.dispatchEventDate || ''), 'MM/DD/YYYY');
+                                        await setPreSelectedDispatchEventDate(event_date);
+
+                                        if (isDispatchEventDateCalendarShown) {
+                                            event_date = preSelectedDispatchEventDate.clone().format('MM/DD/YYYY');
+
+                                            await props.setDispatchEventDate(event_date);
+
+                                            await setIsDispatchEventDateCalendarShown(false);
+                                        }
+                                    }
+
+                                    if (key === 9) {
+                                        let event_date = e.target.value.trim() === '' ? moment() : moment(getFormattedDates(props.dispatchEventDate || ''), 'MM/DD/YYYY');
+                                        await setPreSelectedDispatchEventDate(event_date);
+
+                                        if (isDispatchEventDateCalendarShown) {
+                                            event_date = preSelectedDispatchEventDate.clone().format('MM/DD/YYYY');
+
+                                            await props.setDispatchEventDate(event_date);
+
+                                            await setIsDispatchEventDateCalendarShown(false);
+                                        }
+                                    }
+
+                                }}
+                                onBlur={e => { props.setDispatchEventDate(getFormattedDates(props.dispatchEventDate)) }}
+                                onInput={e => { props.setDispatchEventDate(e.target.value) }}
+                                onChange={e => { props.setDispatchEventDate(e.target.value) }}
+                                value={props.dispatchEventDate || ''}
+                                ref={refEventDate}
+                            />
+
+                            <FontAwesomeIcon className="dropdown-button calendar" icon={faCalendarAlt} onClick={(e) => {
+                                e.stopPropagation();
+                                setIsDispatchEventDateCalendarShown(true)
+
+                                if (moment((props.dispatchEventDate || '').trim(), 'MM/DD/YYYY').format('MM/DD/YYYY') === (props.dispatchEventDate || '').trim()) {
+                                    setPreSelectedDispatchEventDate(moment(props.dispatchEventDate, 'MM/DD/YYYY'));
+                                } else {
+                                    setPreSelectedDispatchEventDate(moment());
+                                }
+
+                                refEventDate.current.inputElement.focus();
+                            }} />
+                        </div>
+
+                        <Transition
+                            from={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                            enter={{ opacity: 1, top: 'calc(100% + 15px)' }}
+                            leave={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                            items={isDispatchEventDateCalendarShown}
+                            config={{ duration: 100 }}
+                        >
+                            {show => show && (styles => (
+                                <div
+                                    className="mochi-contextual-container"
+                                    id="mochi-contextual-container-dispatch-event-date"
+                                    style={{
+                                        ...styles,
+                                        left: '-100px',
+                                        display: 'block'
+                                    }}
+                                    ref={refDispatchEventDateCalendarDropDown}
+                                >
+                                    <div className="mochi-contextual-popup vertical below" style={{ height: 275 }}>
+                                        <div className="mochi-contextual-popup-content" >
+                                            <div className="mochi-contextual-popup-wrapper">
+                                                <Calendar
+                                                    value={moment((props.dispatchEventDate || '').trim(), 'MM/DD/YYYY').format('MM/DD/YYYY') === (props.dispatchEventDate || '').trim()
+                                                        ? moment(props.dispatchEventDate, 'MM/DD/YYYY')
+                                                        : moment()}
+                                                    onChange={(day) => {
+                                                        props.setDispatchEventDate(day.format('MM/DD/YYYY'))
+                                                    }}
+                                                    closeCalendar={() => { setIsDispatchEventDateCalendarShown(false); }}
+                                                    preDay={preSelectedDispatchEventDate}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </Transition>
+                    </div>
+                    <div className="form-h-sep"></div>
+                    <div className="input-box-container" style={{width: '6rem'}}>
+                        <input tabIndex={75 + props.tabTimes} type="text" placeholder="Event Time"
+                            onKeyDown={(e) => {
+                                e.stopPropagation();
+                                setDispatchEvebtTimeKeyCode(e.keyCode || e.which);
+                            }}
+                            onBlur={async (e) => {
+                                if (dispatchEventTimeKeyCode === 9) {
+                                    let formatted = getFormattedHours(e.target.value);
+                                    await props.setDispatchEventTime(formatted);
+
+                                    e.preventDefault();
+
+                                    if ((props.dispatchEvent?.name || '') === '') {
+                                        goToTabindex((1 + props.tabTimes).toString());
+
+                                    } else {
+                                        if ((props.selected_order?.id || 0) === 0) {
+                                            goToTabindex((1 + props.tabTimes).toString());
+                                            return;
+                                        }
+
+                                        let event_parameters = {
+                                            order_id: props.selected_order.id,
+                                            time: moment().format('HHmm'),
+                                            event_time: formatted,
+                                            date: moment().format('MM/DD/YYYY'),
+                                            event_date: props.dispatchEventDate,
+                                            user_id: props.selected_order.ae_number,
+                                            event_location: props.dispatchEventLocation,
+                                            event_notes: props.dispatchEventNotes,
+                                            event_type: props.dispatchEvent.type,
+                                        }
+
+                                        if (props.dispatchEvent.type === 'arrived') {
+                                            event_parameters.arrived_customer_id = selectedOrderEvent.id;
+                                            event_parameters.shipper_id = (selectedOrderEvent.extra_data?.type || '') === 'pickup' ? selectedOrderEvent.id : 0;
+                                            event_parameters.consignee_id = (selectedOrderEvent.extra_data?.type || '') === 'delivery' ? selectedOrderEvent.id : 0;
+                                        } else if (props.dispatchEvent.type === 'departed') {
+                                            event_parameters.departed_customer_id = selectedOrderEvent.id;
+                                        } else if (props.dispatchEvent.type === 'loaded') {
+                                            event_parameters.shipper_id = selectedOrderEvent.id;
+                                        } else if (props.dispatchEvent.type === 'delivered') {
+                                            event_parameters.consignee_id = selectedOrderEvent.id;
+                                        } else {
+                                            if (event_parameters.event_notes.trim() === '') {
+                                                window.alert('You must include some notes!');
+                                                goToTabindex((75 + props.tabTimes).toString());
+                                                return;
+                                            }
+
+                                            if (event_parameters.event_date.trim() === '') {
+                                                window.alert('You must include the event date!');
+                                                goToTabindex((75 + props.tabTimes).toString());
+                                                return;
+                                            }
+
+                                            if (event_parameters.event_time.trim() === '') {
+                                                window.alert('You must include the event time!');
+                                                goToTabindex((75 + props.tabTimes).toString());
+                                                return;
+                                            }
+                                        }
+
+                                        if (window.confirm('Save this event?')) {
+                                            $.post(props.serverUrl + '/saveOrderEvent', event_parameters).then(async res => {
+                                                if (res.result === 'OK') {
+                                                    await props.setSelectedOrder({ ...props.selected_order, events: res.order_events });
+
+                                                    props.setDispatchEvent({});
+                                                    props.setDispatchEventLocation('');
+                                                    props.setDispatchEventNotes('');
+                                                    props.setDispatchEventDate('');
+                                                    props.setDispatchEventTime('');
+
+                                                    refDispatchEvents.current.focus();
+                                                } else if (res.result === 'ORDER ID NOT VALID') {
+                                                    window.alert('The order number is not valid!');
+                                                    goToTabindex((75 + props.tabTimes).toString());
+                                                }
+                                            }).catch(e => {
+                                                console.log('error saving order event', e);
+                                            })
+                                        } else {
+                                            goToTabindex((75 + props.tabTimes).toString());
+                                        }
+                                    }
+                                }
+                            }}
+                            onInput={(e) => {
+                                props.setDispatchEventTime(e.target.value);
+                            }}
+                            onChange={(e) => {
+                                props.setDispatchEventTime(e.target.value);
+                            }}
+                            value={props.dispatchEventTime || ''}
+                        />
+                    </div>
+                    <div className="form-h-sep"></div>
                     <div style={{ borderRight: 'solid 1px rgba(0,0,0,0.5)', width: 1, height: '100%', marginLeft: 8 }}></div>
                 </div>
 
-                <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <div style={{
+                <div style={{ flexGrow: 1, display: 'grid', gridTemplateColumns: '.8fr 0.1fr 1.3fr 0.1fr 1.3fr 0.1fr 1.3fr 0.1fr .9fr' }}>
+                    <div>
+                        <div style={{ fontSize: '0.7rem', textDecoration: 'underline', fontWeight: 'bold', whiteSpace: 'nowrap', textAlign: 'center', marginBottom: 1 }}>Miles</div>
+                        <div style={{ fontSize: '0.7rem', position: 'relative', textAlign: 'center' }}>
+                            {props.mileageLoaderVisible ? <div className="loading-container" style={{ right: 'initial', left: 0 }}>
+                                <Loader type="ThreeDots" color="#333738" height={20} width={20} visible={props.mileageLoaderVisible} />
+                            </div> : ((props.selected_order?.miles || 0) / 1609.34).toFixed(0)}
+                        </div>
+                    </div>
+                    <div style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', color: 'rgba(0,0,0,0.5)' }}>|</div>
+                    <div>
+                        <div style={{ fontSize: '0.7rem', textDecoration: 'underline', fontWeight: 'bold', textAlign: 'center', whiteSpace: 'nowrap', marginBottom: 1 }}>Customer Charges</div>
+                        <div style={{ fontSize: '0.7rem', textAlign: 'center' }}>$2,300.00</div>
+                    </div>
+                    <div style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', color: 'rgba(0,0,0,0.5)' }}>|</div>
+                    <div>
+                        <div style={{ fontSize: '0.7rem', textDecoration: 'underline', fontWeight: 'bold', textAlign: 'center', whiteSpace: 'nowrap', marginBottom: 1 }}>Carrier Costs</div>
+                        <div style={{ fontSize: '0.7rem', textAlign: 'center' }}>$2,000.00</div>
+                    </div>
+                    <div style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', color: 'rgba(0,0,0,0.5)' }}>|</div>
+                    <div>
+                        <div style={{ fontSize: '0.7rem', textDecoration: 'underline', fontWeight: 'bold', textAlign: 'center', whiteSpace: 'nowrap', marginBottom: 1 }}>Profit</div>
+                        <div style={{ fontSize: '0.7rem', textAlign: 'center' }}>$300.00</div>
+                    </div>
+                    <div style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', color: 'rgba(0,0,0,0.5)' }}>|</div>
+                    <div>
+                        <div style={{ fontSize: '0.7rem', textDecoration: 'underline', fontWeight: 'bold', textAlign: 'center', whiteSpace: 'nowrap', marginBottom: 1 }}>Percentage</div>
+                        <div style={{ fontSize: '0.7rem', textAlign: 'center' }}>15%</div>
+                    </div>
+
+                    {/* <div style={{
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
@@ -8958,31 +8135,7 @@ function Dispatch(props) {
                         <div style={{ minWidth: '25%', maxWidth: '25%', fontSize: '0.7rem', textAlign: 'right' }}>$2,000.00</div>
                         <div style={{ minWidth: '25%', maxWidth: '25%', fontSize: '0.7rem', textAlign: 'right' }}>$300.00</div>
                         <div style={{ minWidth: '10%', maxWidth: '10%', fontSize: '0.7rem', textAlign: 'center' }}>15</div>
-                    </div>
-
-
-                    {/* <div className="input-box-container" style={{ position: 'relative' }}>
-                        <input type="text" placeholder="Miles" readOnly={true} value={((props.selected_order?.miles || 0) / 1609.34).toFixed(2)} />
-                        <div className="loading-container">
-                            <Loader type="ThreeDots" color="#333738" height={20} width={20} visible={props.mileageLoaderVisible} />
-                        </div>
-                    </div>
-                    <div className="form-h-sep"></div>
-                    <div className="input-box-container">
-                        <input type="text" placeholder="Charges" readOnly={true} />
-                    </div>
-                    <div className="form-h-sep"></div>
-                    <div className="input-box-container">
-                        <input type="text" placeholder="Order Cost" readOnly={true} />
-                    </div>
-                    <div className="form-h-sep"></div>
-                    <div className="input-box-container" style={{ width: '4rem' }}>
-                        <input type="text" placeholder="Profit" readOnly={true} />
-                    </div>
-                    <div className="form-h-sep"></div>
-                    <div className="input-box-container" style={{ width: '4rem' }}>
-                        <input type="text" placeholder="%" readOnly={true} />
-                    </div> */}
+                    </div>                     */}
                 </div>
             </div>
 
@@ -9040,12 +8193,14 @@ function Dispatch(props) {
                         {
                             (props.selected_order?.events || []).length > 0 &&
                             <div className="order-events-item">
-                                <div className="event-time">Time</div>
                                 <div className="event-date">Date</div>
+                                <div className="event-time">Time</div>
                                 <div className="event-user-id">User ID</div>
                                 <div className="event-type">Event</div>
                                 <div className="event-location">Location</div>
                                 <div className="event-notes">Notes</div>
+                                <div className="event-date">Event Date</div>
+                                <div className="event-time">Event Time</div>
                             </div>
                         }
 
@@ -9053,13 +8208,14 @@ function Dispatch(props) {
                             {
                                 (props.selected_order?.events || []).map((item, index) => (
                                     <div className="order-events-item" key={index}>
-                                        <div className="event-time">{item.event_time}</div>
-                                        <div className="event-date">{item.event_date}</div>
+                                        <div className="event-date">{item.date}</div>
+                                        <div className="event-time">{item.time}</div>
                                         <div className="event-user-id">{item.user_id}</div>
                                         <div className="event-type">{item.event_type.toUpperCase()}</div>
                                         <div className="event-location">{item.event_location}</div>
                                         <div className="event-notes">{item.event_notes}</div>
-
+                                        <div className="event-date">{item.event_date}</div>
+                                        <div className="event-time">{item.event_time}</div>
                                     </div>
                                 ))
                             }
@@ -9100,7 +8256,21 @@ function Dispatch(props) {
                                 justifyContent: 'center',
                                 alignItems: 'center'
                             }}>
-                                <ChangeCarrier />
+                                <ChangeCarrier 
+                                    setOpenedPanels={props.setOpenedPanels}
+                                    setShowingChangeCarrier={props.setShowingChangeCarrier}
+                                    setSelectedOrder={props.setSelectedOrder}
+                                    setNewCarrier={props.setNewCarrier}
+                                    setDispatchCarrierInfoCarrierSearchChanging={props.setDispatchCarrierInfoCarrierSearchChanging}
+                                    setDispatchCarrierInfoCarriersChanging={props.setDispatchCarrierInfoCarriersChanging}
+                                    setSelectedDispatchCarrierInfoCarrier={props.setSelectedDispatchCarrierInfoCarrier}
+                                    setSelectedDispatchCarrierInfoContact={props.setSelectedDispatchCarrierInfoContact}
+                                    setSelectedDispatchCarrierInfoInsurance={props.setSelectedDispatchCarrierInfoInsurance}
+                                    setSelectedDispatchCarrierInfoDriver={props.setSelectedDispatchCarrierInfoDriver}
+
+                                    carrierInfoSearchChangingPanelName='carrier-info-search-changing'
+                                    adjustRatePanelName='adjust-rate'
+                                />
                             </div>
                         </animated.div>
                     ))
@@ -9293,152 +8463,4 @@ function Dispatch(props) {
     )
 }
 
-const mapStateToProps = state => {
-    return {
-        serverUrl: state.systemReducers.serverUrl,
-        scale: state.systemReducers.scale,
-        panels: state.dispatchReducers.panels,
-
-        selectedBillToCompanyInfo: state.customerReducers.selectedBillToCompanyInfo,
-        selectedBillToCompanyContact: state.customerReducers.selectedBillToCompanyContact,
-        billToCompanySearch: state.customerReducers.billToCompanySearch,
-        selectedShipperCompanyInfo: state.customerReducers.selectedShipperCompanyInfo,
-        selectedShipperCompanyContact: state.customerReducers.selectedShipperCompanyContact,
-        shipperCompanySearch: state.customerReducers.shipperCompanySearch,
-        selectedConsigneeCompanyInfo: state.customerReducers.selectedConsigneeCompanyInfo,
-        selectedConsigneeCompanyContact: state.customerReducers.selectedConsigneeCompanyContact,
-        consigneeCompanySearch: state.customerReducers.consigneeCompanySearch,
-
-        selected_order: state.dispatchReducers.selected_order,
-        ae_number: state.dispatchReducers.ae_number,
-        order_number: state.dispatchReducers.order_number,
-        trip_number: state.dispatchReducers.trip_number,
-        division: state.dispatchReducers.division,
-        load_type: state.dispatchReducers.load_type,
-        template: state.dispatchReducers.template,
-        pu1: state.dispatchReducers.pu1,
-        pu2: state.dispatchReducers.pu2,
-        pu3: state.dispatchReducers.pu3,
-        pu4: state.dispatchReducers.pu4,
-        pu5: state.dispatchReducers.pu5,
-        delivery1: state.dispatchReducers.delivery1,
-        delivery2: state.dispatchReducers.delivery2,
-        delivery3: state.dispatchReducers.delivery3,
-        delivery4: state.dispatchReducers.delivery4,
-        delivery5: state.dispatchReducers.delivery5,
-        shipperPuDate1: state.dispatchReducers.shipperPuDate1,
-        shipperPuDate2: state.dispatchReducers.shipperPuDate2,
-        shipperPuTime1: state.dispatchReducers.shipperPuTime1,
-        shipperPuTime2: state.dispatchReducers.shipperPuTime2,
-        shipperBolNumber: state.dispatchReducers.shipperBolNumber,
-        shipperPoNumber: state.dispatchReducers.shipperPoNumber,
-        shipperRefNumber: state.dispatchReducers.shipperRefNumber,
-        shipperSealNumber: state.dispatchReducers.shipperSealNumber,
-        shipperSpecialInstructions: state.dispatchReducers.shipperSpecialInstructions,
-        consigneeDeliveryDate1: state.dispatchReducers.consigneeDeliveryDate1,
-        consigneeDeliveryDate2: state.dispatchReducers.consigneeDeliveryDate2,
-        consigneeDeliveryTime1: state.dispatchReducers.consigneeDeliveryTime1,
-        consigneeDeliveryTime2: state.dispatchReducers.consigneeDeliveryTime2,
-        consigneeSpecialInstructions: state.dispatchReducers.consigneeSpecialInstructions,
-        dispatchEvent: state.dispatchReducers.dispatchEvent,
-        dispatchEventLocation: state.dispatchReducers.dispatchEventLocation,
-        dispatchEventNotes: state.dispatchReducers.dispatchEventNotes,
-        dispatchEvents: state.dispatchReducers.dispatchEvents,
-        hazMat: state.dispatchReducers.hazMat,
-        expedited: state.dispatchReducers.expedited,
-        notesForCarrier: state.dispatchReducers.notesForCarrier,
-        selectedNoteForCarrier: state.dispatchReducers.selectedNoteForCarrier,
-        internalNotes: state.dispatchReducers.internalNotes,
-        selectedInternalNote: state.dispatchReducers.selectedInternalNote,
-        isShowingShipperSecondPage: state.dispatchReducers.isShowingShipperSecondPage,
-        isShowingConsigneeSecondPage: state.dispatchReducers.isShowingConsigneeSecondPage,
-
-        selectedDispatchCarrierInfoCarrier: state.carrierReducers.selectedDispatchCarrierInfoCarrier,
-        selectedDispatchCarrierInfoContact: state.carrierReducers.selectedDispatchCarrierInfoContact,
-        selectedDispatchCarrierInfoDriver: state.carrierReducers.selectedDispatchCarrierInfoDriver,
-        selectedDispatchCarrierInfoInsurance: state.carrierReducers.selectedDispatchCarrierInfoInsurance,
-
-        dispatchOpenedPanels: state.dispatchReducers.dispatchOpenedPanels,
-        orderSelectedPickup: state.dispatchReducers.orderSelectedPickup,
-        isAddingPickup: state.dispatchReducers.isAddingPickup,
-        isAddingDelivery: state.dispatchReducers.isAddingDelivery,
-        mileageLoaderVisible: state.dispatchReducers.mileageLoaderVisible,
-        showingChangeCarrier: state.dispatchReducers.showingChangeCarrier,
-    }
-}
-
-export default connect(mapStateToProps, {
-    setDispatchPanels,
-    setSelectedOrder,
-    setBillToCompanies,
-    setSelectedBillToCompanyInfo,
-    setSelectedBillToCompanyContact,
-    setBillToCompanySearch,
-    setSelectedShipperCompanyInfo,
-    setShipperCompanySearch,
-    setSelectedShipperCompanyContact,
-    setSelectedConsigneeCompanyInfo,
-    setConsigneeCompanySearch,
-    setSelectedConsigneeCompanyContact,
-    setShipperCompanies,
-    setConsigneeCompanies,
-    setAeNumber,
-    setOrderNumber,
-    setTripNumber,
-    setDivision,
-    setLoadType,
-    setTemplate,
-    setPu1,
-    setPu2,
-    setPu3,
-    setPu4,
-    setPu5,
-    setDelivery1,
-    setDelivery2,
-    setDelivery3,
-    setDelivery4,
-    setDelivery5,
-    setShipperPuDate1,
-    setShipperPuDate2,
-    setShipperPuTime1,
-    setShipperPuTime2,
-    setShipperBolNumber,
-    setShipperPoNumber,
-    setShipperRefNumber,
-    setShipperSealNumber,
-    setShipperSpecialInstructions,
-    setConsigneeDeliveryDate1,
-    setConsigneeDeliveryDate2,
-    setConsigneeDeliveryTime1,
-    setConsigneeDeliveryTime2,
-    setConsigneeSpecialInstructions,
-    setDispatchEvent,
-    setDispatchEventLocation,
-    setDispatchEventNotes,
-    setDispatchEvents,
-    setHazMat,
-    setExpedited,
-    setNotesForCarrier,
-    setSelectedNoteForCarrier,
-    setInternalNotes,
-    setSelectedInternalNote,
-    setIsShowingShipperSecondPage,
-    setIsShowingConsigneeSecondPage,
-
-    setSelectedDispatchCarrierInfoCarrier,
-    setSelectedDispatchCarrierInfoContact,
-    setSelectedDispatchCarrierInfoDriver,
-    setSelectedDispatchCarrierInfoInsurance,
-
-    setDispatchCarrierInfoCarrierSearch,
-    setDispatchCarrierInfoCarriers,
-    setOrderSelectedPickup,
-    setIsAddingPickup,
-    setIsAddingDelivery,
-
-    setDispatchOpenedPanels,
-    setMileageLoaderVisible,
-    setSelectedOrderDocument,
-    setLbSelectedOrder,
-    setShowingChangeCarrier
-})(Dispatch)
+export default connect(null, null)(Dispatch)

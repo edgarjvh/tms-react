@@ -1,0 +1,99 @@
+.panel-content.routing{
+
+    .loading-container{
+        width: 20px;
+        height: 20px;
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #333738;
+        
+    }
+
+    .routing-pickup-container{
+        flex-grow: 1;
+        position: relative;
+
+        .routing-pickup-item{
+            font-size: 0.8rem;
+            height: 1.7rem;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            cursor: default;
+
+            &:hover{
+                background-color: rgba(0,0,0,0.05);
+            }
+            
+            span:not(:last-of-type){
+                margin-right: 0.5rem;
+            }
+
+            &.current{
+                color: transparent;
+            }
+        }        
+    }
+
+    .routing-delivery-container{
+        flex-grow: 1;
+        position: relative;
+
+        .routing-delivery-item{
+            font-size: 0.8rem;
+            height: 1.7rem;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            cursor: default;
+
+            &:hover{
+                background-color: rgba(0,0,0,0.05);
+            }
+            
+            span:not(:last-of-type){
+                margin-right: 0.5rem;
+            }
+
+            &.current{
+                color: transparent;
+            }
+        }        
+    }
+
+    .routing-route-container{
+        flex-grow: 1;
+        position: relative;
+
+        .routing-route-item{
+            font-size: 0.8rem;
+            height: 1.7rem;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            cursor: default;
+
+            &:hover{
+                background-color: rgba(0,0,0,0.05);
+            }
+            
+            span:not(:last-of-type){
+                margin-right: 0.5rem;
+            }
+
+            &.current{
+                color: transparent;
+            }
+        }
+    }
+
+    .fa-arrow-up, .fa-arrow-down{        
+        margin: 0;
+        padding: 0;
+    }
+}

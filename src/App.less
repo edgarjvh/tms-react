@@ -693,6 +693,28 @@ select:focus {
   }
 }
 
+.quick-filling-btn{
+  font-size: 0.7rem;
+  font-family: 'Mochi Med Oblique';
+  font-weight: normal;
+  text-decoration: underline;
+  cursor: pointer;
+  color: #323232;
+
+  &:not(:last-child){
+    margin-right: 0.5rem;
+  }
+
+  &:hover{
+    color: black;
+  }
+
+  &.disabled{
+    pointer-events: none;
+    color: rgba(0, 0, 0, 0.5);
+  }
+}
+
 .mochi-contextual-container {
   display             : none;
   opacity             : 0;

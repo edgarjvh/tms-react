@@ -336,6 +336,18 @@ export const setDispatchEventNotes = notes => {
         payload: notes
     }
 }
+export const setDispatchEventDate = date => {
+    return {
+        type: dispatchConstants.SET_DISPATCH_EVENT_DATE,
+        payload: date
+    }
+}
+export const setDispatchEventTime = time => {
+    return {
+        type: dispatchConstants.SET_DISPATCH_EVENT_TIME,
+        payload: time
+    }
+}
 
 export const setDispatchEvents = events => {
     return {

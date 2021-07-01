@@ -991,28 +991,28 @@ function Routing(props) {
             }}>
                 <div className="input-box-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>A/E Number:</div>
-                    <input style={{ textAlign: 'right' }} type="text" disabled={true}
+                    <input style={{ textAlign: 'right', fontWeight: 'bold' }} type="text" disabled={true}
                         onChange={(e) => { }}
                         value={props.selected_order?.ae_number || ''} />
                 </div>
 
                 <div className="input-box-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Order Number:</div>
-                    <input style={{ textAlign: 'right' }} type="text" disabled={true}
+                    <input style={{ textAlign: 'right', fontWeight: 'bold' }} type="text" disabled={true}
                         onChange={(e) => { }}
                         value={props.order_number || ''} />
                 </div>
 
                 <div className="input-box-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Trip Number:</div>
-                    <input style={{ textAlign: 'right' }} type="text" disabled={true}
+                    <input style={{ textAlign: 'right', fontWeight: 'bold' }} type="text" disabled={true}
                         onChange={(e) => { }}
                         value={props.trip_number || ''} />
                 </div>
 
                 <div className="input-box-container" style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Miles:</div>
-                    <input style={{ textAlign: 'right' }} type="text" readOnly={true} onChange={() => { }} value={props.mileageLoaderVisible ? '' : ((props.selected_order?.miles || 0) / 1609.34).toFixed(0)} />
+                    <input style={{ textAlign: 'right', fontWeight: 'bold' }} type="text" readOnly={true} onChange={() => { }} value={props.mileageLoaderVisible ? '' : ((props.selected_order?.miles || 0) / 1609.34).toFixed(0)} />
                     <div className="loading-container">
                         <Loader type="ThreeDots" color="#333738" height={20} width={20} visible={props.mileageLoaderVisible} />
                     </div>
@@ -1621,7 +1621,7 @@ function Routing(props) {
                             <div className="form-buttons">
                                 <div className="input-box-container" style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Miles:</div>
-                                    <input style={{ textAlign: 'right' }} type="text" readOnly={true} onChange={() => { }} value={props.mileageLoaderVisible ? '' : ((props.selected_order?.miles || 0) / 1609.34).toFixed(0)} />
+                                    <input style={{ textAlign: 'right', fontWeight: 'bold' }} type="text" readOnly={true} onChange={() => { }} value={props.mileageLoaderVisible ? '' : ((props.selected_order?.miles || 0) / 1609.34).toFixed(0)} />
                                     <div className="loading-container">
                                         <Loader type="ThreeDots" color="#333738" height={20} width={20} visible={props.mileageLoaderVisible} />
                                     </div>

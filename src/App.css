@@ -552,6 +552,24 @@ select:focus {
   font-size: 1.2rem;
   color: rgba(0, 0, 0, 0.4);
 }
+.quick-filling-btn {
+  font-size: 0.7rem;
+  font-family: 'Mochi Med Oblique';
+  font-weight: normal;
+  text-decoration: underline;
+  cursor: pointer;
+  color: #323232;
+}
+.quick-filling-btn:not(:last-child) {
+  margin-right: 0.5rem;
+}
+.quick-filling-btn:hover {
+  color: black;
+}
+.quick-filling-btn.disabled {
+  pointer-events: none;
+  color: rgba(0, 0, 0, 0.5);
+}
 .mochi-contextual-container {
   display: none;
   opacity: 0;

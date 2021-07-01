@@ -42,6 +42,8 @@ export const dispatchReducers = (state = {
     dispatchEvent: {},
     dispatchEventLocation: '',
     dispatchEventNotes: '',
+    dispatchEventDate: '',
+    dispatchEventTime: '',
     dispatchEvents: [],
     hazMat: 0,
     expedited: 0,
@@ -295,6 +297,18 @@ export const dispatchReducers = (state = {
             state = {
                 ...state,
                 dispatchEventNotes: action.payload
+            }
+            break;
+        case dispatchConstants.SET_DISPATCH_EVENT_DATE:
+            state = {
+                ...state,
+                dispatchEventDate: action.payload
+            }
+            break;
+        case dispatchConstants.SET_DISPATCH_EVENT_TIME:
+            state = {
+                ...state,
+                dispatchEventTime: action.payload
             }
             break;
         case dispatchConstants.SET_DISPATCH_EVENTS:

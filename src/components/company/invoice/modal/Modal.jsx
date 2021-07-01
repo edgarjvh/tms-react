@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { connect } from 'react-redux';
 import $ from 'jquery';
 import './Modal.css';
-// import { setSelectedCarrier, setSelectedNote, setSelectedDirection, setCustomers, setSelectedDocumentNote, setSelectedDocument } from './../../../../actions';
+import { setSelectedCustomer, setSelectedNote, setSelectedDirection, setCustomers, setSelectedDocumentNote, setSelectedDocument } from './../../../../actions';
 import moment from 'moment';
 
 function Modal(props) {
@@ -22,19 +22,40 @@ function Modal(props) {
             return;
         }
 
-        // $.post(props.serverUrl + props.savingDataUrl, {
-        //     id: props.selectedData.id,
-        //     carrier_id: props.selectedCarrier.id,
-        //     doc_id: props.selectedParent.id,
-        //     text: props.selectedData.text,
-        //     user: props.isAdding ? user : props.selectedData.user,
-        //     date_time: props.isAdding ? date_time : props.selectedData.date_time
-        // }).then(res => {
-        //     if (res.result === 'OK') {
-        //         props.setSelectedParent(res.data);
-        //         props.setSelectedData({});
-        //     }
-        // });
+        if (props.savingDataUrl.trim() !== '') {
+            $.post(props.serverUrl + props.savingDataUrl, {
+                id: props.selectedData.id,
+                customer_id: props.selectedCustomer.id,
+                doc_id: props.selectedParent.id,
+                factoring_company_id: props.selectedParent.id,
+                order_number: props.selectedParent.order_number,
+                text: props.selectedData.text,
+                user: props.isAdding ? user : props.selectedData.user,
+                date_time: props.isAdding ? date_time : props.selectedData.date_time
+            }).then(res => {
+                if (res.result === 'OK') {
+                    props.setSelectedParent(res.data);
+                    props.setSelectedData({});
+                }
+            });
+        }else{
+            let note = {
+                id: getRandomInt(1, 100),
+                order_number: props.selectedParent.order_number,
+                text: props.selectedData.text,
+                user: user,
+                date_time: date_time
+            }            
+
+            props.setBillingNotes([...props.billingNotes, note]);
+            props.setSelectedData({});
+        }
+    }
+
+    const getRandomInt = (min, max) => {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
     const deleteData = () => {
@@ -46,6 +67,31 @@ function Modal(props) {
                 }
             })
         }
+    }
+
+    const printData = () => {
+        if ((props.selectedData.text || '').trim() === '') {
+            window.alert('There is nothing to print!');
+            return;
+        }
+
+        let html = `<div><b>${props.selectedData.user}:${moment(props.selectedData.date_time, 'YYYY-MM-DD HH:mm:ss').format('MM/DD/YYYY:HHmm')}</b> ${props.selectedData.text}</div>`;
+
+        printWindow(html);
+    }
+
+    const printWindow = (data) => {
+        let mywindow = window.open('', 'new div', 'height=400,width=600');
+        mywindow.document.write('<html><head><title></title>');
+        mywindow.document.write('<link rel="stylesheet" href="../../css/index.css" type="text/css" media="all" />');
+        mywindow.document.write('</head><body >');
+        mywindow.document.write(data);
+        mywindow.document.write('</body></html>');
+        mywindow.document.close();
+        mywindow.focus();
+        setTimeout(function () { mywindow.print(); }, 1000);
+
+        return true;
     }
 
     const getinitials = (length) => {
@@ -84,6 +130,16 @@ function Modal(props) {
                     borderRadius: 15,
                     boxShadow: '0 0 5px 2px rgba(0,0,0,0.5)'
                 }}>
+                    {
+                        props.title !== "" && 
+                        <div style={{
+                            fontSize: '0.9rem',
+                            marginBottom: 5,
+                            display: 'flex',
+                            justifyContent: 'center',
+                            fontWeight: 'bold'
+                        }}>{props.title}</div>
+                    }
 
                     <textarea placeholder='Type some text'
                         disabled={!isEditing && !props.isAdding}
@@ -133,9 +189,20 @@ function Modal(props) {
                                 </div>
                             }
                             {
+                                (props.isPrintable && !isEditing && !props.isAdding) &&
+                                <div className="mochi-button" style={{
+                                    marginRight: 5
+                                }}
+                                    onClick={printData}>
+                                    <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
+                                    <div className="mochi-button-base">Print</div>
+                                    <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
+                                </div>
+                            }
+                            {
                                 (props.isEditable && !isEditing && !props.isAdding) &&
                                 <div className="mochi-button" onClick={() => {
-                                    props.setSelectedData({...props.selectedData, oldText: props.selectedData.text})
+                                    props.setSelectedData({ ...props.selectedData, oldText: props.selectedData.text })
                                     setIsEditing(true);
                                 }}>
                                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
@@ -148,8 +215,8 @@ function Modal(props) {
                                 <div className="mochi-button" style={{
                                     marginRight: 5
                                 }} onClick={() => {
-                                    props.setSelectedData({...props.selectedData, text: props.selectedData.oldText})
-                                    setIsEditing(false);                                   
+                                    props.setSelectedData({ ...props.selectedData, text: props.selectedData.oldText })
+                                    setIsEditing(false);
                                 }}>
                                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                     <div className="mochi-button-base">Cancel</div>
@@ -173,9 +240,9 @@ function Modal(props) {
 }
 
 const mapStateToProps = state => {
-    return {        
+    return {
         serverUrl: state.systemReducers.serverUrl,
-        selectedCarrier: state.carrierReducers.selectedCarrier
+        selectedCustomer: state.customerReducers.selectedCustomer
     }
 }
 

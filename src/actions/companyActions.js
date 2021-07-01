@@ -15,3 +15,44 @@ export const setSelectedPageIndex = index => {
     }
 }
 
+export const setMainCompanyScreenFocused = bool => {
+    return {
+        type: companyConstants.SET_MAIN_COMPANY_SCREEN_FOCUSED,
+        payload: bool
+    }
+}
+
+export const setDispatchScreenFocused = bool => {
+    return {
+        type: companyConstants.SET_DISPATCH_SCREEN_FOCUSED,
+        payload: bool
+    }
+}
+
+export const setCustomerScreenFocused = bool => {
+    return {
+        type: companyConstants.SET_CUSTOMER_SCREEN_FOCUSED,
+        payload: bool
+    }
+}
+
+export const setCarrierScreenFocused = bool => {
+    return {
+        type: companyConstants.SET_CARRIER_SCREEN_FOCUSED,
+        payload: bool
+    }
+}
+
+export const setLoadBoardScreenFocused = bool => {
+    return {
+        type: companyConstants.SET_LOAD_BOARD_SCREEN_FOCUSED,
+        payload: bool
+    }
+}
+
+export const setInvoiceScreenFocused = bool => {
+    return {
+        type: companyConstants.SET_INVOICE_SCREEN_FOCUSED,
+        payload: bool
+    }
+}

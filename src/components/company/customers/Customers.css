@@ -19,6 +19,54 @@
   overflow: hidden;
   padding: 10px;
 }
+.customers-main-container .selected-customer-contact-primary-phone {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.7rem;
+  text-transform: capitalize;
+  font-weight: bold;
+}
+.customers-main-container .selected-customer-contact-primary-phone.pushed {
+  right: 20px;
+}
+.customers-main-container .selected-customer-contact-primary-email {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.7rem;
+  text-transform: capitalize;
+  font-weight: bold;
+}
+.customers-main-container .selected-customer-contact-primary-email.pushed {
+  right: 20px;
+}
+.customers-main-container .selected-mailing-contact-primary-phone {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.7rem;
+  text-transform: capitalize;
+  font-weight: bold;
+}
+.customers-main-container .selected-mailing-contact-primary-phone.pushed {
+  right: 20px;
+}
+.customers-main-container .selected-mailing-contact-primary-email {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.7rem;
+  text-transform: capitalize;
+  font-weight: bold;
+}
+.customers-main-container .selected-mailing-contact-primary-email.pushed {
+  right: 20px;
+}
 .customers-main-container .fields-container {
   flex-grow: 1;
   display: flex;
@@ -178,6 +226,31 @@
   overflow: hidden;
 }
 .customers-main-container .fields-container .directions-list-container .directions-list-wrapper .directions-list-item:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+.customers-main-container .fields-container .orders-list-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.customers-main-container .fields-container .orders-list-container .orders-list-wrapper {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.customers-main-container .fields-container .orders-list-container .orders-list-wrapper .orders-list-item {
+  font-size: 0.7rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 5px 0;
+  cursor: pointer;
+  transition: ease 0.3s;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.customers-main-container .fields-container .orders-list-container .orders-list-wrapper .orders-list-item:hover {
   background-color: rgba(0, 0, 0, 0.1);
 }
 .customers-main-container .buttons-container {

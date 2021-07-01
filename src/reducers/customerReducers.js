@@ -55,6 +55,24 @@ export const customerReducers = (state = {
     lbBillToCompanyDocumentTags: '',
     selectedLbBillToCompanyDocumentNote: {},
 
+    invoiceBillToCompanies: [],
+    selectedInvoiceBillToCompanyInfo: {},
+    selectedInvoiceBillToCompanyContact: {},
+    invoiceBillToCompanySearch: [],
+    selectedInvoiceBillToCompanyNote: {},
+    selectedInvoiceBillToCompanyDirection: {},
+    invoiceBillToCompanyContactSearch: {},
+    invoiceBillToCompanyAutomaticEmailsTo: '',
+    invoiceBillToCompanyAutomaticEmailsCc: '',
+    invoiceBillToCompanyAutomaticEmailsBcc: '',
+    invoiceBillToCompanyShowingContactList: true,
+    invoiceBillToCompanyContacts: [],
+    invoiceBillToCompanyIsEditingContact: false,
+    invoiceBillToCompanyContactSearchCustomer: { selectedInvoiceBillToCompanyContact: {} },
+    selectedInvoiceBillToCompanyDocument: {},
+    invoiceBillToCompanyDocumentTags: '',
+    selectedInvoiceBillToCompanyDocumentNote: {},
+
     shipperCompanies: [],
     selectedShipperCompanyInfo: {},
     selectedShipperCompanyContact: {},
@@ -127,7 +145,7 @@ export const customerReducers = (state = {
     lbConsigneeCompanyDocumentTags: '',
     selectedLbConsigneeCompanyDocumentNote: {},
 
-    customerOpenedPanels: [],
+    customerOpenedPanels: [],    
 
 
     panels: []
@@ -143,9 +161,13 @@ export const customerReducers = (state = {
             state = {
                 ...state,
                 selectedCustomer: action.payload,
-                selectedBillToCompanyInfo: (state.selectedBillToCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyInfo,
-                selectedShipperCompanyInfo: (state.selectedShipperCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyInfo,
-                selectedConsigneeCompanyInfo: (state.selectedConsigneeCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyInfo
+                selectedBillToCompanyInfo: ((state.selectedBillToCompanyInfo.id || 0) > 0 && state.selectedBillToCompanyInfo.id === action.payload.id) ? action.payload : state.selectedBillToCompanyInfo,
+                selectedLbBillToCompanyInfo: ((state.selectedLbBillToCompanyInfo.id || 0) > 0 && state.selectedLbBillToCompanyInfo.id === action.payload.id) ? action.payload : state.selectedLbBillToCompanyInfo,
+                selectedInvoiceBillToCompanyInfo: ((state.selectedInvoiceBillToCompanyInfo.id || 0) > 0 && state.selectedInvoiceBillToCompanyInfo.id === action.payload.id) ? action.payload : state.selectedInvoiceBillToCompanyInfo,
+                selectedShipperCompanyInfo: ((state.selectedShipperCompanyInfo.id || 0) > 0 && state.selectedShipperCompanyInfo.id === action.payload.id) ? action.payload : state.selectedShipperCompanyInfo,
+                selectedLbShipperCompanyInfo: ((state.selectedLbShipperCompanyInfo.id || 0) > 0 && state.selectedLbShipperCompanyInfo.id === action.payload.id) ? action.payload : state.selectedLbShipperCompanyInfo,
+                selectedConsigneeCompanyInfo: ((state.selectedConsigneeCompanyInfo.id || 0) > 0 && state.selectedConsigneeCompanyInfo.id === action.payload.id) ? action.payload : state.selectedConsigneeCompanyInfo,
+                selectedLbConsigneeCompanyInfo: ((state.selectedLbConsigneeCompanyInfo.id || 0) > 0 && state.selectedLbConsigneeCompanyInfo.id === action.payload.id) ? action.payload : state.selectedLbConsigneeCompanyInfo,
             }
             break;
         case customersConstants.SET_SELECTED_CONTACT:
@@ -153,8 +175,12 @@ export const customerReducers = (state = {
                 ...state,
                 selectedContact: action.payload,
                 selectedBillToCompanyContact: (state.selectedBillToCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyContact,
+                selectedLbBillToCompanyContact: (state.selectedLbBillToCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedLbBillToCompanyContact,
+                selectedInvoiceBillToCompanyContact: (state.selectedInvoiceBillToCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedInvoiceBillToCompanyContact,
                 selectedShipperCompanyContact: (state.selectedShipperCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyContact,
-                selectedConsigneeCompanyContact: (state.selectedConsigneeCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyContact
+                selectedLbShipperCompanyContact: (state.selectedLbShipperCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedLbShipperCompanyContact,
+                selectedConsigneeCompanyContact: (state.selectedConsigneeCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyContact,
+                selectedLbConsigneeCompanyContact: (state.selectedLbConsigneeCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedLbConsigneeCompanyContact,
             }
             break;
         case customersConstants.SET_SELECTED_NOTE:
@@ -228,8 +254,12 @@ export const customerReducers = (state = {
                 ...state,
                 selectedDocument: action.payload,
                 selectedBillToCompanyDocument: (state.selectedBillToCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyDocument,
+                selectedLbBillToCompanyDocument: (state.selectedLbBillToCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedLbBillToCompanyDocument,
+                selectedInvoiceBillToCompanyDocument: (state.selectedInvoiceBillToCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedInvoiceBillToCompanyDocument,
                 selectedShipperCompanyDocument: (state.selectedShipperCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyDocument,
-                selectedConsigneeCompanyDocument: (state.selectedConsigneeCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyDocument
+                selectedLbShipperCompanyDocument: (state.selectedLbShipperCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedLbShipperCompanyDocument,
+                selectedConsigneeCompanyDocument: (state.selectedConsigneeCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyDocument,
+                selectedLbConsigneeCompanyDocument: (state.selectedLbConsigneeCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedLbConsigneeCompanyDocument,
             }
             break;
         case customersConstants.SET_DOCUMENT_TAGS:
@@ -259,8 +289,12 @@ export const customerReducers = (state = {
                 ...state,
                 selectedBillToCompanyInfo: action.payload,
                 selectedCustomer: (state.selectedCustomer.id || 0) === action.payload.id ? action.payload : state.selectedCustomer,
-                selectedShipperCompanyDirection: (state.selectedShipperCompanyDirection.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyDirection,
-                selectedConsigneeCompanyDirection: (state.selectedConsigneeCompanyDirection.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyDirection
+                selectedLbBillToCompanyInfo: (state.selectedLbBillToCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedLbBillToCompanyInfo,
+                selectedInvoiceBillToCompanyInfo: (state.selectedInvoiceBillToCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedInvoiceBillToCompanyInfo,
+                selectedShipperCompanyInfo: (state.selectedShipperCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyInfo,
+                selectedLbShipperCompanyInfo: (state.selectedLbShipperCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedLbShipperCompanyInfo,
+                selectedConsigneeCompanyInfo: (state.selectedConsigneeCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyInfo,
+                selectedLbConsigneeCompanyInfo: (state.selectedLbConsigneeCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedLbConsigneeCompanyInfo,
             }
             break;
         case customersConstants.SET_SELECTED_BILL_TO_COMPANY_CONTACT:
@@ -268,8 +302,12 @@ export const customerReducers = (state = {
                 ...state,
                 selectedBillToCompanyContact: action.payload,
                 selectedContact: (state.selectedContact.id || 0) === action.payload.id ? action.payload : state.selectedContact,
+                selectedLbBillToCompanyContact: (state.selectedLbBillToCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedLbBillToCompanyContact,
+                selectedInvoiceBillToCompanyContact: (state.selectedInvoiceBillToCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedInvoiceBillToCompanyContact,
                 selectedShipperCompanyContact: (state.selectedShipperCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyContact,
-                selectedConsigneeCompanyContact: (state.selectedConsigneeCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyContact
+                selectedLbShipperCompanyContact: (state.selectedLbShipperCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedLbShipperCompanyContact,
+                selectedConsigneeCompanyContact: (state.selectedConsigneeCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyContact,
+                selectedLbConsigneeCompanyContact: (state.selectedLbConsigneeCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedLbConsigneeCompanyContact,
             }
             break;
         case customersConstants.SET_BILL_TO_COMPANY_SEARCH:
@@ -343,8 +381,12 @@ export const customerReducers = (state = {
                 ...state,
                 selectedBillToCompanyDocument: action.payload,
                 selectedDocument: (state.selectedDocument.id || 0) === action.payload.id ? action.payload : state.selectedDocument,
+                selectedLbBillToCompanyDocument: (state.selectedLbBillToCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedLbBillToCompanyDocument,
+                selectedInvoiceBillToCompanyDocument: (state.selectedInvoiceBillToCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedInvoiceBillToCompanyDocument,
                 selectedShipperCompanyDocument: (state.selectedShipperCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyDocument,
-                selectedConsigneeCompanyDocument: (state.selectedConsigneeCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyDocument
+                selectedLbShipperCompanyDocument: (state.selectedLbShipperCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedLbShipperCompanyDocument,
+                selectedConsigneeCompanyDocument: (state.selectedConsigneeCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyDocument,
+                selectedLbConsigneeCompanyDocument: (state.selectedLbConsigneeCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedLbConsigneeCompanyDocument,
             }
             break;
         case customersConstants.SET_BILL_TO_COMPANY_DOCUMENT_TAGS:
@@ -361,7 +403,7 @@ export const customerReducers = (state = {
             break;
 
 
-             // ==================================== LB BILL TO COMPANY ===================================
+        // ==================================== LB BILL TO COMPANY ===================================
 
         case customersConstants.SET_LB_BILL_TO_COMPANIES:
             state = {
@@ -373,20 +415,26 @@ export const customerReducers = (state = {
             state = {
                 ...state,
                 selectedLbBillToCompanyInfo: action.payload,
-                selectedBillToCompanyInfo: (state.selectedBillToCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyInfo,
                 selectedCustomer: (state.selectedCustomer.id || 0) === action.payload.id ? action.payload : state.selectedCustomer,
+                selectedBillToCompanyInfo: (state.selectedBillToCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyInfo,
+                selectedInvoiceBillToCompanyInfo: (state.selectedInvoiceBillToCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedInvoiceBillToCompanyInfo,
                 selectedShipperCompanyDirection: (state.selectedShipperCompanyDirection.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyDirection,
-                selectedConsigneeCompanyDirection: (state.selectedConsigneeCompanyDirection.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyDirection
+                selectedLbShipperCompanyDirection: (state.selectedLbShipperCompanyDirection.id || 0) === action.payload.id ? action.payload : state.selectedLbShipperCompanyDirection,
+                selectedConsigneeCompanyDirection: (state.selectedConsigneeCompanyDirection.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyDirection,
+                selectedLbConsigneeCompanyDirection: (state.selectedLbConsigneeCompanyDirection.id || 0) === action.payload.id ? action.payload : state.selectedLbConsigneeCompanyDirection,
             }
             break;
         case customersConstants.SET_LB_SELECTED_BILL_TO_COMPANY_CONTACT:
             state = {
                 ...state,
                 selectedLbBillToCompanyContact: action.payload,
-                selectedBillToCompanyContact: (state.selectedBillToCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyContact,
                 selectedContact: (state.selectedContact.id || 0) === action.payload.id ? action.payload : state.selectedContact,
+                selectedBillToCompanyContact: (state.selectedBillToCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyContact,
+                selectedInvoiceBillToCompanyContact: (state.selectedInvoiceBillToCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedInvoiceBillToCompanyContact,
                 selectedShipperCompanyContact: (state.selectedShipperCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyContact,
-                selectedConsigneeCompanyContact: (state.selectedConsigneeCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyContact
+                selectedLbShipperCompanyContact: (state.selectedLbShipperCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedLbShipperCompanyContact,
+                selectedConsigneeCompanyContact: (state.selectedConsigneeCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyContact,
+                selectedLbConsigneeCompanyContact: (state.selectedLbConsigneeCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedLbConsigneeCompanyContact,
             }
             break;
         case customersConstants.SET_LB_BILL_TO_COMPANY_SEARCH:
@@ -459,10 +507,13 @@ export const customerReducers = (state = {
             state = {
                 ...state,
                 selectedLbBillToCompanyDocument: action.payload,
-                selectedBillToCompanyDocument: (state.selectedBillToCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyDocument,
                 selectedDocument: (state.selectedDocument.id || 0) === action.payload.id ? action.payload : state.selectedDocument,
+                selectedBillToCompanyDocument: (state.selectedBillToCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyDocument,
+                selectedInvoiceBillToCompanyDocument: (state.selectedInvoiceBillToCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedInvoiceBillToCompanyDocument,
                 selectedShipperCompanyDocument: (state.selectedShipperCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyDocument,
-                selectedConsigneeCompanyDocument: (state.selectedConsigneeCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyDocument
+                selectedLbShipperCompanyDocument: (state.selectedLbShipperCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedLbShipperCompanyDocument,
+                selectedConsigneeCompanyDocument: (state.selectedConsigneeCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyDocument,
+                selectedLbConsigneeCompanyDocument: (state.selectedLbConsigneeCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedLbConsigneeCompanyDocument,
             }
             break;
         case customersConstants.SET_LB_BILL_TO_COMPANY_DOCUMENT_TAGS:
@@ -475,6 +526,133 @@ export const customerReducers = (state = {
             state = {
                 ...state,
                 selectedLbBillToCompanyDocumentNote: action.payload
+            }
+            break;
+
+
+        // ==================================== INVOICE BILL TO COMPANY ===================================
+
+        case customersConstants.SET_INVOICE_BILL_TO_COMPANIES:
+            state = {
+                ...state,
+                invoiceBillToCompanies: action.payload
+            }
+            break;
+        case customersConstants.SET_INVOICE_SELECTED_BILL_TO_COMPANY_INFO:
+            state = {
+                ...state,
+                selectedInvoiceBillToCompanyInfo: action.payload,
+                selectedCustomer: (state.selectedCustomer.id || 0) === action.payload.id ? action.payload : state.selectedCustomer,
+                selectedBillToCompanyInfo: (state.selectedBillToCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyInfo,
+                selectedLbBillToCompanyInfo: (state.selectedLbBillToCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedLbBillToCompanyInfo,
+                selectedShipperCompanyDirection: (state.selectedShipperCompanyDirection.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyDirection,
+                selectedLbShipperCompanyDirection: (state.selectedLbShipperCompanyDirection.id || 0) === action.payload.id ? action.payload : state.selectedLbShipperCompanyDirection,
+                selectedConsigneeCompanyDirection: (state.selectedConsigneeCompanyDirection.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyDirection,
+                selectedLbConsigneeCompanyDirection: (state.selectedLbConsigneeCompanyDirection.id || 0) === action.payload.id ? action.payload : state.selectedLbConsigneeCompanyDirection,
+            }
+            break;
+        case customersConstants.SET_INVOICE_SELECTED_BILL_TO_COMPANY_CONTACT:
+            state = {
+                ...state,
+                selectedInvoiceBillToCompanyContact: action.payload,
+                selectedContact: (state.selectedContact.id || 0) === action.payload.id ? action.payload : state.selectedContact,
+                selectedBillToCompanyContact: (state.selectedBillToCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyContact,
+                selectedLbBillToCompanyContact: (state.selectedLbBillToCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedLbBillToCompanyContact,
+                selectedShipperCompanyContact: (state.selectedShipperCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyContact,
+                selectedLbShipperCompanyContact: (state.selectedLbShipperCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedLbShipperCompanyContact,
+                selectedConsigneeCompanyContact: (state.selectedConsigneeCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyContact,
+                selectedLbConsigneeCompanyContact: (state.selectedLbConsigneeCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedLbConsigneeCompanyContact,
+            }
+            break;
+        case customersConstants.SET_INVOICE_BILL_TO_COMPANY_SEARCH:
+            state = {
+                ...state,
+                invoiceBillToCompanySearch: action.payload
+            }
+            break;
+        case customersConstants.SET_INVOICE_SELECTED_BILL_TO_COMPANY_NOTE:
+            state = {
+                ...state,
+                selectedInvoiceBillToCompanyNote: action.payload
+            }
+            break;
+        case customersConstants.SET_INVOICE_SELECTED_BILL_TO_COMPANY_DIRECTION:
+            state = {
+                ...state,
+                selectedInvoiceBillToCompanyDirection: action.payload
+            }
+            break;
+        case customersConstants.SET_INVOICE_BILL_TO_COMPANY_CONTACT_SEARCH:
+            state = {
+                ...state,
+                invoiceBillToCompanyContactSearch: action.payload
+            }
+            break;
+        case customersConstants.SET_INVOICE_BILL_TO_COMPANY_AUTOMATIC_EMAILS_TO:
+            state = {
+                ...state,
+                invoiceBillToCompanyAutomaticEmailsTo: action.payload
+            }
+            break;
+        case customersConstants.SET_INVOICE_BILL_TO_COMPANY_AUTOMATIC_EMAILS_CC:
+            state = {
+                ...state,
+                invoiceBillToCompanyAutomaticEmailsCc: action.payload
+            }
+            break;
+        case customersConstants.SET_INVOICE_BILL_TO_COMPANY_AUTOMATIC_EMAILS_BCC:
+            state = {
+                ...state,
+                invoiceBillToCompanyAutomaticEmailsBcc: action.payload
+            }
+            break;
+        case customersConstants.SET_INVOICE_BILL_TO_COMPANY_SHOWING_CONTACT_LIST:
+            state = {
+                ...state,
+                invoiceBillToCompanyShowingContactList: action.payload
+            }
+            break;
+        case customersConstants.SET_INVOICE_BILL_TO_COMPANY_CONTACTS:
+            state = {
+                ...state,
+                invoiceBillToCompanyContacts: action.payload
+            }
+            break;
+        case customersConstants.SET_INVOICE_BILL_TO_COMPANY_CONTACT_SEARCH_CUSTOMER:
+            state = {
+                ...state,
+                invoiceBillToCompanyContactSearchCustomer: action.payload
+            }
+            break;
+        case customersConstants.SET_INVOICE_BILL_TO_COMPANY_IS_EDITING_CONTACT:
+            state = {
+                ...state,
+                invoiceBillToCompanyIsEditingContact: action.payload
+            }
+            break;
+        case customersConstants.SET_INVOICE_SELECTED_BILL_TO_COMPANY_DOCUMENT:
+            state = {
+                ...state,
+                selectedInvoiceBillToCompanyDocument: action.payload,
+                selectedDocument: (state.selectedDocument.id || 0) === action.payload.id ? action.payload : state.selectedDocument,
+                selectedBillToCompanyDocument: (state.selectedBillToCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyDocument,
+                selectedLbBillToCompanyDocument: (state.selectedLbBillToCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedLbBillToCompanyDocument,
+                selectedShipperCompanyDocument: (state.selectedShipperCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyDocument,
+                selectedLbShipperCompanyDocument: (state.selectedLbShipperCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedLbShipperCompanyDocument,
+                selectedConsigneeCompanyDocument: (state.selectedConsigneeCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyDocument,
+                selectedLbConsigneeCompanyDocument: (state.selectedLbConsigneeCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedLbConsigneeCompanyDocument,
+            }
+            break;
+        case customersConstants.SET_INVOICE_BILL_TO_COMPANY_DOCUMENT_TAGS:
+            state = {
+                ...state,
+                invoiceBillToCompanyDocumentTags: action.payload
+            }
+            break;
+        case customersConstants.SET_INVOICE_SELECTED_BILL_TO_COMPANY_DOCUMENT_NOTE:
+            state = {
+                ...state,
+                selectedInvoiceBillToCompanyDocumentNote: action.payload
             }
             break;
 
@@ -492,8 +670,12 @@ export const customerReducers = (state = {
                 ...state,
                 selectedShipperCompanyInfo: action.payload,
                 selectedCustomer: (state.selectedCustomer.id || 0) === action.payload.id ? action.payload : state.selectedCustomer,
+                selectedLbShipperCompanyInfo: (state.selectedLbShipperCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedLbShipperCompanyInfo,
                 selectedBillToCompanyInfo: (state.selectedBillToCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyInfo,
-                selectedConsigneeCompanyInfo: (state.selectedConsigneeCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyInfo
+                selectedLbBillToCompanyInfo: (state.selectedLbBillToCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedLbBillToCompanyInfo,
+                selectedInvoiceBillToCompanyInfo: (state.selectedInvoiceBillToCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedInvoiceBillToCompanyInfo,
+                selectedConsigneeCompanyInfo: (state.selectedConsigneeCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyInfo,
+                selectedLbConsigneeCompanyInfo: (state.selectedLbConsigneeCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedLbConsigneeCompanyInfo,
             }
             break;
         case customersConstants.SET_SELECTED_SHIPPER_COMPANY_CONTACT:
@@ -501,8 +683,12 @@ export const customerReducers = (state = {
                 ...state,
                 selectedShipperCompanyContact: action.payload,
                 selectedContact: (state.selectedContact.id || 0) === action.payload.id ? action.payload : state.selectedContact,
+                selectedLbShipperCompanyContact: (state.selectedLbShipperCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedLbShipperCompanyContact,
                 selectedBillToCompanyContact: (state.selectedBillToCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyContact,
-                selectedConsigneeCompanyContact: (state.selectedConsigneeCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyContact
+                selectedLbBillToCompanyContact: (state.selectedLbBillToCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedLbBillToCompanyContact,
+                selectedInvoiceBillToCompanyContact: (state.selectedInvoiceBillToCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedInvoiceBillToCompanyContact,
+                selectedConsigneeCompanyContact: (state.selectedConsigneeCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyContact,
+                selectedLbConsigneeCompanyContact: (state.selectedLbConsigneeCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedLbConsigneeCompanyContact,
             }
             break;
         case customersConstants.SET_SHIPPER_COMPANY_SEARCH:
@@ -576,8 +762,12 @@ export const customerReducers = (state = {
                 ...state,
                 selectedShipperCompanyDocument: action.payload,
                 selectedDocument: (state.selectedDocument.id || 0) === action.payload.id ? action.payload : state.selectedDocument,
+                selectedLbShipperCompanyDocument: (state.selectedLbShipperCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedLbShipperCompanyDocument,
                 selectedBillToCompanyDocument: (state.selectedBillToCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyDocument,
-                selectedConsigneeCompanyDocument: (state.selectedConsigneeCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyDocument
+                selectedLbBillToCompanyDocument: (state.selectedLbBillToCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedLbBillToCompanyDocument,
+                selectedInvoiceBillToCompanyDocument: (state.selectedInvoiceBillToCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedInvoiceBillToCompanyDocument,
+                selectedConsigneeCompanyDocument: (state.selectedConsigneeCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyDocument,
+                selectedLbConsigneeCompanyDocument: (state.selectedLbConsigneeCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedLbConsigneeCompanyDocument,
             }
             break;
         case customersConstants.SET_SHIPPER_COMPANY_DOCUMENT_TAGS:
@@ -594,7 +784,7 @@ export const customerReducers = (state = {
             break;
 
 
-            // ==================================== LB SHIPPER COMPANY ===================================
+        // ==================================== LB SHIPPER COMPANY ===================================
 
         case customersConstants.SET_LB_SHIPPER_COMPANIES:
             state = {
@@ -606,20 +796,26 @@ export const customerReducers = (state = {
             state = {
                 ...state,
                 selectedLbShipperCompanyInfo: action.payload,
-                selectedShipperCompanyInfo: (state.selectedShipperCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyInfo,
                 selectedCustomer: (state.selectedCustomer.id || 0) === action.payload.id ? action.payload : state.selectedCustomer,
+                selectedShipperCompanyInfo: (state.selectedShipperCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyInfo,
                 selectedBillToCompanyInfo: (state.selectedBillToCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyInfo,
-                selectedConsigneeCompanyInfo: (state.selectedConsigneeCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyInfo
+                selectedLbBillToCompanyInfo: (state.selectedLbBillToCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedLbBillToCompanyInfo,
+                selectedInvoiceBillToCompanyInfo: (state.selectedInvoiceBillToCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedInvoiceBillToCompanyInfo,
+                selectedConsigneeCompanyInfo: (state.selectedConsigneeCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyInfo,
+                selectedLbConsigneeCompanyInfo: (state.selectedLbConsigneeCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedLbConsigneeCompanyInfo,
             }
             break;
         case customersConstants.SET_LB_SELECTED_SHIPPER_COMPANY_CONTACT:
             state = {
                 ...state,
                 selectedLbShipperCompanyContact: action.payload,
-                selectedShipperCompanyContact: (state.selectedShipperCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyContact,
                 selectedContact: (state.selectedContact.id || 0) === action.payload.id ? action.payload : state.selectedContact,
+                selectedShipperCompanyContact: (state.selectedShipperCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyContact,
                 selectedBillToCompanyContact: (state.selectedBillToCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyContact,
-                selectedConsigneeCompanyContact: (state.selectedConsigneeCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyContact
+                selectedLbBillToCompanyContact: (state.selectedLbBillToCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedLbBillToCompanyContact,
+                selectedInvoiceBillToCompanyContact: (state.selectedInvoiceBillToCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedInvoiceBillToCompanyContact,
+                selectedConsigneeCompanyContact: (state.selectedConsigneeCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyContact,
+                selectedLbConsigneeCompanyContact: (state.selectedLbConsigneeCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedLbConsigneeCompanyContact,
             }
             break;
         case customersConstants.SET_LB_SHIPPER_COMPANY_SEARCH:
@@ -692,10 +888,13 @@ export const customerReducers = (state = {
             state = {
                 ...state,
                 selectedLbShipperCompanyDocument: action.payload,
-                selectedShipperCompanyDocument: (state.selectedShipperCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyDocument,
                 selectedDocument: (state.selectedDocument.id || 0) === action.payload.id ? action.payload : state.selectedDocument,
+                selectedShipperCompanyDocument: (state.selectedShipperCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyDocument,
                 selectedBillToCompanyDocument: (state.selectedBillToCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyDocument,
-                selectedConsigneeCompanyDocument: (state.selectedConsigneeCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyDocument
+                selectedLbBillToCompanyDocument: (state.selectedLbBillToCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedLbBillToCompanyDocument,
+                selectedInvoiceBillToCompanyDocument: (state.selectedInvoiceBillToCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedInvoiceBillToCompanyDocument,
+                selectedConsigneeCompanyDocument: (state.selectedConsigneeCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyDocument,
+                selectedLbConsigneeCompanyDocument: (state.selectedLbConsigneeCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedLbConsigneeCompanyDocument,
             }
             break;
         case customersConstants.SET_LB_SHIPPER_COMPANY_DOCUMENT_TAGS:
@@ -725,8 +924,12 @@ export const customerReducers = (state = {
                 ...state,
                 selectedConsigneeCompanyInfo: action.payload,
                 selectedCustomer: (state.selectedCustomer.id || 0) === action.payload.id ? action.payload : state.selectedCustomer,
+                selectedLbConsigneeCompanyInfo: (state.selectedLbConsigneeCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedLbConsigneeCompanyInfo,
                 selectedBillToCompanyInfo: (state.selectedBillToCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyInfo,
-                selectedShipperCompanyInfo: (state.selectedShipperCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyInfo
+                selectedLbBillToCompanyInfo: (state.selectedLbBillToCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedLbBillToCompanyInfo,
+                selectedInvoiceBillToCompanyInfo: (state.selectedInvoiceBillToCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedInvoiceBillToCompanyInfo,
+                selectedShipperCompanyInfo: (state.selectedShipperCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyInfo,
+                selectedLbShipperCompanyInfo: (state.selectedLbShipperCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedLbShipperCompanyInfo,
             }
             break;
         case customersConstants.SET_SELECTED_CONSIGNEE_COMPANY_CONTACT:
@@ -734,8 +937,12 @@ export const customerReducers = (state = {
                 ...state,
                 selectedConsigneeCompanyContact: action.payload,
                 selectedContact: (state.selectedContact.id || 0) === action.payload.id ? action.payload : state.selectedContact,
+                selectedLbConsigneeCompanyContact: (state.selectedLbConsigneeCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedLbConsigneeCompanyContact,
                 selectedBillToCompanyContact: (state.selectedBillToCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyContact,
-                selectedShipperCompanyContact: (state.selectedShipperCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyContact
+                selectedLbBillToCompanyContact: (state.selectedLbBillToCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedLbBillToCompanyContact,
+                selectedInvoiceBillToCompanyContact: (state.selectedInvoiceBillToCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedInvoiceBillToCompanyContact,
+                selectedShipperCompanyContact: (state.selectedShipperCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyContact,
+                selectedLbShipperCompanyContact: (state.selectedLbShipperCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedLbShipperCompanyContact,
             }
             break;
         case customersConstants.SET_CONSIGNEE_COMPANY_SEARCH:
@@ -809,8 +1016,12 @@ export const customerReducers = (state = {
                 ...state,
                 selectedConsigneeCompanyDocument: action.payload,
                 selectedDocument: (state.selectedDocument.id || 0) === action.payload.id ? action.payload : state.selectedDocument,
+                selectedLbConsigneeCompanyDocument: (state.selectedLbConsigneeCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedLbConsigneeCompanyDocument,
                 selectedBillToCompanyDocument: (state.selectedBillToCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyDocument,
-                selectedShipperCompanyDocument: (state.selectedShipperCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyDocument
+                selectedLbBillToCompanyDocument: (state.selectedLbBillToCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedLbBillToCompanyDocument,
+                selectedInvoiceBillToCompanyDocument: (state.selectedInvoiceBillToCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedInvoiceBillToCompanyDocument,
+                selectedShipperCompanyDocument: (state.selectedShipperCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyDocument,
+                selectedLbShipperCompanyDocument: (state.selectedLbShipperCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedLbShipperCompanyDocument,
             }
             break;
         case customersConstants.SET_CONSIGNEE_COMPANY_DOCUMENT_TAGS:
@@ -834,7 +1045,7 @@ export const customerReducers = (state = {
             break;
 
 
-            // ==================================== LB CONSIGNEE COMPANY ===================================
+        // ==================================== LB CONSIGNEE COMPANY ===================================
 
         case customersConstants.SET_LB_CONSIGNEE_COMPANIES:
             state = {
@@ -846,20 +1057,26 @@ export const customerReducers = (state = {
             state = {
                 ...state,
                 selectedLbConsigneeCompanyInfo: action.payload,
-                selectedConsigneeCompanyInfo: (state.selectedConsigneeCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyInfo,
                 selectedCustomer: (state.selectedCustomer.id || 0) === action.payload.id ? action.payload : state.selectedCustomer,
+                selectedConsigneeCompanyInfo: (state.selectedConsigneeCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyInfo,
                 selectedBillToCompanyInfo: (state.selectedBillToCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyInfo,
-                selectedShipperCompanyInfo: (state.selectedShipperCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyInfo
+                selectedLbBillToCompanyInfo: (state.selectedLbBillToCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedLbBillToCompanyInfo,
+                selectedInvoiceBillToCompanyInfo: (state.selectedInvoiceBillToCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedInvoiceBillToCompanyInfo,
+                selectedShipperCompanyInfo: (state.selectedShipperCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyInfo,
+                selectedLbShipperCompanyInfo: (state.selectedLbShipperCompanyInfo.id || 0) === action.payload.id ? action.payload : state.selectedLbShipperCompanyInfo,
             }
             break;
         case customersConstants.SET_LB_SELECTED_CONSIGNEE_COMPANY_CONTACT:
             state = {
                 ...state,
                 selectedLbConsigneeCompanyContact: action.payload,
-                selectedConsigneeCompanyContact: (state.selectedConsigneeCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyContact,
                 selectedContact: (state.selectedContact.id || 0) === action.payload.id ? action.payload : state.selectedContact,
+                selectedConsigneeCompanyContact: (state.selectedConsigneeCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyContact,
                 selectedBillToCompanyContact: (state.selectedBillToCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyContact,
-                selectedShipperCompanyContact: (state.selectedShipperCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyContact
+                selectedLbBillToCompanyContact: (state.selectedLbBillToCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedLbBillToCompanyContact,
+                selectedInvoiceBillToCompanyContact: (state.selectedInvoiceBillToCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedInvoiceBillToCompanyContact,
+                selectedShipperCompanyContact: (state.selectedShipperCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyContact,
+                selectedLbShipperCompanyContact: (state.selectedLbShipperCompanyContact.id || 0) === action.payload.id ? action.payload : state.selectedLbShipperCompanyContact,
             }
             break;
         case customersConstants.SET_LB_CONSIGNEE_COMPANY_SEARCH:
@@ -932,10 +1149,13 @@ export const customerReducers = (state = {
             state = {
                 ...state,
                 selectedLbConsigneeCompanyDocument: action.payload,
-                selectedConsigneeCompanyDocument: (state.selectedConsigneeCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyDocument,
                 selectedDocument: (state.selectedDocument.id || 0) === action.payload.id ? action.payload : state.selectedDocument,
+                selectedConsigneeCompanyDocument: (state.selectedConsigneeCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedConsigneeCompanyDocument,
                 selectedBillToCompanyDocument: (state.selectedBillToCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedBillToCompanyDocument,
-                selectedShipperCompanyDocument: (state.selectedShipperCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyDocument
+                selectedLbBillToCompanyDocument: (state.selectedLbBillToCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedLbBillToCompanyDocument,
+                selectedInvoiceBillToCompanyDocument: (state.selectedInvoiceBillToCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedInvoiceBillToCompanyDocument,
+                selectedShipperCompanyDocument: (state.selectedShipperCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedShipperCompanyDocument,
+                selectedLbShipperCompanyDocument: (state.selectedLbShipperCompanyDocument.id || 0) === action.payload.id ? action.payload : state.selectedLbShipperCompanyDocument,
             }
             break;
         case customersConstants.SET_LB_CONSIGNEE_COMPANY_DOCUMENT_TAGS:

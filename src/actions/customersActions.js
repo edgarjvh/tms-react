@@ -322,6 +322,110 @@ export const setLbSelectedBillToCompanyDocumentNote = note => {
 }
 
 
+// ===================================== INVOICE BILL TO COMPANY ============================================
+export const setInvoiceBillToCompanies = customers => {
+    return {
+        type: customersConstants.SET_INVOICE_BILL_TO_COMPANIES,
+        payload: customers
+    }
+}
+export const setInvoiceSelectedBillToCompanyInfo = customer => {
+    return {
+        type: customersConstants.SET_INVOICE_SELECTED_BILL_TO_COMPANY_INFO,
+        payload: customer
+    }
+}
+export const setInvoiceSelectedBillToCompanyContact = contact => {
+    return {
+        type: customersConstants.SET_INVOICE_SELECTED_BILL_TO_COMPANY_CONTACT,
+        payload: contact
+    }
+}
+export const setInvoiceBillToCompanySearch = customerSearch => {
+    return {
+        type: customersConstants.SET_INVOICE_BILL_TO_COMPANY_SEARCH,
+        payload: customerSearch
+    }
+}
+export const setInvoiceSelectedBillToCompanyNote = note => {
+    return {
+        type: customersConstants.SET_INVOICE_SELECTED_BILL_TO_COMPANY_NOTE,
+        payload: note
+    }
+}
+export const setInvoiceSelectedBillToCompanyDirection = direction => {
+    return {
+        type: customersConstants.SET_INVOICE_SELECTED_BILL_TO_COMPANY_DIRECTION,
+        payload: direction
+    }
+}
+export const setInvoiceBillToCompanyContactSearch = contactSearch => {
+    return {
+        type: customersConstants.SET_INVOICE_BILL_TO_COMPANY_CONTACT_SEARCH,
+        payload: contactSearch
+    }
+}
+export const setInvoiceBillToCompanyAutomaticEmailsTo = to => {
+    return {
+        type: customersConstants.SET_INVOICE_BILL_TO_COMPANY_AUTOMATIC_EMAILS_TO,
+        payload: to
+    }
+}
+export const setInvoiceBillToCompanyAutomaticEmailsCc = cc => {
+    return {
+        type: customersConstants.SET_INVOICE_BILL_TO_COMPANY_AUTOMATIC_EMAILS_CC,
+        payload: cc
+    }
+}
+export const setInvoiceBillToCompanyAutomaticEmailsBcc = bcc => {
+    return {
+        type: customersConstants.SET_INVOICE_BILL_TO_COMPANY_AUTOMATIC_EMAILS_BCC,
+        payload: bcc
+    }
+}
+export const setInvoiceBillToCompanyShowingContactList = show => {
+    return {
+        type: customersConstants.SET_INVOICE_BILL_TO_COMPANY_SHOWING_CONTACT_LIST,
+        payload: show
+    }
+}
+export const setInvoiceBillToCompanyContacts = contacts => {
+    return {
+        type: customersConstants.SET_INVOICE_BILL_TO_COMPANY_CONTACTS,
+        payload: contacts
+    }
+}
+export const setInvoiceBillToCompanyContactSearchCustomer = customer => {
+    return {
+        type: customersConstants.SET_INVOICE_BILL_TO_COMPANY_CONTACT_SEARCH_CUSTOMER,
+        payload: customer
+    }
+}
+export const setInvoiceBillToCompanyIsEditingContact = isEditing => {
+    return {
+        type: customersConstants.SET_INVOICE_BILL_TO_COMPANY_IS_EDITING_CONTACT,
+        payload: isEditing
+    }
+}
+export const setInvoiceSelectedBillToCompanyDocument = document => {
+    return {
+        type: customersConstants.SET_INVOICE_SELECTED_BILL_TO_COMPANY_DOCUMENT,
+        payload: document
+    }
+}
+export const setInvoiceBillToCompanyDocumentTags = tags => {
+    return {
+        type: customersConstants.SET_INVOICE_BILL_TO_COMPANY_DOCUMENT_TAGS,
+        payload: tags
+    }
+}
+export const setInvoiceSelectedBillToCompanyDocumentNote = note => {
+    return {
+        type: customersConstants.SET_INVOICE_SELECTED_BILL_TO_COMPANY_DOCUMENT_NOTE,
+        payload: note
+    }
+}
+
 // ===================================== SHIPPER COMPANY ============================================
 export const setShipperCompanies = customers => {
     return {

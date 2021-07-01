@@ -50,8 +50,10 @@ function CarrierInfoSearch(props) {
         if ((selected_order.events || []).find(el => el.event_type === 'carrier asigned') === undefined) {
             let event_parameters = {
                 order_id: selected_order.id,
-                event_time: moment().format('HHmm'),
-                event_date: moment().format('MM/DD/YYYY'),
+                time: moment().format('HHmm'),
+                event_time: '',
+                date: moment().format('MM/DD/YYYY'),
+                event_date: '',
                 user_id: selected_order.ae_number,
                 event_location: '',
                 event_notes: 'Assigned Carrier ' + c.code + (c.code_number === 0 ? '' : c.code_number) + ' - ' + c.name,

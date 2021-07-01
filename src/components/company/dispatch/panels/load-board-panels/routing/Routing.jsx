@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { connect } from "react-redux";
 import './Routing.css';
-import {    
+import {
     setDispatchOpenedPanels,
     setLbSelectedOrder,
     setLbMileageLoaderVisible,
@@ -980,27 +980,30 @@ function Routing(props) {
                 marginTop: 15,
                 marginBottom: 10
             }}>
-                <div className="input-box-container">
-                    <input type="text" placeholder="A/E Number" disabled={true}
+                <div className="input-box-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>A/E Number:</div>
+                    <input style={{ textAlign: 'right', fontWeight: 'bold' }} type="text" disabled={true}
                         onChange={(e) => { }}
                         value={props.selected_order?.ae_number || ''} />
                 </div>
 
-                <div className="input-box-container">
-                    <input type="text" placeholder="Order Number" disabled={true}
+                <div className="input-box-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Order Number:</div>
+                    <input style={{ textAlign: 'right', fontWeight: 'bold' }} type="text" disabled={true}
                         onChange={(e) => { }}
                         value={props.order_number || ''} />
                 </div>
 
-                <div className="input-box-container">
-                    <input type="text" placeholder="Trip Number" disabled={true}
+                <div className="input-box-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Trip Number:</div>
+                    <input style={{ textAlign: 'right', fontWeight: 'bold' }} type="text" disabled={true}
                         onChange={(e) => { }}
                         value={props.trip_number || ''} />
                 </div>
 
-                <div className="input-box-container" style={{ position: 'relative' }}>
-                    <input type="text" placeholder="Miles" readOnly={true} onChange={() => { }} value={((props.selected_order?.miles || 0) / 1609.34).toFixed(2)} />
-
+                <div className="input-box-container" style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Miles:</div>
+                    <input style={{ textAlign: 'right', fontWeight: 'bold' }} type="text" readOnly={true} onChange={() => { }} value={props.mileageLoaderVisible ? '' : ((props.selected_order?.miles || 0) / 1609.34).toFixed(0)} />
                     <div className="loading-container">
                         <Loader type="ThreeDots" color="#333738" height={20} width={20} visible={props.mileageLoaderVisible} />
                     </div>
@@ -1127,7 +1130,7 @@ function Routing(props) {
                         <div className="form-row">
                             <div className="input-box-container grow">
                                 <input tabIndex={53 + props.tabTimes} type="text" placeholder="Contact Name"
-                                readOnly={true}
+                                    readOnly={true}
                                     // onKeyDown={validateCarrierContactForSaving}
                                     // onChange={(e) => {
                                     //     let splitted = e.target.value.split(' ');
@@ -1189,7 +1192,7 @@ function Routing(props) {
                             <div className="form-h-sep"></div>
                             <div className="input-box-container input-phone-ext">
                                 <input tabIndex={55 + props.tabTimes} type="text" placeholder="Ext"
-                                readOnly={true}
+                                    readOnly={true}
                                     // onKeyDown={validateCarrierContactForSaving}
                                     // onInput={(e) => { props.setSelectedLbCarrierInfoContact({ ...props.selectedLbCarrierInfoContact, phone_ext: e.target.value }) }}
                                     // onChange={(e) => { props.setSelectedLbCarrierInfoContact({ ...props.selectedLbCarrierInfoContact, phone_ext: e.target.value }) }}
@@ -1488,7 +1491,7 @@ function Routing(props) {
                                 minWidth: '5.8rem'
                             }}>
                                 <input tabIndex={59 + props.tabTimes} type="text" placeholder="Unit Number"
-                                readOnly={true}
+                                    readOnly={true}
                                     // onKeyDown={validateCarrierDriverForSaving}
                                     // onInput={(e) => { props.setSelectedLbCarrierInfoDriver({ ...props.selectedLbCarrierInfoDriver, truck: e.target.value }) }}
                                     // onChange={(e) => { props.setSelectedLbCarrierInfoDriver({ ...props.selectedLbCarrierInfoDriver, truck: e.target.value }) }}
@@ -1501,7 +1504,7 @@ function Routing(props) {
                                 minWidth: '5.8rem'
                             }}>
                                 <input tabIndex={60 + props.tabTimes} type="text" placeholder="Trailer Number"
-                                readOnly={true}
+                                    readOnly={true}
                                     // onKeyDown={validateCarrierDriverForSaving}
                                     // onInput={(e) => { props.setSelectedLbCarrierInfoDriver({ ...props.selectedLbCarrierInfoDriver, trailer: e.target.value }) }}
                                     // onChange={(e) => { props.setSelectedLbCarrierInfoDriver({ ...props.selectedLbCarrierInfoDriver, trailer: e.target.value }) }}
@@ -1617,9 +1620,9 @@ function Routing(props) {
                             <div className="bottom-border bottom-border-left"></div>
                             <div className="bottom-border bottom-border-middle"></div>
                             <div className="form-buttons">
-                                <div className="input-box-container" style={{ position: 'relative', width: '10rem' }}>
-                                    <input type="text" placeholder="Miles" readOnly={true} onChange={() => { }} value={((props.selected_order?.miles || 0) / 1609.34).toFixed(2)} />
-
+                                <div className="input-box-container" style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Miles:</div>
+                                    <input style={{ textAlign: 'right', fontWeight: 'bold' }} type="text" readOnly={true} onChange={() => { }} value={props.mileageLoaderVisible ? '' : ((props.selected_order?.miles || 0) / 1609.34).toFixed(0)} />
                                     <div className="loading-container">
                                         <Loader type="ThreeDots" color="#333738" height={20} width={20} visible={props.mileageLoaderVisible} />
                                     </div>
@@ -1688,7 +1691,7 @@ const mapStateToProps = state => {
     }
 }
 
-export default connect(mapStateToProps, {    
+export default connect(mapStateToProps, {
     setDispatchOpenedPanels,
     setLbSelectedOrder,
     setLbMileageLoaderVisible,

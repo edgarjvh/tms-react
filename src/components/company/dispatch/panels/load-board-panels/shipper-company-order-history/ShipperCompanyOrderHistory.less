@@ -8,20 +8,29 @@
         display: flex;
         margin-bottom: 5px;
 
-        .input-box-container.date{
-            width: 8rem;
+        .input-box-container:not(:last-child){
             margin-right: 2px;
+        }
+        .input-box-container.date{
+            width: 8rem;            
         }
         .input-box-container.city{
             flex-grow: 1;
-            margin-right: 2px;
         }
         .input-box-container.state{
             width: 8rem;
-            margin-right: 2px;
         }
         .input-box-container.zip{
             width: 8rem;
+        }
+        .input-box-container.input-code{
+            width: 8rem;
+            text-transform: uppercase;
+        }
+        .mochi-button{
+            width: 8rem;
+            display: flex;
+            justify-content: flex-end;
         }
     }
 }

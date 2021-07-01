@@ -1,0 +1,80 @@
+.panel-content.routing .loading-container {
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #333738;
+}
+.panel-content.routing .routing-pickup-container {
+  flex-grow: 1;
+  position: relative;
+}
+.panel-content.routing .routing-pickup-container .routing-pickup-item {
+  font-size: 0.8rem;
+  height: 1.7rem;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  cursor: default;
+}
+.panel-content.routing .routing-pickup-container .routing-pickup-item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+.panel-content.routing .routing-pickup-container .routing-pickup-item span:not(:last-of-type) {
+  margin-right: 0.5rem;
+}
+.panel-content.routing .routing-pickup-container .routing-pickup-item.current {
+  color: transparent;
+}
+.panel-content.routing .routing-delivery-container {
+  flex-grow: 1;
+  position: relative;
+}
+.panel-content.routing .routing-delivery-container .routing-delivery-item {
+  font-size: 0.8rem;
+  height: 1.7rem;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  cursor: default;
+}
+.panel-content.routing .routing-delivery-container .routing-delivery-item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+.panel-content.routing .routing-delivery-container .routing-delivery-item span:not(:last-of-type) {
+  margin-right: 0.5rem;
+}
+.panel-content.routing .routing-delivery-container .routing-delivery-item.current {
+  color: transparent;
+}
+.panel-content.routing .routing-route-container {
+  flex-grow: 1;
+  position: relative;
+}
+.panel-content.routing .routing-route-container .routing-route-item {
+  font-size: 0.8rem;
+  height: 1.7rem;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  cursor: default;
+}
+.panel-content.routing .routing-route-container .routing-route-item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+.panel-content.routing .routing-route-container .routing-route-item span:not(:last-of-type) {
+  margin-right: 0.5rem;
+}
+.panel-content.routing .routing-route-container .routing-route-item.current {
+  color: transparent;
+}
+.panel-content.routing .fa-arrow-up,
+.panel-content.routing .fa-arrow-down {
+  margin: 0;
+  padding: 0;
+}

@@ -258,6 +258,12 @@ function ShipperCompanyLaneHistory(props) {
                     <div className="input-box-container zip">
                         <input type="text" placeholder="Zip Origin" />
                     </div>
+                    <div className="input-box-container input-code">
+                        <input type="text" placeholder="Bill To Code" />
+                    </div>
+                    <div className="input-box-container input-code">
+                        <input type="text" placeholder="Shipper Code" />
+                    </div>
                 </div>
 
                 <div className="row-fields">
@@ -386,6 +392,14 @@ function ShipperCompanyLaneHistory(props) {
                     </div>
                     <div className="input-box-container zip">
                         <input type="text" placeholder="Zip Destination" />
+                    </div>
+                    <div className="input-box-container input-code">
+                        <input type="text" placeholder="Consignee Code" />
+                    </div>
+                    <div className="mochi-button">
+                        <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
+                        <div className="mochi-button-base">Find</div>
+                        <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
                     </div>
                 </div>
             </div>

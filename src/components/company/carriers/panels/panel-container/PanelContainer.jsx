@@ -5,24 +5,54 @@ import $ from 'jquery';
 import { Resizable, ResizableBox } from 'react-resizable';
 import './PanelContainer.css';
 import Draggable from 'react-draggable';
-import { setCarrierPanels, setCarrierOpenedPanels } from '../../../../../actions';
+import {
+    setCarrierOpenedPanels,
+    setSelectedCarrier,
+    setSelectedCarrierContact,
+    setCarrierContacts,
+    setContactSearch as setCarrierContactSearch,
+    setShowingCarrierContactList,
+    setContactSearchCarrier,
+    setIsEditingContact as setIsEditingCarrierContact,
+    setSelectedFactoringCompany,
+    setSelectedFactoringCompanyContact,
+    setSelectedCarrierDocument,
+    setSelectedCarrierDocumentNote,
+    setCarrierDocumentTags as setSelectedCarrierDocumentTags,
+    setEquipmentInformation,
+    setFactoringCompanySearch,
+    setSelectedDriver,
+    setSelectedInsurance,
+
+    setSelectedFactoringCompanyContactSearch,
+    setSelectedFactoringCompanyIsShowingContactList,
+    setSelectedFactoringCompanyNote,
+    setSelectedFactoringCompanyInvoiceSearch,
+    setSelectedFactoringCompanyInvoices,
+    setFactoringCompanyIsEditingContact,
+    setFactoringCompanyContacts,
+    setSelectedFactoringCompanyInvoice,
+    setSelectedFactoringCompanyIsShowingInvoiceList,
+    setFactoringCompanies,
+    setSelectedFactoringCompanyDocument,
+    setSelectedFactoringCompanyDocumentNote,
+    setFactoringCompanyDocumentTags as setSelectedFactoringCompanyDocumentTags,
+
+} from '../../../../../actions/carriersActions';
 import { useSpring, config } from 'react-spring';
 import { Transition, Spring, animated } from 'react-spring/renderprops';
 
-import CarrierSearch from './../carrier-search/CarrierSearch.jsx';
-import ContactSearch from './../contact-search/ContactSearch.jsx';
-import Contacts from './../contacts/Contacts.jsx';
-import FactoringCompanySearch from './../factoring-company-search/FactoringCompanySearch.jsx';
-import FactoringCompanyPanelSearch from './../factoring-company-panel-search/FactoringCompanyPanelSearch.jsx';
-import FactoringCompany from './../factoring-company/FactoringCompany.jsx';
-import Documents from './../documents/Documents.jsx';
-import RevenueInformation from './../revenue-information/RevenueInformation.jsx';
-import OrderHistory from './../order-history/OrderHistory.jsx';
-import EquipmentInformation from './../equipment-information/EquipmentInformation.jsx';
-import FactoringCompanyContacts from './../factoring-company-contacts/FactoringCompanyContacts.jsx';
-import FactoringCompanyContactSearch from './../factoring-company-contact-search/FactoringCompanyContactSearch.jsx';
-import FactoringCompanyInvoiceSearch from './../factoring-company-invoice-search/FactoringCompanyInvoiceSearch.jsx';
-import FactoringCompanyDocuments from './../factoring-company-documents/FactoringCompanyDocuments.jsx';
+import CarrierSearch from './../../../panels/customer-search/CustomerSearch.jsx';
+import ContactSearch from './../../../panels/contact-search/ContactSearch.jsx';
+import Contacts from './../../../panels/contacts/Contacts.jsx';
+import FactoringCompany from './../../../panels/factoring-company/FactoringCompany.jsx';
+import Documents from './../../../panels/documents/Documents.jsx';
+import RevenueInformation from './../../../panels/revenue-information/RevenueInformation.jsx';
+import OrderHistory from './../../../panels/order-history/OrderHistory.jsx';
+import EquipmentInformation from './../../../panels/equipment-information/EquipmentInformation.jsx';
+import FactoringCompanyPanelSearch from './../../../panels/factoring-company-panel-search/FactoringCompanyPanelSearch.jsx';
+import FactoringCompanySearch from './../../../panels/factoring-company-search/FactoringCompanySearch.jsx';
+import FactoringCompanyInvoiceSearch from './../../../panels/factoring-company-invoice-search/FactoringCompanyInvoiceSearch.jsx';
 
 function PanelContainer(props) {
 
@@ -114,7 +144,20 @@ function PanelContainer(props) {
                             ...styles,
                             width: (window.innerWidth * baseWidth) - (panelGap * props.carrierOpenedPanels.indexOf('carrier-search'))
                         }}>
-                            <CarrierSearch title='Carrier Search Results' tabTimes={6000} />
+                            <CarrierSearch
+                                title='Carrier Search Results'
+                                tabTimes={6000}
+                                panelName='carrier-search'
+                                serverUrl={props.serverUrl}
+                                setOpenedPanels={props.setCarrierOpenedPanels}
+                                openedPanels={props.carrierOpenedPanels}
+
+                                setSelectedCustomer={props.setSelectedCarrier}
+                                setSelectedContact={props.setSelectedCarrierContact}
+
+                                customers={props.carriers}
+                                customerSearch={props.carrierSearch}
+                            />
                         </animated.div>
                     </Draggable>
 
@@ -162,7 +205,26 @@ function PanelContainer(props) {
                             ...styles,
                             width: (window.innerWidth * baseWidth) - (panelGap * props.carrierOpenedPanels.indexOf('carrier-contact-search'))
                         }}>
-                            <ContactSearch title='Contact Search Results' tabTimes={7000} />
+                            <ContactSearch
+                                title='Contact Search Results'
+                                tabTimes={7000}
+                                parentPanelName='carrier-contacts'
+                                panelName='carrier-contact-search'
+                                serverUrl={props.serverUrl}
+                                setOpenedPanels={props.setCarrierOpenedPanels}
+                                openedPanels={props.carrierOpenedPanels}
+
+                                setSelectedCustomer={props.setSelectedCarrier}
+                                setSelectedContact={props.setSelectedCarrierContact}
+                                setCustomerContacts={props.setCarrierContacts}
+                                setContactSearch={props.setCarrierContactSearch}
+                                setShowingContactList={props.setShowingCarrierContactList}
+                                setContactSearchCustomer={props.setContactSearchCarrier}
+
+                                customers={props.carriers}
+                                contactSearch={props.carrierContactSearch}
+                                contacts={props.carrierContacts}
+                            />
                         </animated.div>
                     </Draggable>
 
@@ -210,13 +272,363 @@ function PanelContainer(props) {
                             ...styles,
                             width: (window.innerWidth * baseWidth) - (panelGap * props.carrierOpenedPanels.indexOf('carrier-contacts'))
                         }}>
-                            <Contacts title='Contacts' tabTimes={8000} />
+                            <Contacts
+                                title='Contacts'
+                                tabTimes={8000}
+                                panelName='carrier-contacts'
+                                serverUrl={props.serverUrl}
+                                setOpenedPanels={props.setCarrierOpenedPanels}
+                                openedPanels={props.carrierOpenedPanels}
+
+                                setSelectedCustomer={props.setSelectedCarrier}
+                                setSelectedContact={props.setSelectedCarrierContact}
+                                setIsEditingContact={props.setIsEditingCarrierContact}
+                                setContactSearchCustomer={props.setContactSearchCarrier}
+
+                                contactSearchCustomer={props.contactSearchCarrier}
+                                selectedCustomer={props.selectedCarrier}
+                                selectedContact={props.selectedCarrierContact}
+                                isEditingContact={props.isEditingCarrierContact}
+                                contacts={props.carrierContacts}
+                                savingContactUrl='/saveCarrierContact'
+                                deletingContactUrl='/deleteCarrierContact'
+                                uploadAvatarUrl='/uploadCarrierAvatar'
+                                removeAvatarUrl='/removeCarrierAvatar'
+                            />
                         </animated.div>
                     </Draggable>
 
                 ))}
             </Transition>
             {/* ================================== CONTACTS =============================== */}
+
+            {/* ================================== DOCUMENTS =============================== */}
+            <Transition
+                from={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: props.carrierOpenedPanels.indexOf('documents')
+                }}
+                enter={{
+                    opacity: 1,
+                    right: window.innerWidth,
+                    zIndex: props.carrierOpenedPanels.indexOf('documents')
+                }}
+                leave={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: 0
+                }}
+                items={props.carrierOpenedPanels.includes('documents')}
+                config={{
+                    delay: 0,
+                    duration: 200,
+                    mass: 1, tension: 120, friction: 14
+                }}
+            >
+                {show => show && (styles => (
+                    <Draggable
+                        axis="x"
+                        handle=".drag-handler"
+                        onStart={(e, i) => eventControl(e, i, 'documents')}
+                        onStop={(e, i) => eventControl(e, i, 'documents')}
+                        onMouseDown={(e, i) => eventControl(e, i, 'documents')}
+                        onMouseUp={(e, i) => eventControl(e, i, 'documents')}
+                        onTouchStart={(e, i) => eventControl(e, i, 'documents')}
+                        onTouchEnd={(e, i) => eventControl(e, i, 'documents')}
+                        position={{ x: 0, y: 0 }}
+                    >
+                        <animated.div className="panel panel-documents" ref={ref => carrierOpenedPanelsRefs.current.push(ref)} onClick={e => onPanelClick(e, 'documents')} style={{
+                            ...styles,
+                            width: (window.innerWidth * baseWidth) - (panelGap * props.carrierOpenedPanels.indexOf('documents'))
+                        }}>
+                            <Documents
+                                title='Documents'
+                                tabTimes={12000}
+                                panelName='documents'
+                                serverUrl={props.serverUrl}
+                                setOpenedPanels={props.setCarrierOpenedPanels}
+                                openedPanels={props.carrierOpenedPanels}
+
+                                setSelectedOwnerDocument={props.setSelectedCarrierDocument}
+                                setSelectedOwner={props.setSelectedCarrier}
+                                setSelectedOwnerDocumentTags={props.setSelectedCarrierDocumentTags}
+                                setSelectedOwnerDocumentNote={props.setSelectedCarrierDocumentNote}
+
+                                selectedOwner={props.selectedCarrier}
+                                selectedOwnerDocument={props.selectedCarrierDocument}
+                                selectedOwnerDocumentTags={props.selectedCarrierDocumentTags}
+                                selectedOwnerDocumentNote={props.selectedCarrierDocumentNote}
+                                savingDocumentUrl='/saveCarrierDocument'
+                                deletingDocumentUrl='/deleteCarrierDocument'
+                                savingDocumentNoteUrl='/saveCarrierDocumentNote'
+                                serverDocumentsFolder='/carrier-documents/'
+                            />
+                        </animated.div>
+                    </Draggable>
+                ))}
+            </Transition>
+            {/* ================================== DOCUMENTS =============================== */}
+
+            {/* ================================== REVENUE INFORMATION =============================== */}
+            <Transition
+                from={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: props.carrierOpenedPanels.indexOf('revenue-information')
+                }}
+                enter={{
+                    opacity: 1,
+                    right: window.innerWidth,
+                    zIndex: props.carrierOpenedPanels.indexOf('revenue-information')
+                }}
+                leave={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: 0
+                }}
+                items={props.carrierOpenedPanels.includes('revenue-information')}
+                config={{
+                    delay: 0,
+                    duration: 200,
+                    mass: 1, tension: 120, friction: 14
+                }}
+            >
+                {show => show && (styles => (
+                    <Draggable
+                        axis="x"
+                        handle=".drag-handler"
+                        onStart={(e, i) => eventControl(e, i, 'revenue-information')}
+                        onStop={(e, i) => eventControl(e, i, 'revenue-information')}
+                        onMouseDown={(e, i) => eventControl(e, i, 'revenue-information')}
+                        onMouseUp={(e, i) => eventControl(e, i, 'revenue-information')}
+                        onTouchStart={(e, i) => eventControl(e, i, 'revenue-information')}
+                        onTouchEnd={(e, i) => eventControl(e, i, 'revenue-information')}
+                        position={{ x: 0, y: 0 }}
+                    >
+                        <animated.div className="panel panel-revenue-information" ref={ref => carrierOpenedPanelsRefs.current.push(ref)} onClick={e => onPanelClick(e, 'revenue-information')} style={{
+                            ...styles,
+                            width: (window.innerWidth * baseWidth) - (panelGap * props.carrierOpenedPanels.indexOf('revenue-information'))
+                        }}>
+                            <RevenueInformation
+                                title='Revenue Information'
+                                tabTimes={13000}
+                                panelName='revenue-information'
+
+                                setOpenedPanels={props.setCarrierOpenedPanels}
+                                serverUrl={props.serverUrl}
+                                openedPanels={props.carrierOpenedPanels}
+                            />
+                        </animated.div>
+                    </Draggable>
+                ))}
+            </Transition>
+            {/* ================================== REVENUE INFORMATION =============================== */}
+
+            {/* ================================== ORDER HISTORY =============================== */}
+            <Transition
+                from={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: props.carrierOpenedPanels.indexOf('order-history')
+                }}
+                enter={{
+                    opacity: 1,
+                    right: window.innerWidth,
+                    zIndex: props.carrierOpenedPanels.indexOf('order-history')
+                }}
+                leave={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: 0
+                }}
+                items={props.carrierOpenedPanels.includes('order-history')}
+                config={{
+                    delay: 0,
+                    duration: 200,
+                    mass: 1, tension: 120, friction: 14
+                }}
+            >
+                {show => show && (styles => (
+                    <Draggable
+                        axis="x"
+                        handle=".drag-handler"
+                        onStart={(e, i) => eventControl(e, i, 'order-history')}
+                        onStop={(e, i) => eventControl(e, i, 'order-history')}
+                        onMouseDown={(e, i) => eventControl(e, i, 'order-history')}
+                        onMouseUp={(e, i) => eventControl(e, i, 'order-history')}
+                        onTouchStart={(e, i) => eventControl(e, i, 'order-history')}
+                        onTouchEnd={(e, i) => eventControl(e, i, 'order-history')}
+                        position={{ x: 0, y: 0 }}
+                    >
+                        <animated.div className="panel panel-order-history" ref={ref => carrierOpenedPanelsRefs.current.push(ref)} onClick={e => onPanelClick(e, 'order-history')} style={{
+                            ...styles,
+                            width: (window.innerWidth * baseWidth) - (panelGap * props.carrierOpenedPanels.indexOf('order-history'))
+                        }}>
+                            <OrderHistory
+                                title='Order History'
+                                tabTimes={14000}
+                                panelName='order-history'
+
+                                setOpenedPanels={props.setCarrierOpenedPanels}
+                                serverUrl={props.serverUrl}
+                                openedPanels={props.carrierOpenedPanels}
+                            />
+                        </animated.div>
+                    </Draggable>
+                ))}
+            </Transition>
+            {/* ================================== ORDER HISTORY =============================== */}
+
+            {/* ================================== EQUIPMENT INFORMATION =============================== */}
+            <Transition
+                from={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: props.carrierOpenedPanels.indexOf('equipment-information')
+                }}
+                enter={{
+                    opacity: 1,
+                    right: window.innerWidth,
+                    zIndex: props.carrierOpenedPanels.indexOf('equipment-information')
+                }}
+                leave={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: 0
+                }}
+                items={props.carrierOpenedPanels.includes('equipment-information')}
+                config={{
+                    delay: 0,
+                    duration: 200,
+                    mass: 1, tension: 120, friction: 14
+                }}
+            >
+                {show => show && (styles => (
+                    <Draggable
+                        axis="x"
+                        handle=".drag-handler"
+                        onStart={(e, i) => eventControl(e, i, 'equipment-information')}
+                        onStop={(e, i) => eventControl(e, i, 'equipment-information')}
+                        onMouseDown={(e, i) => eventControl(e, i, 'equipment-information')}
+                        onMouseUp={(e, i) => eventControl(e, i, 'equipment-information')}
+                        onTouchStart={(e, i) => eventControl(e, i, 'equipment-information')}
+                        onTouchEnd={(e, i) => eventControl(e, i, 'equipment-information')}
+                        position={{ x: 0, y: 0 }}
+                    >
+                        <animated.div className="panel panel-equipment-information" ref={ref => carrierOpenedPanelsRefs.current.push(ref)} onClick={e => onPanelClick(e, 'equipment-information')} style={{
+                            ...styles,
+                            width: ((window.innerWidth * baseWidth) * 0.45) - (panelGap * props.carrierOpenedPanels.indexOf('equipment-information'))
+                        }}>
+                            <EquipmentInformation
+                                title='Equipment Information'
+                                tabTimes={15000}
+                                panelName='equipment-information'
+                                setOpenedPanels={props.setCarrierOpenedPanels}
+                                serverUrl={props.serverUrl}
+                                openedPanels={props.carrierOpenedPanels}
+
+                                setEquipmentInformation={props.setEquipmentInformation}
+                                equipmentInformation={props.equipmentInformation}
+
+                                setSelectedCarrier={props.setSelectedCarrier}
+                                selectedCarrier={props.selectedCarrier}
+                                setSelectedCarrierContact={props.setSelectedCarrierContact}
+                                setSelectedDriver={props.setSelectedDriver}
+                                setSelectedInsurance={props.setSelectedInsurance}
+                            />
+                        </animated.div>
+                    </Draggable>
+                ))}
+            </Transition>
+            {/* ================================== EQUIPMENT INFORMATION =============================== */}
+
+            {/* ================================== FACTORING COMPANY =============================== */}
+            <Transition
+                from={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: props.carrierOpenedPanels.indexOf('carrier-factoring-company')
+                }}
+                enter={{
+                    opacity: 1,
+                    right: window.innerWidth,
+                    zIndex: props.carrierOpenedPanels.indexOf('carrier-factoring-company')
+                }}
+                leave={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: 0
+                }}
+                items={props.carrierOpenedPanels.includes('carrier-factoring-company')}
+                config={{
+                    delay: 0,
+                    duration: 200,
+                    mass: 1, tension: 120, friction: 14
+                }}
+            >
+                {show => show && (styles => (
+                    <Draggable
+                        axis="x"
+                        handle=".drag-handler"
+                        onStart={(e, i) => eventControl(e, i, 'carrier-factoring-company')}
+                        onStop={(e, i) => eventControl(e, i, 'carrier-factoring-company')}
+                        onMouseDown={(e, i) => eventControl(e, i, 'carrier-factoring-company')}
+                        onMouseUp={(e, i) => eventControl(e, i, 'carrier-factoring-company')}
+                        onTouchStart={(e, i) => eventControl(e, i, 'carrier-factoring-company')}
+                        onTouchEnd={(e, i) => eventControl(e, i, 'carrier-factoring-company')}
+                        position={{ x: 0, y: 0 }}
+                    >
+                        <animated.div className="panel panel-carrier-factoring-company" ref={ref => carrierOpenedPanelsRefs.current.push(ref)} onClick={e => onPanelClick(e, 'carrier-factoring-company')} style={{
+                            ...styles,
+                            width: ((window.innerWidth * baseWidth) * 0.75) - (panelGap * props.carrierOpenedPanels.indexOf('carrier-factoring-company'))
+                        }}>
+                            <FactoringCompany
+                                title='Factoring Company'
+                                tabTimes={11000}
+                                panelName='carrier-factoring-company'
+                                serverUrl={props.serverUrl}
+                                setOpenedPanels={props.setCarrierOpenedPanels}
+                                openedPanels={props.carrierOpenedPanels}
+
+                                setSelectedFactoringCompanyContact={props.setSelectedFactoringCompanyContact}
+                                setSelectedFactoringCompanyContactSearch={props.setSelectedFactoringCompanyContactSearch}
+                                setSelectedFactoringCompanyIsShowingContactList={props.setSelectedFactoringCompanyIsShowingContactList}
+                                setSelectedFactoringCompany={props.setSelectedFactoringCompany}
+                                setSelectedFactoringCompanyNote={props.setSelectedFactoringCompanyNote}
+                                setSelectedFactoringCompanyInvoiceSearch={props.setSelectedFactoringCompanyInvoiceSearch}
+                                setSelectedFactoringCompanyInvoices={props.setSelectedFactoringCompanyInvoices}
+                                setFactoringCompanyIsEditingContact={props.setFactoringCompanyIsEditingContact}
+                                setFactoringCompanyContacts={props.setFactoringCompanyContacts}
+                                setSelectedFactoringCompanyInvoice={props.setSelectedFactoringCompanyInvoice}
+                                setSelectedFactoringCompanyIsShowingInvoiceList={props.setSelectedFactoringCompanyIsShowingInvoiceList}
+                                setFactoringCompanySearch={props.setFactoringCompanySearch}
+                                setFactoringCompanies={props.setFactoringCompanies}
+                                setSelectedFactoringCompanyDocument={props.setSelectedFactoringCompanyDocument}
+
+                                factoringCompanySearch={props.factoringCompanySearch}
+                                selectedFactoringCompany={props.selectedFactoringCompany}
+                                selectedFactoringCompanyContact={props.selectedFactoringCompanyContact}
+                                selectedFactoringCompanyIsShowingContactList={props.selectedFactoringCompanyIsShowingContactList}
+                                selectedFactoringCompanyNote={props.selectedFactoringCompanyNote}
+                                selectedFactoringCompanyContactSearch={props.selectedFactoringCompanyContactSearch}
+                                selectedFactoringCompanyInvoice={props.selectedFactoringCompanyInvoice}
+                                selectedFactoringCompanyIsShowingInvoiceList={props.selectedFactoringCompanyIsShowingInvoiceList}
+                                selectedFactoringCompanyInvoiceSearch={props.selectedFactoringCompanyInvoiceSearch}
+
+                                factoringCompanySearchPanelName='carrier-factoring-company-search'
+                                factoringCompanyPanelSearchPanelName='carrier-factoring-company-panel-search'
+                                factoringCompanyContactsPanelName='factoring-company-contacts'
+                                factoringCompanyContactSearchPanelName='factoring-company-contact-search'
+                                factoringCompanyDocumentsPanelName='factoring-company-documents'
+                                factoringCompanyInvoiceSearchPanelName='factoring-company-invoice-search'
+                            />
+                        </animated.div>
+                    </Draggable>
+
+                ))}
+            </Transition>
+            {/* ================================== FACTORING COMPANY =============================== */}
 
             {/* ================================== FACTORING COMPANY SEARCH =============================== */}
             <Transition
@@ -258,7 +670,24 @@ function PanelContainer(props) {
                             ...styles,
                             width: (window.innerWidth * baseWidth) - (panelGap * props.carrierOpenedPanels.indexOf('carrier-factoring-company-search'))
                         }}>
-                            <FactoringCompanySearch title='Factoring Company Search Results' tabTimes={9000} />
+                            <FactoringCompanySearch
+                                title='Factoring Company Search Results'
+                                tabTimes={9000}
+                                parentPanelName='carrier-factoring-company'
+                                panelName='carrier-factoring-company-search'
+                                serverUrl={props.serverUrl}
+                                setOpenedPanels={props.setCarrierOpenedPanels}
+                                openedPanels={props.carrierOpenedPanels}
+
+                                setSelectedCarrier={props.setSelectedCarrier}
+                                setSelectedCarrierContact={props.setSelectedCarrierContact}
+                                setFactoringCompanySearch={props.setFactoringCompanySearch}
+                                setSelectedFactoringCompany={props.setSelectedFactoringCompany}
+
+                                factoringCompanySearch={props.factoringCompanySearch}
+                                factoringCompanies={props.factoringCompanies}
+                                selectedCarrier={props.selectedCarrier}
+                            />
                         </animated.div>
                     </Draggable>
 
@@ -306,249 +735,26 @@ function PanelContainer(props) {
                             ...styles,
                             width: (window.innerWidth * baseWidth) - (panelGap * props.carrierOpenedPanels.indexOf('carrier-factoring-company-panel-search'))
                         }}>
-                            <FactoringCompanyPanelSearch title='Factoring Company Search Results' tabTimes={10000} />
+                            <FactoringCompanyPanelSearch
+                                title='Factoring Company Search Results'
+                                tabTimes={10000}
+                                panelName='carrier-factoring-company-panel-search'
+                                serverUrl={props.serverUrl}
+                                setOpenedPanels={props.setCarrierOpenedPanels}
+                                openedPanels={props.carrierOpenedPanels}
+
+                                setFactoringCompanySearch={props.setFactoringCompanySearch}
+                                setSelectedFactoringCompany={props.setSelectedFactoringCompany}
+                                setSelectedFactoringCompanyContact={props.setSelectedFactoringCompanyContact}
+                                factoringCompanies={props.factoringCompanies}
+                                factoringCompanySearch={props.factoringCompanySearch}
+                            />
                         </animated.div>
                     </Draggable>
 
                 ))}
             </Transition>
             {/* ================================== FACTORING COMPANY PANEL SEARCH =============================== */}
-
-            {/* ================================== FACTORING COMPANY =============================== */}
-            <Transition
-                from={{
-                    opacity: 1,
-                    right: 0,
-                    zIndex: props.carrierOpenedPanels.indexOf('carrier-factoring-company')
-                }}
-                enter={{
-                    opacity: 1,
-                    right: window.innerWidth,
-                    zIndex: props.carrierOpenedPanels.indexOf('carrier-factoring-company')
-                }}
-                leave={{
-                    opacity: 1,
-                    right: 0,
-                    zIndex: 0
-                }}
-                items={props.carrierOpenedPanels.includes('carrier-factoring-company')}
-                config={{
-                    delay: 0,
-                    duration: 200,
-                    mass: 1, tension: 120, friction: 14
-                }}
-            >
-                {show => show && (styles => (
-                    <Draggable
-                        axis="x"
-                        handle=".drag-handler"
-                        onStart={(e, i) => eventControl(e, i, 'carrier-factoring-company')}
-                        onStop={(e, i) => eventControl(e, i, 'carrier-factoring-company')}
-                        onMouseDown={(e, i) => eventControl(e, i, 'carrier-factoring-company')}
-                        onMouseUp={(e, i) => eventControl(e, i, 'carrier-factoring-company')}
-                        onTouchStart={(e, i) => eventControl(e, i, 'carrier-factoring-company')}
-                        onTouchEnd={(e, i) => eventControl(e, i, 'carrier-factoring-company')}
-                        position={{ x: 0, y: 0 }}
-                    >
-                        <animated.div className="panel panel-carrier-factoring-company" ref={ref => carrierOpenedPanelsRefs.current.push(ref)} onClick={e => onPanelClick(e, 'carrier-factoring-company')} style={{
-                            ...styles,
-                            width: ((window.innerWidth * baseWidth) * 0.75) - (panelGap * props.carrierOpenedPanels.indexOf('carrier-factoring-company'))
-                        }}>
-                            <FactoringCompany title='Factoring Company' tabTimes={11000} />
-                        </animated.div>
-                    </Draggable>
-
-                ))}
-            </Transition>
-            {/* ================================== FACTORING COMPANY =============================== */}
-
-            {/* ================================== DOCUMENTS =============================== */}
-            <Transition
-                from={{
-                    opacity: 1,
-                    right: 0,
-                    zIndex: props.carrierOpenedPanels.indexOf('documents')
-                }}
-                enter={{
-                    opacity: 1,
-                    right: window.innerWidth,
-                    zIndex: props.carrierOpenedPanels.indexOf('documents')
-                }}
-                leave={{
-                    opacity: 1,
-                    right: 0,
-                    zIndex: 0
-                }}
-                items={props.carrierOpenedPanels.includes('documents')}
-                config={{
-                    delay: 0,
-                    duration: 200,
-                    mass: 1, tension: 120, friction: 14
-                }}
-            >
-                {show => show && (styles => (
-                    <Draggable
-                        axis="x"
-                        handle=".drag-handler"
-                        onStart={(e, i) => eventControl(e, i, 'documents')}
-                        onStop={(e, i) => eventControl(e, i, 'documents')}
-                        onMouseDown={(e, i) => eventControl(e, i, 'documents')}
-                        onMouseUp={(e, i) => eventControl(e, i, 'documents')}
-                        onTouchStart={(e, i) => eventControl(e, i, 'documents')}
-                        onTouchEnd={(e, i) => eventControl(e, i, 'documents')}
-                        position={{ x: 0, y: 0 }}
-                    >
-                        <animated.div className="panel panel-documents" ref={ref => carrierOpenedPanelsRefs.current.push(ref)} onClick={e => onPanelClick(e, 'documents')} style={{
-                            ...styles,
-                            width: (window.innerWidth * baseWidth) - (panelGap * props.carrierOpenedPanels.indexOf('documents'))
-                        }}>
-                            <Documents title='Documents' tabTimes={12000} />
-                        </animated.div>
-                    </Draggable>
-                ))}
-            </Transition>
-            {/* ================================== DOCUMENTS =============================== */}
-
-            {/* ================================== REVENUE INFORMATION =============================== */}
-            <Transition
-                from={{
-                    opacity: 1,
-                    right: 0,
-                    zIndex: props.carrierOpenedPanels.indexOf('revenue-information')
-                }}
-                enter={{
-                    opacity: 1,
-                    right: window.innerWidth,
-                    zIndex: props.carrierOpenedPanels.indexOf('revenue-information')
-                }}
-                leave={{
-                    opacity: 1,
-                    right: 0,
-                    zIndex: 0
-                }}
-                items={props.carrierOpenedPanels.includes('revenue-information')}
-                config={{
-                    delay: 0,
-                    duration: 200,
-                    mass: 1, tension: 120, friction: 14
-                }}
-            >
-                {show => show && (styles => (
-                    <Draggable
-                        axis="x"
-                        handle=".drag-handler"
-                        onStart={(e, i) => eventControl(e, i, 'revenue-information')}
-                        onStop={(e, i) => eventControl(e, i, 'revenue-information')}
-                        onMouseDown={(e, i) => eventControl(e, i, 'revenue-information')}
-                        onMouseUp={(e, i) => eventControl(e, i, 'revenue-information')}
-                        onTouchStart={(e, i) => eventControl(e, i, 'revenue-information')}
-                        onTouchEnd={(e, i) => eventControl(e, i, 'revenue-information')}
-                        position={{ x: 0, y: 0 }}
-                    >
-                        <animated.div className="panel panel-revenue-information" ref={ref => carrierOpenedPanelsRefs.current.push(ref)} onClick={e => onPanelClick(e, 'revenue-information')} style={{
-                            ...styles,
-                            width: (window.innerWidth * baseWidth) - (panelGap * props.carrierOpenedPanels.indexOf('revenue-information'))
-                        }}>
-                            <RevenueInformation title='Revenue Information' tabTimes={13000} />
-                        </animated.div>
-                    </Draggable>
-                ))}
-            </Transition>
-            {/* ================================== REVENUE INFORMATION =============================== */}
-
-            {/* ================================== ORDER HISTORY =============================== */}
-            <Transition
-                from={{
-                    opacity: 1,
-                    right: 0,
-                    zIndex: props.carrierOpenedPanels.indexOf('order-history')
-                }}
-                enter={{
-                    opacity: 1,
-                    right: window.innerWidth,
-                    zIndex: props.carrierOpenedPanels.indexOf('order-history')
-                }}
-                leave={{
-                    opacity: 1,
-                    right: 0,
-                    zIndex: 0
-                }}
-                items={props.carrierOpenedPanels.includes('order-history')}
-                config={{
-                    delay: 0,
-                    duration: 200,
-                    mass: 1, tension: 120, friction: 14
-                }}
-            >
-                {show => show && (styles => (
-                    <Draggable
-                        axis="x"
-                        handle=".drag-handler"
-                        onStart={(e, i) => eventControl(e, i, 'order-history')}
-                        onStop={(e, i) => eventControl(e, i, 'order-history')}
-                        onMouseDown={(e, i) => eventControl(e, i, 'order-history')}
-                        onMouseUp={(e, i) => eventControl(e, i, 'order-history')}
-                        onTouchStart={(e, i) => eventControl(e, i, 'order-history')}
-                        onTouchEnd={(e, i) => eventControl(e, i, 'order-history')}
-                        position={{ x: 0, y: 0 }}
-                    >
-                        <animated.div className="panel panel-order-history" ref={ref => carrierOpenedPanelsRefs.current.push(ref)} onClick={e => onPanelClick(e, 'order-history')} style={{
-                            ...styles,
-                            width: (window.innerWidth * baseWidth) - (panelGap * props.carrierOpenedPanels.indexOf('order-history'))
-                        }}>
-                            <OrderHistory title='Order History' tabTimes={14000} />
-                        </animated.div>
-                    </Draggable>
-                ))}
-            </Transition>
-            {/* ================================== ORDER HISTORY =============================== */}
-
-            {/* ================================== EQUIPMENT INFORMATION =============================== */}
-            <Transition
-                from={{
-                    opacity: 1,
-                    right: 0,
-                    zIndex: props.carrierOpenedPanels.indexOf('equipment-information')
-                }}
-                enter={{
-                    opacity: 1,
-                    right: window.innerWidth,
-                    zIndex: props.carrierOpenedPanels.indexOf('equipment-information')
-                }}
-                leave={{
-                    opacity: 1,
-                    right: 0,
-                    zIndex: 0
-                }}
-                items={props.carrierOpenedPanels.includes('equipment-information')}
-                config={{
-                    delay: 0,
-                    duration: 200,
-                    mass: 1, tension: 120, friction: 14
-                }}
-            >
-                {show => show && (styles => (
-                    <Draggable
-                        axis="x"
-                        handle=".drag-handler"
-                        onStart={(e, i) => eventControl(e, i, 'equipment-information')}
-                        onStop={(e, i) => eventControl(e, i, 'equipment-information')}
-                        onMouseDown={(e, i) => eventControl(e, i, 'equipment-information')}
-                        onMouseUp={(e, i) => eventControl(e, i, 'equipment-information')}
-                        onTouchStart={(e, i) => eventControl(e, i, 'equipment-information')}
-                        onTouchEnd={(e, i) => eventControl(e, i, 'equipment-information')}
-                        position={{ x: 0, y: 0 }}
-                    >
-                        <animated.div className="panel panel-equipment-information" ref={ref => carrierOpenedPanelsRefs.current.push(ref)} onClick={e => onPanelClick(e, 'equipment-information')} style={{
-                            ...styles,
-                            width: ((window.innerWidth * baseWidth) * 0.45) - (panelGap * props.carrierOpenedPanels.indexOf('equipment-information'))
-                        }}>
-                            <EquipmentInformation title='Equipment Information' tabTimes={15000} />
-                        </animated.div>
-                    </Draggable>
-                ))}
-            </Transition>
-            {/* ================================== EQUIPMENT INFORMATION =============================== */}
 
             {/* ================================== FACTORING COMPANY CONTACTS =============================== */}
             <Transition
@@ -590,7 +796,29 @@ function PanelContainer(props) {
                             ...styles,
                             width: (window.innerWidth * baseWidth) - (panelGap * props.carrierOpenedPanels.indexOf('factoring-company-contacts'))
                         }}>
-                            <FactoringCompanyContacts title='Contacts' tabTimes={16000} />
+                            <Contacts
+                                title='Contacts'
+                                tabTimes={16000}
+                                panelName='factoring-company-contacts'
+                                serverUrl={props.serverUrl}
+                                setOpenedPanels={props.setCarrierOpenedPanels}
+                                openedPanels={props.carrierOpenedPanels}
+
+                                setSelectedCustomer={props.setSelectedFactoringCompany}
+                                setSelectedContact={props.setSelectedFactoringCompanyContact}
+                                setIsEditingContact={props.setFactoringCompanyIsEditingContact}
+                                setContactSearchCustomer={props.setSelectedFactoringCompanyContactSearch}
+
+                                contactSearchCustomer={props.selectedFactoringCompanyContactSearch}
+                                selectedCustomer={props.selectedFactoringCompany}
+                                selectedContact={props.selectedFactoringCompanyContact}
+                                isEditingContact={props.factoringCompanyIsEditingContact}
+                                contacts={props.factoringCompanyContacts}
+                                savingContactUrl='/saveFactoringCompanyContact'
+                                deletingContactUrl='/deleteFactoringCompanyContact'
+                                uploadAvatarUrl='/uploadFactoringCompanyAvatar'
+                                removeAvatarUrl='/removeFactoringCompanyAvatar'
+                            />
                         </animated.div>
                     </Draggable>
                 ))}
@@ -637,7 +865,26 @@ function PanelContainer(props) {
                             ...styles,
                             width: (window.innerWidth * baseWidth) - (panelGap * props.carrierOpenedPanels.indexOf('factoring-company-contact-search'))
                         }}>
-                            <FactoringCompanyContactSearch title='Factoring Company Contact Search Results' tabTimes={17000} />
+                            <ContactSearch
+                                title='Factoring Company Contact Search Results'
+                                tabTimes={17000}
+                                parentPanelName='factoring-company-contacts'
+                                panelName='factoring-company-contact-search'
+                                serverUrl={props.serverUrl}
+                                setOpenedPanels={props.setCarrierOpenedPanels}
+                                openedPanels={props.carrierOpenedPanels}
+
+                                setSelectedCustomer={props.setSelectedFactoringCompany}
+                                setSelectedContact={props.setSelectedFactoringCompanyContact}
+                                setCustomerContacts={props.setFactoringCompanyContacts}
+                                setContactSearch={props.setSelectedFactoringCompanyContactSearch}
+                                setShowingContactList={props.setSelectedFactoringCompanyIsShowingContactList}
+                                setContactSearchCustomer={props.setSelectedFactoringCompanyContactSearch}
+
+                                customers={props.factoringCompanies}
+                                contactSearch={props.selectedFactoringCompanyContactSearch}
+                                contacts={props.factoringCompanyContacts}
+                            />
                         </animated.div>
                     </Draggable>
                 ))}
@@ -684,7 +931,21 @@ function PanelContainer(props) {
                             ...styles,
                             width: (window.innerWidth * baseWidth) - (panelGap * props.carrierOpenedPanels.indexOf('factoring-company-invoice-search'))
                         }}>
-                            <FactoringCompanyInvoiceSearch title='Factoring Company Invoice Search Results' tabTimes={18000} />
+                            <FactoringCompanyInvoiceSearch
+                                title='Factoring Company Invoice Search Results'
+                                tabTimes={18000}
+                                panelName='factoring-company-invoice-search'
+                                serverUrl={props.serverUrl}
+                                setOpenedPanels={props.setCarrierOpenedPanels}
+                                openedPanels={props.carrierOpenedPanels}
+
+                                setSelectedFactoringCompany={props.setSelectedFactoringCompany}
+                                setSelectedFactoringCompanyInvoice={props.setSelectedFactoringCompanyInvoice}
+                                setSelectedFactoringCompanyInvoiceSearch={props.setSelectedFactoringCompanyInvoiceSearch}
+
+                                selectedFactoringCompany={props.selectedFactoringCompany}
+                                selectedFactoringCompanyInvoiceSearch={props.selectedFactoringCompanyInvoiceSearch}
+                            />
                         </animated.div>
                     </Draggable>
                 ))}
@@ -731,7 +992,28 @@ function PanelContainer(props) {
                             ...styles,
                             width: (window.innerWidth * baseWidth) - (panelGap * props.carrierOpenedPanels.indexOf('factoring-company-documents'))
                         }}>
-                            <FactoringCompanyDocuments title='Documents' tabTimes={19000} />
+                            <Documents
+                                title='Documents'
+                                tabTimes={19000}
+                                panelName='factoring-company-documents'
+                                serverUrl={props.serverUrl}
+                                setOpenedPanels={props.setCarrierOpenedPanels}
+                                openedPanels={props.carrierOpenedPanels}
+
+                                setSelectedOwnerDocument={props.setSelectedFactoringCompanyDocument}
+                                setSelectedOwner={props.setSelectedFactoringCompany}
+                                setSelectedOwnerDocumentTags={props.setSelectedFactoringCompanyDocumentTags}
+                                setSelectedOwnerDocumentNote={props.setSelectedFactoringCompanyDocumentNote}
+
+                                selectedOwner={props.selectedFactoringCompany}
+                                selectedOwnerDocument={props.selectedFactoringCompanyDocument}
+                                selectedOwnerDocumentTags={props.selectedFactoringCompanyDocumentTags}
+                                selectedOwnerDocumentNote={props.selectedFactoringCompanyDocumentNote}
+                                savingDocumentUrl='/saveFactoringCompanyDocument'
+                                deletingDocumentUrl='/deleteFactoringCompanyDocument'
+                                savingDocumentNoteUrl='/saveFactoringCompanyDocumentNote'
+                                serverDocumentsFolder='/factoring-company-documents/'
+                            />
                         </animated.div>
                     </Draggable>
                 ))}
@@ -743,12 +1025,76 @@ function PanelContainer(props) {
 
 const mapStateToProps = state => {
     return {
-        panels: state.carrierReducers.panels,
         carrierOpenedPanels: state.carrierReducers.carrierOpenedPanels,
+        serverUrl: state.systemReducers.serverUrl,
+
+        carriers: state.carrierReducers.carriers,
+        selectedCarrier: state.carrierReducers.selectedCarrier,
+        carrierSearch: state.carrierReducers.carrierSearch,
+        selectedCarrierContact: state.carrierReducers.selectedContact,
+        carrierContacts: state.carrierReducers.contacts,
+        isEditingCarrierContact: state.carrierReducers.isEditingContact,
+        carrierContactSearch: state.carrierReducers.contactSearch,
+        contactSearchCarrier: state.carrierReducers.contactSearchCarrier,
+        selectedCarrierDocument: state.carrierReducers.selectedDocument,
+        selectedCarrierDocumentTags: state.carrierReducers.documentTags,
+        selectedCarrierDocumentNote: state.carrierReducers.selectedDocumentNote,
+        factoringCompanies: state.carrierReducers.factoringCompanies,
+        factoringCompanySearch: state.carrierReducers.factoringCompanySearch,
+        selectedCarrierDocument: state.carrierReducers.selectedDocument,
+        selectedCarrierDocumentTags: state.carrierReducers.documentTags,
+        selectedCarrierDocumentNote: state.carrierReducers.selectedDocumentNote,
+        equipmentInformation: state.carrierReducers.equipmentInformation,
+        factoringCompanySearch: state.carrierReducers.factoringCompanySearch,
+        factoringCompanies: state.carrierReducers.factoringCompanies,
+        selectedCarrier: state.carrierReducers.selectedCarrier,
+
+        selectedFactoringCompany: state.carrierReducers.selectedFactoringCompany,
+        selectedFactoringCompanyContact: state.carrierReducers.selectedFactoringCompanyContact,
+        selectedFactoringCompanyIsShowingContactList: state.carrierReducers.selectedFactoringCompanyIsShowingContactList,
+        selectedFactoringCompanyNote: state.carrierReducers.selectedFactoringCompanyNote,
+        selectedFactoringCompanyContactSearch: state.carrierReducers.selectedFactoringCompanyContactSearch,
+        selectedFactoringCompanyInvoice: state.carrierReducers.selectedFactoringCompanyInvoice,
+        selectedFactoringCompanyIsShowingInvoiceList: state.carrierReducers.selectedFactoringCompanyIsShowingInvoiceList,
+        selectedFactoringCompanyInvoiceSearch: state.carrierReducers.selectedFactoringCompanyInvoiceSearch,
+        factoringCompanyIsEditingContact: state.carrierReducers.factoringCompanyIsEditingContact,
+        factoringCompanyContacts: state.carrierReducers.factoringCompanyContacts,
+
+        selectedFactoringCompanyDocument: state.carrierReducers.selectedFactoringCompanyDocument,
+        selectedFactoringCompanyDocumentTags: state.carrierReducers.factoringCompanyDocumentTags,
+        selectedFactoringCompanyDocumentNote: state.carrierReducers.selectedFactoringCompanyDocumentNote
     }
 }
 
 export default connect(mapStateToProps, {
-    setCarrierPanels,
-    setCarrierOpenedPanels
+    setCarrierOpenedPanels,
+    setSelectedCarrier,
+    setSelectedCarrierContact,
+    setCarrierContacts,
+    setCarrierContactSearch,
+    setShowingCarrierContactList,
+    setContactSearchCarrier,
+    setIsEditingCarrierContact,
+    setSelectedFactoringCompany,
+    setSelectedFactoringCompanyContact,
+    setSelectedCarrierDocument,
+    setSelectedCarrierDocumentNote,
+    setSelectedCarrierDocumentTags,
+    setEquipmentInformation,
+    setFactoringCompanySearch,
+    setSelectedFactoringCompanyContactSearch,
+    setSelectedFactoringCompanyIsShowingContactList,
+    setSelectedFactoringCompanyNote,
+    setSelectedFactoringCompanyInvoiceSearch,
+    setSelectedFactoringCompanyInvoices,
+    setFactoringCompanyIsEditingContact,
+    setFactoringCompanyContacts,
+    setSelectedFactoringCompanyInvoice,
+    setSelectedFactoringCompanyIsShowingInvoiceList,
+    setFactoringCompanies,
+    setSelectedFactoringCompanyDocument,
+    setSelectedFactoringCompanyDocumentNote,
+    setSelectedFactoringCompanyDocumentTags,
+    setSelectedDriver,
+    setSelectedInsurance,
 })(PanelContainer)

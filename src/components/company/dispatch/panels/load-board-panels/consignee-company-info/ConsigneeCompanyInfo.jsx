@@ -1993,10 +1993,7 @@ function ConsigneeCompanyInfo(props) {
                                             <div className="mochi-button-base">Add direction</div>
                                             <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
                                         </div>
-                                        <div className="input-checkbox-container">
-                                            <input type="checkbox" id="cbox-directions-print-on-rate" />
-                                            <label htmlFor="cbox-directions-print-on-rate">Print directions on rate confirmation</label>
-                                        </div>
+                                        
                                         <div className="mochi-button" onClick={() => {
                                             if (props.selectedConsigneeCompanyInfo.id === undefined || props.selectedConsigneeCompanyInfo.directions.length === 0) {
                                                 window.alert('There is nothing to print!');

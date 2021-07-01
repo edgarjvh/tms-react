@@ -1209,7 +1209,7 @@ function LoadBoard(props) {
                                     display: 'flex'
                                 }}>
                                     <div className="pickups-container" style={{ display: 'flex', flexDirection: 'row' }}>
-                                        <div className="swiper-pickup-prev-btn"><span className="fas fa-chevron-left"></span></div>
+                                        <div className="lb-swiper-pickup-prev-btn"><span className="fas fa-chevron-left"></span></div>
 
                                         <Swiper
                                             slidesPerView={3}
@@ -1487,7 +1487,7 @@ function LoadBoard(props) {
                                         } */}
                                         </Swiper>
 
-                                        <div className="swiper-pickup-next-btn"><span className="fas fa-chevron-right"></span></div>
+                                        <div className="lb-swiper-pickup-next-btn"><span className="fas fa-chevron-right"></span></div>
                                     </div>
 
                                     <div className="form-h-sep"></div>
@@ -1507,7 +1507,7 @@ function LoadBoard(props) {
                                     </div>
                                     <div className="form-h-sep"></div>
                                     <div className="deliveries-container" style={{ display: 'flex', flexDirection: 'row' }}>
-                                        <div className="swiper-delivery-prev-btn"><span className="fas fa-chevron-left"></span></div>
+                                        <div className="lb-swiper-delivery-prev-btn"><span className="fas fa-chevron-left"></span></div>
 
                                         <Swiper
                                             slidesPerView={3}
@@ -1788,7 +1788,7 @@ function LoadBoard(props) {
                                         } */}
                                         </Swiper>
 
-                                        <div className="swiper-delivery-next-btn"><span className="fas fa-chevron-right"></span></div>
+                                        <div className="lb-swiper-delivery-next-btn"><span className="fas fa-chevron-right"></span></div>
                                     </div>
                                 </div>
 

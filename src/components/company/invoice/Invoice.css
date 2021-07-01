@@ -29,3 +29,83 @@
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 5px;
 }
+.invoice-main-container .input-box-container.insurance-status {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+.invoice-main-container .input-box-container.insurance-status input:read-only {
+  color: black;
+}
+.invoice-main-container .input-box-container.insurance-status.active {
+  background-color: lightgreen;
+}
+.invoice-main-container .input-box-container.insurance-status.warning {
+  background-color: yellow;
+}
+.invoice-main-container .input-box-container.insurance-status.expired {
+  background-color: lightcoral !important;
+}
+.invoice-main-container .form-wrapper {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 10px;
+}
+.invoice-main-container .form-wrapper .documents-list-item,
+.invoice-main-container .form-wrapper .documents-notes-list-item {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 5px 0;
+  cursor: pointer;
+  transition: ease 0.3s;
+}
+.invoice-main-container .form-wrapper .documents-list-item span,
+.invoice-main-container .form-wrapper .documents-notes-list-item span {
+  margin-right: 10px;
+}
+.invoice-main-container .form-wrapper .documents-list-item .item-btn,
+.invoice-main-container .form-wrapper .documents-notes-list-item .item-btn {
+  transition: ease 0.3s;
+}
+.invoice-main-container .form-wrapper .documents-list-item .item-btn:hover,
+.invoice-main-container .form-wrapper .documents-notes-list-item .item-btn:hover {
+  color: rgba(0, 0, 0, 0.8);
+  transform: scale(1.2);
+}
+.invoice-main-container .form-wrapper .documents-list-item:hover,
+.invoice-main-container .form-wrapper .documents-notes-list-item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+.invoice-main-container .form-wrapper .documents-list-item.selected {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+.invoice-main-container .internal-notes-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.invoice-main-container .internal-notes-container .internal-notes-wrapper {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+}
+.invoice-main-container .internal-notes-container .internal-notes-wrapper .internal-notes-item {
+  font-size: 0.7rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 5px 0;
+  cursor: pointer;
+  transition: ease 0.3s;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.invoice-main-container .internal-notes-container .internal-notes-wrapper .internal-notes-item:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}

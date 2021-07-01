@@ -1,33 +1,127 @@
 .invoice-main-container {
-    width                                             : 100%;
-    height                                            : 100%;
-    position                                          : relative;
-    display                                           : flex;
-    flex-direction                                    : row;
-    font-size                                         : 24px;
-    /* Permalink - use to edit and share this gradient: https://colorzilla.com/gradient-editor/#efefef+0,c8c8c8+100 */
-    background                                        : rgb(250, 250, 250);
-    /* Old browsers */
-    background                                        : -moz-radial-gradient(center, ellipse cover, rgba(250, 250, 250, 1) 0%, rgba(200, 200, 200, 1) 100%);
-    /* FF3.6-15 */
-    background                                        : -webkit-radial-gradient(center, ellipse cover, rgba(250, 250, 250, 1) 0%, rgba(200, 200, 200, 1) 100%);
-    /* Chrome10-25,Safari5.1-6 */
-    background                                        : radial-gradient(ellipse at center, rgba(250, 250, 250, 1) 0%, rgba(200, 200, 200, 1) 100%);
-    /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-    filter                                            : progid:DXImageTransform.Microsoft.gradient(startColorstr='#efefef', endColorstr='#c8c8c8', GradientType=1);
-    /* IE6-9 fallback on horizontal gradient */
-    transition                                        : all ease 0.7s;
-    overflow                                          : hidden;
-    padding                                           : 10px;
+  width                                             : 100%;
+  height                                            : 100%;
+  position                                          : relative;
+  display                                           : flex;
+  flex-direction                                    : row;
+  font-size                                         : 24px;
+  /* Permalink - use to edit and share this gradient: https://colorzilla.com/gradient-editor/#efefef+0,c8c8c8+100 */
+  background                                        : rgb(250, 250, 250);
+  /* Old browsers */
+  background                                        : -moz-radial-gradient(center, ellipse cover, rgba(250, 250, 250, 1) 0%, rgba(200, 200, 200, 1) 100%);
+  /* FF3.6-15 */
+  background                                        : -webkit-radial-gradient(center, ellipse cover, rgba(250, 250, 250, 1) 0%, rgba(200, 200, 200, 1) 100%);
+  /* Chrome10-25,Safari5.1-6 */
+  background                                        : radial-gradient(ellipse at center, rgba(250, 250, 250, 1) 0%, rgba(200, 200, 200, 1) 100%);
+  /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter                                            : progid:DXImageTransform.Microsoft.gradient(startColorstr='#efefef', endColorstr='#c8c8c8', GradientType=1);
+  /* IE6-9 fallback on horizontal gradient */
+  transition                                        : all ease 0.7s;
+  overflow                                          : hidden;
+  padding                                           : 10px;
 
-    .fields-container-col {
-        display       : flex;
-        flex-direction: column;
+  .fields-container-col {
+    display       : flex;
+    flex-direction: column;
+  }
+
+  .form-portal {
+    flex-grow    : 1;
+    border       : 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+  }
+
+  .input-box-container.insurance-status {
+    background-color: rgba(0, 0, 0, 0.3);
+
+    input:read-only {
+      color: black;
+    }
+  }
+
+  .input-box-container.insurance-status.active {
+    background-color: lightgreen;
+  }
+
+  .input-box-container.insurance-status.warning {
+    background-color: yellow;
+  }
+
+  .input-box-container.insurance-status.expired {
+    background-color: lightcoral !important;
+  }
+
+  .form-wrapper {
+    position: absolute;
+    width   : 100%;
+    height  : 100%;
+    top     : 0;
+    left    : 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding : 10px;
+
+    .documents-list-item,
+    .documents-notes-list-item {
+      display        : flex;
+      flex-direction : row;
+      justify-content: space-between;
+      font-size      : 0.7rem;
+      // font-weight: bold;
+      border-bottom  : 1px solid rgba(0, 0, 0, 0.1);
+      padding        : 5px 0;
+      cursor         : pointer;
+      transition     : ease 0.3s;
+
+      span {
+        margin-right: 10px;
+      }
+
+      .item-btn {
+        transition: ease 0.3s;
+      }
+
+      .item-btn:hover {
+        color    : rgba(0, 0, 0, 0.8);
+        transform: scale(1.2);
+      }
     }
 
-    .form-portal {
-        flex-grow    : 1;
-        border       : 1px solid rgba(0, 0, 0, 0.1);
-        border-radius: 5px;
+    .documents-list-item:hover,
+    .documents-notes-list-item:hover {
+      background-color: rgba(0, 0, 0, 0.05);
     }
+
+    .documents-list-item.selected {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+  }
+
+  .internal-notes-container {
+    width   : 100%;
+    height  : 100%;
+    position: relative;
+
+    .internal-notes-wrapper {
+      position  : absolute;
+      width     : 100%;
+      height    : 100%;
+      overflow-y: auto;
+
+      .internal-notes-item {
+        font-size    : 0.7rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        padding      : 5px 0;
+        cursor       : pointer;
+        transition   : ease 0.3s;
+        text-overflow: ellipsis;
+        white-space  : nowrap;
+        overflow     : hidden;
+      }
+
+      .internal-notes-item:hover {
+        background-color: rgba(0, 0, 0, 0.1);
+      }
+    }
+  }
 }

@@ -457,6 +457,9 @@ function AdjustRate(props) {
                         <div className="input-box-container" style={{ width: '10rem', marginRight: 5 }}>
                             <input type="text" placeholder="Gross Profit" />
                         </div>
+                        <div className="input-box-container" style={{ width: '10rem', marginRight: 5 }}>
+                            <input type="text" placeholder="Net Profit" />
+                        </div>
                         <div className="input-box-container" style={{ width: '10rem' }}>
                             <input type="text" placeholder="Percentage Profit" />
                         </div>

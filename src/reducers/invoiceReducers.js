@@ -1,17 +1,13 @@
 import { invoiceConstants } from './../constants';
-import Documents from './../components/company/invoice/panels/documents/Documents.jsx';
 
 export const invoiceReducers = (state = {
     invoiceOpenedPanels: [],
-    panels: [
-        {
-            name: 'documents',
-            component: <Documents title='Documents' tabTimes={42000} />,
-            isOpened: false,
-            pos: -1,
-            maxWidth: 100
-        }
-    ]
+    selected_order: {},
+    order_number: '',
+    trip_number: '',
+
+    internalNotes: [],
+    selectedInternalNote: {},   
 }, action) => {
     switch (action.type) {
         case invoiceConstants.SET_SELECTED_DOCUMENT:
@@ -32,12 +28,52 @@ export const invoiceReducers = (state = {
                 selectedDocumentNote: action.payload
             }
             break;
-            case invoiceConstants.SET_INVOICE_OPENED_PANELS:
+        case invoiceConstants.SET_INVOICE_OPENED_PANELS:
             state = {
                 ...state,
                 invoiceOpenedPanels: action.payload
             }
             break;
+
+        case invoiceConstants.SET_INVOICE_SELECTED_ORDER:
+            state = {
+                ...state,
+                selected_order: action.payload
+            }
+            break;
+        case invoiceConstants.SET_INVOICE_ORDER_NUMBER:
+            state = {
+                ...state,
+                order_number: action.payload
+            }
+            break;
+        case invoiceConstants.SET_INVOICE_TRIP_NUMBER:
+            state = {
+                ...state,
+                trip_number: action.payload
+            }
+            break;
+        case invoiceConstants.SET_INVOICE_OPENED_PANELS:
+            state = {
+                ...state,
+                invoiceOpenedPanels: action.payload
+            }
+            break;
+
+
+        case invoiceConstants.SET_INVOICE_INTERNAL_NOTES:
+            state = {
+                ...state,
+                internalNotes: action.payload
+            }   
+            break;
+        case invoiceConstants.SET_INVOICE_SELECTED_INTERNAL_NOTE:
+            state = {
+                ...state,
+                selectedInternalNote: action.payload
+            }
+            break;
+
         case invoiceConstants.SET_INVOICE_PANELS:
             let count = -1;
 

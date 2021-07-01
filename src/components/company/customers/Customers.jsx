@@ -14,36 +14,12 @@ import { faCaretDown, faCaretRight, faCalendarAlt } from '@fortawesome/free-soli
 import { useDetectClickOutside } from "react-detect-click-outside";
 import { Transition, Spring, animated as animated2, config } from 'react-spring/renderprops';
 import Highlighter from "react-highlight-words";
-import {
-    setCustomers,
-    setSelectedCustomer,
-    setCustomerPanels,
-    setSelectedContact,
-    setSelectedNote,
-    setSelectedDirection,
-    setContactSearch,
-    setAutomaticEmailsTo,
-    setAutomaticEmailsCc,
-    setAutomaticEmailsBcc,
-    setShowingContactList,
-    setCustomerSearch,
-    setCustomerContacts,
-    setContactSearchCustomer,
-    setIsEditingContact,
-    setSelectedDocument,
-
-    setSelectedBillToCompanyInfo,
-    setSelectedBillToCompanyContact,
-
-    setSelectedShipperCompanyInfo,
-    setSelectedShipperCompanyContact,
-
-    setSelectedConsigneeCompanyInfo,
-    setSelectedConsigneeCompanyContact,
-    setCustomerOpenedPanels
-} from '../../../actions';
+import SwiperCore, { Navigation } from 'swiper';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/swiper-bundle.css';
 
 function Customers(props) {
+    const refCustomerCode = useRef(null);
     const [popupItems, setPopupItems] = useState([]);
     const [isSavingCustomer, setIsSavingCustomer] = useState(false);
     const [isSavingContact, setIsSavingContact] = useState(false);
@@ -54,7 +30,9 @@ function Customers(props) {
         'mochi-contextual-container': true,
         'shown': popupItems.length > 0
     });
+
     const refCustomerContactPhone = useRef();
+
     const [customerContactPhoneItems, setCustomerContactPhoneItems] = useState([]);
     const [showCustomerContactPhones, setShowCustomerContactPhones] = useState(false);
     const refCustomerContactPhoneDropDown = useDetectClickOutside({ onTriggered: async () => { await setShowCustomerContactPhones(false) } });
@@ -65,6 +43,24 @@ function Customers(props) {
     const [showCustomerContactEmails, setShowCustomerContactEmails] = useState(false);
     const refCustomerContactEmailDropDown = useDetectClickOutside({ onTriggered: async () => { await setShowCustomerContactEmails(false) } });
     const refCustomerContactEmailPopupItems = useRef([]);
+
+    const refMailingContactName = useRef();
+    const [mailingContactNameItems, setMailingContactNameItems] = useState([]);
+    const [showMailingContactNames, setShowMailingContactNames] = useState(false);
+    const refMailingContactNameDropDown = useDetectClickOutside({ onTriggered: async () => { await setShowMailingContactNames(false) } });
+    const refMailingContactNamePopupItems = useRef([]);
+
+    const refMailingContactPhone = useRef();
+    const [mailingContactPhoneItems, setMailingContactPhoneItems] = useState([]);
+    const [showMailingContactPhones, setShowMailingContactPhones] = useState(false);
+    const refMailingContactPhoneDropDown = useDetectClickOutside({ onTriggered: async () => { await setShowMailingContactPhones(false) } });
+    const refMailingContactPhonePopupItems = useRef([]);
+
+    const refMailingContactEmail = useRef();
+    const [mailingContactEmailItems, setMailingContactEmailItems] = useState([]);
+    const [showMailingContactEmails, setShowMailingContactEmails] = useState(false);
+    const refMailingContactEmailDropDown = useDetectClickOutside({ onTriggered: async () => { await setShowMailingContactEmails(false) } });
+    const refMailingContactEmailPopupItems = useRef([]);
 
     const [emailToDropdownItems, setEmailToDropdownItems] = useState([]);
     const refEmailToDropDown = useDetectClickOutside({ onTriggered: async () => { await setEmailToDropdownItems([]) } });
@@ -82,11 +78,148 @@ function Customers(props) {
     const refAutomaticEmailsCc = useRef();
     const refAutomaticEmailsBcc = useRef();
     var delayTimer;
+    const modalTransitionProps = useSpring({ opacity: (props.selectedNote?.id !== undefined || props.selectedDirection?.id !== undefined) ? 1 : 0 });
 
+    
 
+    useEffect(() => {
+        let selectedCustomer = { ...props.selectedCustomer };
 
-    const modalTransitionProps = useSpring({ opacity: (props.selectedNote.id !== undefined || props.selectedDirection.id !== undefined) ? 1 : 0 });
+        if (selectedCustomer.id === undefined || selectedCustomer.id === -1) {
+            selectedCustomer.id = 0;
+            props.setSelectedCustomer({ ...props.selectedCustomer, id: 0 });
+        }
 
+        if (
+            (selectedCustomer.name || '').trim().replace(/\s/g, "").replace("&", "A") !== "" &&
+            (selectedCustomer.city || '').trim().replace(/\s/g, "") !== "" &&
+            (selectedCustomer.state || '').trim().replace(/\s/g, "") !== "" &&
+            (selectedCustomer.address1 || '').trim() !== "" &&
+            (selectedCustomer.zip || '').trim() !== ""
+        ) {
+            let parseCity = selectedCustomer.city.trim().replace(/\s/g, "").substring(0, 3);
+
+            if (parseCity.toLowerCase() === "ft.") {
+                parseCity = "FO";
+            }
+            if (parseCity.toLowerCase() === "mt.") {
+                parseCity = "MO";
+            }
+            if (parseCity.toLowerCase() === "st.") {
+                parseCity = "SA";
+            }
+
+            let mailingParseCity = (selectedCustomer.mailing_city || '').trim().replace(/\s/g, "").substring(0, 3);
+
+            if (mailingParseCity.toLowerCase() === "ft.") {
+                mailingParseCity = "FO";
+            }
+            if (mailingParseCity.toLowerCase() === "mt.") {
+                mailingParseCity = "MO";
+            }
+            if (mailingParseCity.toLowerCase() === "st.") {
+                mailingParseCity = "SA";
+            }
+
+            let newCode = (selectedCustomer.name || '').trim().replace(/\s/g, "").replace("&", "A").substring(0, 3) + parseCity.substring(0, 2) + (selectedCustomer.state || '').trim().replace(/\s/g, "").substring(0, 2);
+            let mailingNewCode = (selectedCustomer.mailing_name || '').trim().replace(/\s/g, "").replace("&", "A").substring(0, 3) + mailingParseCity.substring(0, 2) + (selectedCustomer.mailing_state || '').trim().replace(/\s/g, "").substring(0, 2);
+
+            selectedCustomer.code = newCode.toUpperCase();
+            selectedCustomer.mailing_code = mailingNewCode.toUpperCase();
+
+            $.post(props.serverUrl + '/saveCustomer', selectedCustomer).then(async res => {
+                if (res.result === 'OK') {
+                    let customer = JSON.parse(JSON.stringify(res.customer));
+                    if (props.selectedCustomer?.id === undefined || (props.selectedCustomer?.id || 0) === 0) {
+                        await props.setSelectedCustomer({
+                            ...props.selectedCustomer,
+                            id: customer.id,
+                            code: customer.code,
+                            code_number: customer.code_number,
+                            contacts: customer.contacts || []
+                        });
+                    } else {
+                        await props.setSelectedCustomer({
+                            ...props.selectedCustomer,
+                            contacts: customer.contacts || []
+                        });
+                    }
+
+                    if ((props.selectedContact?.id || 0) === 0) {
+                        (res.customer.contacts || []).map(async (contact, index) => {
+
+                            if (contact.is_primary === 1) {
+                                await props.setSelectedContact(contact);
+                            }
+
+                            return true;
+                        });
+                    }
+
+                    if ((selectedCustomer.contacts || []).length === 0 && (res.customer.contacts || []).length === 1) {
+                        goToTabindex((17 + props.tabTimes).toString());
+                    }
+                }
+
+                await setIsSavingCustomer(false);
+            }).catch(e => {
+                setIsSavingCustomer(false);
+            });
+        }
+    }, [isSavingCustomer])
+
+    useEffect(() => {
+        if (isSavingContact) {
+            if (props.selectedCustomer?.id === undefined) {
+                return;
+            }
+
+            let contact = props.selectedContact;
+
+            if (contact.customer_id === undefined || contact.customer_id === 0) {
+                contact.customer_id = props.selectedCustomer?.id;
+            }
+
+            if ((contact.first_name || '').trim() === '' || (contact.last_name || '').trim() === '' || (contact.phone_work || '').trim() === '' || (contact.email_work || '').trim() === '') {
+                return;
+            }
+
+            if ((contact.address1 || '').trim() === '' && (contact.address2 || '').trim() === '') {
+                contact.address1 = props.selectedCustomer?.address1;
+                contact.address2 = props.selectedCustomer?.address2;
+                contact.city = props.selectedCustomer?.city;
+                contact.state = props.selectedCustomer?.state;
+                contact.zip_code = props.selectedCustomer?.zip;
+            }
+
+            $.post(props.serverUrl + '/saveContact', contact).then(async res => {
+                if (res.result === 'OK') {
+                    await props.setSelectedCustomer({ ...props.selectedCustomer, contacts: res.contacts });
+                    await props.setSelectedContact(res.contact);
+                }
+
+                setIsSavingContact(false);
+            }).catch(e => {
+                console.log('error saving customer contact', e);
+                setIsSavingContact(false);
+            });
+        }
+    }, [isSavingContact])
+
+    useEffect(() => {
+        refCustomerCode.current.focus({
+            preventScroll: true
+        });
+    }, [])
+
+    useEffect(() => {
+        if (props.screenFocused) {
+            refCustomerCode.current.focus({
+                preventScroll: true
+            });
+        }
+    }, [props.screenFocused])
+   
     useEffect(async () => {
         let phones = [];
         (props.selectedContact?.phone_work || '') !== '' && phones.push({ id: 1, type: 'work', phone: props.selectedContact.phone_work });
@@ -119,6 +252,44 @@ function Customers(props) {
         props.selectedContact?.primary_email
     ]);
 
+    useEffect(async () => {
+        let phones = [];
+        (props.selectedCustomer?.mailing_contact?.phone_work || '') !== '' && phones.push({ id: 1, type: 'work', phone: props.selectedCustomer?.mailing_contact.phone_work });
+        (props.selectedCustomer?.mailing_contact?.phone_work_fax || '') !== '' && phones.push({ id: 2, type: 'fax', phone: props.selectedCustomer?.mailing_contact.phone_work_fax });
+        (props.selectedCustomer?.mailing_contact?.phone_mobile || '') !== '' && phones.push({ id: 3, type: 'mobile', phone: props.selectedCustomer?.mailing_contact.phone_mobile });
+        (props.selectedCustomer?.mailing_contact?.phone_direct || '') !== '' && phones.push({ id: 4, type: 'direct', phone: props.selectedCustomer?.mailing_contact.phone_direct });
+        (props.selectedCustomer?.mailing_contact?.phone_other || '') !== '' && phones.push({ id: 5, type: 'other', phone: props.selectedCustomer?.mailing_contact.phone_other });
+
+        await setMailingContactPhoneItems(phones);
+    }, [
+        props.selectedCustomer?.mailing_contact?.phone_work,
+        props.selectedCustomer?.mailing_contact?.phone_work_fax,
+        props.selectedCustomer?.mailing_contact?.phone_mobile,
+        props.selectedCustomer?.mailing_contact?.phone_direct,
+        props.selectedCustomer?.mailing_contact?.phone_other,
+        props.selectedCustomer?.mailing_contact?.primary_phone
+    ]);    
+
+    
+    
+
+    
+
+    // useEffect(async () => {
+    //     let emails = [];
+    //     (props.selectedCustomer?.mailing_contact?.email_work || '') !== '' && emails.push({ id: 1, type: 'work', email: props.selectedCustomer?.mailing_contact.email_work });
+    //     (props.selectedCustomer?.mailing_contact?.email_personal || '') !== '' && emails.push({ id: 2, type: 'personal', email: props.selectedCustomer?.mailing_contact.email_personal });
+    //     (props.selectedCustomer?.mailing_contact?.email_other || '') !== '' && emails.push({ id: 3, type: 'other', email: props.selectedCustomer?.mailing_contact.email_other });
+
+    //     await setMailingContactEmailItems(emails);
+    // }, [
+    //     props.selectedCustomer?.mailing_contact?.email_work,
+    //     props.selectedCustomer?.mailing_contact?.email_personal,
+    //     props.selectedCustomer?.mailing_contact?.email_other,
+    //     props.selectedCustomer?.mailing_contact?.primary_email
+    // ]);
+    
+
     const setInitialValues = (clearCode = true) => {
         setIsSavingCustomer(false);
         props.setSelectedContact({});
@@ -130,7 +301,7 @@ function Customers(props) {
         props.setAutomaticEmailsTo('');
         props.setAutomaticEmailsCc('');
         props.setAutomaticEmailsBcc('');
-        props.setSelectedCustomer({ id: -1, code: clearCode ? '' : props.selectedCustomer.code });
+        props.setSelectedCustomer({ id: -1, code: clearCode ? '' : props.selectedCustomer?.code });
         setPopupItems([]);
     }
 
@@ -173,31 +344,31 @@ function Customers(props) {
         let customerSearch = [
             {
                 field: 'Name',
-                data: (props.selectedCustomer.name || '').toLowerCase()
+                data: (props.selectedCustomer?.name || '').toLowerCase()
             },
             {
                 field: 'City',
-                data: (props.selectedCustomer.city || '').toLowerCase()
+                data: (props.selectedCustomer?.city || '').toLowerCase()
             },
             {
                 field: 'State',
-                data: (props.selectedCustomer.state || '').toLowerCase()
+                data: (props.selectedCustomer?.state || '').toLowerCase()
             },
             {
                 field: 'Postal Code',
-                data: props.selectedCustomer.zip || ''
+                data: props.selectedCustomer?.zip || ''
             },
             {
                 field: 'Contact Name',
-                data: (props.selectedCustomer.contact_name || '').toLowerCase()
+                data: (props.selectedCustomer?.contact_name || '').toLowerCase()
             },
             {
                 field: 'Contact Phone',
-                data: props.selectedCustomer.contact_phone || ''
+                data: props.selectedCustomer?.contact_phone || ''
             },
             {
                 field: 'E-Mail',
-                data: (props.selectedCustomer.email || '').toLowerCase()
+                data: (props.selectedCustomer?.email || '').toLowerCase()
             }
         ]
 
@@ -206,8 +377,8 @@ function Customers(props) {
                 await props.setCustomerSearch(customerSearch);
                 await props.setCustomers(res.customers);
 
-                if (!props.customerOpenedPanels.includes('customer-search')) {
-                    props.setCustomerOpenedPanels([...props.customerOpenedPanels, 'customer-search']);
+                if (!props.openedPanels.includes(props.customerSearchPanelName)) {
+                    props.setOpenedPanels([...props.openedPanels, props.customerSearchPanelName]);
                 }
             }
         });
@@ -217,7 +388,7 @@ function Customers(props) {
         let filters = [
             {
                 field: 'Customer Id',
-                data: props.selectedCustomer.id || 0
+                data: props.selectedCustomer?.id || 0
             },
             {
                 field: 'First Name',
@@ -258,41 +429,41 @@ function Customers(props) {
                 await props.setContactSearch({ ...props.contactSearch, filters: filters });
                 await props.setCustomerContacts(res.contacts);
 
-                if (!props.customerOpenedPanels.includes('customer-contact-search')) {
-                    props.setCustomerOpenedPanels([...props.customerOpenedPanels, 'customer-contact-search']);
+                if (!props.openedPanels.includes(props.customerContactSearchPanelName)) {
+                    props.setOpenedPanels([...props.openedPanels, props.customerContactSearchPanelName]);
                 }
             }
         });
     }
 
     const revenueInformationBtnClick = () => {
-        if (!props.customerOpenedPanels.includes('revenue-information')) {
-            props.setCustomerOpenedPanels([...props.customerOpenedPanels, 'revenue-information']);
+        if (!props.openedPanels.includes(props.customerRevenueInformationPanelName)) {
+            props.setOpenedPanels([...props.openedPanels, props.customerRevenueInformationPanelName]);
         }
     }
 
     const orderHistoryBtnClick = () => {
-        if (!props.customerOpenedPanels.includes('order-history')) {
-            props.setCustomerOpenedPanels([...props.customerOpenedPanels, 'order-history']);
+        if (!props.openedPanels.includes(props.customerOrderHistoryPanelName)) {
+            props.setOpenedPanels([...props.openedPanels, props.customerOrderHistoryPanelName]);
         }
     }
 
     const laneHistoryBtnClick = () => {
-        if (!props.customerOpenedPanels.includes('lane-history')) {
-            props.setCustomerOpenedPanels([...props.customerOpenedPanels, 'lane-history']);
+        if (!props.openedPanels.includes(props.customerLaneHistoryPanelName)) {
+            props.setOpenedPanels([...props.openedPanels, props.customerLaneHistoryPanelName]);
         }
     }
 
     const documentsBtnClick = () => {
-        if ((props.selectedCustomer.id || 0) > 0) {
+        if ((props.selectedCustomer?.id || 0) > 0) {
             props.setSelectedDocument({
                 id: 0,
                 user_id: Math.floor(Math.random() * (15 - 1)) + 1,
                 date_entered: moment().format('MM/DD/YYYY')
             });
 
-            if (!props.customerOpenedPanels.includes('documents')) {
-                props.setCustomerOpenedPanels([...props.customerOpenedPanels, 'documents']);
+            if (!props.openedPanels.includes(props.customerDocumentsPanelName)) {
+                props.setOpenedPanels([...props.openedPanels, props.customerDocumentsPanelName]);
             }
         } else {
             window.alert('You must select a customer first!');
@@ -303,97 +474,9 @@ function Customers(props) {
         let keyCode = e.keyCode || e.which;
 
         if (keyCode === 9) {
-            window.clearTimeout(delayTimer);
-
-            window.setTimeout(() => {
-                let selectedCustomer = { ...props.selectedCustomer };
-
-                if (selectedCustomer.id === undefined || selectedCustomer.id === -1) {
-                    selectedCustomer.id = 0;
-                    props.setSelectedCustomer({ ...props.selectedCustomer, id: 0 });
-                }
-
-                if (
-                    (selectedCustomer.name || '').trim().replace(/\s/g, "").replace("&", "A") !== "" &&
-                    (selectedCustomer.city || '').trim().replace(/\s/g, "") !== "" &&
-                    (selectedCustomer.state || '').trim().replace(/\s/g, "") !== "" &&
-                    (selectedCustomer.address1 || '').trim() !== "" &&
-                    (selectedCustomer.zip || '').trim() !== ""
-                ) {
-                    let parseCity = selectedCustomer.city.trim().replace(/\s/g, "").substring(0, 3);
-
-                    if (parseCity.toLowerCase() === "ft.") {
-                        parseCity = "FO";
-                    }
-                    if (parseCity.toLowerCase() === "mt.") {
-                        parseCity = "MO";
-                    }
-                    if (parseCity.toLowerCase() === "st.") {
-                        parseCity = "SA";
-                    }
-
-                    let mailingParseCity = (selectedCustomer.mailing_city || '').trim().replace(/\s/g, "").substring(0, 3);
-
-                    if (mailingParseCity.toLowerCase() === "ft.") {
-                        mailingParseCity = "FO";
-                    }
-                    if (mailingParseCity.toLowerCase() === "mt.") {
-                        mailingParseCity = "MO";
-                    }
-                    if (mailingParseCity.toLowerCase() === "st.") {
-                        mailingParseCity = "SA";
-                    }
-
-                    let newCode = (selectedCustomer.name || '').trim().replace(/\s/g, "").replace("&", "A").substring(0, 3) + parseCity.substring(0, 2) + (selectedCustomer.state || '').trim().replace(/\s/g, "").substring(0, 2);
-                    let mailingNewCode = (selectedCustomer.mailing_name || '').trim().replace(/\s/g, "").replace("&", "A").substring(0, 3) + mailingParseCity.substring(0, 2) + (selectedCustomer.mailing_state || '').trim().replace(/\s/g, "").substring(0, 2);
-
-                    selectedCustomer.code = newCode.toUpperCase();
-                    selectedCustomer.mailing_code = mailingNewCode.toUpperCase();
-
-                    if (!isSavingCustomer) {
-                        setIsSavingCustomer(true);
-
-                        $.post(props.serverUrl + '/saveCustomer', selectedCustomer).then(async res => {
-                            if (res.result === 'OK') {
-                                let customer = JSON.parse(JSON.stringify(res.customer));
-                                if (props.selectedCustomer.id === undefined || (props.selectedCustomer.id || 0) === 0) {
-                                    await props.setSelectedCustomer({
-                                        ...props.selectedCustomer,
-                                        id: customer.id,
-                                        code: customer.code,
-                                        code_number: customer.code_number,
-                                        contacts: customer.contacts || []
-                                    });
-                                } else {
-                                    await props.setSelectedCustomer({
-                                        ...props.selectedCustomer,
-                                        contacts: customer.contacts || []
-                                    });
-                                }
-
-                                if ((props.selectedContact?.id || 0) === 0) {
-                                    (res.customer.contacts || []).map(async (contact, index) => {
-
-                                        if (contact.is_primary === 1) {
-                                            await props.setSelectedContact(contact);
-                                        }
-
-                                        return true;
-                                    });
-                                }
-
-                                if ((selectedCustomer.contacts || []).length === 0 && (res.customer.contacts || []).length === 1) {
-                                    goToTabindex((17 + props.tabTimes).toString());
-                                }
-                            }
-
-                            await setIsSavingCustomer(false);
-                        }).catch(e => {
-                            setIsSavingCustomer(false);
-                        });
-                    }
-                }
-            }, 300);
+            if (!isSavingCustomer) {
+                setIsSavingCustomer(true);
+            }
         }
     }
 
@@ -409,7 +492,7 @@ function Customers(props) {
     }
 
     const remitToAddressBtn = () => {
-        if (props.selectedCustomer.id === undefined || props.selectedCustomer.id <= 0) {
+        if (props.selectedCustomer?.id === undefined || props.selectedCustomer?.id <= 0) {
             window.alert('You must select a customer first');
             return;
         }
@@ -429,13 +512,86 @@ function Customers(props) {
         customer.mailing_ext = customer.ext;
         customer.mailing_email = customer.email;
 
+        if ((props.selectedContact?.id || 0) > 0) {
+            customer.mailing_contact_id = props.selectedContact.id;
+            customer.mailing_contact = props.selectedContact;
+
+            customer.mailing_contact_primary_phone = props.selectedContact.phone_work !== ''
+                ? 'work'
+                : props.selectedContact.phone_work_fax !== ''
+                    ? 'fax'
+                    : props.selectedContact.phone_mobile !== ''
+                        ? 'mobile'
+                        : props.selectedContact.phone_direct !== ''
+                            ? 'direct'
+                            : props.selectedContact.phone_other !== ''
+                                ? 'other' : 'work';
+
+            customer.mailing_contact_primary_email = props.selectedContact.email_work !== ''
+                ? 'work'
+                : props.selectedContact.email_personal !== ''
+                    ? 'personal'
+                    : props.selectedContact.email_other !== ''
+                        ? 'other' : 'work';
+
+        } else if (customer.contacts.findIndex(x => x.is_primary === 1) > -1) {
+            customer.mailing_contact_id = customer.contacts[customer.contacts.findIndex(x => x.is_primary === 1)].id;
+            customer.mailing_contact = customer.contacts[customer.contacts.findIndex(x => x.is_primary === 1)];
+
+            customer.mailing_contact_primary_phone = customer.contacts[customer.contacts.findIndex(x => x.is_primary === 1)].phone_work !== ''
+                ? 'work'
+                : customer.contacts[customer.contacts.findIndex(x => x.is_primary === 1)].phone_work_fax !== ''
+                    ? 'fax'
+                    : customer.contacts[customer.contacts.findIndex(x => x.is_primary === 1)].phone_mobile !== ''
+                        ? 'mobile'
+                        : customer.contacts[customer.contacts.findIndex(x => x.is_primary === 1)].phone_direct !== ''
+                            ? 'direct'
+                            : customer.contacts[customer.contacts.findIndex(x => x.is_primary === 1)].phone_other !== ''
+                                ? 'other' : 'work';
+
+            customer.mailing_contact_primary_email = customer.contacts[customer.contacts.findIndex(x => x.is_primary === 1)].email_work !== ''
+                ? 'work'
+                : customer.contacts[customer.contacts.findIndex(x => x.is_primary === 1)].email_personal !== ''
+                    ? 'personal'
+                    : customer.contacts[customer.contacts.findIndex(x => x.is_primary === 1)].email_other !== ''
+                        ? 'other' : 'work';
+
+        } else if (customer.contacts.length > 0) {
+            customer.mailing_contact_id = customer.contacts[0].id;
+            customer.mailing_contact = customer.contacts[0];
+
+            customer.mailing_contact_primary_phone = customer.contacts[0].phone_work !== ''
+                ? 'work'
+                : customer.contacts[0].phone_work_fax !== ''
+                    ? 'fax'
+                    : customer.contacts[0].phone_mobile !== ''
+                        ? 'mobile'
+                        : customer.contacts[0].phone_direct !== ''
+                            ? 'direct'
+                            : customer.contacts[0].phone_other !== ''
+                                ? 'other' : 'work';
+
+            customer.mailing_contact_primary_email = customer.contacts[0].email_work !== ''
+                ? 'work'
+                : customer.contacts[0].email_personal !== ''
+                    ? 'personal'
+                    : customer.contacts[0].email_other !== ''
+                        ? 'other' : 'work';
+
+        } else {
+            customer.mailing_contact_id = 0;
+            customer.mailing_contact = {};
+            customer.mailing_contact_primary_phone = 'work';
+            customer.mailing_contact_primary_email = 'work';
+        }
+
         props.setSelectedCustomer(customer);
 
         validateCustomerForSaving({ keyCode: 9 });
     }
 
     const mailingAddressClearBtn = () => {
-        if (props.selectedCustomer.id === undefined || props.selectedCustomer.id <= 0) {
+        if (props.selectedCustomer?.id === undefined || props.selectedCustomer?.id <= 0) {
             // window.alert('You must select a customer first');
             return;
         }
@@ -450,8 +606,12 @@ function Customers(props) {
         customer.mailing_city = '';
         customer.mailing_state = '';
         customer.mailing_zip = '';
+        customer.mailing_contact_id = 0;
+        customer.mailing_contact = {};
         customer.mailing_contact_name = '';
         customer.mailing_contact_phone = '';
+        customer.mailing_contact_primary_phone = 'work';
+        customer.mailing_contact_primary_email = 'work';
         customer.mailing_ext = '';
         customer.mailing_email = '';
         customer.mailing_bill_to = '';
@@ -462,7 +622,7 @@ function Customers(props) {
     }
 
     const mailingAddressBillToBtn = () => {
-        if (props.selectedCustomer.id === undefined || props.selectedCustomer.id <= 0) {
+        if (props.selectedCustomer?.id === undefined || props.selectedCustomer?.id <= 0) {
             window.alert('You must select a customer first');
             return;
         }
@@ -485,7 +645,7 @@ function Customers(props) {
     const selectedContactIsPrimaryChange = async (e) => {
         await props.setSelectedContact({ ...props.selectedContact, is_primary: e.target.checked ? 1 : 0 });
 
-        if (props.selectedCustomer.id === undefined) {
+        if (props.selectedCustomer?.id === undefined) {
             return;
         }
 
@@ -493,7 +653,7 @@ function Customers(props) {
         contact = { ...contact, is_primary: e.target.checked ? 1 : 0 };
 
         if (contact.customer_id === undefined || contact.customer_id === 0) {
-            contact.customer_id = props.selectedCustomer.id;
+            contact.customer_id = props.selectedCustomer?.id;
         }
 
         if ((contact.first_name || '').trim() === '' || (contact.last_name || '').trim() === '' || (contact.phone_work || '').trim() === '' || (contact.email_work || '').trim() === '') {
@@ -501,11 +661,11 @@ function Customers(props) {
         }
 
         if ((contact.address1 || '').trim() === '' && (contact.address2 || '').trim() === '') {
-            contact.address1 = props.selectedCustomer.address1;
-            contact.address2 = props.selectedCustomer.address2;
-            contact.city = props.selectedCustomer.city;
-            contact.state = props.selectedCustomer.state;
-            contact.zip_code = props.selectedCustomer.zip;
+            contact.address1 = props.selectedCustomer?.address1;
+            contact.address2 = props.selectedCustomer?.address2;
+            contact.city = props.selectedCustomer?.city;
+            contact.state = props.selectedCustomer?.state;
+            contact.zip_code = props.selectedCustomer?.zip;
         }
 
         $.post(props.serverUrl + '/saveContact', contact).then(async res => {
@@ -516,58 +676,21 @@ function Customers(props) {
         });
     }
 
-    useEffect(() => {
-        if (isSavingContact) {
-            if (props.selectedCustomer.id === undefined) {
-                return;
-            }
-
-            let contact = props.selectedContact;
-
-            if (contact.customer_id === undefined || contact.customer_id === 0) {
-                contact.customer_id = props.selectedCustomer.id;
-            }
-
-            if ((contact.first_name || '').trim() === '' || (contact.last_name || '').trim() === '' || (contact.phone_work || '').trim() === '' || (contact.email_work || '').trim() === '') {
-                return;
-            }
-
-            if ((contact.address1 || '').trim() === '' && (contact.address2 || '').trim() === '') {
-                contact.address1 = props.selectedCustomer.address1;
-                contact.address2 = props.selectedCustomer.address2;
-                contact.city = props.selectedCustomer.city;
-                contact.state = props.selectedCustomer.state;
-                contact.zip_code = props.selectedCustomer.zip;
-            }
-
-            $.post(props.serverUrl + '/saveContact', contact).then(async res => {
-                if (res.result === 'OK') {
-                    await props.setSelectedCustomer({ ...props.selectedCustomer, contacts: res.contacts });
-                    await props.setSelectedContact(res.contact);
-                }
-
-                setIsSavingContact(false);
-            }).catch(e => {
-                console.log('error saving customer contact', e);
-                setIsSavingContact(false);
-            });
-        }
-
-    }, [isSavingContact])
-
     const validateContactForSaving = (e) => {
         let keyCode = e.keyCode || e.which;
 
         if (keyCode === 9) {
-            setIsSavingContact(true);
+            if (!isSavingContact) {
+                setIsSavingContact(true);
+            }
         }
     }
 
     const validateAutomaticEmailsForSaving = () => {
-        if ((props.selectedCustomer.id || 0) > 0) {
-            let automatic_emails = props.selectedCustomer.automatic_emails || {};
+        if ((props.selectedCustomer?.id || 0) > 0) {
+            let automatic_emails = props.selectedCustomer?.automatic_emails || {};
 
-            automatic_emails = { ...automatic_emails, customer_id: props.selectedCustomer.id };
+            automatic_emails = { ...automatic_emails, customer_id: props.selectedCustomer?.id };
 
             $.post(props.serverUrl + '/saveAutomaticEmails', automatic_emails).then(res => {
                 if (res.result === 'OK') {
@@ -578,7 +701,7 @@ function Customers(props) {
     }
 
     const popupItemClick = async (item) => {
-        let automaticEmails = props.selectedCustomer.automatic_emails || { customer_id: props.selectedCustomer.id };
+        let automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
 
         switch (automaticEmailsActiveInput) {
             case 'to':
@@ -689,7 +812,7 @@ function Customers(props) {
         }
 
         if (key === 13) {
-            let automaticEmails = props.selectedCustomer.automatic_emails || { customer_id: props.selectedCustomer.id };
+            let automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
 
             await popupItems.map(async (item, index) => {
                 if (item.selected) {
@@ -807,7 +930,7 @@ function Customers(props) {
         }
 
         if (key === 13) {
-            let automaticEmails = props.selectedCustomer.automatic_emails || { customer_id: props.selectedCustomer.id };
+            let automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
 
             await popupItems.map(async (item, index) => {
                 if (item.selected) {
@@ -851,8 +974,8 @@ function Customers(props) {
 
         if (key === 9) {
 
-            if (props.selectedCustomer.id !== undefined) {
-                let automaticEmails = props.selectedCustomer.automatic_emails || { customer_id: props.selectedCustomer.id };
+            if (props.selectedCustomer?.id !== undefined) {
+                let automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
                 let tabNext = false;
 
                 switch (name) {
@@ -915,7 +1038,7 @@ function Customers(props) {
 
         setAutomaticEmailsActiveInput(name);
 
-        if (props.selectedCustomer.id !== undefined) {
+        if (props.selectedCustomer?.id !== undefined) {
 
             if (e.target.value.trim() === '') {
                 await setPopupItems([]);
@@ -923,7 +1046,7 @@ function Customers(props) {
                 delayTimer = window.setTimeout(() => {
                     $.post(props.serverUrl + '/getContactsByEmailOrName', {
                         email: e.target.value.trim(),
-                        customer_id: props.selectedCustomer.id
+                        customer_id: props.selectedCustomer?.id
                     }).then(async res => {
                         const boundsTo = refAutomaticEmailsTo.current.getBoundingClientRect();
                         const boundsCc = refAutomaticEmailsCc.current.getBoundingClientRect();
@@ -1025,7 +1148,7 @@ function Customers(props) {
 
     const validateHoursForSaving = (e, name) => {
         let formatted = getFormattedHours(e.target.value);
-        let hours = { ...props.selectedCustomer.hours || {}, customer_id: props.selectedCustomer.id };
+        let hours = { ...props.selectedCustomer?.hours || {}, customer_id: props.selectedCustomer?.id };
 
         if (name === 'hours open') {
             hours.hours_open = formatted;
@@ -1150,9 +1273,14 @@ function Customers(props) {
 
     return (
         <div className="customers-main-container" style={{
-            borderRadius: props.scale === 1 ? 0 : '20px'
+            borderRadius: props.scale === 1 ? 0 : '20px',
+            background: props.isOnPanel ? 'transparent' : 'rgb(250, 250, 250)',
+            background: props.isOnPanel ? 'transparent' : '-moz-radial-gradient(center, ellipse cover, rgba(250, 250, 250, 1) 0%, rgba(200, 200, 200, 1) 100%)',
+            background: props.isOnPanel ? 'transparent' : '-webkit-radial-gradient(center, ellipse cover, rgba(250, 250, 250, 1) 0%, rgba(200, 200, 200, 1) 100%)',
+            background: props.isOnPanel ? 'transparent' : 'radial-gradient(ellipse at center, rgba(250, 250, 250, 1) 0%, rgba(200, 200, 200, 1) 100%)',
+            padding: props.isOnPanel ? '10px 0' : 10
         }}>
-            <PanelContainer panels={props.panels} />
+            <PanelContainer />
             <div className="fields-container">
                 <div className="fields-container-row">
                     <div className="fields-container-col">
@@ -1179,48 +1307,67 @@ function Customers(props) {
                             <div className="form-row">
                                 <div className="input-box-container input-code">
                                     <input tabIndex={1 + props.tabTimes} type="text" placeholder="Code" maxLength="8" id="txt-customer-code"
+                                        ref={refCustomerCode}
                                         onKeyDown={searchCustomerByCode}
                                         onChange={e => { props.setSelectedCustomer({ ...props.selectedCustomer, code: e.target.value }) }}
-                                        value={props.selectedCustomer.code || ''} />
+                                        value={props.selectedCustomer?.code || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container grow">
                                     <input tabIndex={2 + props.tabTimes} type="text" placeholder="Name"
                                         onKeyDown={validateCustomerForSaving}
                                         onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, name: e.target.value })}
-                                        value={props.selectedCustomer.name || ''} />
+                                        value={props.selectedCustomer?.name || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input tabIndex={3 + props.tabTimes} type="text" placeholder="Address 1" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, address1: e.target.value })} value={props.selectedCustomer.address1 || ''} />
+                                    <input tabIndex={3 + props.tabTimes} type="text" placeholder="Address 1"
+                                        onKeyDown={validateCustomerForSaving}
+                                        onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, address1: e.target.value })}
+                                        value={props.selectedCustomer?.address1 || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input tabIndex={4 + props.tabTimes} type="text" placeholder="Address 2" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, address2: e.target.value })} value={props.selectedCustomer.address2 || ''} />
+                                    <input tabIndex={4 + props.tabTimes} type="text" placeholder="Address 2"
+                                        onKeyDown={validateCustomerForSaving}
+                                        onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, address2: e.target.value })}
+                                        value={props.selectedCustomer?.address2 || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input tabIndex={5 + props.tabTimes} type="text" placeholder="City" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, city: e.target.value })} value={props.selectedCustomer.city || ''} />
+                                    <input tabIndex={5 + props.tabTimes} type="text" placeholder="City"
+                                        onKeyDown={validateCustomerForSaving}
+                                        onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, city: e.target.value })}
+                                        value={props.selectedCustomer?.city || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-state">
-                                    <input tabIndex={6 + props.tabTimes} type="text" placeholder="State" maxLength="2" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, state: e.target.value })} value={props.selectedCustomer.state || ''} />
+                                    <input tabIndex={6 + props.tabTimes} type="text" placeholder="State" maxLength="2"
+                                        onKeyDown={validateCustomerForSaving}
+                                        onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, state: e.target.value })}
+                                        value={props.selectedCustomer?.state || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-zip-code">
-                                    <input tabIndex={7 + props.tabTimes} type="text" placeholder="Postal Code" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, zip: e.target.value })} value={props.selectedCustomer.zip || ''} />
+                                    <input tabIndex={7 + props.tabTimes} type="text" placeholder="Postal Code"
+                                        onKeyDown={validateCustomerForSaving}
+                                        onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, zip: e.target.value })}
+                                        value={props.selectedCustomer?.zip || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input tabIndex={8 + props.tabTimes} type="text" placeholder="Contact Name" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, contact_name: e.target.value })} value={props.selectedCustomer.contact_name || ''} />
+                                    <input tabIndex={8 + props.tabTimes} type="text" placeholder="Contact Name"
+                                        onKeyDown={validateCustomerForSaving}
+                                        onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, contact_name: e.target.value })}
+                                        value={props.selectedCustomer?.contact_name || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-phone">
@@ -1228,11 +1375,17 @@ function Customers(props) {
                                         tabIndex={9 + props.tabTimes}
                                         mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                         guide={true}
-                                        type="text" placeholder="Contact Phone" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, contact_phone: e.target.value })} value={props.selectedCustomer.contact_phone || ''} />
+                                        type="text" placeholder="Contact Phone"
+                                        onKeyDown={validateCustomerForSaving}
+                                        onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, contact_phone: e.target.value })}
+                                        value={props.selectedCustomer?.contact_phone || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-phone-ext">
-                                    <input tabIndex={10 + props.tabTimes} type="text" placeholder="Ext" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, ext: e.target.value })} value={props.selectedCustomer.ext || ''} />
+                                    <input tabIndex={10 + props.tabTimes} type="text" placeholder="Ext"
+                                        onKeyDown={validateCustomerForSaving}
+                                        onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, ext: e.target.value })}
+                                        value={props.selectedCustomer?.ext || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
@@ -1244,12 +1397,12 @@ function Customers(props) {
                                         style={{ textTransform: 'lowercase' }}
                                         onKeyDown={validateCustomerForSaving}
                                         onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, email: e.target.value })}
-                                        value={props.selectedCustomer.email || ''} />
+                                        value={props.selectedCustomer?.email || ''} />
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div className="fields-container-col" style={{ display: 'flex' }}>
+                    <div className="fields-container-col" style={{ display: 'flex', flexDirection: 'row' }}>
                         <div className="form-bordered-box">
                             <div className="form-header">
                                 <div className="top-border top-border-left"></div>
@@ -1280,60 +1433,962 @@ function Customers(props) {
                                     <input tabIndex={18 + props.tabTimes} type="text" placeholder="Code" maxLength="8"
                                         onKeyDown={validateCustomerForSaving}
                                         onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_code: e.target.value })}
-                                        value={(props.selectedCustomer.mailing_code_number || 0) === 0 ? (props.selectedCustomer.mailing_code || '') : props.selectedCustomer.mailing_code + props.selectedCustomer.mailing_code_number} />
+                                        value={(props.selectedCustomer?.mailing_code_number || 0) === 0 ? (props.selectedCustomer?.mailing_code || '') : props.selectedCustomer?.mailing_code + props.selectedCustomer?.mailing_code_number} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container grow">
-                                    <input tabIndex={19 + props.tabTimes} type="text" placeholder="Name" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_name: e.target.value })} value={props.selectedCustomer.mailing_name || ''} />
+                                    <input tabIndex={19 + props.tabTimes} type="text" placeholder="Name" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_name: e.target.value })} value={props.selectedCustomer?.mailing_name || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input tabIndex={20 + props.tabTimes} type="text" placeholder="Address 1" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_address1: e.target.value })} value={props.selectedCustomer.mailing_address1 || ''} />
+                                    <input tabIndex={20 + props.tabTimes} type="text" placeholder="Address 1" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_address1: e.target.value })} value={props.selectedCustomer?.mailing_address1 || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input tabIndex={21 + props.tabTimes} type="text" placeholder="Address 2" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_address2: e.target.value })} value={props.selectedCustomer.mailing_address2 || ''} />
+                                    <input tabIndex={21 + props.tabTimes} type="text" placeholder="Address 2" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_address2: e.target.value })} value={props.selectedCustomer?.mailing_address2 || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input tabIndex={22 + props.tabTimes} type="text" placeholder="City" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_city: e.target.value })} value={props.selectedCustomer.mailing_city || ''} />
+                                    <input tabIndex={22 + props.tabTimes} type="text" placeholder="City" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_city: e.target.value })} value={props.selectedCustomer?.mailing_city || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-state">
-                                    <input tabIndex={23 + props.tabTimes} type="text" placeholder="State" maxLength="2" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_state: e.target.value })} value={props.selectedCustomer.mailing_state || ''} />
+                                    <input tabIndex={23 + props.tabTimes} type="text" placeholder="State" maxLength="2" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_state: e.target.value })} value={props.selectedCustomer?.mailing_state || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-zip-code">
-                                    <input tabIndex={24 + props.tabTimes} type="text" placeholder="Postal Code" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_zip: e.target.value })} value={props.selectedCustomer.mailing_zip || ''} />
+                                    <input tabIndex={24 + props.tabTimes} type="text" placeholder="Postal Code" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_zip: e.target.value })} value={props.selectedCustomer?.mailing_zip || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
-                                <div className="input-box-container grow">
-                                    <input tabIndex={25 + props.tabTimes} type="text" placeholder="Contact Name" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_contact_name: e.target.value })} value={props.selectedCustomer.mailing_contact_name || ''} />
+                                <div className="select-box-container" style={{ flexGrow: 1 }}>
+                                    <div className="select-box-wrapper">
+                                        <input
+                                            tabIndex={25 + props.tabTimes}
+                                            type="text"
+                                            placeholder="Contact Name"
+                                            ref={refMailingContactName}
+                                            onKeyDown={async (e) => {
+                                                let key = e.keyCode || e.which;
+
+                                                switch (key) {
+                                                    case 37: case 38: // arrow left | arrow up
+                                                        e.preventDefault();
+                                                        if (showMailingContactNames) {
+                                                            let selectedIndex = mailingContactNameItems.findIndex(item => item.selected);
+
+                                                            if (selectedIndex === -1) {
+                                                                await setMailingContactNameItems(mailingContactNameItems.map((item, index) => {
+                                                                    item.selected = index === 0;
+                                                                    return item;
+                                                                }))
+                                                            } else {
+                                                                await setMailingContactNameItems(mailingContactNameItems.map((item, index) => {
+                                                                    if (selectedIndex === 0) {
+                                                                        item.selected = index === (mailingContactNameItems.length - 1);
+                                                                    } else {
+                                                                        item.selected = index === (selectedIndex - 1)
+                                                                    }
+                                                                    return item;
+                                                                }))
+                                                            }
+
+                                                            refMailingContactNamePopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
+                                                            });
+                                                        } else {
+                                                            if (mailingContactNameItems.length > 1) {
+                                                                await setMailingContactNameItems((props.selectedCustomer?.contacts || []).map((item, index) => {
+                                                                    item.selected = index === 0
+                                                                    return item;
+                                                                }))
+
+                                                                setShowMailingContactNames(true);
+
+                                                                refMailingContactNamePopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
+                                                                });
+                                                            }
+                                                        }
+                                                        break;
+
+                                                    case 39: case 40: // arrow right | arrow down
+                                                        e.preventDefault();
+                                                        if (showMailingContactNames) {
+                                                            let selectedIndex = mailingContactNameItems.findIndex(item => item.selected);
+
+                                                            if (selectedIndex === -1) {
+                                                                await setMailingContactNameItems(mailingContactNameItems.map((item, index) => {
+                                                                    item.selected = index === 0;
+                                                                    return item;
+                                                                }))
+                                                            } else {
+                                                                await setMailingContactNameItems(mailingContactNameItems.map((item, index) => {
+                                                                    if (selectedIndex === (mailingContactNameItems.length - 1)) {
+                                                                        item.selected = index === 0;
+                                                                    } else {
+                                                                        item.selected = index === (selectedIndex + 1)
+                                                                    }
+                                                                    return item;
+                                                                }))
+                                                            }
+
+                                                            refMailingContactNamePopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
+                                                            });
+                                                        } else {
+                                                            if (mailingContactNameItems.length > 1) {
+                                                                await setMailingContactNameItems((props.selectedCustomer?.contacts || []).map((item, index) => {
+                                                                    item.selected = index === 0
+                                                                    return item;
+                                                                }))
+
+                                                                setShowMailingContactNames(true);
+
+                                                                refMailingContactNamePopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
+                                                                });
+                                                            }
+                                                        }
+                                                        break;
+
+                                                    case 27: // escape
+                                                        setShowMailingContactNames(false);
+                                                        break;
+
+                                                    case 13: // enter
+                                                        if (showMailingContactNames && mailingContactNameItems.findIndex(item => item.selected) > -1) {
+                                                            await props.setSelectedCustomer({
+                                                                ...props.selectedCustomer,
+                                                                mailing_contact: mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)],
+                                                                mailing_contact_id: mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].id,
+                                                                mailing_contact_primary_phone: (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_work || '') !== ''
+                                                                    ? 'work'
+                                                                    : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_work_fax || '') !== ''
+                                                                        ? 'fax'
+                                                                        : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_mobile || '') !== ''
+                                                                            ? 'mobile'
+                                                                            : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_direct || '') !== ''
+                                                                                ? 'direct'
+                                                                                : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_other || '') !== ''
+                                                                                    ? 'other' :
+                                                                                    ''
+                                                            });
+
+                                                            validateCustomerForSaving({ keyCode: 9 });
+                                                            setShowMailingContactNames(false);
+                                                            refMailingContactName.current.focus();
+                                                        }
+                                                        break;
+
+                                                    case 9: // tab
+                                                        if (showMailingContactNames) {
+                                                            e.preventDefault();
+                                                            await props.setSelectedCustomer({
+                                                                ...props.selectedCustomer,
+                                                                mailing_contact: mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)],
+                                                                mailing_contact_id: mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].id,
+                                                                mailing_contact_primary_phone: (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_work || '') !== ''
+                                                                    ? 'work'
+                                                                    : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_work_fax || '') !== ''
+                                                                        ? 'fax'
+                                                                        : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_mobile || '') !== ''
+                                                                            ? 'mobile'
+                                                                            : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_direct || '') !== ''
+                                                                                ? 'direct'
+                                                                                : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_other || '') !== ''
+                                                                                    ? 'other' :
+                                                                                    ''
+                                                            });
+
+                                                            validateCustomerForSaving({ keyCode: 9 });
+                                                            setShowMailingContactNames(false);
+                                                            refMailingContactName.current.focus();
+                                                        } else {
+                                                            validateCustomerForSaving({ keyCode: 9 });
+                                                        }
+                                                        break;
+
+                                                    default:
+                                                        break;
+                                                }
+                                            }}
+                                            onInput={(e) => {
+                                                // props.setSelectedCustomer({
+                                                //     ...props.selectedCustomer,
+                                                //     mailing_contact_name: e.target.value
+                                                // })
+                                            }}
+                                            onChange={(e) => {
+                                                // props.setSelectedCustomer({
+                                                //     ...props.selectedCustomer,
+                                                //     mailing_contact_name: e.target.value
+                                                // })
+                                            }}
+                                            value={
+                                                (props.selectedCustomer?.mailing_contact?.first_name || '') +
+                                                ((props.selectedCustomer?.mailing_contact?.last_name || '') === ''
+                                                    ? ''
+                                                    : ' ' + props.selectedCustomer?.mailing_contact?.last_name)
+                                            }
+                                        />
+
+                                        {
+                                            ((props.selectedCustomer?.contacts || []).length > 1 && (props.selectedCustomer?.mailing_code || '') !== '') &&
+                                            <FontAwesomeIcon className="dropdown-button" icon={faCaretDown} onClick={async () => {
+                                                if (showMailingContactNames) {
+                                                    setShowMailingContactNames(false);
+                                                } else {
+                                                    if ((props.selectedCustomer?.contacts || []).length > 1) {
+                                                        await setMailingContactNameItems((props.selectedCustomer?.contacts || []).map((item, index) => {
+                                                            item.selected = index === 0
+                                                            return item;
+                                                        }))
+
+                                                        window.setTimeout(async () => {
+                                                            await setShowMailingContactNames(true);
+
+                                                            refMailingContactNamePopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
+                                                            });
+                                                        }, 0)
+                                                    }
+                                                }
+
+                                                refMailingContactName.current.focus();
+                                            }} />
+                                        }
+                                    </div>
+                                    <Transition
+                                        from={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                        enter={{ opacity: 1, top: 'calc(100% + 15px)' }}
+                                        leave={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                        items={showMailingContactNames}
+                                        config={{ duration: 100 }}
+                                    >
+                                        {show => show && (styles => (
+                                            <div
+                                                className="mochi-contextual-container"
+                                                id="mochi-contextual-container-contact-names"
+                                                style={{
+                                                    ...styles,
+                                                    left: '0',
+                                                    display: 'block'
+                                                }}
+                                                ref={refMailingContactNameDropDown}
+                                            >
+                                                <div className="mochi-contextual-popup vertical below right" style={{ height: 150 }}>
+                                                    <div className="mochi-contextual-popup-content" >
+                                                        <div className="mochi-contextual-popup-wrapper">
+                                                            {
+                                                                mailingContactNameItems.map((item, index) => {
+                                                                    const mochiItemClasses = classnames({
+                                                                        'mochi-item': true,
+                                                                        'selected': item.selected
+                                                                    });
+
+                                                                    return (
+                                                                        <div
+                                                                            key={index}
+                                                                            className={mochiItemClasses}
+                                                                            id={item.id}
+                                                                            onClick={async () => {
+                                                                                await props.setSelectedCustomer({
+                                                                                    ...props.selectedCustomer,
+                                                                                    mailing_contact: item,
+                                                                                    mailing_contact_id: item.id,
+                                                                                    mailing_contact_primary_phone: (item.phone_work || '') !== ''
+                                                                                        ? 'work'
+                                                                                        : (item.phone_work_fax || '') !== ''
+                                                                                            ? 'fax'
+                                                                                            : (item.phone_mobile || '') !== ''
+                                                                                                ? 'mobile'
+                                                                                                : (item.phone_direct || '') !== ''
+                                                                                                    ? 'direct'
+                                                                                                    : (item.phone_other || '') !== ''
+                                                                                                        ? 'other' :
+                                                                                                        ''
+                                                                                });
+
+                                                                                validateCustomerForSaving({ keyCode: 9 });
+                                                                                setShowMailingContactNames(false);
+                                                                                refMailingContactName.current.focus();
+                                                                            }}
+                                                                            ref={ref => refMailingContactNamePopupItems.current.push(ref)}
+                                                                        >
+                                                                            {
+                                                                                item.first_name + ((item.last_name || '') === '' ? '' : ' ' + item.last_name)
+                                                                            }
+
+                                                                            {
+                                                                                item.selected &&
+                                                                                <FontAwesomeIcon className="dropdown-selected" icon={faCaretRight} />
+                                                                            }
+                                                                        </div>
+                                                                    )
+                                                                })
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </Transition>
                                 </div>
+
+                                {/* <div className="input-box-container grow">
+                                    <input tabIndex={25 + props.tabTimes} type="text" placeholder="Contact Name" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_contact_name: e.target.value })} value={props.selectedCustomer?.mailing_contact_name || ''} />
+                                </div> */}
                                 <div className="form-h-sep"></div>
-                                <div className="input-box-container input-phone">
+                                <div className="select-box-container input-phone">
+                                    <div className="select-box-wrapper">
+                                        <MaskedInput tabIndex={26 + props.tabTimes}
+                                            mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
+                                            guide={true}
+                                            type="text"
+                                            placeholder="Contact Phone"
+                                            ref={refMailingContactPhone}
+                                            onKeyDown={async (e) => {
+                                                let key = e.keyCode || e.which;
+
+                                                switch (key) {
+                                                    case 37: case 38: // arrow left | arrow up
+                                                        e.preventDefault();
+                                                        if (showMailingContactPhones) {
+                                                            let selectedIndex = mailingContactPhoneItems.findIndex(item => item.selected);
+
+                                                            if (selectedIndex === -1) {
+                                                                await setMailingContactPhoneItems(mailingContactPhoneItems.map((item, index) => {
+                                                                    item.selected = index === 0;
+                                                                    return item;
+                                                                }))
+                                                            } else {
+                                                                await setMailingContactPhoneItems(mailingContactPhoneItems.map((item, index) => {
+                                                                    if (selectedIndex === 0) {
+                                                                        item.selected = index === (mailingContactPhoneItems.length - 1);
+                                                                    } else {
+                                                                        item.selected = index === (selectedIndex - 1)
+                                                                    }
+                                                                    return item;
+                                                                }))
+                                                            }
+
+                                                            refMailingContactPhonePopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
+                                                            });
+                                                        } else {
+                                                            if (mailingContactPhoneItems.length > 1) {
+                                                                await setMailingContactPhoneItems(mailingContactPhoneItems.map((item, index) => {
+                                                                    item.selected = index === 0;
+                                                                    return item;
+                                                                }))
+
+                                                                setShowMailingContactPhones(true);
+
+                                                                refMailingContactPhonePopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
+                                                                });
+                                                            }
+                                                        }
+                                                        break;
+
+                                                    case 39: case 40: // arrow right | arrow down
+                                                        e.preventDefault();
+                                                        if (showMailingContactPhones) {
+                                                            let selectedIndex = mailingContactPhoneItems.findIndex(item => item.selected);
+
+                                                            if (selectedIndex === -1) {
+                                                                await setMailingContactPhoneItems(mailingContactPhoneItems.map((item, index) => {
+                                                                    item.selected = index === 0;
+                                                                    return item;
+                                                                }))
+                                                            } else {
+                                                                await setMailingContactPhoneItems(mailingContactPhoneItems.map((item, index) => {
+                                                                    if (selectedIndex === (mailingContactPhoneItems.length - 1)) {
+                                                                        item.selected = index === 0;
+                                                                    } else {
+                                                                        item.selected = index === (selectedIndex + 1)
+                                                                    }
+                                                                    return item;
+                                                                }))
+                                                            }
+
+                                                            refMailingContactPhonePopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
+                                                            });
+                                                        } else {
+                                                            if (mailingContactPhoneItems.length > 1) {
+                                                                await setMailingContactPhoneItems(mailingContactPhoneItems.map((item, index) => {
+                                                                    item.selected = index === 0;
+                                                                    return item;
+                                                                }))
+
+                                                                setShowMailingContactPhones(true);
+
+                                                                refMailingContactPhonePopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
+                                                                });
+                                                            }
+                                                        }
+                                                        break;
+
+                                                    case 27: // escape
+                                                        setShowMailingContactPhones(false);
+                                                        break;
+
+                                                    case 13: // enter
+                                                        if (showMailingContactPhones && mailingContactPhoneItems.findIndex(item => item.selected) > -1) {
+                                                            await props.setSelectedCustomer({
+                                                                ...props.selectedCustomer,
+                                                                mailing_contact_primary_phone: mailingContactPhoneItems[mailingContactPhoneItems.findIndex(item => item.selected)].type
+                                                            });
+
+                                                            validateCustomerForSaving({ keyCode: 9 });
+                                                            setShowMailingContactPhones(false);
+                                                            refMailingContactPhone.current.inputElement.focus();
+                                                        }
+                                                        break;
+
+                                                    case 9: // tab
+                                                        if (showMailingContactPhones) {
+                                                            e.preventDefault();
+                                                            await props.setSelectedCustomer({
+                                                                ...props.selectedCustomer,
+                                                                mailing_contact_primary_phone: mailingContactPhoneItems[mailingContactPhoneItems.findIndex(item => item.selected)].type
+                                                            });
+
+                                                            validateCustomerForSaving({ keyCode: 9 });
+                                                            setShowMailingContactPhones(false);
+                                                            refMailingContactPhone.current.inputElement.focus();
+                                                        } else {
+                                                            validateCustomerForSaving({ keyCode: 9 });
+                                                        }
+                                                        break;
+
+                                                    default:
+                                                        break;
+                                                }
+                                            }}
+                                            onInput={(e) => {
+                                                // props.setSelectedCustomer({
+                                                //     ...props.selectedCustomer,
+                                                //     mailing_contact_phone: e.target.value
+                                                // });
+                                            }}
+                                            onChange={(e) => {
+                                                // props.setSelectedCustomer({
+                                                //     ...props.selectedCustomer,
+                                                //     mailing_contact_phone: e.target.value
+                                                // });
+                                            }}
+                                            value={
+                                                (props.selectedCustomer?.mailing_contact_primary_phone || '') === 'work'
+                                                    ? (props.selectedCustomer?.mailing_contact?.phone_work || '')
+                                                    : (props.selectedCustomer?.mailing_contact_primary_phone || '') === 'fax'
+                                                        ? (props.selectedCustomer?.mailing_contact?.phone_work_fax || '')
+                                                        : (props.selectedCustomer?.mailing_contact_primary_phone || '') === 'mobile'
+                                                            ? (props.selectedCustomer?.mailing_contact?.phone_mobile || '')
+                                                            : (props.selectedCustomer?.mailing_contact_primary_phone || '') === 'direct'
+                                                                ? (props.selectedCustomer?.mailing_contact?.phone_direct || '')
+                                                                : (props.selectedCustomer?.mailing_contact_primary_phone || '') === 'other'
+                                                                    ? (props.selectedCustomer?.mailing_contact?.phone_other || '')
+                                                                    : ''
+                                            }
+                                        />
+
+                                        {
+                                            ((props.selectedCustomer?.id || 0) > 0 && (props.selectedCustomer?.mailing_code || '') !== '') &&
+                                            <div
+                                                className={classnames({
+                                                    'selected-mailing-contact-primary-phone': true,
+                                                    'pushed': (mailingContactPhoneItems.length > 1)
+                                                })}>
+                                                {props.selectedCustomer?.mailing_contact_primary_phone || ''}
+                                            </div>
+                                        }
+
+                                        {
+                                            mailingContactPhoneItems.length > 1 &&
+                                            <FontAwesomeIcon className="dropdown-button" icon={faCaretDown} onClick={async () => {
+                                                if (showMailingContactPhones) {
+                                                    setShowMailingContactPhones(false);
+                                                } else {
+                                                    if (mailingContactPhoneItems.length > 1) {
+                                                        await setMailingContactPhoneItems(mailingContactPhoneItems.map((item, index) => {
+                                                            item.selected = index === 0;
+                                                            return item;
+                                                        }))
+
+                                                        window.setTimeout(async () => {
+                                                            await setShowMailingContactPhones(true);
+
+                                                            refMailingContactPhonePopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
+                                                            });
+                                                        }, 0)
+                                                    }
+                                                }
+
+                                                refMailingContactPhone.current.inputElement.focus();
+                                            }} />
+                                        }
+                                    </div>
+                                    <Transition
+                                        from={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                        enter={{ opacity: 1, top: 'calc(100% + 15px)' }}
+                                        leave={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                        items={showMailingContactPhones}
+                                        config={{ duration: 100 }}
+                                    >
+                                        {show => show && (styles => (
+                                            <div
+                                                className="mochi-contextual-container"
+                                                id="mochi-contextual-container-contact-phone"
+                                                style={{
+                                                    ...styles,
+                                                    left: '0',
+                                                    display: 'block'
+                                                }}
+                                                ref={refMailingContactPhoneDropDown}
+                                            >
+                                                <div className="mochi-contextual-popup vertical below right" style={{ height: 150 }}>
+                                                    <div className="mochi-contextual-popup-content" >
+                                                        <div className="mochi-contextual-popup-wrapper">
+                                                            {
+                                                                mailingContactPhoneItems.map((item, index) => {
+                                                                    const mochiItemClasses = classnames({
+                                                                        'mochi-item': true,
+                                                                        'selected': item.selected
+                                                                    });
+
+                                                                    return (
+                                                                        <div
+                                                                            key={index}
+                                                                            className={mochiItemClasses}
+                                                                            id={item.id}
+                                                                            onClick={async () => {
+                                                                                await props.setSelectedCustomer({
+                                                                                    ...props.selectedCustomer,
+                                                                                    mailing_contact_primary_phone: item.type
+                                                                                });
+
+                                                                                validateCustomerForSaving({ keyCode: 9 });
+                                                                                setShowMailingContactPhones(false);
+                                                                                refMailingContactPhone.current.inputElement.focus();
+                                                                            }}
+                                                                            ref={ref => refMailingContactPhonePopupItems.current.push(ref)}
+                                                                        >
+                                                                            {
+                                                                                item.type === 'work' ? `Phone Work `
+                                                                                    : item.type === 'fax' ? `Phone Work Fax `
+                                                                                        : item.type === 'mobile' ? `Phone Mobile `
+                                                                                            : item.type === 'direct' ? `Phone Direct `
+                                                                                                : item.type === 'other' ? `Phone Other ` : ''
+                                                                            }
+
+                                                                            (<b>
+                                                                                {
+                                                                                    item.type === 'work' ? item.phone
+                                                                                        : item.type === 'fax' ? item.phone
+                                                                                            : item.type === 'mobile' ? item.phone
+                                                                                                : item.type === 'direct' ? item.phone
+                                                                                                    : item.type === 'other' ? item.phone : ''
+                                                                                }
+                                                                            </b>)
+
+                                                                            {
+                                                                                item.selected &&
+                                                                                <FontAwesomeIcon className="dropdown-selected" icon={faCaretRight} />
+                                                                            }
+                                                                        </div>
+                                                                    )
+                                                                })
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </Transition>
+                                </div>
+
+                                {/* <div className="input-box-container input-phone">
                                     <MaskedInput tabIndex={26 + props.tabTimes}
                                         mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                         guide={true}
-                                        type="text" placeholder="Contact Phone" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_contact_phone: e.target.value })} value={props.selectedCustomer.mailing_contact_phone || ''} />
-                                </div>
+                                        type="text" placeholder="Contact Phone" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_contact_phone: e.target.value })} value={props.selectedCustomer?.mailing_contact_phone || ''} />
+                                </div> */}
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-phone-ext">
-                                    <input tabIndex={27 + props.tabTimes} type="text" placeholder="Ext" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_ext: e.target.value })} value={props.selectedCustomer.mailing_ext || ''} />
+                                    <input tabIndex={27 + props.tabTimes} type="text" placeholder="Ext"
+                                        onKeyDown={validateCustomerForSaving}
+                                        onChange={e => {
+                                            // props.setSelectedCustomer({ ...props.selectedCustomer, mailing_ext: e.target.value })
+                                        }}
+                                        value={props.selectedCustomer?.mailing_contact?.phone_ext || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
-                                <div className="input-box-container grow">
-                                    <input tabIndex={28 + props.tabTimes} type="text" placeholder="E-Mail" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_email: e.target.value })} value={props.selectedCustomer.mailing_email || ''} />
+                                <div className="select-box-container" style={{ flexGrow: 1 }}>
+                                    <div className="select-box-wrapper">
+                                        <input tabIndex={28 + props.tabTimes} type="text" placeholder="E-Mail"
+                                            ref={refMailingContactEmail}
+                                            onKeyDown={async (e) => {
+                                                let key = e.keyCode || e.which;
+
+                                                switch (key) {
+                                                    case 37: case 38: // arrow left | arrow up
+                                                        e.preventDefault();
+                                                        if (showMailingContactEmails) {
+                                                            let selectedIndex = mailingContactEmailItems.findIndex(item => item.selected);
+
+                                                            if (selectedIndex === -1) {
+                                                                await setMailingContactEmailItems(mailingContactEmailItems.map((item, index) => {
+                                                                    item.selected = index === 0;
+                                                                    return item;
+                                                                }))
+                                                            } else {
+                                                                await setMailingContactEmailItems(mailingContactEmailItems.map((item, index) => {
+                                                                    if (selectedIndex === 0) {
+                                                                        item.selected = index === (mailingContactEmailItems.length - 1);
+                                                                    } else {
+                                                                        item.selected = index === (selectedIndex - 1)
+                                                                    }
+                                                                    return item;
+                                                                }))
+                                                            }
+
+                                                            refMailingContactEmailPopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
+                                                            });
+                                                        } else {
+                                                            if (mailingContactEmailItems.length > 1) {
+                                                                await setMailingContactEmailItems(mailingContactEmailItems.map((item, index) => {
+                                                                    item.selected = index === 0;
+                                                                    return item;
+                                                                }))
+
+                                                                setShowMailingContactEmails(true);
+
+                                                                refMailingContactEmailPopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
+                                                                });
+                                                            }
+                                                        }
+                                                        break;
+
+                                                    case 39: case 40: // arrow right | arrow down
+                                                        e.preventDefault();
+                                                        if (showMailingContactEmails) {
+                                                            let selectedIndex = mailingContactEmailItems.findIndex(item => item.selected);
+
+                                                            if (selectedIndex === -1) {
+                                                                await setMailingContactEmailItems(mailingContactEmailItems.map((item, index) => {
+                                                                    item.selected = index === 0;
+                                                                    return item;
+                                                                }))
+                                                            } else {
+                                                                await setMailingContactEmailItems(mailingContactEmailItems.map((item, index) => {
+                                                                    if (selectedIndex === (mailingContactEmailItems.length - 1)) {
+                                                                        item.selected = index === 0;
+                                                                    } else {
+                                                                        item.selected = index === (selectedIndex + 1)
+                                                                    }
+                                                                    return item;
+                                                                }))
+                                                            }
+
+                                                            refMailingContactEmailPopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
+                                                            });
+                                                        } else {
+                                                            if (mailingContactEmailItems.length > 1) {
+                                                                await setMailingContactEmailItems(mailingContactEmailItems.map((item, index) => {
+                                                                    item.selected = index === 0;
+                                                                    return item;
+                                                                }))
+
+                                                                setShowMailingContactEmails(true);
+
+                                                                refMailingContactEmailPopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
+                                                                });
+                                                            }
+                                                        }
+                                                        break;
+
+                                                    case 27: // escape
+                                                        setShowMailingContactEmails(false);
+                                                        break;
+
+                                                    case 13: // enter
+                                                        if (showMailingContactEmails && mailingContactEmailItems.findIndex(item => item.selected) > -1) {
+                                                            await props.setSelectedCustomer({
+                                                                ...props.selectedCustomer,
+                                                                mailing_contact_primary_email: mailingContactEmailItems[mailingContactEmailItems.findIndex(item => item.selected)].type
+                                                            });
+
+                                                            validateCustomerForSaving({ keyCode: 9 });
+                                                            setShowMailingContactEmails(false);
+                                                            refMailingContactEmail.current.focus();
+                                                        }
+                                                        break;
+
+                                                    case 9: // tab
+                                                        if (showMailingContactEmails) {
+                                                            e.preventDefault();
+                                                            await props.setSelectedCustomer({
+                                                                ...props.selectedCustomer,
+                                                                mailing_contact_primary_email: mailingContactEmailItems[mailingContactEmailItems.findIndex(item => item.selected)].type
+                                                            });
+
+                                                            validateCustomerForSaving({ keyCode: 9 });
+                                                            setShowMailingContactEmails(false);
+                                                            refMailingContactEmail.current.focus();
+                                                        } else {
+                                                            validateCustomerForSaving({ keyCode: 9 });
+                                                        }
+                                                        break;
+
+                                                    default:
+                                                        break;
+                                                }
+                                            }}
+                                            onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_email: e.target.value })}
+                                            value={
+                                                (props.selectedCustomer?.mailing_contact_primary_email || '') === 'work'
+                                                    ? (props.selectedCustomer?.mailing_contact?.email_work || '')
+                                                    : (props.selectedCustomer?.mailing_contact_primary_email || '') === 'personal'
+                                                        ? (props.selectedCustomer?.mailing_contact?.email_personal || '')
+                                                        : (props.selectedCustomer?.mailing_contact_primary_email || '') === 'other'
+                                                            ? (props.selectedCustomer?.mailing_contact?.email_other || '')
+                                                            : ''
+                                            }
+                                        />
+
+                                        {
+                                            ((props.selectedCustomer?.id || 0) > 0 && (props.selectedCustomer?.mailing_code || '') !== '') &&
+                                            <div
+                                                className={classnames({
+                                                    'selected-mailing-contact-primary-email': true,
+                                                    'pushed': (mailingContactEmailItems.length > 1)
+                                                })}>
+                                                {props.selectedCustomer?.mailing_contact_primary_email || ''}
+                                            </div>
+                                        }
+
+                                        {
+                                            mailingContactEmailItems.length > 1 &&
+                                            <FontAwesomeIcon className="dropdown-button" icon={faCaretDown} onClick={async () => {
+                                                if (showMailingContactEmails) {
+                                                    setShowMailingContactEmails(false);
+                                                } else {
+                                                    if (mailingContactEmailItems.length > 1) {
+                                                        await setMailingContactEmailItems(mailingContactEmailItems.map((item, index) => {
+                                                            item.selected = index === 0;
+                                                            return item;
+                                                        }))
+
+                                                        window.setTimeout(async () => {
+                                                            await setShowMailingContactEmails(true);
+
+                                                            refMailingContactEmailPopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
+                                                            });
+                                                        }, 0)
+                                                    }
+                                                }
+
+                                                refMailingContactEmail.current.focus();
+                                            }} />
+                                        }
+                                    </div>
+                                    <Transition
+                                        from={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                        enter={{ opacity: 1, top: 'calc(100% + 15px)' }}
+                                        leave={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                        items={showMailingContactEmails}
+                                        config={{ duration: 100 }}
+                                    >
+                                        {show => show && (styles => (
+                                            <div
+                                                className="mochi-contextual-container"
+                                                id="mochi-contextual-container-contact-email"
+                                                style={{
+                                                    ...styles,
+                                                    left: '0',
+                                                    display: 'block'
+                                                }}
+                                                ref={refMailingContactEmailDropDown}
+                                            >
+                                                <div className="mochi-contextual-popup vertical below right" style={{ height: 150 }}>
+                                                    <div className="mochi-contextual-popup-content" >
+                                                        <div className="mochi-contextual-popup-wrapper">
+                                                            {
+                                                                mailingContactEmailItems.map((item, index) => {
+                                                                    const mochiItemClasses = classnames({
+                                                                        'mochi-item': true,
+                                                                        'selected': item.selected
+                                                                    });
+
+                                                                    return (
+                                                                        <div
+                                                                            key={index}
+                                                                            className={mochiItemClasses}
+                                                                            id={item.id}
+                                                                            onClick={async () => {
+                                                                                await props.setSelectedCustomer({
+                                                                                    ...props.selectedCustomer,
+                                                                                    mailing_contact_primary_email: item.type
+                                                                                });
+
+                                                                                validateCustomerForSaving({ keyCode: 9 });
+                                                                                setShowMailingContactEmails(false);
+                                                                                refMailingContactEmail.current.focus();
+                                                                            }}
+                                                                            ref={ref => refMailingContactEmailPopupItems.current.push(ref)}
+                                                                        >
+                                                                            {
+                                                                                item.type === 'work' ? `Email Work `
+                                                                                    : item.type === 'personal' ? `Email Personal `
+                                                                                        : item.type === 'other' ? `Email Other ` : ''
+                                                                            }
+
+                                                                            (<b>
+                                                                                {
+                                                                                    item.type === 'work' ? item.email
+                                                                                        : item.type === 'personal' ? item.email
+                                                                                            : item.type === 'other' ? item.email : ''
+                                                                                }
+                                                                            </b>)
+
+                                                                            {
+                                                                                item.selected &&
+                                                                                <FontAwesomeIcon className="dropdown-selected" icon={faCaretRight} />
+                                                                            }
+                                                                        </div>
+                                                                    )
+                                                                })
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </Transition>
                                 </div>
                             </div>
                         </div>
@@ -1341,7 +2396,7 @@ function Customers(props) {
                         <div className="form-borderless-box" style={{ width: '170px', marginLeft: '10px', }}>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input tabIndex={32 + props.tabTimes} type="text" style={{ textTransform: 'uppercase' }} placeholder="Bill To" readOnly={false} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_bill_to: e.target.value })} value={props.selectedCustomer.mailing_bill_to || ''} />
+                                    <input tabIndex={32 + props.tabTimes} type="text" style={{ textTransform: 'uppercase' }} placeholder="Bill To" readOnly={false} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_bill_to: e.target.value })} value={props.selectedCustomer?.mailing_bill_to || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
@@ -1420,7 +2475,7 @@ function Customers(props) {
                                 <div className="top-border top-border-middle"></div>
                                 <div className="form-buttons">
                                     <div className="mochi-button" onClick={async () => {
-                                        if (props.selectedCustomer.id === undefined) {
+                                        if (props.selectedCustomer?.id === undefined) {
                                             window.alert('You must select a contact first!');
                                             return;
                                         }
@@ -1433,8 +2488,8 @@ function Customers(props) {
                                         await props.setIsEditingContact(false);
                                         await props.setContactSearchCustomer({ ...props.selectedCustomer, selectedContact: props.selectedContact });
 
-                                        if (!props.customerOpenedPanels.includes('customer-contacts')) {
-                                            props.setCustomerOpenedPanels([...props.customerOpenedPanels, 'customer-contacts']);
+                                        if (!props.openedPanels.includes(props.customerContactsPanelName)) {
+                                            props.setOpenedPanels([...props.openedPanels, props.customerContactsPanelName]);
                                         }
                                     }}>
                                         <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
@@ -1442,16 +2497,16 @@ function Customers(props) {
                                         <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
                                     </div>
                                     <div className="mochi-button" onClick={() => {
-                                        if (props.selectedCustomer.id === undefined) {
+                                        if (props.selectedCustomer?.id === undefined) {
                                             window.alert('You must select a customer');
                                             return;
                                         }
 
-                                        props.setContactSearchCustomer({ ...props.selectedCustomer, selectedContact: { id: 0, customer_id: props.selectedCustomer.id } });
+                                        props.setContactSearchCustomer({ ...props.selectedCustomer, selectedContact: { id: 0, customer_id: props.selectedCustomer?.id } });
                                         props.setIsEditingContact(true);
 
-                                        if (!props.customerOpenedPanels.includes('customer-contacts')) {
-                                            props.setCustomerOpenedPanels([...props.customerOpenedPanels, 'customer-contacts']);
+                                        if (!props.openedPanels.includes(props.customerContactsPanelName)) {
+                                            props.setOpenedPanels([...props.openedPanels, props.customerContactsPanelName]);
                                         }
                                     }}>
                                         <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
@@ -1722,6 +2777,17 @@ function Customers(props) {
                                         />
 
                                         {
+                                            (props.selectedContact?.id || 0) > 0 &&
+                                            <div
+                                                className={classnames({
+                                                    'selected-customer-contact-primary-phone': true,
+                                                    'pushed': (customerContactPhoneItems.length > 1)
+                                                })}>
+                                                {props.selectedContact?.primary_phone || ''}
+                                            </div>
+                                        }
+
+                                        {
                                             customerContactPhoneItems.length > 1 &&
                                             <FontAwesomeIcon className="dropdown-button" icon={faCaretDown} onClick={async () => {
                                                 if (showCustomerContactPhones) {
@@ -1838,8 +2904,8 @@ function Customers(props) {
                                         <input tabIndex={15 + props.tabTimes} type="text" placeholder="Ext" onKeyDown={validateContactForSaving} onChange={e => props.setSelectedContact({ ...props.selectedContact, phone_ext: e.target.value })} value={props.selectedContact.phone_ext || ''} />
                                     </div>
                                     <div className="input-toggle-container">
-                                        <input type="checkbox" id="cbox-customer-contacts-primary-btn" onChange={selectedContactIsPrimaryChange} checked={(props.selectedContact.is_primary || 0) === 1} />
-                                        <label htmlFor="cbox-customer-contacts-primary-btn">
+                                        <input type="checkbox" id={props.panelName + '-cbox-customer-contacts-primary-btn'} onChange={selectedContactIsPrimaryChange} checked={(props.selectedContact.is_primary || 0) === 1} />
+                                        <label htmlFor={props.panelName + '-cbox-customer-contacts-primary-btn'}>
                                             <div className="label-text">Primary</div>
                                             <div className="input-toggle-btn"></div>
                                         </label>
@@ -1851,6 +2917,12 @@ function Customers(props) {
                                 <div className="select-box-container" style={{ flexGrow: 1 }}>
                                     <div className="select-box-wrapper">
                                         <input
+                                            style={{
+                                                width: 'calc(100% - 25px)',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                whiteSpace: 'nowrap'
+                                            }}
                                             tabIndex={16 + props.tabTimes}
                                             type="text"
                                             placeholder="E-Mail"
@@ -2060,6 +3132,17 @@ function Customers(props) {
                                         />
 
                                         {
+                                            (props.selectedContact?.id || 0) > 0 &&
+                                            <div
+                                                className={classnames({
+                                                    'selected-customer-contact-primary-email': true,
+                                                    'pushed': (customerContactEmailItems.length > 1)
+                                                })}>
+                                                {props.selectedContact?.primary_email || ''}
+                                            </div>
+                                        }
+
+                                        {
                                             customerContactEmailItems.length > 1 &&
                                             <FontAwesomeIcon className="dropdown-button" icon={faCaretDown} onClick={async () => {
                                                 if (showCustomerContactEmails) {
@@ -2188,18 +3271,9 @@ function Customers(props) {
                                 <div className="select-box-container" style={{ flexGrow: 1 }}>
                                     <div className="select-box-wrapper">
                                         {
-                                            (props.selectedCustomer.automatic_emails?.automatic_emails_to || '').split(' ').map((item, index) => {
+                                            (props.selectedCustomer?.automatic_emails?.automatic_emails_to || '').split(';').map((item, index) => {
                                                 if (item.trim() !== '') {
-                                                    let textToShow = item;
-
-                                                    for (let i = 0; i < props.selectedCustomer.contacts.length; i++) {
-                                                        let contact = props.selectedCustomer.contacts[i];
-
-                                                        if (contact.email_work === item || contact.email_personal === item || contact.email_other === item) {
-                                                            textToShow = contact.first_name + ' ' + (contact.middle_name === '' ? '' : contact.middle_name + ' ') + contact.last_name;
-                                                            break;
-                                                        }
-                                                    }
+                                                    let textToShow = item.split('|');
 
                                                     return (
                                                         <div key={index} style={{
@@ -2210,17 +3284,44 @@ function Customers(props) {
                                                             padding: '2px 10px',
                                                             borderRadius: '10px',
                                                             marginRight: '2px',
-                                                            cursor: 'default'
+                                                            cursor: 'default',
+                                                            width: 'auto'
                                                         }} title={item}>
                                                             <span className="fas fa-trash-alt" style={{ marginRight: '5px', cursor: 'pointer' }}
                                                                 onClick={() => {
-                                                                    let automatic_emails = props.selectedCustomer.automatic_emails || {};
+                                                                    let automatic_emails = props.selectedCustomer?.automatic_emails || {};
                                                                     automatic_emails.automatic_emails_to = automatic_emails.automatic_emails_to.replace(item.toString(), '').trim();
+                                                                    automatic_emails.automatic_emails_to = automatic_emails.automatic_emails_to.replace(';;', ';').trim();
+
+                                                                    let checkingStart = true;
+                                                                    let checkingEnd = true;
+
+                                                                    while (checkingStart) {
+                                                                        if (automatic_emails.automatic_emails_to.substr(0, 1) === ';') {
+                                                                            automatic_emails.automatic_emails_to = automatic_emails.automatic_emails_to.slice(1);
+                                                                        } else {
+                                                                            checkingStart = false;
+                                                                        }
+                                                                    }
+
+                                                                    while (checkingEnd) {
+                                                                        if (automatic_emails.automatic_emails_to.substr(-1) === ';') {
+                                                                            automatic_emails.automatic_emails_to = automatic_emails.automatic_emails_to.slice(0, -1);
+                                                                        } else {
+                                                                            checkingEnd = false;
+                                                                        }
+                                                                    }
 
                                                                     props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automatic_emails });
                                                                     validateAutomaticEmailsForSaving();
                                                                 }}></span>
-                                                            <span className="automatic-email-inputted" style={{ whiteSpace: 'nowrap' }}>{textToShow}</span>
+                                                            <span className="automatic-email-inputted" style={{ whiteSpace: 'nowrap' }}>{
+                                                                textToShow.length > 0
+                                                                    ? textToShow[1] !== ''
+                                                                        ? textToShow[1] // name
+                                                                        : textToShow[0] // email
+                                                                    : textToShow[0] // email or blank
+                                                            }</span>
                                                         </div>
                                                     )
                                                 } else {
@@ -2234,7 +3335,7 @@ function Customers(props) {
                                             ref={refAutomaticEmailsTo}
                                             onKeyDown={async (e) => {
                                                 let key = e.keyCode || e.which;
-                                                let automaticEmails = props.selectedCustomer.automatic_emails || { customer_id: props.selectedCustomer.id };
+                                                let automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
                                                 switch (key) {
                                                     case 37: case 38: // arrow left | arrow up
                                                         e.preventDefault();
@@ -2309,51 +3410,86 @@ function Customers(props) {
                                                         break;
 
                                                     case 13: // enter
-                                                        automaticEmails = props.selectedCustomer.automatic_emails || { customer_id: props.selectedCustomer.id };
+                                                        automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
 
                                                         if (emailToDropdownItems.length > 0 && emailToDropdownItems.findIndex(item => item.selected) > -1) {
                                                             let item = emailToDropdownItems.find(el => el.selected);
 
                                                             if (item.email !== '' && isEmailValid(item.email)) {
-                                                                automaticEmails = { ...automaticEmails, automatic_emails_to: ((automaticEmails.automatic_emails_to || '') + ' ' + item.email).trim() };
+                                                                automaticEmails = { ...automaticEmails, automatic_emails_to: ((automaticEmails.automatic_emails_to || '') + ';' + (item.email + '|' + item.name)).trim() };
                                                                 await props.setAutomaticEmailsTo('');
+
+                                                                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
+
+                                                                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
+                                                                    if (res.result === 'OK') {
+                                                                        console.log(res);
+                                                                    }
+                                                                });
+
+                                                                setEmailToDropdownItems([]);
+                                                                refAutomaticEmailsTo.current.focus();
                                                             }
+                                                        } else if (emailToDropdownItems.length === 0) {
+                                                            if (isEmailValid((props.automaticEmailsTo || ''))) {
+                                                                automaticEmails = { ...automaticEmails, automatic_emails_to: ((automaticEmails.automatic_emails_to || '') + ';' + (props.automaticEmailsTo + '|')).trim() };
+                                                                await props.setAutomaticEmailsTo('');
 
-                                                            await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
+                                                                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
 
-                                                            $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-                                                                if (res.result === 'OK') {
-                                                                    console.log(res);
-                                                                }
-                                                            });
+                                                                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
+                                                                    if (res.result === 'OK') {
+                                                                        console.log(res);
+                                                                    }
+                                                                });
 
-                                                            setEmailToDropdownItems([]);
-                                                            refAutomaticEmailsTo.current.focus();
+                                                                setEmailToDropdownItems([]);
+                                                                refAutomaticEmailsTo.current.focus();
+                                                            }
                                                         }
                                                         break;
 
                                                     case 9: // tab
-                                                        automaticEmails = props.selectedCustomer.automatic_emails || { customer_id: props.selectedCustomer.id };
+                                                        automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
 
                                                         if (emailToDropdownItems.length > 0) {
-                                                            e.preventDefault();
                                                             let item = emailToDropdownItems.find(el => el.selected);
 
                                                             if (item.email !== '' && isEmailValid(item.email)) {
-                                                                automaticEmails = { ...automaticEmails, automatic_emails_to: ((automaticEmails.automatic_emails_to || '') + ' ' + item.email).trim() };
+                                                                e.preventDefault();
+
+                                                                automaticEmails = { ...automaticEmails, automatic_emails_to: ((automaticEmails.automatic_emails_to || '') + ';' + (item.email + '|' + item.name)).trim() };
                                                                 await props.setAutomaticEmailsTo('');
+
+                                                                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
+
+                                                                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
+                                                                    if (res.result === 'OK') {
+                                                                        console.log(res);
+                                                                    }
+                                                                });
+
+                                                                setEmailToDropdownItems([]);
+                                                                refAutomaticEmailsTo.current.focus();
                                                             }
+                                                        } else if (emailToDropdownItems.length === 0) {
+                                                            if (isEmailValid((props.automaticEmailsTo || ''))) {
+                                                                e.preventDefault();
 
-                                                            await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
+                                                                automaticEmails = { ...automaticEmails, automatic_emails_to: ((automaticEmails.automatic_emails_to || '') + ';' + (props.automaticEmailsTo + '|')).trim() };
+                                                                await props.setAutomaticEmailsTo('');
 
-                                                            $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-                                                                if (res.result === 'OK') {
-                                                                    console.log(res);
-                                                                }
-                                                            });
+                                                                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
 
-                                                            setEmailToDropdownItems([]);
-                                                            refAutomaticEmailsTo.current.focus();
+                                                                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
+                                                                    if (res.result === 'OK') {
+                                                                        console.log(res);
+                                                                    }
+                                                                });
+
+                                                                setEmailToDropdownItems([]);
+                                                                refAutomaticEmailsTo.current.focus();
+                                                            }
                                                         }
                                                         break;
 
@@ -2364,13 +3500,13 @@ function Customers(props) {
                                             onInput={async (e) => {
                                                 await props.setAutomaticEmailsTo(e.target.value);
 
-                                                if ((props.selectedCustomer.id || 0) > 0) {
+                                                if ((props.selectedCustomer?.id || 0) > 0) {
                                                     if (e.target.value.trim() === '') {
                                                         setEmailToDropdownItems([]);
                                                     } else {
                                                         $.post(props.serverUrl + '/getContactsByEmailOrName', {
                                                             email: e.target.value.trim(),
-                                                            customer_id: props.selectedCustomer.id
+                                                            customer_id: props.selectedCustomer?.id
                                                         }).then(async res => {
                                                             if (res.result === 'OK') {
                                                                 let items = []
@@ -2452,23 +3588,23 @@ function Customers(props) {
                                                                             className={mochiItemClasses}
                                                                             id={item.id}
                                                                             onClick={async () => {
-                                                                                let automaticEmails = props.selectedCustomer.automatic_emails || { customer_id: props.selectedCustomer.id };
+                                                                                let automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
 
                                                                                 if (item.email !== '' && isEmailValid(item.email)) {
-                                                                                    automaticEmails = { ...automaticEmails, automatic_emails_to: ((automaticEmails.automatic_emails_to || '') + ' ' + item.email).trim() };
+                                                                                    automaticEmails = { ...automaticEmails, automatic_emails_to: ((automaticEmails.automatic_emails_to || '') + ';' + (item.email + '|' + item.name)).trim() };
                                                                                     await props.setAutomaticEmailsTo('');
+
+                                                                                    await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
+
+                                                                                    $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
+                                                                                        if (res.result === 'OK') {
+                                                                                            console.log(res);
+                                                                                        }
+                                                                                    });
+
+                                                                                    setEmailToDropdownItems([]);
+                                                                                    refAutomaticEmailsTo.current.focus();
                                                                                 }
-
-                                                                                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
-
-                                                                                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-                                                                                    if (res.result === 'OK') {
-                                                                                        console.log(res);
-                                                                                    }
-                                                                                });
-
-                                                                                setEmailToDropdownItems([]);
-                                                                                refAutomaticEmailsTo.current.focus();
                                                                             }}
                                                                             ref={ref => refEmailToPopupItems.current.push(ref)}
                                                                         >
@@ -2490,35 +3626,35 @@ function Customers(props) {
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-toggle-container">
-                                    <input type="checkbox" id="cbox-automatic-emails-booked-load-btn"
+                                    <input type="checkbox" id={props.panelName + '-cbox-automatic-emails-booked-load-btn'}
                                         onChange={e => {
                                             console.log('here');
-                                            let automatic_emails = (props.selectedCustomer.automatic_emails || {});
+                                            let automatic_emails = (props.selectedCustomer?.automatic_emails || {});
                                             automatic_emails.automatic_emails_booked_load = e.target.checked ? 1 : 0;
                                             props.setSelectedCustomer({
                                                 ...props.selectedCustomer, automatic_emails: automatic_emails
                                             });
                                             validateAutomaticEmailsForSaving();
                                         }}
-                                        checked={(props.selectedCustomer.automatic_emails?.automatic_emails_booked_load || 0) === 1} />
-                                    <label htmlFor="cbox-automatic-emails-booked-load-btn">
+                                        checked={(props.selectedCustomer?.automatic_emails?.automatic_emails_booked_load || 0) === 1} />
+                                    <label htmlFor={props.panelName + '-cbox-automatic-emails-booked-load-btn'}>
                                         <div className="label-text">Booked Load</div>
                                         <div className="input-toggle-btn"></div>
                                     </label>
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-toggle-container">
-                                    <input type="checkbox" id="cbox-automatic-emails-check-calls-btn"
+                                    <input type="checkbox" id={props.panelName + '-cbox-automatic-emails-check-calls-btn'}
                                         onChange={e => {
-                                            let automatic_emails = (props.selectedCustomer.automatic_emails || {});
+                                            let automatic_emails = (props.selectedCustomer?.automatic_emails || {});
                                             automatic_emails.automatic_emails_check_calls = e.target.checked ? 1 : 0;
                                             props.setSelectedCustomer({
                                                 ...props.selectedCustomer, automatic_emails: automatic_emails
                                             });
                                             validateAutomaticEmailsForSaving();
                                         }}
-                                        checked={(props.selectedCustomer.automatic_emails?.automatic_emails_check_calls || 0) === 1} />
-                                    <label htmlFor="cbox-automatic-emails-check-calls-btn">
+                                        checked={(props.selectedCustomer?.automatic_emails?.automatic_emails_check_calls || 0) === 1} />
+                                    <label htmlFor={props.panelName + '-cbox-automatic-emails-check-calls-btn'}>
                                         <div className="label-text">Check Calls</div>
                                         <div className="input-toggle-btn"></div>
                                     </label>
@@ -2529,18 +3665,9 @@ function Customers(props) {
                                 <div className="select-box-container" style={{ flexGrow: 1 }}>
                                     <div className="select-box-wrapper">
                                         {
-                                            (props.selectedCustomer.automatic_emails?.automatic_emails_cc || '').split(' ').map((item, index) => {
+                                            (props.selectedCustomer?.automatic_emails?.automatic_emails_cc || '').split(';').map((item, index) => {
                                                 if (item.trim() !== '') {
-                                                    let textToShow = item;
-
-                                                    for (let i = 0; i < props.selectedCustomer.contacts.length; i++) {
-                                                        let contact = props.selectedCustomer.contacts[i];
-
-                                                        if (contact.email_work === item || contact.email_personal === item || contact.email_other === item) {
-                                                            textToShow = contact.first_name + ' ' + (contact.middle_name === '' ? '' : contact.middle_name + ' ') + contact.last_name;
-                                                            break;
-                                                        }
-                                                    }
+                                                    let textToShow = item.split('|');
 
                                                     return (
                                                         <div key={index} style={{
@@ -2555,13 +3682,40 @@ function Customers(props) {
                                                         }} title={item}>
                                                             <span className="fas fa-trash-alt" style={{ marginRight: '5px', cursor: 'pointer' }}
                                                                 onClick={() => {
-                                                                    let automatic_emails = props.selectedCustomer.automatic_emails || {};
+                                                                    let automatic_emails = props.selectedCustomer?.automatic_emails || {};
                                                                     automatic_emails.automatic_emails_cc = automatic_emails.automatic_emails_cc.replace(item.toString(), '').trim();
+
+                                                                    automatic_emails.automatic_emails_cc = automatic_emails.automatic_emails_cc.replace(';;', ';').trim();
+
+                                                                    let checkingStart = true;
+                                                                    let checkingEnd = true;
+
+                                                                    while (checkingStart) {
+                                                                        if (automatic_emails.automatic_emails_cc.substr(0, 1) === ';') {
+                                                                            automatic_emails.automatic_emails_cc = automatic_emails.automatic_emails_cc.slice(1);
+                                                                        } else {
+                                                                            checkingStart = false;
+                                                                        }
+                                                                    }
+
+                                                                    while (checkingEnd) {
+                                                                        if (automatic_emails.automatic_emails_cc.substr(-1) === ';') {
+                                                                            automatic_emails.automatic_emails_cc = automatic_emails.automatic_emails_cc.slice(0, -1);
+                                                                        } else {
+                                                                            checkingEnd = false;
+                                                                        }
+                                                                    }
 
                                                                     props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automatic_emails });
                                                                     validateAutomaticEmailsForSaving();
                                                                 }}></span>
-                                                            <span className="automatic-email-inputted" style={{ whiteSpace: 'nowrap' }}>{textToShow}</span>
+                                                            <span className="automatic-email-inputted" style={{ whiteSpace: 'nowrap' }}>{
+                                                                textToShow.length > 0
+                                                                    ? textToShow[1] !== ''
+                                                                        ? textToShow[1] // name
+                                                                        : textToShow[0] // email
+                                                                    : textToShow[0] // email or blank
+                                                            }</span>
                                                         </div>
                                                     )
                                                 } else {
@@ -2575,7 +3729,7 @@ function Customers(props) {
                                             ref={refAutomaticEmailsCc}
                                             onKeyDown={async (e) => {
                                                 let key = e.keyCode || e.which;
-                                                let automaticEmails = props.selectedCustomer.automatic_emails || { customer_id: props.selectedCustomer.id };
+                                                let automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
                                                 switch (key) {
                                                     case 37: case 38: // arrow left | arrow up
                                                         e.preventDefault();
@@ -2650,51 +3804,86 @@ function Customers(props) {
                                                         break;
 
                                                     case 13: // enter
-                                                        automaticEmails = props.selectedCustomer.automatic_emails || { customer_id: props.selectedCustomer.id };
+                                                        automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
 
                                                         if (emailCcDropdownItems.length > 0 && emailCcDropdownItems.findIndex(item => item.selected) > -1) {
                                                             let item = emailCcDropdownItems.find(el => el.selected);
 
                                                             if (item.email !== '' && isEmailValid(item.email)) {
-                                                                automaticEmails = { ...automaticEmails, automatic_emails_cc: ((automaticEmails.automatic_emails_cc || '') + ' ' + item.email).trim() };
+                                                                automaticEmails = { ...automaticEmails, automatic_emails_cc: ((automaticEmails.automatic_emails_cc || '') + ';' + (item.email + '|' + item.name)).trim() };
                                                                 await props.setAutomaticEmailsCc('');
+
+                                                                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
+
+                                                                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
+                                                                    if (res.result === 'OK') {
+                                                                        console.log(res);
+                                                                    }
+                                                                });
+
+                                                                setEmailCcDropdownItems([]);
+                                                                refAutomaticEmailsCc.current.focus();
                                                             }
+                                                        } else if (emailToDropdownItems.length === 0) {
+                                                            if (isEmailValid((props.automaticEmailsCc || ''))) {
+                                                                automaticEmails = { ...automaticEmails, automatic_emails_cc: ((automaticEmails.automatic_emails_cc || '') + ';' + (props.automaticEmailsCc + '|')).trim() };
+                                                                await props.setAutomaticEmailsTo('');
 
-                                                            await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
+                                                                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
 
-                                                            $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-                                                                if (res.result === 'OK') {
-                                                                    console.log(res);
-                                                                }
-                                                            });
+                                                                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
+                                                                    if (res.result === 'OK') {
+                                                                        console.log(res);
+                                                                    }
+                                                                });
 
-                                                            setEmailCcDropdownItems([]);
-                                                            refAutomaticEmailsCc.current.focus();
+                                                                setEmailCcDropdownItems([]);
+                                                                refAutomaticEmailsCc.current.focus();
+                                                            }
                                                         }
                                                         break;
 
                                                     case 9: // tab
-                                                        automaticEmails = props.selectedCustomer.automatic_emails || { customer_id: props.selectedCustomer.id };
+                                                        automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
 
                                                         if (emailCcDropdownItems.length > 0) {
-                                                            e.preventDefault();
                                                             let item = emailCcDropdownItems.find(el => el.selected);
 
                                                             if (item.email !== '' && isEmailValid(item.email)) {
-                                                                automaticEmails = { ...automaticEmails, automatic_emails_cc: ((automaticEmails.automatic_emails_cc || '') + ' ' + item.email).trim() };
+                                                                e.preventDefault();
+
+                                                                automaticEmails = { ...automaticEmails, automatic_emails_cc: ((automaticEmails.automatic_emails_cc || '') + ';' + (item.email + '|' + item.name)).trim() };
                                                                 await props.setAutomaticEmailsCc('');
+
+                                                                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
+
+                                                                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
+                                                                    if (res.result === 'OK') {
+                                                                        console.log(res);
+                                                                    }
+                                                                });
+
+                                                                setEmailCcDropdownItems([]);
+                                                                refAutomaticEmailsCc.current.focus();
                                                             }
+                                                        } else if (emailToDropdownItems.length === 0) {
+                                                            if (isEmailValid((props.automaticEmailsCc || ''))) {
+                                                                e.preventDefault();
 
-                                                            await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
+                                                                automaticEmails = { ...automaticEmails, automatic_emails_cc: ((automaticEmails.automatic_emails_cc || '') + ';' + (props.automaticEmailsCc + '|')).trim() };
+                                                                await props.setAutomaticEmailsTo('');
 
-                                                            $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-                                                                if (res.result === 'OK') {
-                                                                    console.log(res);
-                                                                }
-                                                            });
+                                                                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
 
-                                                            setEmailCcDropdownItems([]);
-                                                            refAutomaticEmailsCc.current.focus();
+                                                                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
+                                                                    if (res.result === 'OK') {
+                                                                        console.log(res);
+                                                                    }
+                                                                });
+
+                                                                setEmailCcDropdownItems([]);
+                                                                refAutomaticEmailsCc.current.focus();
+                                                            }
                                                         }
                                                         break;
 
@@ -2705,13 +3894,13 @@ function Customers(props) {
                                             onInput={async (e) => {
                                                 await props.setAutomaticEmailsCc(e.target.value);
 
-                                                if ((props.selectedCustomer.id || 0) > 0) {
+                                                if ((props.selectedCustomer?.id || 0) > 0) {
                                                     if (e.target.value.trim() === '') {
                                                         setEmailCcDropdownItems([]);
                                                     } else {
                                                         $.post(props.serverUrl + '/getContactsByEmailOrName', {
                                                             email: e.target.value.trim(),
-                                                            customer_id: props.selectedCustomer.id
+                                                            customer_id: props.selectedCustomer?.id
                                                         }).then(async res => {
                                                             if (res.result === 'OK') {
                                                                 let items = []
@@ -2793,23 +3982,23 @@ function Customers(props) {
                                                                             className={mochiItemClasses}
                                                                             id={item.id}
                                                                             onClick={async () => {
-                                                                                let automaticEmails = props.selectedCustomer.automatic_emails || { customer_id: props.selectedCustomer.id };
+                                                                                let automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
 
                                                                                 if (item.email !== '' && isEmailValid(item.email)) {
-                                                                                    automaticEmails = { ...automaticEmails, automatic_emails_cc: ((automaticEmails.automatic_emails_cc || '') + ' ' + item.email).trim() };
+                                                                                    automaticEmails = { ...automaticEmails, automatic_emails_cc: ((automaticEmails.automatic_emails_cc || '') + ';' + (item.email + '|' + item.name)).trim() };
                                                                                     await props.setAutomaticEmailsCc('');
+
+                                                                                    await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
+
+                                                                                    $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
+                                                                                        if (res.result === 'OK') {
+                                                                                            console.log(res);
+                                                                                        }
+                                                                                    });
+
+                                                                                    setEmailCcDropdownItems([]);
+                                                                                    refAutomaticEmailsCc.current.focus();
                                                                                 }
-
-                                                                                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
-
-                                                                                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-                                                                                    if (res.result === 'OK') {
-                                                                                        console.log(res);
-                                                                                    }
-                                                                                });
-
-                                                                                setEmailCcDropdownItems([]);
-                                                                                refAutomaticEmailsCc.current.focus();
                                                                             }}
                                                                             ref={ref => refEmailCcPopupItems.current.push(ref)}
                                                                         >
@@ -2831,34 +4020,34 @@ function Customers(props) {
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-toggle-container">
-                                    <input type="checkbox" id="cbox-automatic-emails-carrier-arrival-shipper-btn"
+                                    <input type="checkbox" id={props.panelName + '-cbox-automatic-emails-carrier-arrival-shipper-btn'}
                                         onChange={e => {
-                                            let automatic_emails = (props.selectedCustomer.automatic_emails || {});
+                                            let automatic_emails = (props.selectedCustomer?.automatic_emails || {});
                                             automatic_emails.automatic_emails_carrier_arrival_shipper = e.target.checked ? 1 : 0;
                                             props.setSelectedCustomer({
                                                 ...props.selectedCustomer, automatic_emails: automatic_emails
                                             });
                                             validateAutomaticEmailsForSaving();
                                         }}
-                                        checked={(props.selectedCustomer.automatic_emails?.automatic_emails_carrier_arrival_shipper || 0) === 1} />
-                                    <label htmlFor="cbox-automatic-emails-carrier-arrival-shipper-btn">
+                                        checked={(props.selectedCustomer?.automatic_emails?.automatic_emails_carrier_arrival_shipper || 0) === 1} />
+                                    <label htmlFor={props.panelName + '-cbox-automatic-emails-carrier-arrival-shipper-btn'}>
                                         <div className="label-text">Carrier Arrival Shipper</div>
                                         <div className="input-toggle-btn"></div>
                                     </label>
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-toggle-container">
-                                    <input type="checkbox" id="cbox-automatic-emails-carrier-arrival-consignee-btn"
+                                    <input type="checkbox" id={props.panelName + '-cbox-automatic-emails-carrier-arrival-consignee-btn'}
                                         onChange={e => {
-                                            let automatic_emails = (props.selectedCustomer.automatic_emails || {});
+                                            let automatic_emails = (props.selectedCustomer?.automatic_emails || {});
                                             automatic_emails.automatic_emails_carrier_arrival_consignee = e.target.checked ? 1 : 0;
                                             props.setSelectedCustomer({
                                                 ...props.selectedCustomer, automatic_emails: automatic_emails
                                             });
                                             validateAutomaticEmailsForSaving();
                                         }}
-                                        checked={(props.selectedCustomer.automatic_emails?.automatic_emails_carrier_arrival_consignee || 0) === 1} />
-                                    <label htmlFor="cbox-automatic-emails-carrier-arrival-consignee-btn">
+                                        checked={(props.selectedCustomer?.automatic_emails?.automatic_emails_carrier_arrival_consignee || 0) === 1} />
+                                    <label htmlFor={props.panelName + '-cbox-automatic-emails-carrier-arrival-consignee-btn'}>
                                         <div className="label-text">Carrier Arrival Consignee</div>
                                         <div className="input-toggle-btn"></div>
                                     </label>
@@ -2866,21 +4055,12 @@ function Customers(props) {
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
-                            <div className="select-box-container" style={{ flexGrow: 1 }}>
+                                <div className="select-box-container" style={{ flexGrow: 1 }}>
                                     <div className="select-box-wrapper">
                                         {
-                                            (props.selectedCustomer.automatic_emails?.automatic_emails_bcc || '').split(' ').map((item, index) => {
+                                            (props.selectedCustomer?.automatic_emails?.automatic_emails_bcc || '').split(';').map((item, index) => {
                                                 if (item.trim() !== '') {
-                                                    let textToShow = item;
-
-                                                    for (let i = 0; i < props.selectedCustomer.contacts.length; i++) {
-                                                        let contact = props.selectedCustomer.contacts[i];
-
-                                                        if (contact.email_work === item || contact.email_personal === item || contact.email_other === item) {
-                                                            textToShow = contact.first_name + ' ' + (contact.middle_name === '' ? '' : contact.middle_name + ' ') + contact.last_name;
-                                                            break;
-                                                        }
-                                                    }
+                                                    let textToShow = item.split('|');
 
                                                     return (
                                                         <div key={index} style={{
@@ -2895,13 +4075,39 @@ function Customers(props) {
                                                         }} title={item}>
                                                             <span className="fas fa-trash-alt" style={{ marginRight: '5px', cursor: 'pointer' }}
                                                                 onClick={() => {
-                                                                    let automatic_emails = props.selectedCustomer.automatic_emails || {};
+                                                                    let automatic_emails = props.selectedCustomer?.automatic_emails || {};
                                                                     automatic_emails.automatic_emails_bcc = automatic_emails.automatic_emails_bcc.replace(item.toString(), '').trim();
+                                                                    automatic_emails.automatic_emails_bcc = automatic_emails.automatic_emails_bcc.replace(';;', ';').trim();
+
+                                                                    let checkingStart = true;
+                                                                    let checkingEnd = true;
+
+                                                                    while (checkingStart) {
+                                                                        if (automatic_emails.automatic_emails_bcc.substr(0, 1) === ';') {
+                                                                            automatic_emails.automatic_emails_bcc = automatic_emails.automatic_emails_bcc.slice(1);
+                                                                        } else {
+                                                                            checkingStart = false;
+                                                                        }
+                                                                    }
+
+                                                                    while (checkingEnd) {
+                                                                        if (automatic_emails.automatic_emails_bcc.substr(-1) === ';') {
+                                                                            automatic_emails.automatic_emails_bcc = automatic_emails.automatic_emails_bcc.slice(0, -1);
+                                                                        } else {
+                                                                            checkingEnd = false;
+                                                                        }
+                                                                    }
 
                                                                     props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automatic_emails });
                                                                     validateAutomaticEmailsForSaving();
                                                                 }}></span>
-                                                            <span className="automatic-email-inputted" style={{ whiteSpace: 'nowrap' }}>{textToShow}</span>
+                                                            <span className="automatic-email-inputted" style={{ whiteSpace: 'nowrap' }}>{
+                                                                textToShow.length > 0
+                                                                    ? textToShow[1] !== ''
+                                                                        ? textToShow[1] // name
+                                                                        : textToShow[0] // email
+                                                                    : textToShow[0] // email or blank
+                                                            }</span>
                                                         </div>
                                                     )
                                                 } else {
@@ -2915,7 +4121,7 @@ function Customers(props) {
                                             ref={refAutomaticEmailsBcc}
                                             onKeyDown={async (e) => {
                                                 let key = e.keyCode || e.which;
-                                                let automaticEmails = props.selectedCustomer.automatic_emails || { customer_id: props.selectedCustomer.id };
+                                                let automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
                                                 switch (key) {
                                                     case 37: case 38: // arrow left | arrow up
                                                         e.preventDefault();
@@ -2990,51 +4196,86 @@ function Customers(props) {
                                                         break;
 
                                                     case 13: // enter
-                                                        automaticEmails = props.selectedCustomer.automatic_emails || { customer_id: props.selectedCustomer.id };
+                                                        automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
 
                                                         if (emailBccDropdownItems.length > 0 && emailBccDropdownItems.findIndex(item => item.selected) > -1) {
                                                             let item = emailBccDropdownItems.find(el => el.selected);
 
                                                             if (item.email !== '' && isEmailValid(item.email)) {
-                                                                automaticEmails = { ...automaticEmails, automatic_emails_bcc: ((automaticEmails.automatic_emails_bcc || '') + ' ' + item.email).trim() };
+                                                                automaticEmails = { ...automaticEmails, automatic_emails_bcc: ((automaticEmails.automatic_emails_bcc || '') + ';' + (item.email + '|' + item.name)).trim() };
                                                                 await props.setAutomaticEmailsBcc('');
+
+                                                                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
+
+                                                                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
+                                                                    if (res.result === 'OK') {
+                                                                        console.log(res);
+                                                                    }
+                                                                });
+
+                                                                setEmailBccDropdownItems([]);
+                                                                refAutomaticEmailsBcc.current.focus();
                                                             }
+                                                        } else if (emailBccDropdownItems.length === 0) {
+                                                            if (isEmailValid((props.automaticEmailsBcc || ''))) {
+                                                                automaticEmails = { ...automaticEmails, automatic_emails_bcc: ((automaticEmails.automatic_emails_bcc || '') + ';' + (props.automaticEmailsBcc + '|')).trim() };
+                                                                await props.setAutomaticEmailsTo('');
 
-                                                            await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
+                                                                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
 
-                                                            $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-                                                                if (res.result === 'OK') {
-                                                                    console.log(res);
-                                                                }
-                                                            });
+                                                                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
+                                                                    if (res.result === 'OK') {
+                                                                        console.log(res);
+                                                                    }
+                                                                });
 
-                                                            setEmailBccDropdownItems([]);
-                                                            refAutomaticEmailsBcc.current.focus();
+                                                                setEmailBccDropdownItems([]);
+                                                                refAutomaticEmailsBcc.current.focus();
+                                                            }
                                                         }
                                                         break;
 
                                                     case 9: // tab
-                                                        automaticEmails = props.selectedCustomer.automatic_emails || { customer_id: props.selectedCustomer.id };
+                                                        automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
 
                                                         if (emailBccDropdownItems.length > 0) {
-                                                            e.preventDefault();
                                                             let item = emailBccDropdownItems.find(el => el.selected);
 
                                                             if (item.email !== '' && isEmailValid(item.email)) {
-                                                                automaticEmails = { ...automaticEmails, automatic_emails_bcc: ((automaticEmails.automatic_emails_bcc || '') + ' ' + item.email).trim() };
+                                                                e.preventDefault();
+
+                                                                automaticEmails = { ...automaticEmails, automatic_emails_bcc: ((automaticEmails.automatic_emails_bcc || '') + ';' + (item.email + '|' + item.name)).trim() };
                                                                 await props.setAutomaticEmailsBcc('');
+
+                                                                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
+
+                                                                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
+                                                                    if (res.result === 'OK') {
+                                                                        console.log(res);
+                                                                    }
+                                                                });
+
+                                                                setEmailBccDropdownItems([]);
+                                                                refAutomaticEmailsBcc.current.focus();
                                                             }
+                                                        } else if (emailBccDropdownItems.length === 0) {
+                                                            if (isEmailValid((props.automaticEmailsBcc || ''))) {
+                                                                e.preventDefault();
 
-                                                            await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
+                                                                automaticEmails = { ...automaticEmails, automatic_emails_bcc: ((automaticEmails.automatic_emails_bcc || '') + ';' + (props.automaticEmailsBcc + '|')).trim() };
+                                                                await props.setAutomaticEmailsTo('');
 
-                                                            $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-                                                                if (res.result === 'OK') {
-                                                                    console.log(res);
-                                                                }
-                                                            });
+                                                                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
 
-                                                            setEmailBccDropdownItems([]);
-                                                            refAutomaticEmailsBcc.current.focus();
+                                                                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
+                                                                    if (res.result === 'OK') {
+                                                                        console.log(res);
+                                                                    }
+                                                                });
+
+                                                                setEmailBccDropdownItems([]);
+                                                                refAutomaticEmailsBcc.current.focus();
+                                                            }
                                                         }
                                                         break;
 
@@ -3045,13 +4286,13 @@ function Customers(props) {
                                             onInput={async (e) => {
                                                 await props.setAutomaticEmailsBcc(e.target.value);
 
-                                                if ((props.selectedCustomer.id || 0) > 0) {
+                                                if ((props.selectedCustomer?.id || 0) > 0) {
                                                     if (e.target.value.trim() === '') {
                                                         setEmailBccDropdownItems([]);
                                                     } else {
                                                         $.post(props.serverUrl + '/getContactsByEmailOrName', {
                                                             email: e.target.value.trim(),
-                                                            customer_id: props.selectedCustomer.id
+                                                            customer_id: props.selectedCustomer?.id
                                                         }).then(async res => {
                                                             if (res.result === 'OK') {
                                                                 let items = []
@@ -3133,23 +4374,23 @@ function Customers(props) {
                                                                             className={mochiItemClasses}
                                                                             id={item.id}
                                                                             onClick={async () => {
-                                                                                let automaticEmails = props.selectedCustomer.automatic_emails || { customer_id: props.selectedCustomer.id };
+                                                                                let automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
 
                                                                                 if (item.email !== '' && isEmailValid(item.email)) {
-                                                                                    automaticEmails = { ...automaticEmails, automatic_emails_bcc: ((automaticEmails.automatic_emails_bcc || '') + ' ' + item.email).trim() };
+                                                                                    automaticEmails = { ...automaticEmails, automatic_emails_bcc: ((automaticEmails.automatic_emails_bcc || '') + ';' + (item.email + '|' + item.name)).trim() };
                                                                                     await props.setAutomaticEmailsBcc('');
+
+                                                                                    await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
+
+                                                                                    $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
+                                                                                        if (res.result === 'OK') {
+                                                                                            console.log(res);
+                                                                                        }
+                                                                                    });
+
+                                                                                    setEmailBccDropdownItems([]);
+                                                                                    refAutomaticEmailsBcc.current.focus();
                                                                                 }
-
-                                                                                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
-
-                                                                                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-                                                                                    if (res.result === 'OK') {
-                                                                                        console.log(res);
-                                                                                    }
-                                                                                });
-
-                                                                                setEmailBccDropdownItems([]);
-                                                                                refAutomaticEmailsBcc.current.focus();
                                                                             }}
                                                                             ref={ref => refEmailBccPopupItems.current.push(ref)}
                                                                         >
@@ -3171,34 +4412,34 @@ function Customers(props) {
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-toggle-container">
-                                    <input type="checkbox" id="cbox-automatic-emails-loaded-btn"
+                                    <input type="checkbox" id={props.panelName + '-cbox-automatic-emails-loaded-btn'}
                                         onChange={e => {
-                                            let automatic_emails = (props.selectedCustomer.automatic_emails || {});
+                                            let automatic_emails = (props.selectedCustomer?.automatic_emails || {});
                                             automatic_emails.automatic_emails_loaded = e.target.checked ? 1 : 0;
                                             props.setSelectedCustomer({
                                                 ...props.selectedCustomer, automatic_emails: automatic_emails
                                             });
                                             validateAutomaticEmailsForSaving();
                                         }}
-                                        checked={(props.selectedCustomer.automatic_emails?.automatic_emails_loaded || 0) === 1} />
-                                    <label htmlFor="cbox-automatic-emails-loaded-btn">
+                                        checked={(props.selectedCustomer?.automatic_emails?.automatic_emails_loaded || 0) === 1} />
+                                    <label htmlFor={props.panelName + '-cbox-automatic-emails-loaded-btn'}>
                                         <div className="label-text">Loaded</div>
                                         <div className="input-toggle-btn"></div>
                                     </label>
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-toggle-container">
-                                    <input type="checkbox" id="cbox-automatic-emails-empty-btn"
+                                    <input type="checkbox" id={props.panelName + '-cbox-automatic-emails-empty-btn'}
                                         onChange={e => {
-                                            let automatic_emails = (props.selectedCustomer.automatic_emails || {});
+                                            let automatic_emails = (props.selectedCustomer?.automatic_emails || {});
                                             automatic_emails.automatic_emails_empty = e.target.checked ? 1 : 0;
                                             props.setSelectedCustomer({
                                                 ...props.selectedCustomer, automatic_emails: automatic_emails
                                             });
                                             validateAutomaticEmailsForSaving();
                                         }}
-                                        checked={(props.selectedCustomer.automatic_emails?.automatic_emails_empty || 0) === 1} />
-                                    <label htmlFor="cbox-automatic-emails-empty-btn">
+                                        checked={(props.selectedCustomer?.automatic_emails?.automatic_emails_empty || 0) === 1} />
+                                    <label htmlFor={props.panelName + '-cbox-automatic-emails-empty-btn'}>
                                         <div className="label-text">Empty</div>
                                         <div className="input-toggle-btn"></div>
                                     </label>
@@ -3273,7 +4514,7 @@ function Customers(props) {
                                 <div className="form-slider-wrapper" style={{ left: props.showingContactList ? 0 : '-100%' }}>
                                     <div className="contact-list-box">
                                         {
-                                            (props.selectedCustomer.contacts || []).length > 0 &&
+                                            (props.selectedCustomer?.contacts || []).length > 0 &&
                                             <div className="contact-list-header">
                                                 <div className="contact-list-col tcol first-name">First Name</div>
                                                 <div className="contact-list-col tcol last-name">Last Name</div>
@@ -3285,15 +4526,15 @@ function Customers(props) {
 
                                         <div className="contact-list-wrapper">
                                             {
-                                                (props.selectedCustomer.contacts || []).map((contact, index) => {
+                                                (props.selectedCustomer?.contacts || []).map((contact, index) => {
                                                     return (
                                                         <div className="contact-list-item" key={index} onDoubleClick={async () => {
 
                                                             await props.setIsEditingContact(false);
                                                             await props.setContactSearchCustomer({ ...props.selectedCustomer, selectedContact: contact });
 
-                                                            if (!props.customerOpenedPanels.includes('customer-contacts')) {
-                                                                props.setCustomerOpenedPanels([...props.customerOpenedPanels, 'customer-contacts']);
+                                                            if (!props.openedPanels.includes(props.customerContactsPanelName)) {
+                                                                props.setOpenedPanels([...props.openedPanels, props.customerContactsPanelName]);
                                                             }
                                                         }} onClick={() => props.setSelectedContact(contact)}>
                                                             <div className="contact-list-col tcol first-name">{contact.first_name}</div>
@@ -3405,7 +4646,7 @@ function Customers(props) {
                     </div>
 
                     <div className="fields-container-col">
-                        <div className="form-borderless-box" style={{ display: 'flex', flexDirection: 'column', width: '100%', justifyContent: 'space-between' }}>
+                        <div className="form-borderless-box" style={{ display: 'flex', flexDirection: 'column', width: '100%', justifyContent: 'space-between', flexGrow: 1 }}>
                             <div className="form-bordered-box" style={{ maxHeight: 'calc(50% - 5px)', justifyContent: 'space-around' }}>
                                 <div className="form-header">
                                     <div className="top-border top-border-left"></div>
@@ -3419,22 +4660,22 @@ function Customers(props) {
                                         <input tabIndex={39 + props.tabTimes} type="text" placeholder="Open"
                                             onBlur={(e) => validateHoursForSaving(e, 'hours open')}
                                             onChange={e => {
-                                                let hours = (props.selectedCustomer.hours || {});
+                                                let hours = (props.selectedCustomer?.hours || {});
                                                 hours.hours_open = e.target.value;
                                                 props.setSelectedCustomer({ ...props.selectedCustomer, hours: hours });
                                             }}
-                                            value={(props.selectedCustomer.hours?.hours_open || '')} />
+                                            value={(props.selectedCustomer?.hours?.hours_open || '')} />
                                     </div>
                                     <div className="form-h-sep"></div>
                                     <div className="input-box-container ">
                                         <input tabIndex={40 + props.tabTimes} type="text" placeholder="Close"
                                             onBlur={(e) => validateHoursForSaving(e, 'hours close')}
                                             onChange={e => {
-                                                let hours = (props.selectedCustomer.hours || {});
+                                                let hours = (props.selectedCustomer?.hours || {});
                                                 hours.hours_close = e.target.value;
                                                 props.setSelectedCustomer({ ...props.selectedCustomer, hours: hours });
                                             }}
-                                            value={(props.selectedCustomer.hours?.hours_close || '')} />
+                                            value={(props.selectedCustomer?.hours?.hours_close || '')} />
                                     </div>
                                 </div>
                             </div>
@@ -3452,11 +4693,11 @@ function Customers(props) {
                                         <input tabIndex={41 + props.tabTimes} type="text" placeholder="Open"
                                             onBlur={(e) => validateHoursForSaving(e, 'delivery hours open')}
                                             onChange={e => {
-                                                let hours = (props.selectedCustomer.hours || {});
+                                                let hours = (props.selectedCustomer?.hours || {});
                                                 hours.delivery_hours_open = e.target.value;
                                                 props.setSelectedCustomer({ ...props.selectedCustomer, hours: hours });
                                             }}
-                                            value={(props.selectedCustomer.hours?.delivery_hours_open || '')} />
+                                            value={(props.selectedCustomer?.hours?.delivery_hours_open || '')} />
                                     </div>
                                     <div className="form-h-sep"></div>
                                     <div className="input-box-container ">
@@ -3479,11 +4720,11 @@ function Customers(props) {
                                             }}
                                             onBlur={(e) => validateHoursForSaving(e, 'delivery hours close')}
                                             onChange={e => {
-                                                let hours = (props.selectedCustomer.hours || {});
+                                                let hours = (props.selectedCustomer?.hours || {});
                                                 hours.delivery_hours_close = e.target.value;
                                                 props.setSelectedCustomer({ ...props.selectedCustomer, hours: hours });
                                             }}
-                                            value={(props.selectedCustomer.hours?.delivery_hours_close || '')} />
+                                            value={(props.selectedCustomer?.hours?.delivery_hours_close || '')} />
                                     </div>
                                 </div>
                             </div>
@@ -3499,20 +4740,20 @@ function Customers(props) {
                                 <div className="form-title">Notes</div>
                                 <div className="top-border top-border-middle"></div>
                                 <div className="form-buttons">
-                                    <div className="mochi-button" onClick={() => props.setSelectedNote({ id: 0, customer_id: props.selectedCustomer.id })}>
+                                    <div className="mochi-button" onClick={() => props.setSelectedNote({ id: 0, customer_id: props.selectedCustomer?.id })}>
                                         <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                         <div className="mochi-button-base">Add note</div>
                                         <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
                                     </div>
                                     <div className="mochi-button" onClick={() => {
-                                        if (props.selectedCustomer.id === undefined || props.selectedCustomer.notes.length === 0) {
+                                        if (props.selectedCustomer?.id === undefined || props.selectedCustomer?.notes.length === 0) {
                                             window.alert('There is nothing to print!');
                                             return;
                                         }
 
                                         let html = ``;
 
-                                        props.selectedCustomer.notes.map((note, index) => {
+                                        props.selectedCustomer?.notes.map((note, index) => {
                                             html += `<div><b>${note.user}:${moment(note.date_time, 'YYYY-MM-DD HH:mm:ss').format('MM/DD/YYYY:HHmm')}</b> ${note.text}</div>`
 
                                             return true;
@@ -3531,7 +4772,7 @@ function Customers(props) {
                             <div className="notes-list-container">
                                 <div className="notes-list-wrapper">
                                     {
-                                        (props.selectedCustomer.notes || []).map((note, index) => {
+                                        (props.selectedCustomer?.notes || []).map((note, index) => {
                                             return (
                                                 <div className="notes-list-item" key={index} onClick={() => props.setSelectedNote(note)}>
                                                     {note.text}
@@ -3550,24 +4791,21 @@ function Customers(props) {
                                 <div className="form-title">Directions</div>
                                 <div className="top-border top-border-middle"></div>
                                 <div className="form-buttons">
-                                    <div className="mochi-button" onClick={() => props.setSelectedDirection({ id: 0, customer_id: props.selectedCustomer.id })}>
+                                    <div className="mochi-button" onClick={() => props.setSelectedDirection({ id: 0, customer_id: props.selectedCustomer?.id })}>
                                         <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                         <div className="mochi-button-base">Add direction</div>
                                         <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
                                     </div>
-                                    <div className="input-checkbox-container">
-                                        <input type="checkbox" id="cbox-directions-print-on-rate" />
-                                        <label htmlFor="cbox-directions-print-on-rate">Print directions on rate confirmation</label>
-                                    </div>
+
                                     <div className="mochi-button" onClick={() => {
-                                        if (props.selectedCustomer.id === undefined || props.selectedCustomer.directions.length === 0) {
+                                        if (props.selectedCustomer?.id === undefined || props.selectedCustomer?.directions.length === 0) {
                                             window.alert('There is nothing to print!');
                                             return;
                                         }
 
                                         let html = ``;
 
-                                        props.selectedCustomer.directions.map((direction, index) => {
+                                        props.selectedCustomer?.directions.map((direction, index) => {
                                             html += `<div> ${direction.text}</div>`
 
                                             return true;
@@ -3586,10 +4824,35 @@ function Customers(props) {
                             <div className="directions-list-container">
                                 <div className="directions-list-wrapper">
                                     {
-                                        (props.selectedCustomer.directions || []).map((direction, index) => {
+                                        (props.selectedCustomer?.directions || []).map((direction, index) => {
                                             return (
                                                 <div className="directions-list-item" key={index} onClick={() => props.setSelectedDirection(direction)}>
                                                     {direction.text}
+                                                </div>
+                                            )
+                                        })
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="fields-container-col">
+                    <div className="form-bordered-box" >
+                            <div className="form-header">
+                                <div className="top-border top-border-left"></div>
+                                <div className="form-title">Past Orders</div>
+                                <div className="top-border top-border-middle"></div>
+                                <div className="top-border top-border-right"></div>
+                            </div>
+
+                            <div className="orders-list-container">
+                                <div className="orders-list-wrapper">
+                                    {
+                                        (props.selectedCustomer?.orders || []).map((order, index) => {
+                                            return (
+                                                <div className="orders-list-item" key={index} onClick={() => {}}>
+                                                    {order.order_number} {order.pickups.length > 0 ? order.pickups[0].city + '/' + order.pickups[0].state  : ''}-{order.deliveries.length > 0 ? order.deliveries[order.deliveries.length - 1].city + '/' + order.deliveries[order.deliveries.length - 1].state  : ''}
                                                 </div>
                                             )
                                         })
@@ -3627,7 +4890,7 @@ function Customers(props) {
                 </div>
 
                 <div className="mochi-button wrap" onClick={() => {
-                    if ((props.selectedCustomer.id || 0) === 0) {
+                    if ((props.selectedCustomer?.id || 0) === 0) {
                         window.alert('There is nothing to print!');
                         return;
                     }
@@ -3722,62 +4985,4 @@ function Customers(props) {
     )
 }
 
-const mapStateToProps = state => {
-    return {
-        scale: state.systemReducers.scale,
-        customers: state.customerReducers.customers,
-        contacts: state.customerReducers.contacts,
-        selectedCustomer: state.customerReducers.selectedCustomer,
-        serverUrl: state.systemReducers.serverUrl,
-        panels: state.customerReducers.panels,
-        customerOpenedPanels: state.customerReducers.customerOpenedPanels,
-        selectedContact: state.customerReducers.selectedContact,
-        selectedNote: state.customerReducers.selectedNote,
-        selectedDirection: state.customerReducers.selectedDirection,
-        contactSearch: state.customerReducers.contactSearch,
-        automaticEmailsTo: state.customerReducers.automaticEmailsTo,
-        automaticEmailsCc: state.customerReducers.automaticEmailsCc,
-        automaticEmailsBcc: state.customerReducers.automaticEmailsBcc,
-        showingContactList: state.customerReducers.showingContactList,
-        customerSearch: state.customerReducers.customerSearch,
-        selectedDocument: state.customerReducers.selectedDocument,
-
-        selectedBillToCompanyInfo: state.dispatchReducers.selectedBillToCompanyInfo,
-        selectedBillToCompanyContact: state.dispatchReducers.selectedBillToCompanyContact,
-
-        selectedShipperCompanyInfo: state.dispatchReducers.selectedShipperCompanyInfo,
-        selectedShipperCompanyContact: state.dispatchReducers.selectedShipperCompanyContact,
-
-        selectedConsigneeCompanyInfo: state.dispatchReducers.selectedConsigneeCompanyInfo,
-        selectedConsigneeCompanyContact: state.dispatchReducers.selectedConsigneeCompanyContact,
-    }
-}
-
-export default connect(mapStateToProps, {
-    setCustomers,
-    setSelectedCustomer,
-    setCustomerPanels,
-    setSelectedContact,
-    setSelectedNote,
-    setSelectedDirection,
-    setContactSearch,
-    setAutomaticEmailsTo,
-    setAutomaticEmailsCc,
-    setAutomaticEmailsBcc,
-    setShowingContactList,
-    setCustomerSearch,
-    setCustomerContacts,
-    setContactSearchCustomer,
-    setIsEditingContact,
-    setSelectedDocument,
-
-    setSelectedBillToCompanyInfo,
-    setSelectedBillToCompanyContact,
-
-    setSelectedShipperCompanyInfo,
-    setSelectedShipperCompanyContact,
-
-    setSelectedConsigneeCompanyInfo,
-    setSelectedConsigneeCompanyContact,
-    setCustomerOpenedPanels
-})(Customers)
+export default connect(null, null)(Customers)

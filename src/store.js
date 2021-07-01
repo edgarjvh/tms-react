@@ -1,5 +1,5 @@
 import { createStore, combineReducers, applyMiddleware } from 'redux';
-import {systemReducers,companyReducers, customerReducers, carrierReducers, invoiceReducers, dispatchReducers } from './reducers';
+import {systemReducers,companyReducers, customerReducers, carrierReducers, invoiceReducers, dispatchReducers, loadBoardReducers } from './reducers';
 import thunk from 'redux-thunk';
 
 export const store = createStore(
@@ -9,7 +9,8 @@ export const store = createStore(
         customerReducers,
         carrierReducers,
         invoiceReducers,
-        dispatchReducers
+        dispatchReducers,
+        loadBoardReducers
     })
     // applyMiddleware(thunk)
 );

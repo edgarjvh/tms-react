@@ -1,0 +1,64 @@
+.change-carrier-content {
+    width         : 400px;
+    height        : 300px;
+    border-radius : 15px;
+    box-shadow    : 0 0 5px 1px rgba(0, 0, 0, 0.7);
+    position      : relative;
+    display       : flex;
+    flex-direction: column;
+    padding       : .5rem;
+
+    /* Permalink - use to edit and share this gradient: https://colorzilla.com/gradient-editor/#ffffff+18,ffffff+18,d3d3d3+100 */
+    background: rgb(255, 255, 255);
+    /* Old browsers */
+    background: -moz-radial-gradient(center, ellipse cover, rgba(255, 255, 255, 1) 18%, rgba(255, 255, 255, 1) 18%, rgba(211, 211, 211, 1) 100%);
+    /* FF3.6-15 */
+    background: -webkit-radial-gradient(center, ellipse cover, rgba(255, 255, 255, 1) 18%, rgba(255, 255, 255, 1) 18%, rgba(211, 211, 211, 1) 100%);
+    /* Chrome10-25,Safari5.1-6 */
+    background: radial-gradient(ellipse at center, rgba(255, 255, 255, 1) 18%, rgba(255, 255, 255, 1) 18%, rgba(211, 211, 211, 1) 100%);
+    /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+    filter    : progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#d3d3d3', GradientType=1);
+    /* IE6-9 fallback on horizontal gradient */
+
+    .form-container {
+        display           : grid;
+        grid-gap          : .6rem;
+        grid-template-rows: 1fr 1fr;
+        flex-grow         : 1;
+
+        .form-title {
+            font-size: 0.7rem;
+        }
+
+        .mochi-button-decorator,
+        .mochi-button-base {
+            font-size: 0.7rem !important;
+        }
+
+        .loading-container2{
+            display: flex;
+            flex-grow: 1;
+            justify-content: center;
+            align-items: center;
+        }
+    }
+
+    .button-container {
+        display        : flex;
+        justify-content: space-between;
+        margin-top     : .5rem;
+
+        .mochi-button {
+            pointer-events: all;
+
+            &.disabled {
+                pointer-events: none;
+
+                .mochi-button-decorator,
+                .mochi-button-base {
+                    color: rgba(0, 0, 0, 0.8);
+                }
+            }
+        }
+    }
+}

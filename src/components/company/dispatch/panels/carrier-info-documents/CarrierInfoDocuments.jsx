@@ -33,14 +33,14 @@ function CarrierInfoDocuments(props) {
     const tagsOnKeydown = (e) => {
         let keyCode = e.keyCode || e.which;
 
-        if (keyCode === 32) {
-            e.preventDefault();
-            props.setSelectedCarrierDocument({ ...props.selectedDocument, tags: ((props.selectedDocument.tags || '') + ' ' + props.documentTags).trim() });
+        if (keyCode === 13) {
+            props.setSelectedCarrierDocument({ ...props.selectedDocument, tags: (props.selectedDocument.tags || '') === '' ? props.documentTags : props.selectedDocument.tags + '|' + props.documentTags });
             props.setCarrierDocumentTags('');
             refTagInput.current.focus();
         }
         if (keyCode === 9) {
-            props.setSelectedCarrierDocument({ ...props.selectedDocument, tags: ((props.selectedDocument.tags || '') + ' ' + props.documentTags).trim() });
+            e.preventDefault();
+            props.setSelectedCarrierDocument({ ...props.selectedDocument, tags: (props.selectedDocument.tags || '') === '' ? props.documentTags : props.selectedDocument.tags + '|' + props.documentTags });
             props.setCarrierDocumentTags('');
             refTagInput.current.focus();
         }
@@ -123,6 +123,11 @@ function CarrierInfoDocuments(props) {
         refDocumentInput.current.click();
     }
 
+    const quickTypeLinkClasses = classnames({
+        'quick-filling-btn': true,
+        'disabled': (props.selectedDocument.id || 0) > 0
+    });
+
     return (
         <div className="panel-content">
             <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
@@ -153,6 +158,36 @@ function CarrierInfoDocuments(props) {
                             <div className="mochi-button-base">Clear</div>
                             <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
                         </div>
+
+                        <div style={{
+                            margin: '0 0.5rem',
+                            fontSize: '0.7rem',
+                            color: 'rgba(0,0,0,0.7)'
+                        }}>Quick type links:</div>
+
+                        <div className={quickTypeLinkClasses} onClick={() => {
+                            props.setSelectedCarrierDocument({
+                                id: 0,
+                                user_id: Math.floor(Math.random() * (15 - 1)) + 1,
+                                date_entered: moment().format('MM/DD/YYYY'),
+                                title: 'Signed Rate Confirmation',
+                                subject: 'Signed Rate Confirmation',
+                                tags: 'Signed Rate Confirmation|Rate Confirmation'                                
+                            });
+                            refTagInput.current.focus();
+                        }}>Signed Rate Confirmation</div>
+
+                        <div className={quickTypeLinkClasses} onClick={() => {
+                            props.setSelectedCarrierDocument({
+                                id: 0,
+                                user_id: Math.floor(Math.random() * (15 - 1)) + 1,
+                                date_entered: moment().format('MM/DD/YYYY'),
+                                title: 'Signed Bill of Lading',
+                                subject: 'Signed BOL',
+                                tags: 'Signed BOL|BOL|Delivery Receipt'
+                            });
+                            refTagInput.current.focus();
+                        }}>Signed BOL</div>
                     </div>
 
                     <div className="documents-fields-row">
@@ -180,7 +215,7 @@ function CarrierInfoDocuments(props) {
                             flexGrow: 1, marginRight: 10
                         }}>
                             {
-                                (props.selectedDocument.tags || '').split(' ').map((item, index) => {
+                                (props.selectedDocument.tags || '').split('|').map((item, index) => {
                                     if (item.trim() !== '') {
                                         return (
                                             <div key={index} style={{

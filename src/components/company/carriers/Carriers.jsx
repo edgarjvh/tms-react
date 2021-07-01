@@ -19,37 +19,42 @@ import { faCaretDown, faCaretRight, faCalendarAlt } from '@fortawesome/free-soli
 import { useDetectClickOutside } from "react-detect-click-outside";
 import Highlighter from "react-highlight-words";
 import Calendar from './calendar/Calendar.jsx';
-import {
-    setCarriers,
-    setSelectedCarrier,
-    setCarrierPanels,
-    setSelectedCarrierContact,
-    setSelectedCarrierNote,
-    setContactSearch,
-    setShowingCarrierContactList,
-    setCarrierSearch,
-    setCarrierContacts,
-    setContactSearchCarrier,
-    setIsEditingContact,
-    setSelectedCarrierDocument,
-    setDrivers,
-    setSelectedDriver,
-    setEquipments,
-    setInsuranceTypes,
-    setSelectedEquipment,
-    setSelectedInsuranceType,
-    setFactoringCompanySearch,
-    setFactoringCompanies,
-    setCarrierInsurances,
-    setSelectedInsurance,
-    setSelectedFactoringCompany,
-    setCarrierOpenedPanels
-} from '../../../actions';
-
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
+import Rating from '@material-ui/lab/Rating';
 
 function Carriers(props) {
+    const refCarrierCode = useRef(null);
+    const refCarrierContactPhone = useRef();
+    const [carrierContactPhoneItems, setCarrierContactPhoneItems] = useState([]);
+    const [showCarrierContactPhones, setShowCarrierContactPhones] = useState(false);
+    const refCarrierContactPhoneDropDown = useDetectClickOutside({ onTriggered: async () => { await setShowCarrierContactPhones(false) } });
+    const refCarrierContactPhonePopupItems = useRef([]);
+
+    const refCarrierContactEmail = useRef();
+    const [carrierContactEmailItems, setCarrierContactEmailItems] = useState([]);
+    const [showCarrierContactEmails, setShowCarrierContactEmails] = useState(false);
+    const refCarrierContactEmailDropDown = useDetectClickOutside({ onTriggered: async () => { await setShowCarrierContactEmails(false) } });
+    const refCarrierContactEmailPopupItems = useRef([]);
+
+    const refMailingContactName = useRef();
+    const [mailingContactNameItems, setMailingContactNameItems] = useState([]);
+    const [showMailingContactNames, setShowMailingContactNames] = useState(false);
+    const refMailingContactNameDropDown = useDetectClickOutside({ onTriggered: async () => { await setShowMailingContactNames(false) } });
+    const refMailingContactNamePopupItems = useRef([]);
+
+    const refMailingContactPhone = useRef();
+    const [mailingContactPhoneItems, setMailingContactPhoneItems] = useState([]);
+    const [showMailingContactPhones, setShowMailingContactPhones] = useState(false);
+    const refMailingContactPhoneDropDown = useDetectClickOutside({ onTriggered: async () => { await setShowMailingContactPhones(false) } });
+    const refMailingContactPhonePopupItems = useRef([]);
+
+    const refMailingContactEmail = useRef();
+    const [mailingContactEmailItems, setMailingContactEmailItems] = useState([]);
+    const [showMailingContactEmails, setShowMailingContactEmails] = useState(false);
+    const refMailingContactEmailDropDown = useDetectClickOutside({ onTriggered: async () => { await setShowMailingContactEmails(false) } });
+    const refMailingContactEmailPopupItems = useRef([]);
+
     const [preSelectedExpirationDate, setPreSelectedExpirationDate] = useState(moment());
     const [popupItems, setPopupItems] = useState([]);
 
@@ -68,8 +73,10 @@ function Carriers(props) {
     const [isCalendarShown, setIsCalendarShown] = useState(false);
     const refInsuranceCalendarDropDown = useDetectClickOutside({ onTriggered: async () => { await setIsCalendarShown(false) } });
 
+    const [ratingValue, setRatingValue] = useState(3);
     const [isSavingCarrier, setIsSavingCarrier] = useState(false);
     const [isSavingContact, setIsSavingContact] = useState(false);
+    const [isSavingMailingAddress, setIsSavingMailingAddress] = useState(false);
     const [isSavingDriver, setIsSavingDriver] = useState(false);
     const [isSavingInsurance, setIsSavingInsurance] = useState(false);
     const [popupActiveInput, setPopupActiveInput] = useState('');
@@ -102,6 +109,162 @@ function Carriers(props) {
     const modalTransitionProps = useSpring({ opacity: (props.selectedNote.id !== undefined || props.selectedDirection.id !== undefined) ? 1 : 0 });
 
     useEffect(() => {
+        if (isSavingCarrier) {
+            let selectedCarrier = props.selectedCarrier;
+
+            if (selectedCarrier.id === undefined || selectedCarrier.id === -1) {
+                selectedCarrier.id = 0;
+            }
+
+            if (
+                (selectedCarrier.name || '').trim().replace(/\s/g, "").replace("&", "A") !== "" &&
+                (selectedCarrier.city || '').trim().replace(/\s/g, "") !== "" &&
+                (selectedCarrier.state || '').trim().replace(/\s/g, "") !== "" &&
+                (selectedCarrier.address1 || '').trim() !== "" &&
+                (selectedCarrier.zip || '').trim() !== ""
+            ) {
+                let parseCity = selectedCarrier.city.trim().replace(/\s/g, "").substring(0, 3);
+
+                if (parseCity.toLowerCase() === "ft.") {
+                    parseCity = "FO";
+                }
+                if (parseCity.toLowerCase() === "mt.") {
+                    parseCity = "MO";
+                }
+                if (parseCity.toLowerCase() === "st.") {
+                    parseCity = "SA";
+                }
+
+                let newCode = (selectedCarrier.name || '').trim().replace(/\s/g, "").replace("&", "A").substring(0, 3) + parseCity.substring(0, 2) + (selectedCarrier.state || '').trim().replace(/\s/g, "").substring(0, 2);
+
+                selectedCarrier.code = newCode.toUpperCase();
+
+                $.post(props.serverUrl + '/saveCarrier', selectedCarrier).then(async res => {
+                    if (res.result === 'OK') {
+                        if (props.selectedCarrier.id === undefined && (props.selectedCarrier.id || 0) === 0) {
+                            await props.setSelectedCarrier({ ...props.selectedCarrier, id: res.carrier.id });
+                        }
+
+                        (res.carrier.contacts || []).map(async (contact, index) => {
+
+                            if (contact.is_primary === 1) {
+                                await props.setSelectedCarrierContact(contact);
+                            }
+
+                            return true;
+                        });
+                    }
+
+                    await setIsSavingCarrier(false);
+                }).catch(e => {
+                    console.log('error on saving carrier', e);
+                    setIsSavingCarrier(false);
+                });
+            }
+        }
+    }, [isSavingCarrier]);
+
+    useEffect(() => {
+        if (isSavingContact) {
+            if (props.selectedCarrier.id === undefined) {
+                return;
+            }
+
+            let contact = props.selectedContact;
+
+            if (contact.carrier_id === undefined || contact.carrier_id === 0) {
+                contact.carrier_id = props.selectedCarrier.id;
+            }
+
+            if ((contact.first_name || '').trim() === '' || (contact.last_name || '').trim() === '' || (contact.phone_work || '').trim() === '' || (contact.email_work || '').trim() === '') {
+                return;
+            }
+
+            if ((contact.address1 || '').trim() === '' && (contact.address2 || '').trim() === '') {
+                contact.address1 = props.selectedCarrier.address1;
+                contact.address2 = props.selectedCarrier.address2;
+                contact.city = props.selectedCarrier.city;
+                contact.state = props.selectedCarrier.state;
+                contact.zip_code = props.selectedCarrier.zip;
+            }
+
+            $.post(props.serverUrl + '/saveCarrierContact', contact).then(async res => {
+                if (res.result === 'OK') {
+                    await props.setSelectedCarrier({ ...props.selectedCarrier, contacts: res.contacts });
+                    await props.setSelectedCarrierContact(res.contact);
+                }
+
+                setIsSavingContact(false);
+            }).catch(e => {
+                console.log('error on saving carrier contact', e);
+                setIsSavingContact(false);
+            });
+        }
+    }, [isSavingContact]);
+
+    useEffect(() => {
+        if (isSavingMailingAddress) {
+            if ((props.selectedCarrier.id || 0) > 0) {
+                let mailing_address = props.selectedCarrier.mailing_address || {};
+
+                if (mailing_address.id !== undefined) {
+                    mailing_address.id = 0;
+                }
+                mailing_address.carrier_id = props.selectedCarrier.id;
+
+                if (
+                    (mailing_address.name || '').trim().replace(/\s/g, "").replace("&", "A") !== "" &&
+                    (mailing_address.city || '').trim().replace(/\s/g, "") !== "" &&
+                    (mailing_address.state || '').trim().replace(/\s/g, "") !== "" &&
+                    (mailing_address.address1 || '').trim() !== "" &&
+                    (mailing_address.zip || '').trim() !== ""
+                ) {
+                    let parseCity = mailing_address.city.trim().replace(/\s/g, "").substring(0, 3);
+
+                    if (parseCity.toLowerCase() === "ft.") {
+                        parseCity = "FO";
+                    }
+                    if (parseCity.toLowerCase() === "mt.") {
+                        parseCity = "MO";
+                    }
+                    if (parseCity.toLowerCase() === "st.") {
+                        parseCity = "SA";
+                    }
+
+                    let newCode = (mailing_address.name || '').trim().replace(/\s/g, "").replace("&", "A").substring(0, 3) + parseCity.substring(0, 2) + (mailing_address.state || '').trim().replace(/\s/g, "").substring(0, 2);
+
+                    mailing_address.code = newCode;
+
+                    $.post(props.serverUrl + '/saveCarrierMailingAddress', mailing_address).then(async res => {
+                        if (res.result === 'OK') {
+                            await props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: res.mailing_address });
+                        }
+
+                        await setIsSavingMailingAddress(false);
+                    }).catch(e => {
+                        console.log('error on saving carrier mailing address', e);
+                        setIsSavingMailingAddress(false);
+                    });
+                }
+            }
+        }
+    }, [isSavingMailingAddress])
+
+    useEffect(() => {
+        refCarrierCode.current.focus({
+            preventScroll: true
+        });
+    }, [])
+
+    useEffect(() => {
+        if (props.screenFocused) {
+            refCarrierCode.current.focus({
+                preventScroll: true
+            });
+        }
+    }, [props.screenFocused])
+
+    useEffect(() => {
         $.post(props.serverUrl + '/getCarrierPopupItems').then(res => {
             if (res.result === 'OK') {
                 props.setEquipments(res.equipments.map(e => {
@@ -122,6 +285,70 @@ function Carriers(props) {
             setDriverEquipmentDropdownItems([]);
         }
     }, [isCalendarShown])
+
+    useEffect(async () => {
+        let emails = [];
+        (props.selectedCarrier?.mailing_address?.mailing_contact?.email_work || '') !== '' && emails.push({ id: 1, type: 'work', email: props.selectedCarrier?.mailing_address?.mailing_contact.email_work });
+        (props.selectedCarrier?.mailing_address?.mailing_contact?.email_personal || '') !== '' && emails.push({ id: 2, type: 'personal', email: props.selectedCarrier?.mailing_address?.mailing_contact.email_personal });
+        (props.selectedCarrier?.mailing_address?.mailing_contact?.email_other || '') !== '' && emails.push({ id: 3, type: 'other', email: props.selectedCarrier?.mailing_address?.mailing_contact.email_other });
+
+        await setMailingContactEmailItems(emails);
+    }, [
+        props.selectedCarrier?.mailing_address?.mailing_contact?.email_work,
+        props.selectedCarrier?.mailing_address?.mailing_contact?.email_personal,
+        props.selectedCarrier?.mailing_address?.mailing_contact?.email_other,
+        props.selectedCarrier?.mailing_address?.mailing_contact?.primary_email
+    ]);
+
+    useEffect(async () => {
+        let phones = [];
+        (props.selectedContact?.phone_work || '') !== '' && phones.push({ id: 1, type: 'work', phone: props.selectedContact.phone_work });
+        (props.selectedContact?.phone_work_fax || '') !== '' && phones.push({ id: 2, type: 'fax', phone: props.selectedContact.phone_work_fax });
+        (props.selectedContact?.phone_mobile || '') !== '' && phones.push({ id: 3, type: 'mobile', phone: props.selectedContact.phone_mobile });
+        (props.selectedContact?.phone_direct || '') !== '' && phones.push({ id: 4, type: 'direct', phone: props.selectedContact.phone_direct });
+        (props.selectedContact?.phone_other || '') !== '' && phones.push({ id: 5, type: 'other', phone: props.selectedContact.phone_other });
+
+        await setCarrierContactPhoneItems(phones);
+    }, [
+        props.selectedContact?.phone_work,
+        props.selectedContact?.phone_work_fax,
+        props.selectedContact?.phone_mobile,
+        props.selectedContact?.phone_direct,
+        props.selectedContact?.phone_other,
+        props.selectedContact?.primary_phone
+    ]);
+
+    useEffect(async () => {
+        let emails = [];
+        (props.selectedContact?.email_work || '') !== '' && emails.push({ id: 1, type: 'work', email: props.selectedContact.email_work });
+        (props.selectedContact?.email_personal || '') !== '' && emails.push({ id: 2, type: 'personal', email: props.selectedContact.email_personal });
+        (props.selectedContact?.email_other || '') !== '' && emails.push({ id: 3, type: 'other', email: props.selectedContact.email_other });
+
+        await setCarrierContactEmailItems(emails);
+    }, [
+        props.selectedContact?.email_work,
+        props.selectedContact?.email_personal,
+        props.selectedContact?.email_other,
+        props.selectedContact?.primary_email
+    ]);
+
+    useEffect(async () => {
+        let phones = [];
+        (props.selectedCarrier?.mailing_address?.mailing_contact?.phone_work || '') !== '' && phones.push({ id: 1, type: 'work', phone: props.selectedCarrier?.mailing_address?.mailing_contact.phone_work });
+        (props.selectedCarrier?.mailing_address?.mailing_contact?.phone_work_fax || '') !== '' && phones.push({ id: 2, type: 'fax', phone: props.selectedCarrier?.mailing_address?.mailing_contact.phone_work_fax });
+        (props.selectedCarrier?.mailing_address?.mailing_contact?.phone_mobile || '') !== '' && phones.push({ id: 3, type: 'mobile', phone: props.selectedCarrier?.mailing_address?.mailing_contact.phone_mobile });
+        (props.selectedCarrier?.mailing_address?.mailing_contact?.phone_direct || '') !== '' && phones.push({ id: 4, type: 'direct', phone: props.selectedCarrier?.mailing_address?.mailing_contact.phone_direct });
+        (props.selectedCarrier?.mailing_address?.mailing_contact?.phone_other || '') !== '' && phones.push({ id: 5, type: 'other', phone: props.selectedCarrier?.mailing_address?.mailing_contact.phone_other });
+
+        await setMailingContactPhoneItems(phones);
+    }, [
+        props.selectedCarrier?.mailing_address?.mailing_contact?.phone_work,
+        props.selectedCarrier?.mailing_address?.mailing_contact?.phone_work_fax,
+        props.selectedCarrier?.mailing_address?.mailing_contact?.phone_mobile,
+        props.selectedCarrier?.mailing_address?.mailing_contact?.phone_direct,
+        props.selectedCarrier?.mailing_address?.mailing_contact?.phone_other,
+        props.selectedCarrier?.mailing_address?.mailing_contact?.primary_phone
+    ]);
 
     const carrierStars = {
         size: 30,
@@ -183,8 +410,8 @@ function Carriers(props) {
                 await props.setCarrierSearch(carrierSearch);
                 await props.setCarriers(res.carriers);
 
-                if (!props.carrierOpenedPanels.includes('carrier-search')) {
-                    props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'carrier-search']);
+                if (!props.openedPanels.includes(props.carrierSearchPanelName)) {
+                    props.setOpenedPanels([...props.openedPanels, props.carrierSearchPanelName]);
                 }
             }
         });
@@ -227,67 +454,15 @@ function Carriers(props) {
         }
     }
 
+
     const validateCarrierForSaving = (e) => {
 
         let keyCode = e.keyCode || e.which;
 
         if (keyCode === 9 || e.target.id === 'cbox-carrier-do-not-use-btn') {
-            window.clearTimeout(delayTimer);
-
-            window.setTimeout(() => {
-                let selectedCarrier = props.selectedCarrier;
-
-                if (selectedCarrier.id === undefined || selectedCarrier.id === -1) {
-                    selectedCarrier.id = 0;
-                }
-
-                if (
-                    (selectedCarrier.name || '').trim().replace(/\s/g, "").replace("&", "A") !== "" &&
-                    (selectedCarrier.city || '').trim().replace(/\s/g, "") !== "" &&
-                    (selectedCarrier.state || '').trim().replace(/\s/g, "") !== "" &&
-                    (selectedCarrier.address1 || '').trim() !== "" &&
-                    (selectedCarrier.zip || '').trim() !== ""
-                ) {
-                    let parseCity = selectedCarrier.city.trim().replace(/\s/g, "").substring(0, 3);
-
-                    if (parseCity.toLowerCase() === "ft.") {
-                        parseCity = "FO";
-                    }
-                    if (parseCity.toLowerCase() === "mt.") {
-                        parseCity = "MO";
-                    }
-                    if (parseCity.toLowerCase() === "st.") {
-                        parseCity = "SA";
-                    }
-
-                    let newCode = (selectedCarrier.name || '').trim().replace(/\s/g, "").replace("&", "A").substring(0, 3) + parseCity.substring(0, 2) + (selectedCarrier.state || '').trim().replace(/\s/g, "").substring(0, 2);
-
-                    selectedCarrier.code = newCode.toUpperCase();
-
-                    if (!isSavingCarrier) {
-                        setIsSavingCarrier(true);
-
-                        $.post(props.serverUrl + '/saveCarrier', selectedCarrier).then(async res => {
-                            if (res.result === 'OK') {
-                                if (props.selectedCarrier.id === undefined && (props.selectedCarrier.id || 0) === 0) {
-                                    await props.setSelectedCarrier({ ...props.selectedCarrier, id: res.carrier.id });
-                                }
-
-                                (res.carrier.contacts || []).map(async (contact, index) => {
-
-                                    if (contact.is_primary === 1) {
-                                        await props.setSelectedCarrierContact(contact);
-                                    }
-
-                                    return true;
-                                });
-                            }
-
-                            await setIsSavingCarrier(false);
-                        });
-                    }
-                }
-            }, 300);
+            if (!isSavingCarrier) {
+                setIsSavingCarrier(true);
+            }
         }
     }
 
@@ -295,39 +470,8 @@ function Carriers(props) {
         let keyCode = e.keyCode || e.which;
 
         if (keyCode === 9) {
-            if (props.selectedCarrier.id === undefined) {
-                return;
-            }
-
-            let contact = props.selectedContact;
-
-            if (contact.carrier_id === undefined || contact.carrier_id === 0) {
-                contact.carrier_id = props.selectedCarrier.id;
-            }
-
-            if ((contact.first_name || '').trim() === '' || (contact.last_name || '').trim() === '' || (contact.phone_work || '').trim() === '' || (contact.email_work || '').trim() === '') {
-                return;
-            }
-
-            if ((contact.address1 || '').trim() === '' && (contact.address2 || '').trim() === '') {
-                contact.address1 = props.selectedCarrier.address1;
-                contact.address2 = props.selectedCarrier.address2;
-                contact.city = props.selectedCarrier.city;
-                contact.state = props.selectedCarrier.state;
-                contact.zip_code = props.selectedCarrier.zip;
-            }
-
             if (!isSavingContact) {
                 setIsSavingContact(true);
-
-                $.post(props.serverUrl + '/saveCarrierContact', contact).then(async res => {
-                    if (res.result === 'OK') {
-                        await props.setSelectedCarrier({ ...props.selectedCarrier, contacts: res.contacts });
-                        await props.setSelectedCarrierContact(res.contact);
-                    }
-
-                    setIsSavingContact(false);
-                });
             }
         }
     }
@@ -411,10 +555,13 @@ function Carriers(props) {
         $.post(props.serverUrl + '/carrierContactsSearch', { search: filters }).then(async res => {
             if (res.result === 'OK') {
                 await props.setContactSearch({ ...props.contactSearch, filters: filters });
-                await props.setCarrierContacts(res.contacts);
+                await props.setCarrierContacts(res.contacts.map((contact, index) => {
+                    contact.customer = contact.carrier;
+                    return contact;
+                }))
 
-                if (!props.carrierOpenedPanels.includes('carrier-contact-search')) {
-                    props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'carrier-contact-search']);
+                if (!props.openedPanels.includes(props.carrierContactSearchPanelName)) {
+                    props.setOpenedPanels([...props.openedPanels, props.carrierContactSearchPanelName]);
                 }
             }
         });
@@ -1222,47 +1369,8 @@ function Carriers(props) {
         let keyCode = e.keyCode || e.which;
 
         if (keyCode === 9) {
-            if ((props.selectedCarrier.id || 0) > 0) {
-                window.clearTimeout(delayTimer);
-
-                window.setTimeout(() => {
-                    let mailing_address = props.selectedCarrier.mailing_address || {};
-                    if (mailing_address.id !== undefined) {
-                        mailing_address.id = 0;
-                    }
-                    mailing_address.carrier_id = props.selectedCarrier.id;
-
-                    if (
-                        (mailing_address.name || '').trim().replace(/\s/g, "").replace("&", "A") !== "" &&
-                        (mailing_address.city || '').trim().replace(/\s/g, "") !== "" &&
-                        (mailing_address.state || '').trim().replace(/\s/g, "") !== "" &&
-                        (mailing_address.address1 || '').trim() !== "" &&
-                        (mailing_address.zip || '').trim() !== ""
-                    ) {
-                        let parseCity = mailing_address.city.trim().replace(/\s/g, "").substring(0, 3);
-
-                        if (parseCity.toLowerCase() === "ft.") {
-                            parseCity = "FO";
-                        }
-                        if (parseCity.toLowerCase() === "mt.") {
-                            parseCity = "MO";
-                        }
-                        if (parseCity.toLowerCase() === "st.") {
-                            parseCity = "SA";
-                        }
-
-                        let newCode = (mailing_address.name || '').trim().replace(/\s/g, "").replace("&", "A").substring(0, 3) + parseCity.substring(0, 2) + (mailing_address.state || '').trim().replace(/\s/g, "").substring(0, 2);
-
-                        mailing_address.code = newCode;
-
-
-                        $.post(props.serverUrl + '/saveCarrierMailingAddress', mailing_address).then(async res => {
-                            if (res.result === 'OK') {
-                                await props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: res.mailing_address });
-                            }
-                        });
-                    }
-                }, 300);
+            if (!isSavingMailingAddress) {
+                setIsSavingMailingAddress(true);
             }
         }
     }
@@ -1279,7 +1387,7 @@ function Carriers(props) {
         }
     }
 
-    const remitToAddressBtn = async (e) => {
+    const remitToAddressBtn = (e) => {
         if (props.selectedCarrier.id === undefined) {
             window.alert('You must select a carrier first!');
             return;
@@ -1307,12 +1415,82 @@ function Carriers(props) {
         mailing_address.ext = props.selectedCarrier.ext;
         mailing_address.email = props.selectedCarrier.email;
 
-        await props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: mailing_address });
-        await $.post(props.serverUrl + '/saveCarrierMailingAddress', mailing_address).then(async res => {
-            if (res.result === 'OK') {
-                await props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: res.mailing_address });
-            }
-        });
+        if ((props.selectedContact?.id || 0) > 0) {
+            mailing_address.mailing_contact_id = props.selectedContact.id;
+            mailing_address.mailing_contact = props.selectedContact;
+
+            mailing_address.mailing_contact_primary_phone = props.selectedContact.phone_work !== ''
+                ? 'work'
+                : props.selectedContact.phone_work_fax !== ''
+                    ? 'fax'
+                    : props.selectedContact.phone_mobile !== ''
+                        ? 'mobile'
+                        : props.selectedContact.phone_direct !== ''
+                            ? 'direct'
+                            : props.selectedContact.phone_other !== ''
+                                ? 'other' : 'work';
+
+            mailing_address.mailing_contact_primary_email = props.selectedContact.email_work !== ''
+                ? 'work'
+                : props.selectedContact.email_personal !== ''
+                    ? 'personal'
+                    : props.selectedContact.email_other !== ''
+                        ? 'other' : 'work';
+
+        } else if (props.selectedCarrier.contacts.findIndex(x => x.is_primary === 1) > -1) {
+            mailing_address.mailing_contact_id = props.selectedCarrier.contacts[props.selectedCarrier.contacts.findIndex(x => x.is_primary === 1)].id;
+            mailing_address.mailing_contact = props.selectedCarrier.contacts[props.selectedCarrier.contacts.findIndex(x => x.is_primary === 1)];
+
+            mailing_address.mailing_contact_primary_phone = props.selectedCarrier.contacts[props.selectedCarrier.contacts.findIndex(x => x.is_primary === 1)].phone_work !== ''
+                ? 'work'
+                : props.selectedCarrier.contacts[props.selectedCarrier.contacts.findIndex(x => x.is_primary === 1)].phone_work_fax !== ''
+                    ? 'fax'
+                    : props.selectedCarrier.contacts[props.selectedCarrier.contacts.findIndex(x => x.is_primary === 1)].phone_mobile !== ''
+                        ? 'mobile'
+                        : props.selectedCarrier.contacts[props.selectedCarrier.contacts.findIndex(x => x.is_primary === 1)].phone_direct !== ''
+                            ? 'direct'
+                            : props.selectedCarrier.contacts[props.selectedCarrier.contacts.findIndex(x => x.is_primary === 1)].phone_other !== ''
+                                ? 'other' : 'work';
+
+            mailing_address.mailing_contact_primary_email = props.selectedCarrier.contacts[props.selectedCarrier.contacts.findIndex(x => x.is_primary === 1)].email_work !== ''
+                ? 'work'
+                : props.selectedCarrier.contacts[props.selectedCarrier.contacts.findIndex(x => x.is_primary === 1)].email_personal !== ''
+                    ? 'personal'
+                    : props.selectedCarrier.contacts[props.selectedCarrier.contacts.findIndex(x => x.is_primary === 1)].email_other !== ''
+                        ? 'other' : 'work';
+
+        } else if (props.selectedCarrier.contacts.length > 0) {
+            mailing_address.mailing_contact_id = props.selectedCarrier.contacts[0].id;
+            mailing_address.mailing_contact = props.selectedCarrier.contacts[0];
+
+            mailing_address.mailing_contact_primary_phone = props.selectedCarrier.contacts[0].phone_work !== ''
+                ? 'work'
+                : props.selectedCarrier.contacts[0].phone_work_fax !== ''
+                    ? 'fax'
+                    : props.selectedCarrier.contacts[0].phone_mobile !== ''
+                        ? 'mobile'
+                        : props.selectedCarrier.contacts[0].phone_direct !== ''
+                            ? 'direct'
+                            : props.selectedCarrier.contacts[0].phone_other !== ''
+                                ? 'other' : 'work';
+
+            mailing_address.mailing_contact_primary_email = props.selectedCarrier.contacts[0].email_work !== ''
+                ? 'work'
+                : props.selectedCarrier.contacts[0].email_personal !== ''
+                    ? 'personal'
+                    : props.selectedCarrier.contacts[0].email_other !== ''
+                        ? 'other' : 'work';
+
+        } else {
+            mailing_address.mailing_contact_id = 0;
+            mailing_address.mailing_contact = {};
+            mailing_address.mailing_contact_primary_phone = 'work';
+            mailing_address.mailing_contact_primary_email = 'work';
+        }
+
+        props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: mailing_address });
+
+        validateMailingAddressToSave({ keyCode: 9 });
     }
 
     const validateFactoringCompanyToSave = (e) => {
@@ -1408,8 +1586,8 @@ function Carriers(props) {
                 await props.setFactoringCompanySearch(factoringCompanySearch);
                 await props.setFactoringCompanies(res.factoring_companies);
 
-                if (!props.carrierOpenedPanels.includes('carrier-factoring-company-search')) {
-                    props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'carrier-factoring-company-search']);
+                if (!props.openedPanels.includes(props.carrierFactoringCompanySearchPanelName)) {
+                    props.setOpenedPanels([...props.openedPanels, props.carrierFactoringCompanySearchPanelName]);
                 }
             }
         });
@@ -1428,8 +1606,15 @@ function Carriers(props) {
 
         props.setSelectedFactoringCompany({ ...props.selectedCarrier.factoring_company });
 
-        if (!props.carrierOpenedPanels.includes('carrier-factoring-company')) {
-            props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'carrier-factoring-company']);
+        (props.selectedCarrier?.factoring_company?.contacts || []).map(async c => {
+            if (c.is_primary === 1) {
+                props.setSelectedFactoringCompanyContact(c);
+            }
+            return true;
+        });
+
+        if (!props.openedPanels.includes(props.carrierFactoringCompanyPanelName)) {
+            props.setOpenedPanels([...props.openedPanels, props.carrierFactoringCompanyPanelName]);
         }
     }
 
@@ -1621,7 +1806,7 @@ function Carriers(props) {
         if (key >= 37 && key <= 40) {
             let expiration_date = e.target.value.trim() === '' ? moment() : moment(getFormattedDates(props.selectedInsurance?.expiration_date || ''), 'MM/DD/YYYY');
             await setPreSelectedExpirationDate(expiration_date);
-            
+
             if (isCalendarShown) {
                 e.preventDefault();
 
@@ -1678,8 +1863,8 @@ function Carriers(props) {
                 date_entered: moment().format('MM/DD/YYYY')
             });
 
-            if (!props.carrierOpenedPanels.includes('documents')) {
-                props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'documents']);
+            if (!props.openedPanels.includes(props.carrierDocumentsPanelName)) {
+                props.setOpenedPanels([...props.openedPanels, props.carrierDocumentsPanelName]);
             }
         } else {
             window.alert('You must select a carrier first!');
@@ -1687,20 +1872,24 @@ function Carriers(props) {
     }
 
     const revenueInformationBtnClick = () => {
-        if (!props.carrierOpenedPanels.includes('revenue-information')) {
-            props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'revenue-information']);
+        if (!props.openedPanels.includes(props.carrierRevenueInformationPanelName)) {
+            props.setOpenedPanels([...props.openedPanels, props.carrierRevenueInformationPanelName]);
         }
     }
 
     const equipmentInformationBtnClick = () => {
-        if (!props.carrierOpenedPanels.includes('equipment-information')) {
-            props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'equipment-information']);
+        if ((props.selectedCarrier?.id || 0) > 0) {
+            props.setEquipmentInformation({ carrier: props.selectedCarrier });
+        }
+
+        if (!props.openedPanels.includes(props.carrierEquipmentPanelName)) {
+            props.setOpenedPanels([...props.openedPanels, props.carrierEquipmentPanelName]);
         }
     }
 
     const orderHistoryBtnClick = () => {
-        if (!props.carrierOpenedPanels.includes('order-history')) {
-            props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'order-history']);
+        if (!props.openedPanels.includes(props.carrierOrderHistoryPanelName)) {
+            props.setOpenedPanels([...props.openedPanels, props.carrierOrderHistoryPanelName]);
         }
     }
 
@@ -1799,10 +1988,15 @@ function Carriers(props) {
 
     return (
         <div className="carriers-main-container" style={{
-            borderRadius: props.scale === 1 ? 0 : '20px'
+            borderRadius: props.scale === 1 ? 0 : '20px',
+            background: props.isOnPanel ? 'transparent' : 'rgb(250, 250, 250)',
+            background: props.isOnPanel ? 'transparent' : '-moz-radial-gradient(center, ellipse cover, rgba(250, 250, 250, 1) 0%, rgba(200, 200, 200, 1) 100%)',
+            background: props.isOnPanel ? 'transparent' : '-webkit-radial-gradient(center, ellipse cover, rgba(250, 250, 250, 1) 0%, rgba(200, 200, 200, 1) 100%)',
+            background: props.isOnPanel ? 'transparent' : 'radial-gradient(ellipse at center, rgba(250, 250, 250, 1) 0%, rgba(200, 200, 200, 1) 100%)',
+            padding: props.isOnPanel ? '10px 0' : 10
         }}>
 
-            <PanelContainer panels={props.panels} />
+            {!props.isOnPanel && <PanelContainer />}
 
             <div className="fields-container-row">
                 <div className="fields-container-col">
@@ -1834,6 +2028,7 @@ function Carriers(props) {
                         <div className="form-row">
                             <div className="input-box-container input-code">
                                 <input tabIndex={43 + props.tabTimes} type="text" placeholder="Code" maxLength="8"
+                                    ref={refCarrierCode}
                                     onKeyDown={searchCarrierByCode}
                                     onChange={e => props.setSelectedCarrier({ ...props.selectedCarrier, code: e.target.value })}
                                     value={(props.selectedCarrier.code_number || 0) === 0 ? (props.selectedCarrier.code || '') : props.selectedCarrier.code + props.selectedCarrier.code_number} />
@@ -1901,17 +2096,24 @@ function Carriers(props) {
                         padding: '15px 5px'
                     }}>
                         <div className="input-toggle-container">
-                            <input type="checkbox" id="cbox-carrier-do-not-use-btn" onChange={(e) => {
+                            <input type="checkbox" id={props.panelName + 'cbox-carrier-do-not-use-btn'} onChange={(e) => {
                                 props.setSelectedCarrier({ ...props.selectedCarrier, do_not_use: e.target.checked ? 1 : 0 });
                                 // validateCarrierForSaving(e)
                             }} checked={(props.selectedCarrier.do_not_use || 0) === 1} />
-                            <label htmlFor="cbox-carrier-do-not-use-btn">
+                            <label htmlFor={props.panelName + 'cbox-carrier-do-not-use-btn'}>
                                 <div className="label-text">DO NOT USE</div>
                                 <div className="input-toggle-btn"></div>
                             </label>
                         </div>
 
-                        <ReactStars {...carrierStars} />
+                        {/* <ReactStars {...carrierStars} /> */}
+                        <Rating
+                            name="simple-controlled"
+                            value={ratingValue}
+                            onChange={(event, newValue) => {
+                                setRatingValue(newValue);
+                            }}
+                        />
 
                         <div className="input-box-container" style={{ width: '100%' }}>
                             <input tabIndex={76 + props.tabTimes} type="text" placeholder='MC Number'
@@ -1979,8 +2181,8 @@ function Carriers(props) {
                                     await props.setIsEditingContact(false);
                                     await props.setContactSearchCarrier({ ...props.selectedCarrier, selectedContact: props.selectedContact });
 
-                                    if (!props.carrierOpenedPanels.includes('carrier-contacts')) {
-                                        props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'carrier-contacts']);
+                                    if (!props.openedPanels.includes(props.carrierContactsPanelName)) {
+                                        props.setOpenedPanels([...props.openedPanels, props.carrierContactsPanelName]);
                                     }
                                 }}>
                                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
@@ -1996,8 +2198,8 @@ function Carriers(props) {
                                     props.setContactSearchCarrier({ ...props.selectedCarrier, selectedContact: { id: 0, carrier_id: props.selectedCarrier.id } });
                                     props.setIsEditingContact(true);
 
-                                    if (!props.carrierOpenedPanels.includes('carrier-contacts')) {
-                                        props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'carrier-contacts']);
+                                    if (!props.openedPanels.includes(props.carrierContactsPanelName)) {
+                                        props.setOpenedPanels([...props.openedPanels, props.carrierContactsPanelName]);
                                     }
                                 }}>
                                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
@@ -2027,20 +2229,378 @@ function Carriers(props) {
                         </div>
                         <div className="form-v-sep"></div>
                         <div className="form-row">
-                            <div className="input-box-container" style={{ width: '50%' }}>
-                                <MaskedInput tabIndex={82 + props.tabTimes}
-                                    mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
-                                    guide={true}
-                                    type="text" placeholder="Phone" onKeyDown={validateContactForSaving} onChange={e => props.setSelectedCarrierContact({ ...props.selectedContact, phone_work: e.target.value })} value={props.selectedContact.phone_work || ''} />
+                            <div className="select-box-container" style={{ width: '50%' }}>
+                                <div className="select-box-wrapper">
+                                    <MaskedInput tabIndex={82 + props.tabTimes}
+                                        ref={refCarrierContactPhone}
+                                        mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
+                                        guide={true}
+                                        type="text" placeholder="Phone"
+                                        onKeyDown={async (e) => {
+                                            let key = e.keyCode || e.which;
+
+                                            switch (key) {
+                                                case 37: case 38: // arrow left | arrow up
+                                                    e.preventDefault();
+                                                    if (showCarrierContactPhones) {
+                                                        let selectedIndex = carrierContactPhoneItems.findIndex(item => item.selected);
+
+                                                        if (selectedIndex === -1) {
+                                                            await setCarrierContactPhoneItems(carrierContactPhoneItems.map((item, index) => {
+                                                                item.selected = index === 0;
+                                                                return item;
+                                                            }))
+                                                        } else {
+                                                            await setCarrierContactPhoneItems(carrierContactPhoneItems.map((item, index) => {
+                                                                if (selectedIndex === 0) {
+                                                                    item.selected = index === (carrierContactPhoneItems.length - 1);
+                                                                } else {
+                                                                    item.selected = index === (selectedIndex - 1)
+                                                                }
+                                                                return item;
+                                                            }))
+                                                        }
+
+                                                        refCarrierContactPhonePopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    } else {
+                                                        if (carrierContactPhoneItems.length > 1) {
+                                                            await setCarrierContactPhoneItems(carrierContactPhoneItems.map((item, index) => {
+                                                                item.selected = item.type === (props.selectedContact?.primary_phone || '')
+                                                                return item;
+                                                            }))
+
+                                                            setShowCarrierContactPhones(true);
+
+                                                            refCarrierContactPhonePopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
+                                                            });
+                                                        }
+                                                    }
+                                                    break;
+
+                                                case 39: case 40: // arrow right | arrow down
+                                                    e.preventDefault();
+                                                    if (showCarrierContactPhones) {
+                                                        let selectedIndex = carrierContactPhoneItems.findIndex(item => item.selected);
+
+                                                        if (selectedIndex === -1) {
+                                                            await setCarrierContactPhoneItems(carrierContactPhoneItems.map((item, index) => {
+                                                                item.selected = index === 0;
+                                                                return item;
+                                                            }))
+                                                        } else {
+                                                            await setCarrierContactPhoneItems(carrierContactPhoneItems.map((item, index) => {
+                                                                if (selectedIndex === (carrierContactPhoneItems.length - 1)) {
+                                                                    item.selected = index === 0;
+                                                                } else {
+                                                                    item.selected = index === (selectedIndex + 1)
+                                                                }
+                                                                return item;
+                                                            }))
+                                                        }
+
+                                                        refCarrierContactPhonePopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    } else {
+                                                        if (carrierContactPhoneItems.length > 1) {
+                                                            await setCarrierContactPhoneItems(carrierContactPhoneItems.map((item, index) => {
+                                                                item.selected = item.type === (props.selectedContact?.primary_phone || '')
+                                                                return item;
+                                                            }))
+
+                                                            setShowCarrierContactPhones(true);
+
+                                                            refCarrierContactPhonePopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
+                                                            });
+                                                        }
+                                                    }
+                                                    break;
+
+                                                case 27: // escape
+                                                    setShowCarrierContactPhones(false);
+                                                    break;
+
+                                                case 13: // enter
+                                                    if (showCarrierContactPhones && carrierContactPhoneItems.findIndex(item => item.selected) > -1) {
+                                                        await props.setSelectedCarrierContact({
+                                                            ...props.selectedContact,
+                                                            primary_phone: carrierContactPhoneItems[carrierContactPhoneItems.findIndex(item => item.selected)].type
+                                                        });
+
+                                                        validateContactForSaving({ keyCode: 9 });
+                                                        setShowCarrierContactPhones(false);
+                                                        refCarrierContactPhone.current.inputElement.focus();
+                                                    }
+                                                    break;
+                                                case 9: // tab
+                                                    if (showCarrierContactPhones) {
+                                                        e.preventDefault();
+                                                        await props.setSelectedCarrierContact({
+                                                            ...props.selectedContact,
+                                                            primary_phone: carrierContactPhoneItems[carrierContactPhoneItems.findIndex(item => item.selected)].type
+                                                        });
+
+                                                        validateContactForSaving({ keyCode: 9 });
+                                                        setShowCarrierContactPhones(false);
+                                                        refCarrierContactPhone.current.inputElement.focus();
+                                                    } else {
+                                                        validateContactForSaving({ keyCode: 9 });
+                                                    }
+                                                    break;
+                                                default:
+                                                    break;
+                                            }
+                                        }}
+                                        onInput={(e) => {
+                                            switch (props.selectedContact?.primary_phone) {
+                                                case 'work':
+                                                    props.setSelectedCarrierContact({
+                                                        ...props.selectedContact,
+                                                        phone_work: e.target.value
+                                                    });
+                                                    break;
+                                                case 'fax':
+                                                    props.setSelectedCarrierContact({
+                                                        ...props.selectedContact,
+                                                        phone_work_fax: e.target.value
+                                                    });
+                                                    break;
+                                                case 'mobile':
+                                                    props.setSelectedCarrierContact({
+                                                        ...props.selectedContact,
+                                                        phone_mobile: e.target.value
+                                                    });
+                                                    break;
+                                                case 'direct':
+                                                    props.setSelectedCarrierContact({
+                                                        ...props.selectedContact,
+                                                        phone_direct: e.target.value
+                                                    });
+                                                    break;
+                                                case 'other':
+                                                    props.setSelectedCarrierContact({
+                                                        ...props.selectedContact,
+                                                        phone_other: e.target.value
+                                                    });
+                                                    break;
+                                            }
+                                        }}
+                                        onChange={(e) => {
+                                            switch (props.selectedContact?.primary_phone) {
+                                                case 'work':
+                                                    props.setSelectedCarrierContact({
+                                                        ...props.selectedContact,
+                                                        phone_work: e.target.value
+                                                    });
+                                                    break;
+                                                case 'fax':
+                                                    props.setSelectedCarrierContact({
+                                                        ...props.selectedContact,
+                                                        phone_work_fax: e.target.value
+                                                    });
+                                                    break;
+                                                case 'mobile':
+                                                    props.setSelectedCarrierContact({
+                                                        ...props.selectedContact,
+                                                        phone_mobile: e.target.value
+                                                    });
+                                                    break;
+                                                case 'direct':
+                                                    props.setSelectedCarrierContact({
+                                                        ...props.selectedContact,
+                                                        phone_direct: e.target.value
+                                                    });
+                                                    break;
+                                                case 'other':
+                                                    props.setSelectedCarrierContact({
+                                                        ...props.selectedContact,
+                                                        phone_other: e.target.value
+                                                    });
+                                                    break;
+                                            }
+                                        }}
+                                        value={
+                                            (props.selectedContact?.primary_phone || '') === 'work'
+                                                ? (props.selectedContact?.phone_work || '')
+                                                : (props.selectedContact?.primary_phone || '') === 'fax'
+                                                    ? (props.selectedContact?.phone_work_fax || '')
+                                                    : (props.selectedContact?.primary_phone || '') === 'mobile'
+                                                        ? (props.selectedContact?.phone_mobile || '')
+                                                        : (props.selectedContact?.primary_phone || '') === 'direct'
+                                                            ? (props.selectedContact?.phone_direct || '')
+                                                            : (props.selectedContact?.primary_phone || '') === 'other'
+                                                                ? (props.selectedContact?.phone_other || '')
+                                                                : ''
+                                        }
+                                    />
+
+                                    {
+                                        (props.selectedContact?.id || 0) > 0 &&
+                                        <div
+                                            className={classnames({
+                                                'selected-carrier-contact-primary-phone': true,
+                                                'pushed': (carrierContactPhoneItems.length > 1)
+                                            })}>
+                                            {props.selectedContact?.primary_phone || ''}
+                                        </div>
+                                    }
+
+                                    {
+                                        carrierContactPhoneItems.length > 1 &&
+                                        <FontAwesomeIcon className="dropdown-button" icon={faCaretDown} onClick={async () => {
+                                            if (showCarrierContactPhones) {
+                                                setShowCarrierContactPhones(false);
+                                            } else {
+                                                if (carrierContactPhoneItems.length > 1) {
+                                                    await setCarrierContactPhoneItems(carrierContactPhoneItems.map((item, index) => {
+                                                        item.selected = item.type === (props.selectedContact?.primary_phone || '')
+                                                        return item;
+                                                    }))
+
+                                                    window.setTimeout(async () => {
+                                                        await setShowCarrierContactPhones(true);
+
+                                                        refCarrierContactPhonePopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    }, 0)
+                                                }
+                                            }
+
+                                            refCarrierContactPhone.current.inputElement.focus();
+                                        }} />
+                                    }
+                                </div>
+
+                                <Transition
+                                    from={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                    enter={{ opacity: 1, top: 'calc(100% + 15px)' }}
+                                    leave={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                    items={showCarrierContactPhones}
+                                    config={{ duration: 100 }}
+                                >
+                                    {show => show && (styles => (
+                                        <div
+                                            className="mochi-contextual-container"
+                                            id="mochi-contextual-container-contact-phone"
+                                            style={{
+                                                ...styles,
+                                                left: '0',
+                                                display: 'block'
+                                            }}
+                                            ref={refCarrierContactPhoneDropDown}
+                                        >
+                                            <div className="mochi-contextual-popup vertical below right" style={{ height: 150 }}>
+                                                <div className="mochi-contextual-popup-content" >
+                                                    <div className="mochi-contextual-popup-wrapper">
+                                                        {
+                                                            carrierContactPhoneItems.map((item, index) => {
+                                                                const mochiItemClasses = classnames({
+                                                                    'mochi-item': true,
+                                                                    'selected': item.selected
+                                                                });
+
+                                                                return (
+                                                                    <div
+                                                                        key={index}
+                                                                        className={mochiItemClasses}
+                                                                        id={item.id}
+                                                                        onClick={async () => {
+                                                                            await props.setSelectedCarrierContact({
+                                                                                ...props.selectedContact,
+                                                                                primary_phone: item.type
+                                                                            });
+
+                                                                            validateContactForSaving({ keyCode: 9 });
+                                                                            setShowCarrierContactPhones(false);
+                                                                            refCarrierContactPhone.current.inputElement.focus();
+                                                                        }}
+                                                                        ref={ref => refCarrierContactPhonePopupItems.current.push(ref)}
+                                                                    >
+                                                                        {
+                                                                            item.type === 'work' ? `Phone Work `
+                                                                                : item.type === 'fax' ? `Phone Work Fax `
+                                                                                    : item.type === 'mobile' ? `Phone Mobile `
+                                                                                        : item.type === 'direct' ? `Phone Direct `
+                                                                                            : item.type === 'other' ? `Phone Other ` : ''
+                                                                        }
+
+                                                                        (<b>
+                                                                            {
+                                                                                item.type === 'work' ? item.phone
+                                                                                    : item.type === 'fax' ? item.phone
+                                                                                        : item.type === 'mobile' ? item.phone
+                                                                                            : item.type === 'direct' ? item.phone
+                                                                                                : item.type === 'other' ? item.phone : ''
+                                                                            }
+                                                                        </b>)
+
+                                                                        {
+                                                                            item.selected &&
+                                                                            <FontAwesomeIcon className="dropdown-selected" icon={faCaretRight} />
+                                                                        }
+                                                                    </div>
+                                                                )
+                                                            })
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </Transition>
                             </div>
                             <div className="form-h-sep"></div>
                             <div style={{ width: '50%', display: 'flex', justifyContent: 'space-between' }}>
                                 <div className="input-box-container input-phone-ext">
-                                    <input tabIndex={83 + props.tabTimes} type="text" placeholder="Ext" onKeyDown={validateContactForSaving} onChange={e => props.setSelectedCarrierContact({ ...props.selectedContact, phone_ext: e.target.value })} value={props.selectedContact.phone_ext || ''} />
+                                    <input tabIndex={83 + props.tabTimes} type="text" placeholder="Ext"
+                                        onKeyDown={validateContactForSaving}
+                                        onChange={e => props.setSelectedCarrierContact({ ...props.selectedContact, phone_ext: e.target.value })}
+                                        value={props.selectedContact.phone_ext || ''}
+                                    />
                                 </div>
                                 <div className="input-toggle-container">
-                                    <input type="checkbox" id="cbox-carrier-contacts-primary-btn" onChange={selectedContactIsPrimaryChange} checked={(props.selectedContact.is_primary || 0) === 1} />
-                                    <label htmlFor="cbox-carrier-contacts-primary-btn">
+                                    <input type="checkbox" id={props.panelName + 'cbox-carrier-contacts-primary-btn'} onChange={selectedContactIsPrimaryChange} checked={(props.selectedContact.is_primary || 0) === 1} />
+                                    <label htmlFor={props.panelName + 'cbox-carrier-contacts-primary-btn'}>
                                         <div className="label-text">Primary</div>
                                         <div className="input-toggle-btn"></div>
                                     </label>
@@ -2049,8 +2609,337 @@ function Carriers(props) {
                         </div>
                         <div className="form-v-sep"></div>
                         <div className="form-row">
-                            <div className="input-box-container grow">
-                                <input tabIndex={84 + props.tabTimes} type="text" placeholder="E-Mail" onKeyDown={validateContactForSaving} onChange={e => props.setSelectedCarrierContact({ ...props.selectedContact, email_work: e.target.value })} value={props.selectedContact.email_work || ''} />
+                            <div className="select-box-container" style={{ flexGrow: 1 }}>
+                                <div className="select-box-wrapper">
+                                    <input tabIndex={84 + props.tabTimes} type="text" placeholder="E-Mail"
+                                        style={{
+                                            width: 'calc(100% - 25px)',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap'
+                                        }}
+                                        ref={refCarrierContactEmail}
+                                        onKeyDown={async (e) => {
+                                            let key = e.keyCode || e.which;
+
+                                            switch (key) {
+                                                case 37: case 38: // arrow left | arrow up
+                                                    e.preventDefault();
+                                                    if (showCarrierContactEmails) {
+                                                        let selectedIndex = carrierContactEmailItems.findIndex(item => item.selected);
+
+                                                        if (selectedIndex === -1) {
+                                                            await setCarrierContactEmailItems(carrierContactEmailItems.map((item, index) => {
+                                                                item.selected = index === 0;
+                                                                return item;
+                                                            }))
+                                                        } else {
+                                                            await setCarrierContactEmailItems(carrierContactEmailItems.map((item, index) => {
+                                                                if (selectedIndex === 0) {
+                                                                    item.selected = index === (carrierContactEmailItems.length - 1);
+                                                                } else {
+                                                                    item.selected = index === (selectedIndex - 1)
+                                                                }
+                                                                return item;
+                                                            }))
+                                                        }
+
+                                                        refCarrierContactEmailPopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    } else {
+                                                        if (carrierContactEmailItems.length > 1) {
+                                                            await setCarrierContactEmailItems(carrierContactEmailItems.map((item, index) => {
+                                                                item.selected = item.type === (props.selectedContact?.primary_email || '')
+                                                                return item;
+                                                            }))
+
+                                                            setShowCarrierContactEmails(true);
+
+                                                            refCarrierContactEmailPopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
+                                                            });
+                                                        }
+                                                    }
+                                                    break;
+
+                                                case 39: case 40: // arrow right | arrow down
+                                                    e.preventDefault();
+                                                    if (showCarrierContactEmails) {
+                                                        let selectedIndex = carrierContactEmailItems.findIndex(item => item.selected);
+
+                                                        if (selectedIndex === -1) {
+                                                            await setCarrierContactEmailItems(carrierContactEmailItems.map((item, index) => {
+                                                                item.selected = index === 0;
+                                                                return item;
+                                                            }))
+                                                        } else {
+                                                            await setCarrierContactEmailItems(carrierContactEmailItems.map((item, index) => {
+                                                                if (selectedIndex === (carrierContactEmailItems.length - 1)) {
+                                                                    item.selected = index === 0;
+                                                                } else {
+                                                                    item.selected = index === (selectedIndex + 1)
+                                                                }
+                                                                return item;
+                                                            }))
+                                                        }
+
+                                                        refCarrierContactEmailPopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    } else {
+                                                        if (carrierContactEmailItems.length > 1) {
+                                                            await setCarrierContactEmailItems(carrierContactEmailItems.map((item, index) => {
+                                                                item.selected = item.type === (props.selectedContact?.primary_email || '')
+                                                                return item;
+                                                            }))
+
+                                                            setShowCarrierContactEmails(true);
+
+                                                            refCarrierContactEmailPopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
+                                                            });
+                                                        }
+                                                    }
+                                                    break;
+
+                                                case 27: // escape
+                                                    setShowCarrierContactEmails(false);
+                                                    break;
+
+                                                case 13: // enter
+                                                    if (showCarrierContactEmails && carrierContactEmailItems.findIndex(item => item.selected) > -1) {
+                                                        await props.setSelectedCarrierContact({
+                                                            ...props.selectedContact,
+                                                            primary_email: carrierContactEmailItems[carrierContactEmailItems.findIndex(item => item.selected)].type
+                                                        });
+
+                                                        validateContactForSaving({ keyCode: 9 });
+                                                        setShowCarrierContactEmails(false);
+                                                        refCarrierContactEmail.current.focus();
+                                                    }
+                                                    break;
+
+                                                case 9: // tab
+                                                    if (showCarrierContactEmails) {
+                                                        e.preventDefault();
+                                                        await props.setSelectedCarrierContact({
+                                                            ...props.selectedContact,
+                                                            primary_email: carrierContactEmailItems[carrierContactEmailItems.findIndex(item => item.selected)].type
+                                                        });
+
+                                                        validateContactForSaving({ keyCode: 9 });
+                                                        setShowCarrierContactEmails(false);
+                                                        refCarrierContactEmail.current.focus();
+                                                    } else {
+                                                        validateContactForSaving({ keyCode: 9 });
+                                                    }
+                                                    break;
+
+                                                default:
+                                                    break;
+                                            }
+                                        }}
+                                        onInput={(e) => {
+                                            switch (props.selectedContact?.primary_email) {
+                                                case 'work':
+                                                    props.setSelectedCarrierContact({
+                                                        ...props.selectedContact,
+                                                        email_work: e.target.value
+                                                    });
+                                                    break;
+                                                case 'personal':
+                                                    props.setSelectedCarrierContact({
+                                                        ...props.selectedContact,
+                                                        email_personal: e.target.value
+                                                    });
+                                                    break;
+                                                case 'other':
+                                                    props.setSelectedCarrierContact({
+                                                        ...props.selectedContact,
+                                                        email_other: e.target.value
+                                                    });
+                                                    break;
+                                            }
+                                        }}
+                                        onChange={(e) => {
+                                            switch (props.selectedContact?.primary_email) {
+                                                case 'work':
+                                                    props.setSelectedCarrierContact({
+                                                        ...props.selectedContact,
+                                                        email_work: e.target.value
+                                                    });
+                                                    break;
+                                                case 'personal':
+                                                    props.setSelectedCarrierContact({
+                                                        ...props.selectedContact,
+                                                        email_personal: e.target.value
+                                                    });
+                                                    break;
+                                                case 'other':
+                                                    props.setSelectedCarrierContact({
+                                                        ...props.selectedContact,
+                                                        email_other: e.target.value
+                                                    });
+                                                    break;
+                                            }
+                                        }}
+                                        value={
+                                            (props.selectedContact?.primary_email || '') === 'work'
+                                                ? (props.selectedContact?.email_work || '')
+                                                : (props.selectedContact?.primary_email || '') === 'personal'
+                                                    ? (props.selectedContact?.email_personal || '')
+                                                    : (props.selectedContact?.primary_email || '') === 'other'
+                                                        ? (props.selectedContact?.email_other || '')
+                                                        : ''
+                                        }
+                                    />
+
+                                    {
+                                        (props.selectedContact?.id || 0) > 0 &&
+                                        <div
+                                            className={classnames({
+                                                'selected-carrier-contact-primary-email': true,
+                                                'pushed': (carrierContactEmailItems.length > 1)
+                                            })}>
+                                            {props.selectedContact?.primary_email || ''}
+                                        </div>
+                                    }
+
+                                    {
+                                        carrierContactEmailItems.length > 1 &&
+                                        <FontAwesomeIcon className="dropdown-button" icon={faCaretDown} onClick={async () => {
+                                            if (showCarrierContactEmails) {
+                                                setShowCarrierContactEmails(false);
+                                            } else {
+                                                if (carrierContactEmailItems.length > 1) {
+                                                    await setCarrierContactEmailItems(carrierContactEmailItems.map((item, index) => {
+                                                        item.selected = item.type === (props.selectedContact?.primary_email || '')
+                                                        return item;
+                                                    }))
+
+                                                    window.setTimeout(async () => {
+                                                        await setShowCarrierContactEmails(true);
+
+                                                        refCarrierContactEmailPopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    }, 0)
+                                                }
+                                            }
+
+                                            refCarrierContactEmail.current.focus();
+                                        }} />
+                                    }
+                                </div>
+                                <Transition
+                                    from={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                    enter={{ opacity: 1, top: 'calc(100% + 15px)' }}
+                                    leave={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                    items={showCarrierContactEmails}
+                                    config={{ duration: 100 }}
+                                >
+                                    {show => show && (styles => (
+                                        <div
+                                            className="mochi-contextual-container"
+                                            id="mochi-contextual-container-contact-email"
+                                            style={{
+                                                ...styles,
+                                                left: '0',
+                                                display: 'block'
+                                            }}
+                                            ref={refCarrierContactEmailDropDown}
+                                        >
+                                            <div className="mochi-contextual-popup vertical below right" style={{ height: 150 }}>
+                                                <div className="mochi-contextual-popup-content" >
+                                                    <div className="mochi-contextual-popup-wrapper">
+                                                        {
+                                                            carrierContactEmailItems.map((item, index) => {
+                                                                const mochiItemClasses = classnames({
+                                                                    'mochi-item': true,
+                                                                    'selected': item.selected
+                                                                });
+
+                                                                return (
+                                                                    <div
+                                                                        key={index}
+                                                                        className={mochiItemClasses}
+                                                                        id={item.id}
+                                                                        onClick={async () => {
+                                                                            await props.setSelectedCarrierContact({
+                                                                                ...props.selectedContact,
+                                                                                primary_email: item.type
+                                                                            });
+
+                                                                            validateContactForSaving({ keyCode: 9 });
+                                                                            setShowCarrierContactEmails(false);
+                                                                            refCarrierContactEmail.current.focus();
+                                                                        }}
+                                                                        ref={ref => refCarrierContactEmailPopupItems.current.push(ref)}
+                                                                    >
+                                                                        {
+                                                                            item.type === 'work' ? `Email Work `
+                                                                                : item.type === 'personal' ? `Email Personal `
+                                                                                    : item.type === 'other' ? `Email Other ` : ''
+                                                                        }
+
+                                                                        (<b>
+                                                                            {
+                                                                                item.type === 'work' ? item.email
+                                                                                    : item.type === 'personal' ? item.email
+                                                                                        : item.type === 'other' ? item.email : ''
+                                                                            }
+                                                                        </b>)
+
+                                                                        {
+                                                                            item.selected &&
+                                                                            <FontAwesomeIcon className="dropdown-selected" icon={faCaretRight} />
+                                                                        }
+                                                                    </div>
+                                                                )
+                                                            })
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </Transition>
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container grow">
@@ -2104,8 +2993,8 @@ function Carriers(props) {
                                         <div className="contact-list-header">
                                             <div className="contact-list-col tcol first-name">First Name</div>
                                             <div className="contact-list-col tcol last-name">Last Name</div>
-                                            <div className="contact-list-col tcol phone-work">Phone Work</div>
-                                            <div className="contact-list-col tcol email-work">E-Mail Work</div>
+                                            <div className="contact-list-col tcol phone-work">Phone</div>
+                                            <div className="contact-list-col tcol email-work">E-Mail</div>
                                             <div className="contact-list-col tcol pri"></div>
                                         </div>
                                     }
@@ -2118,14 +3007,26 @@ function Carriers(props) {
                                                         await props.setIsEditingContact(false);
                                                         await props.setContactSearchCarrier({ ...props.selectedCarrier, selectedContact: contact });
 
-                                                        if (!props.carrierOpenedPanels.includes('carrier-contacts')) {
-                                                            props.setCarrierOpenedPanels([...props.carrierOpenedPanels, 'carrier-contacts']);
+                                                        if (!props.openedPanels.includes(props.carrierContactsPanelName)) {
+                                                            props.setOpenedPanels([...props.openedPanels, props.carrierContactsPanelName]);
                                                         }
                                                     }} onClick={() => props.setSelectedCarrierContact(contact)}>
                                                         <div className="contact-list-col tcol first-name">{contact.first_name}</div>
                                                         <div className="contact-list-col tcol last-name">{contact.last_name}</div>
-                                                        <div className="contact-list-col tcol phone-work">{contact.phone_work}</div>
-                                                        <div className="contact-list-col tcol email-work">{contact.email_work}</div>
+                                                        <div className="contact-list-col tcol phone-work">{
+                                                            contact.primary_phone === 'work' ? contact.phone_work
+                                                                : contact.primary_phone === 'fax' ? contact.phone_work_fax
+                                                                    : contact.primary_phone === 'mobile' ? contact.phone_mobile
+                                                                        : contact.primary_phone === 'direct' ? contact.phone_direct
+                                                                            : contact.primary_phone === 'other' ? contact.phone_other
+                                                                                : ''
+                                                        }</div>
+                                                        <div className="contact-list-col tcol email-work">{
+                                                            contact.primary_email === 'work' ? contact.email_work
+                                                                : contact.primary_email === 'personal' ? contact.email_personal
+                                                                    : contact.primary_email === 'other' ? contact.email_other
+                                                                        : ''
+                                                        }</div>
                                                         <div className="contact-list-col tcol pri">
                                                             {
                                                                 (contact.is_primary === 1) &&
@@ -2728,41 +3629,938 @@ function Carriers(props) {
                         </div>
                         <div className="form-v-sep"></div>
                         <div className="form-row">
-                            <div className="input-box-container grow">
-                                <input tabIndex={61 + props.tabTimes} type="text" placeholder="Contact Name" onKeyDown={validateMailingAddressToSave} onChange={e => {
-                                    let mailing_address = props.selectedCarrier.mailing_address || {};
-                                    mailing_address.contact_name = e.target.value;
-                                    props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: mailing_address });
-                                }} value={props.selectedCarrier.mailing_address?.contact_name || ''} />
+                            <div className="select-box-container" style={{ flexGrow: 1 }}>
+                                <div className="select-box-wrapper">
+                                    <input
+                                        tabIndex={61 + props.tabTimes}
+                                        type="text" placeholder="Contact Name"
+                                        ref={refMailingContactName}
+                                        onKeyDown={async (e) => {
+                                            let key = e.keyCode || e.which;
+
+                                            switch (key) {
+                                                case 37: case 38: // arrow left | arrow up
+                                                    e.preventDefault();
+                                                    if (showMailingContactNames) {
+                                                        let selectedIndex = mailingContactNameItems.findIndex(item => item.selected);
+
+                                                        if (selectedIndex === -1) {
+                                                            await setMailingContactNameItems(mailingContactNameItems.map((item, index) => {
+                                                                item.selected = index === 0;
+                                                                return item;
+                                                            }))
+                                                        } else {
+                                                            await setMailingContactNameItems(mailingContactNameItems.map((item, index) => {
+                                                                if (selectedIndex === 0) {
+                                                                    item.selected = index === (mailingContactNameItems.length - 1);
+                                                                } else {
+                                                                    item.selected = index === (selectedIndex - 1)
+                                                                }
+                                                                return item;
+                                                            }))
+                                                        }
+
+                                                        refMailingContactNamePopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    } else {
+                                                        if (mailingContactNameItems.length > 1) {
+                                                            await setMailingContactNameItems((props.selectedCarrier?.contacts || []).map((item, index) => {
+                                                                item.selected = index === 0
+                                                                return item;
+                                                            }))
+
+                                                            setShowMailingContactNames(true);
+
+                                                            refMailingContactNamePopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
+                                                            });
+                                                        }
+                                                    }
+                                                    break;
+
+                                                case 39: case 40: // arrow right | arrow down
+                                                    e.preventDefault();
+                                                    if (showMailingContactNames) {
+                                                        let selectedIndex = mailingContactNameItems.findIndex(item => item.selected);
+
+                                                        if (selectedIndex === -1) {
+                                                            await setMailingContactNameItems(mailingContactNameItems.map((item, index) => {
+                                                                item.selected = index === 0;
+                                                                return item;
+                                                            }))
+                                                        } else {
+                                                            await setMailingContactNameItems(mailingContactNameItems.map((item, index) => {
+                                                                if (selectedIndex === (mailingContactNameItems.length - 1)) {
+                                                                    item.selected = index === 0;
+                                                                } else {
+                                                                    item.selected = index === (selectedIndex + 1)
+                                                                }
+                                                                return item;
+                                                            }))
+                                                        }
+
+                                                        refMailingContactNamePopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    } else {
+                                                        if (mailingContactNameItems.length > 1) {
+                                                            await setMailingContactNameItems((props.selectedCarrier?.contacts || []).map((item, index) => {
+                                                                item.selected = index === 0
+                                                                return item;
+                                                            }))
+
+                                                            setShowMailingContactNames(true);
+
+                                                            refMailingContactNamePopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
+                                                            });
+                                                        }
+                                                    }
+                                                    break;
+
+                                                case 27: // escape
+                                                    setShowMailingContactNames(false);
+                                                    break;
+
+                                                case 13: // enter
+                                                    if (showMailingContactNames && mailingContactNameItems.findIndex(item => item.selected) > -1) {
+                                                        await props.setSelectedCarrier({
+                                                            ...props.selectedCarrier,
+                                                            mailing_address: {
+                                                                ...props.selectedCarrier.mailing_address,
+                                                                mailing_contact: mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)],
+                                                                mailing_contact_id: mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].id,
+                                                                mailing_contact_primary_phone: (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_work || '') !== ''
+                                                                    ? 'work'
+                                                                    : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_work_fax || '') !== ''
+                                                                        ? 'fax'
+                                                                        : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_mobile || '') !== ''
+                                                                            ? 'mobile'
+                                                                            : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_direct || '') !== ''
+                                                                                ? 'direct'
+                                                                                : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_other || '') !== ''
+                                                                                    ? 'other' :
+                                                                                    ''
+                                                            }
+                                                        });
+
+                                                        validateMailingAddressToSave({ keyCode: 9 });
+                                                        setShowMailingContactNames(false);
+                                                        refMailingContactName.current.focus();
+                                                    }
+                                                    break;
+
+                                                case 9: // tab
+                                                    if (showMailingContactNames) {
+                                                        e.preventDefault();
+                                                        await props.setSelectedCarrier({
+                                                            ...props.selectedCarrier,
+                                                            mailing_address: {
+                                                                ...props.selectedCarrier.mailing_address,
+                                                                mailing_contact: mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)],
+                                                                mailing_contact_id: mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].id,
+                                                                mailing_contact_primary_phone: (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_work || '') !== ''
+                                                                    ? 'work'
+                                                                    : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_work_fax || '') !== ''
+                                                                        ? 'fax'
+                                                                        : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_mobile || '') !== ''
+                                                                            ? 'mobile'
+                                                                            : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_direct || '') !== ''
+                                                                                ? 'direct'
+                                                                                : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_other || '') !== ''
+                                                                                    ? 'other' :
+                                                                                    ''
+                                                            }
+                                                        });
+
+                                                        validateMailingAddressToSave({ keyCode: 9 });
+                                                        setShowMailingContactNames(false);
+                                                        refMailingContactName.current.focus();
+                                                    } else {
+                                                        validateMailingAddressToSave({ keyCode: 9 });
+                                                    }
+                                                    break;
+
+                                                default:
+                                                    break;
+                                            }
+                                        }}
+                                        onInput={e => {
+                                            // let mailing_address = props.selectedCarrier.mailing_address || {};
+                                            // mailing_address.contact_name = e.target.value;
+                                            // props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: mailing_address });
+                                        }}
+                                        onChange={e => {
+                                            // let mailing_address = props.selectedCarrier.mailing_address || {};
+                                            // mailing_address.contact_name = e.target.value;
+                                            // props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: mailing_address });
+                                        }}
+                                        value={
+                                            (props.selectedCarrier?.mailing_address?.mailing_contact?.first_name || '') +
+                                            ((props.selectedCarrier?.mailing_address?.mailing_contact?.last_name || '') === ''
+                                                ? ''
+                                                : ' ' + props.selectedCarrier?.mailing_address?.mailing_contact?.last_name)
+                                        }
+                                    />
+
+                                    {
+                                        ((props.selectedCarrier?.contacts || []).length > 1 && (props.selectedCarrier?.mailing_address?.id !== undefined)) &&
+                                        <FontAwesomeIcon className="dropdown-button" icon={faCaretDown} onClick={async () => {
+                                            if (showMailingContactNames) {
+                                                setShowMailingContactNames(false);
+                                            } else {
+                                                if ((props.selectedCarrier?.contacts || []).length > 1) {
+                                                    await setMailingContactNameItems((props.selectedCarrier?.contacts || []).map((item, index) => {
+                                                        item.selected = index === 0
+                                                        return item;
+                                                    }))
+
+                                                    window.setTimeout(async () => {
+                                                        await setShowMailingContactNames(true);
+
+                                                        refMailingContactNamePopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    }, 0)
+                                                }
+                                            }
+
+                                            refMailingContactName.current.focus();
+                                        }} />
+                                    }
+                                </div>
+                                <Transition
+                                    from={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                    enter={{ opacity: 1, top: 'calc(100% + 15px)' }}
+                                    leave={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                    items={showMailingContactNames}
+                                    config={{ duration: 100 }}
+                                >
+                                    {show => show && (styles => (
+                                        <div
+                                            className="mochi-contextual-container"
+                                            id="mochi-contextual-container-contact-names"
+                                            style={{
+                                                ...styles,
+                                                left: '0',
+                                                display: 'block'
+                                            }}
+                                            ref={refMailingContactNameDropDown}
+                                        >
+                                            <div className="mochi-contextual-popup vertical below right" style={{ height: 150 }}>
+                                                <div className="mochi-contextual-popup-content" >
+                                                    <div className="mochi-contextual-popup-wrapper">
+                                                        {
+                                                            mailingContactNameItems.map((item, index) => {
+                                                                const mochiItemClasses = classnames({
+                                                                    'mochi-item': true,
+                                                                    'selected': item.selected
+                                                                });
+
+                                                                return (
+                                                                    <div
+                                                                        key={index}
+                                                                        className={mochiItemClasses}
+                                                                        id={item.id}
+                                                                        onClick={async () => {
+                                                                            await props.setSelectedCarrier({
+                                                                                ...props.selectedCarrier,
+                                                                                mailing_address: {
+                                                                                    ...props.selectedCarrier.mailing_address,
+                                                                                    mailing_contact: item,
+                                                                                    mailing_contact_id: item.id,
+                                                                                    mailing_contact_primary_phone: (item.phone_work || '') !== ''
+                                                                                        ? 'work'
+                                                                                        : (item.phone_work_fax || '') !== ''
+                                                                                            ? 'fax'
+                                                                                            : (item.phone_mobile || '') !== ''
+                                                                                                ? 'mobile'
+                                                                                                : (item.phone_direct || '') !== ''
+                                                                                                    ? 'direct'
+                                                                                                    : (item.phone_other || '') !== ''
+                                                                                                        ? 'other' :
+                                                                                                        ''
+                                                                                }
+                                                                            });
+
+                                                                            validateMailingAddressToSave({ keyCode: 9 });
+                                                                            setShowMailingContactNames(false);
+                                                                            refMailingContactName.current.focus();
+                                                                        }}
+                                                                        ref={ref => refMailingContactNamePopupItems.current.push(ref)}
+                                                                    >
+                                                                        {
+                                                                            item.first_name + ((item.last_name || '') === '' ? '' : ' ' + item.last_name)
+                                                                        }
+
+                                                                        {
+                                                                            item.selected &&
+                                                                            <FontAwesomeIcon className="dropdown-selected" icon={faCaretRight} />
+                                                                        }
+                                                                    </div>
+                                                                )
+                                                            })
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </Transition>
                             </div>
                             <div className="form-h-sep"></div>
-                            <div className="input-box-container input-phone">
-                                <MaskedInput tabIndex={62 + props.tabTimes}
-                                    mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
-                                    guide={true}
-                                    type="text" placeholder="Contact Phone" onKeyDown={validateMailingAddressToSave} onChange={e => {
-                                        let mailing_address = props.selectedCarrier.mailing_address || {};
-                                        mailing_address.contact_phone = e.target.value;
-                                        props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: mailing_address });
-                                    }} value={props.selectedCarrier.mailing_address?.contact_phone || ''} />
+                            <div className="select-box-container input-phone">
+                                <div className="select-box-wrapper">
+                                    <MaskedInput tabIndex={62 + props.tabTimes}
+                                        mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
+                                        guide={true}
+                                        type="text" placeholder="Contact Phone"
+                                        ref={refMailingContactPhone}
+                                        onKeyDown={async (e) => {
+                                            let key = e.keyCode || e.which;
+
+                                            switch (key) {
+                                                case 37: case 38: // arrow left | arrow up
+                                                    e.preventDefault();
+                                                    if (showMailingContactPhones) {
+                                                        let selectedIndex = mailingContactPhoneItems.findIndex(item => item.selected);
+
+                                                        if (selectedIndex === -1) {
+                                                            await setMailingContactPhoneItems(mailingContactPhoneItems.map((item, index) => {
+                                                                item.selected = index === 0;
+                                                                return item;
+                                                            }))
+                                                        } else {
+                                                            await setMailingContactPhoneItems(mailingContactPhoneItems.map((item, index) => {
+                                                                if (selectedIndex === 0) {
+                                                                    item.selected = index === (mailingContactPhoneItems.length - 1);
+                                                                } else {
+                                                                    item.selected = index === (selectedIndex - 1)
+                                                                }
+                                                                return item;
+                                                            }))
+                                                        }
+
+                                                        refMailingContactPhonePopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    } else {
+                                                        if (mailingContactPhoneItems.length > 1) {
+                                                            await setMailingContactPhoneItems(mailingContactPhoneItems.map((item, index) => {
+                                                                item.selected = index === 0;
+                                                                return item;
+                                                            }))
+
+                                                            setShowMailingContactPhones(true);
+
+                                                            refMailingContactPhonePopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
+                                                            });
+                                                        }
+                                                    }
+                                                    break;
+
+                                                case 39: case 40: // arrow right | arrow down
+                                                    e.preventDefault();
+                                                    if (showMailingContactPhones) {
+                                                        let selectedIndex = mailingContactPhoneItems.findIndex(item => item.selected);
+
+                                                        if (selectedIndex === -1) {
+                                                            await setMailingContactPhoneItems(mailingContactPhoneItems.map((item, index) => {
+                                                                item.selected = index === 0;
+                                                                return item;
+                                                            }))
+                                                        } else {
+                                                            await setMailingContactPhoneItems(mailingContactPhoneItems.map((item, index) => {
+                                                                if (selectedIndex === (mailingContactPhoneItems.length - 1)) {
+                                                                    item.selected = index === 0;
+                                                                } else {
+                                                                    item.selected = index === (selectedIndex + 1)
+                                                                }
+                                                                return item;
+                                                            }))
+                                                        }
+
+                                                        refMailingContactPhonePopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    } else {
+                                                        if (mailingContactPhoneItems.length > 1) {
+                                                            await setMailingContactPhoneItems(mailingContactPhoneItems.map((item, index) => {
+                                                                item.selected = index === 0;
+                                                                return item;
+                                                            }))
+
+                                                            setShowMailingContactPhones(true);
+
+                                                            refMailingContactPhonePopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
+                                                            });
+                                                        }
+                                                    }
+                                                    break;
+
+                                                case 27: // escape
+                                                    setShowMailingContactPhones(false);
+                                                    break;
+
+                                                case 13: // enter
+                                                    if (showMailingContactPhones && mailingContactPhoneItems.findIndex(item => item.selected) > -1) {
+                                                        await props.setSelectedCarrier({
+                                                            ...props.selectedCarrier,
+                                                            mailing_address: {
+                                                                ...props.selectedCarrier.mailing_address,
+                                                                mailing_contact_primary_phone: mailingContactPhoneItems[mailingContactPhoneItems.findIndex(item => item.selected)].type
+                                                            }
+                                                        });
+
+                                                        validateMailingAddressToSave({ keyCode: 9 });
+                                                        setShowMailingContactPhones(false);
+                                                        refMailingContactPhone.current.inputElement.focus();
+                                                    }
+                                                    break;
+
+                                                case 9: // tab
+                                                    if (showMailingContactPhones) {
+                                                        e.preventDefault();
+                                                        await props.setSelectedCarrier({
+                                                            ...props.selectedCarrier,
+                                                            mailing_address: {
+                                                                ...props.selectedCarrier.mailing_address,
+                                                                mailing_contact_primary_phone: mailingContactPhoneItems[mailingContactPhoneItems.findIndex(item => item.selected)].type
+                                                            }
+                                                        });
+
+                                                        validateMailingAddressToSave({ keyCode: 9 });
+                                                        setShowMailingContactPhones(false);
+                                                        refMailingContactPhone.current.inputElement.focus();
+                                                    } else {
+                                                        validateMailingAddressToSave({ keyCode: 9 });
+                                                    }
+                                                    break;
+                                                default:
+                                                    break;
+                                            }
+                                        }}
+                                        onInput={(e) => {
+
+                                        }}
+                                        onChange={(e) => {
+
+                                        }}
+                                        value={
+                                            (props.selectedCarrier?.mailing_address?.mailing_contact_primary_phone || '') === 'work'
+                                                ? (props.selectedCarrier?.mailing_address?.mailing_contact?.phone_work || '')
+                                                : (props.selectedCarrier?.mailing_address?.mailing_contact_primary_phone || '') === 'fax'
+                                                    ? (props.selectedCarrier?.mailing_address?.mailing_contact?.phone_work_fax || '')
+                                                    : (props.selectedCarrier?.mailing_address?.mailing_contact_primary_phone || '') === 'mobile'
+                                                        ? (props.selectedCarrier?.mailing_address?.mailing_contact?.phone_mobile || '')
+                                                        : (props.selectedCarrier?.mailing_address?.mailing_contact_primary_phone || '') === 'direct'
+                                                            ? (props.selectedCarrier?.mailing_address?.mailing_contact?.phone_direct || '')
+                                                            : (props.selectedCarrier?.mailing_address?.mailing_contact_primary_phone || '') === 'other'
+                                                                ? (props.selectedCarrier?.mailing_address?.mailing_contact?.phone_other || '')
+                                                                : ''
+                                        }
+                                    />
+
+                                    {
+                                        ((props.selectedCarrier?.id || 0) > 0 && (props.selectedCarrier?.mailing_address?.id !== undefined)) &&
+                                        <div
+                                            className={classnames({
+                                                'selected-mailing-contact-primary-phone': true,
+                                                'pushed': (mailingContactPhoneItems.length > 1)
+                                            })}>
+                                            {props.selectedCarrier?.mailing_address?.mailing_contact_primary_phone || ''}
+                                        </div>
+                                    }
+
+                                    {
+                                        mailingContactPhoneItems.length > 1 &&
+                                        <FontAwesomeIcon className="dropdown-button" icon={faCaretDown} onClick={async () => {
+                                            if (showMailingContactPhones) {
+                                                setShowMailingContactPhones(false);
+                                            } else {
+                                                if (mailingContactPhoneItems.length > 1) {
+                                                    await setMailingContactPhoneItems(mailingContactPhoneItems.map((item, index) => {
+                                                        item.selected = index === 0;
+                                                        return item;
+                                                    }))
+
+                                                    window.setTimeout(async () => {
+                                                        await setShowMailingContactPhones(true);
+
+                                                        refMailingContactPhonePopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    }, 0)
+                                                }
+                                            }
+
+                                            refMailingContactPhone.current.inputElement.focus();
+                                        }} />
+                                    }
+                                </div>
+                                <Transition
+                                    from={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                    enter={{ opacity: 1, top: 'calc(100% + 15px)' }}
+                                    leave={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                    items={showMailingContactPhones}
+                                    config={{ duration: 100 }}
+                                >
+                                    {show => show && (styles => (
+                                        <div
+                                            className="mochi-contextual-container"
+                                            id="mochi-contextual-container-contact-phone"
+                                            style={{
+                                                ...styles,
+                                                left: '0',
+                                                display: 'block'
+                                            }}
+                                            ref={refMailingContactPhoneDropDown}
+                                        >
+                                            <div className="mochi-contextual-popup vertical below right" style={{ height: 150 }}>
+                                                <div className="mochi-contextual-popup-content" >
+                                                    <div className="mochi-contextual-popup-wrapper">
+                                                        {
+                                                            mailingContactPhoneItems.map((item, index) => {
+                                                                const mochiItemClasses = classnames({
+                                                                    'mochi-item': true,
+                                                                    'selected': item.selected
+                                                                });
+
+                                                                return (
+                                                                    <div
+                                                                        key={index}
+                                                                        className={mochiItemClasses}
+                                                                        id={item.id}
+                                                                        onClick={async () => {
+                                                                            await props.setSelectedCarrier({
+                                                                                ...props.selectedCarrier,
+                                                                                mailing_address: {
+                                                                                    ...props.selectedCarrier.mailing_address,
+                                                                                    mailing_contact_primary_phone: item.type
+                                                                                }
+                                                                            });
+
+                                                                            validateMailingAddressToSave({ keyCode: 9 });
+                                                                            setShowMailingContactPhones(false);
+                                                                            refMailingContactPhone.current.inputElement.focus();
+                                                                        }}
+                                                                        ref={ref => refMailingContactPhonePopupItems.current.push(ref)}
+                                                                    >
+                                                                        {
+                                                                            item.type === 'work' ? `Phone Work `
+                                                                                : item.type === 'fax' ? `Phone Work Fax `
+                                                                                    : item.type === 'mobile' ? `Phone Mobile `
+                                                                                        : item.type === 'direct' ? `Phone Direct `
+                                                                                            : item.type === 'other' ? `Phone Other ` : ''
+                                                                        }
+
+                                                                        (<b>
+                                                                            {
+                                                                                item.type === 'work' ? item.phone
+                                                                                    : item.type === 'fax' ? item.phone
+                                                                                        : item.type === 'mobile' ? item.phone
+                                                                                            : item.type === 'direct' ? item.phone
+                                                                                                : item.type === 'other' ? item.phone : ''
+                                                                            }
+                                                                        </b>)
+
+                                                                        {
+                                                                            item.selected &&
+                                                                            <FontAwesomeIcon className="dropdown-selected" icon={faCaretRight} />
+                                                                        }
+                                                                    </div>
+                                                                )
+                                                            })
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </Transition>
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container input-phone-ext">
-                                <input tabIndex={63 + props.tabTimes} type="text" placeholder="Ext" onKeyDown={validateMailingAddressToSave} onChange={e => {
-                                    let mailing_address = props.selectedCarrier.mailing_address || {};
-                                    mailing_address.ext = e.target.value;
-                                    props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: mailing_address });
-                                }} value={props.selectedCarrier.mailing_address?.ext || ''} />
+                                <input tabIndex={63 + props.tabTimes} type="text" placeholder="Ext"
+                                    onKeyDown={validateMailingAddressToSave}
+                                    onChange={e => {
+                                        // let mailing_address = props.selectedCarrier.mailing_address || {};
+                                        // mailing_address.ext = e.target.value;
+                                        // props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: mailing_address });
+                                    }}
+                                    value={props.selectedCarrier?.mailing_address?.mailing_contact?.phone_ext || ''} />
                             </div>
                         </div>
                         <div className="form-v-sep"></div>
                         <div className="form-row">
-                            <div className="input-box-container grow">
-                                <input tabIndex={64 + props.tabTimes} type="text" placeholder="E-Mail" style={{ textTransform: 'lowercase' }} onKeyDown={validateMailingAddressToSave} onChange={e => {
-                                    let mailing_address = props.selectedCarrier.mailing_address || {};
-                                    mailing_address.email = e.target.value;
-                                    props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: mailing_address });
-                                }} value={props.selectedCarrier.mailing_address?.email || ''} />
+                            <div className="select-box-container" style={{ flexGrow: 1 }}>
+                                <div className="select-box-wrapper">
+                                    <input tabIndex={64 + props.tabTimes} type="text" placeholder="E-Mail" style={{ textTransform: 'lowercase' }}
+                                        ref={refMailingContactEmail}
+                                        onKeyDown={async (e) => {
+                                            let key = e.keyCode || e.which;
+
+                                            switch (key) {
+                                                case 37: case 38: // arrow left | arrow up
+                                                    e.preventDefault();
+                                                    if (showMailingContactEmails) {
+                                                        let selectedIndex = mailingContactEmailItems.findIndex(item => item.selected);
+
+                                                        if (selectedIndex === -1) {
+                                                            await setMailingContactEmailItems(mailingContactEmailItems.map((item, index) => {
+                                                                item.selected = index === 0;
+                                                                return item;
+                                                            }))
+                                                        } else {
+                                                            await setMailingContactEmailItems(mailingContactEmailItems.map((item, index) => {
+                                                                if (selectedIndex === 0) {
+                                                                    item.selected = index === (mailingContactEmailItems.length - 1);
+                                                                } else {
+                                                                    item.selected = index === (selectedIndex - 1)
+                                                                }
+                                                                return item;
+                                                            }))
+                                                        }
+
+                                                        refMailingContactEmailPopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    } else {
+                                                        if (mailingContactEmailItems.length > 1) {
+                                                            await setMailingContactEmailItems(mailingContactEmailItems.map((item, index) => {
+                                                                item.selected = index === 0;
+                                                                return item;
+                                                            }))
+
+                                                            setShowMailingContactEmails(true);
+
+                                                            refMailingContactEmailPopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
+                                                            });
+                                                        }
+                                                    }
+                                                    break;
+
+                                                case 39: case 40: // arrow right | arrow down
+                                                    e.preventDefault();
+                                                    if (showMailingContactEmails) {
+                                                        let selectedIndex = mailingContactEmailItems.findIndex(item => item.selected);
+
+                                                        if (selectedIndex === -1) {
+                                                            await setMailingContactEmailItems(mailingContactEmailItems.map((item, index) => {
+                                                                item.selected = index === 0;
+                                                                return item;
+                                                            }))
+                                                        } else {
+                                                            await setMailingContactEmailItems(mailingContactEmailItems.map((item, index) => {
+                                                                if (selectedIndex === (mailingContactEmailItems.length - 1)) {
+                                                                    item.selected = index === 0;
+                                                                } else {
+                                                                    item.selected = index === (selectedIndex + 1)
+                                                                }
+                                                                return item;
+                                                            }))
+                                                        }
+
+                                                        refMailingContactEmailPopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    } else {
+                                                        if (mailingContactEmailItems.length > 1) {
+                                                            await setMailingContactEmailItems(mailingContactEmailItems.map((item, index) => {
+                                                                item.selected = index === 0;
+                                                                return item;
+                                                            }))
+
+                                                            setShowMailingContactEmails(true);
+
+                                                            refMailingContactEmailPopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
+                                                            });
+                                                        }
+                                                    }
+                                                    break;
+
+                                                case 27: // escape
+                                                    setShowMailingContactEmails(false);
+                                                    break;
+
+                                                case 13: // enter
+                                                    if (showMailingContactEmails && mailingContactEmailItems.findIndex(item => item.selected) > -1) {
+                                                        await props.setSelectedCarrier({
+                                                            ...props.selectedCarrier,
+                                                            mailing_address: {
+                                                                ...props.selectedCarrier.mailing_address,
+                                                                mailing_contact_primary_email: mailingContactEmailItems[mailingContactEmailItems.findIndex(item => item.selected)].type
+                                                            }
+                                                        });
+
+                                                        validateMailingAddressToSave({ keyCode: 9 });
+                                                        setShowMailingContactEmails(false);
+                                                        refMailingContactEmail.current.focus();
+                                                    }
+                                                    break;
+
+                                                case 9: // tab
+                                                    if (showMailingContactEmails) {
+                                                        e.preventDefault();
+                                                        await props.setSelectedCarrier({
+                                                            ...props.selectedCarrier,
+                                                            mailing_address: {
+                                                                ...props.selectedCarrier.mailing_address,
+                                                                mailing_contact_primary_email: mailingContactEmailItems[mailingContactEmailItems.findIndex(item => item.selected)].type
+                                                            }
+                                                        });
+
+                                                        validateMailingAddressToSave({ keyCode: 9 });
+                                                        setShowMailingContactEmails(false);
+                                                        refMailingContactEmail.current.focus();
+                                                    } else {
+                                                        validateMailingAddressToSave({ keyCode: 9 });
+                                                    }
+                                                    break;
+
+                                                default:
+                                                    break;
+                                            }
+                                        }}
+                                        onChange={e => {
+                                            // let mailing_address = props.selectedCarrier.mailing_address || {};
+                                            // mailing_address.email = e.target.value;
+                                            // props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: mailing_address });
+                                        }}
+                                        value={
+                                            (props.selectedCarrier?.mailing_address?.mailing_contact_primary_email || '') === 'work'
+                                                ? (props.selectedCarrier?.mailing_address?.mailing_contact?.email_work || '')
+                                                : (props.selectedCarrier?.mailing_address?.mailing_contact_primary_email || '') === 'personal'
+                                                    ? (props.selectedCarrier?.mailing_address?.mailing_contact?.email_personal || '')
+                                                    : (props.selectedCarrier?.mailing_address?.mailing_contact_primary_email || '') === 'other'
+                                                        ? (props.selectedCarrier?.mailing_address?.mailing_contact?.email_other || '')
+                                                        : ''
+                                        }
+                                    />
+
+                                    {
+                                        ((props.selectedCarrier?.id || 0) > 0 && (props.selectedCarrier?.mailing_address?.id !== undefined)) &&
+                                        <div
+                                            className={classnames({
+                                                'selected-mailing-contact-primary-email': true,
+                                                'pushed': (mailingContactEmailItems.length > 1)
+                                            })}>
+                                            {props.selectedCarrier?.mailing_address?.mailing_contact_primary_email || ''}
+                                        </div>
+                                    }
+
+                                    {
+                                        mailingContactEmailItems.length > 1 &&
+                                        <FontAwesomeIcon className="dropdown-button" icon={faCaretDown} onClick={async () => {
+                                            if (showMailingContactEmails) {
+                                                setShowMailingContactEmails(false);
+                                            } else {
+                                                if (mailingContactEmailItems.length > 1) {
+                                                    await setMailingContactEmailItems(mailingContactEmailItems.map((item, index) => {
+                                                        item.selected = index === 0;
+                                                        return item;
+                                                    }))
+
+                                                    window.setTimeout(async () => {
+                                                        await setShowMailingContactEmails(true);
+
+                                                        refMailingContactEmailPopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    }, 0)
+                                                }
+                                            }
+
+                                            refMailingContactEmail.current.focus();
+                                        }} />
+                                    }
+                                </div>
+                                <Transition
+                                    from={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                    enter={{ opacity: 1, top: 'calc(100% + 15px)' }}
+                                    leave={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                    items={showMailingContactEmails}
+                                    config={{ duration: 100 }}
+                                >
+                                    {show => show && (styles => (
+                                        <div
+                                            className="mochi-contextual-container"
+                                            id="mochi-contextual-container-contact-email"
+                                            style={{
+                                                ...styles,
+                                                left: '0',
+                                                display: 'block'
+                                            }}
+                                            ref={refMailingContactEmailDropDown}
+                                        >
+                                            <div className="mochi-contextual-popup vertical below right" style={{ height: 150 }}>
+                                                <div className="mochi-contextual-popup-content" >
+                                                    <div className="mochi-contextual-popup-wrapper">
+                                                        {
+                                                            mailingContactEmailItems.map((item, index) => {
+                                                                const mochiItemClasses = classnames({
+                                                                    'mochi-item': true,
+                                                                    'selected': item.selected
+                                                                });
+
+                                                                return (
+                                                                    <div
+                                                                        key={index}
+                                                                        className={mochiItemClasses}
+                                                                        id={item.id}
+                                                                        onClick={async () => {
+                                                                            await props.setSelectedCarrier({
+                                                                                ...props.selectedCarrier,
+                                                                                mailing_address: {
+                                                                                    ...props.selectedCarrier.mailing_address,
+                                                                                    mailing_contact_primary_email: item.type
+                                                                                }
+                                                                            });
+
+                                                                            validateMailingAddressToSave({ keyCode: 9 });
+                                                                            setShowMailingContactEmails(false);
+                                                                            refMailingContactEmail.current.focus();
+                                                                        }}
+                                                                        ref={ref => refMailingContactEmailPopupItems.current.push(ref)}
+                                                                    >
+                                                                        {
+                                                                            item.type === 'work' ? `Email Work `
+                                                                                : item.type === 'personal' ? `Email Personal `
+                                                                                    : item.type === 'other' ? `Email Other ` : ''
+                                                                        }
+
+                                                                        (<b>
+                                                                            {
+                                                                                item.type === 'work' ? item.email
+                                                                                    : item.type === 'personal' ? item.email
+                                                                                        : item.type === 'other' ? item.email : ''
+                                                                            }
+                                                                        </b>)
+
+                                                                        {
+                                                                            item.selected &&
+                                                                            <FontAwesomeIcon className="dropdown-selected" icon={faCaretRight} />
+                                                                        }
+                                                                    </div>
+                                                                )
+                                                            })
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </Transition>
                             </div>
                         </div>
                     </div>
@@ -3913,62 +5711,4 @@ function Carriers(props) {
     )
 }
 
-const mapStateToProps = state => {
-    return {
-        scale: state.systemReducers.scale,
-        carriers: state.carrierReducers.carriers,
-        contacts: state.carrierReducers.contacts,
-        selectedCarrier: state.carrierReducers.selectedCarrier,
-        serverUrl: state.systemReducers.serverUrl,
-        panels: state.carrierReducers.panels,
-        carrierOpenedPanels: state.carrierReducers.carrierOpenedPanels,
-        selectedContact: state.carrierReducers.selectedContact,
-        selectedNote: state.carrierReducers.selectedNote,
-        selectedDirection: state.carrierReducers.selectedDirection,
-        contactSearch: state.carrierReducers.contactSearch,
-        automaticEmailsTo: state.carrierReducers.automaticEmailsTo,
-        automaticEmailsCc: state.carrierReducers.automaticEmailsCc,
-        automaticEmailsBcc: state.carrierReducers.automaticEmailsBcc,
-        showingContactList: state.carrierReducers.showingContactList,
-        carrierSearch: state.carrierReducers.carrierSearch,
-        selectedDocument: state.carrierReducers.selectedDocument,
-        drivers: state.carrierReducers.drivers,
-        selectedDriver: state.carrierReducers.selectedDriver,
-        equipments: state.carrierReducers.equipments,
-        insuranceTypes: state.carrierReducers.insuranceTypes,
-        selectedEquipment: state.carrierReducers.selectedEquipment,
-        selectedInsuranceType: state.carrierReducers.selectedInsuranceType,
-        factoringCompanySearch: state.carrierReducers.factoringCompanySearch,
-        factoringCompanies: state.carrierReducers.factoringCompanies,
-        carrierInsurances: state.carrierReducers.carrierInsurances,
-        selectedInsurance: state.carrierReducers.selectedInsurance,
-        selectedFactoringCompany: state.carrierReducers.selectedFactoringCompany
-    }
-}
-
-export default connect(mapStateToProps, {
-    setCarriers,
-    setSelectedCarrier,
-    setCarrierPanels,
-    setSelectedCarrierContact,
-    setSelectedCarrierNote,
-    setContactSearch,
-    setShowingCarrierContactList,
-    setCarrierSearch,
-    setCarrierContacts,
-    setContactSearchCarrier,
-    setIsEditingContact,
-    setSelectedCarrierDocument,
-    setDrivers,
-    setSelectedDriver,
-    setEquipments,
-    setInsuranceTypes,
-    setSelectedEquipment,
-    setSelectedInsuranceType,
-    setFactoringCompanySearch,
-    setFactoringCompanies,
-    setCarrierInsurances,
-    setSelectedInsurance,
-    setSelectedFactoringCompany,
-    setCarrierOpenedPanels
-})(Carriers)
+export default connect(null, null)(Carriers)

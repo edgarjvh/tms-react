@@ -1,0 +1,128 @@
+.factoring-company-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  padding: 10px 5px;
+
+  .selected-carrier-contact-primary-phone {
+    position      : absolute;
+    right         : 5px;
+    top           : 50%;
+    transform     : translateY(-50%);
+    font-size     : 0.7rem;
+    text-transform: capitalize;
+    font-weight   : bold;
+
+    &.pushed{
+      right         : 20px;
+    }
+  }
+
+  .selected-carrier-contact-primary-email {
+    position      : absolute;
+    right         : 5px;
+    top           : 50%;
+    transform     : translateY(-50%);
+    font-size     : 0.7rem;
+    text-transform: capitalize;
+    font-weight   : bold;
+
+    &.pushed{
+      right         : 20px;
+    }
+  }
+
+  .selected-mailing-contact-primary-phone {
+    position      : absolute;
+    right         : 5px;
+    top           : 50%;
+    transform     : translateY(-50%);
+    font-size     : 0.7rem;
+    text-transform: capitalize;
+    font-weight   : bold;
+
+    &.pushed{
+      right         : 20px;
+    }
+  }
+
+  .selected-mailing-contact-primary-email {
+    position      : absolute;
+    right         : 5px;
+    top           : 50%;
+    transform     : translateY(-50%);
+    font-size     : 0.7rem;
+    text-transform: capitalize;
+    font-weight   : bold;
+
+    &.pushed{
+      right         : 20px;
+    }
+  }
+
+  .fields-container-col {
+    flex-grow: 1;
+    flex-basis: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .factoring-company-list-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+
+    .factoring-company-list-wrapper {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+
+      .factoring-company-list-item {
+        font-size: 0.7rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        padding: 5px 0;
+        cursor: pointer;
+        transition: ease 0.3s;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+
+      .factoring-company-list-item:hover {
+        background-color: rgba(0, 0, 0, 0.1);
+      }
+    }
+  }
+
+  .factoring-company-invoice-list-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+
+    .factoring-company-invoice-list-wrapper {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+
+      .factoring-company-invoice-list-item {
+        font-size: 0.7rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        padding: 5px 0;
+        cursor: pointer;
+        transition: ease 0.3s;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+      }
+
+      .factoring-company-invoice-list-item:hover {
+        background-color: rgba(0, 0, 0, 0.1);
+      }
+    }
+  }
+}

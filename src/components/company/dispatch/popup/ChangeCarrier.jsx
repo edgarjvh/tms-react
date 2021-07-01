@@ -7,18 +7,6 @@ import { Transition, Spring, animated } from 'react-spring/renderprops';
 import moment from 'moment';
 import Loader from 'react-loader-spinner';
 import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
-import {
-    setDispatchOpenedPanels,
-    setShowingChangeCarrier,
-    setSelectedOrder,
-    setNewCarrier,
-    setDispatchCarrierInfoCarrierSearchChanging,
-    setDispatchCarrierInfoCarriersChanging,
-    setSelectedDispatchCarrierInfoCarrier,
-    setSelectedDispatchCarrierInfoContact,
-    setSelectedDispatchCarrierInfoInsurance,
-    setSelectedDispatchCarrierInfoDriver
-} from './../../../../actions';
 
 function ChangeCarrier(props) {
     const [newCarrier, setNewCarrier] = useState({});
@@ -92,8 +80,8 @@ function ChangeCarrier(props) {
                 await props.setDispatchCarrierInfoCarrierSearchChanging(carrierSearch);
                 await props.setDispatchCarrierInfoCarriersChanging(res.carriers);
 
-                if (!props.dispatchOpenedPanels.includes('carrier-info-search-changing')) {
-                    await props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'carrier-info-search-changing'])
+                if (!props.openedPanels.includes(props.carrierInfoSearchChangingPanelName)) {
+                    await props.setOpenedPanels([...props.openedPanels, props.carrierInfoSearchChangingPanelName])
                 }
             }
         });
@@ -123,8 +111,10 @@ function ChangeCarrier(props) {
 
             let event_parameters = {
                 order_id: selected_order.id,
-                event_time: moment().format('HHmm'),
-                event_date: moment().format('MM/DD/YYYY'),
+                time: moment().format('HHmm'),
+                event_time: '',
+                date: moment().format('MM/DD/YYYY'),
+                event_date: '',
                 user_id: selected_order.ae_number,
                 event_location: '',
                 event_notes: `Changed Carrier from: "Old Carrier (${selected_order.carrier.code + (selected_order.carrier.code_number === 0 ? '' : selected_order.carrier.code_number) + ' - ' + selected_order.carrier.name})" to "New Carrier (${props.newCarrier.code + (props.newCarrier.code_number === 0 ? '' : props.newCarrier.code_number) + ' - ' + props.newCarrier.name})"`,
@@ -327,8 +317,8 @@ function ChangeCarrier(props) {
                 </div>
 
                 <div className={buttonClasses} onClick={() => {
-                    if (!props.dispatchOpenedPanels.includes('adjust-rate')) {
-                        props.setDispatchOpenedPanels([...props.dispatchOpenedPanels, 'adjust-rate'])
+                    if (!props.openedPanels.includes(props.adjustRatePanelName)) {
+                        props.setOpenedPanels([...props.openedPanels, props.adjustRatePanelName])
                     }
                 }}>
                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
@@ -346,24 +336,4 @@ function ChangeCarrier(props) {
     )
 }
 
-const mapStateToProps = state => {
-    return {
-        serverUrl: state.systemReducers.serverUrl,
-        dispatchOpenedPanels: state.dispatchReducers.dispatchOpenedPanels,
-        selected_order: state.dispatchReducers.selected_order,
-        newCarrier: state.dispatchReducers.newCarrier
-    }
-}
-
-export default connect(mapStateToProps, {
-    setDispatchOpenedPanels,
-    setShowingChangeCarrier,
-    setSelectedOrder,
-    setNewCarrier,
-    setDispatchCarrierInfoCarrierSearchChanging,
-    setDispatchCarrierInfoCarriersChanging,
-    setSelectedDispatchCarrierInfoCarrier,
-    setSelectedDispatchCarrierInfoContact,
-    setSelectedDispatchCarrierInfoInsurance,
-    setSelectedDispatchCarrierInfoDriver
-})(ChangeCarrier)
+export default connect(null, null)(ChangeCarrier)

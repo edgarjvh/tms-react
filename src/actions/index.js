@@ -4,3 +4,4 @@ export * from './customersActions';
 export * from './carriersActions';
 export * from './invoiceActions';
 export * from './dispatchActions';
+export * from './loadBoardActions';

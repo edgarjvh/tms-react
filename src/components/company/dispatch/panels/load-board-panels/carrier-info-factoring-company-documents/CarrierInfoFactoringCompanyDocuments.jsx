@@ -179,7 +179,7 @@ function CarrierInfoFactoringCompanyDocuments(props) {
                             flexGrow: 1, marginRight: 10
                         }}>
                             {
-                                (props.selectedLbCarrierInfoFactoringCompanyDocument?.tags || '').split(' ').map((item, index) => {
+                                (props.selectedLbCarrierInfoFactoringCompanyDocument?.tags || '').split('|').map((item, index) => {
                                     if (item.trim() !== '') {
                                         return (
                                             <div key={index} style={{

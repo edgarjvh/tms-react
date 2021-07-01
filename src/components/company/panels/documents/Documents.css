@@ -1,0 +1,127 @@
+.documents-fields {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+.documents-fields .documents-left-side {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+.documents-fields .documents-left-side .documents-fields-row:nth-child(1) {
+  display: flex;
+  margin-bottom: 5px;
+  align-items: center;
+}
+.documents-fields .documents-left-side .documents-fields-row:nth-child(1) .input-box-container {
+  width: 7rem;
+  margin-right: 3px;
+}
+.documents-fields .documents-left-side .documents-fields-row:nth-child(2) {
+  display: flex;
+  margin-bottom: 5px;
+}
+.documents-fields .documents-left-side .documents-fields-row:nth-child(2) .input-box-container {
+  width: 16rem;
+  margin-right: 3px;
+}
+.documents-fields .documents-left-side .documents-fields-row:nth-child(2) .input-box-container.tags {
+  text-transform: lowercase;
+}
+.documents-fields .documents-left-side .documents-fields-row:nth-child(2) .input-box-container.tags :placeholder-shown {
+  text-transform: none;
+}
+.documents-fields .documents-right-side .mochi-button {
+  display: flex;
+  justify-content: space-between;
+}
+.documents-fields .documents-right-side .mochi-button:not(:last-child) {
+  margin-bottom: 15px;
+}
+.documents-list {
+  min-height: 12rem;
+  max-height: 12rem;
+  display: flex;
+  margin-top: 15px;
+  margin-bottom: 10px;
+}
+.documents-list .form-bordered-box {
+  flex-grow: 1;
+  flex-basis: 100%;
+}
+.documents-list .form-bordered-box .form-wrapper {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  overflow: auto;
+  padding: 10px;
+}
+.documents-list .form-bordered-box .form-wrapper .documents-list-item,
+.documents-list .form-bordered-box .form-wrapper .documents-notes-list-item {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 5px 0;
+  cursor: pointer;
+  transition: ease 0.3s;
+}
+.documents-list .form-bordered-box .form-wrapper .documents-list-item span,
+.documents-list .form-bordered-box .form-wrapper .documents-notes-list-item span {
+  margin-right: 10px;
+}
+.documents-list .form-bordered-box .form-wrapper .documents-list-item .item-btn,
+.documents-list .form-bordered-box .form-wrapper .documents-notes-list-item .item-btn {
+  transition: ease 0.3s;
+}
+.documents-list .form-bordered-box .form-wrapper .documents-list-item .item-btn:hover,
+.documents-list .form-bordered-box .form-wrapper .documents-notes-list-item .item-btn:hover {
+  color: rgba(0, 0, 0, 0.8);
+  transform: scale(1.2);
+}
+.documents-list .form-bordered-box .form-wrapper .documents-list-item:hover,
+.documents-list .form-bordered-box .form-wrapper .documents-notes-list-item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+.documents-list .form-bordered-box .form-wrapper .documents-list-item.selected {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+.documents-list .form-separator {
+  width: 15px;
+}
+.documents-preview {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 10px;
+}
+.documents-preview .form-bordered-box {
+  flex-grow: 1;
+  position: relative;
+}
+.documents-preview .form-bordered-box .img-wrapper {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  padding: 5px;
+}
+.documents-preview .form-bordered-box .img-wrapper img {
+  object-fit: cover;
+}
+.documents-preview .form-bordered-box .preview-not-available {
+  font-size: 0.9rem;
+  padding: 10px;
+}
+.documents-preview .form-bordered-box .preview-not-available a {
+  font-weight: bold;
+  color: blue;
+  text-decoration: none;
+  margin-left: 10px;
+}

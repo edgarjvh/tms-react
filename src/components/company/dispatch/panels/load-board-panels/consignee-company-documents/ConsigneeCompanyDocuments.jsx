@@ -32,14 +32,14 @@ function ConsigneeCompanyDocuments(props) {
     const tagsOnKeydown = (e) => {
         let keyCode = e.keyCode || e.which;
 
-        if (keyCode === 32) {
-            e.preventDefault();
-            props.setLbSelectedConsigneeCompanyDocument({ ...props.selectedConsigneeCompanyDocument, tags: ((props.selectedConsigneeCompanyDocument.tags || '') + ' ' + props.consigneeCompanyDocumentTags).trim() });
+        if (keyCode === 13) {
+            props.setLbSelectedConsigneeCompanyDocument({ ...props.selectedConsigneeCompanyDocument, tags: (props.selectedConsigneeCompanyDocument.tags || '') === '' ? props.consigneeCompanyDocumentTags : props.selectedConsigneeCompanyDocument.tags + '|' + props.consigneeCompanyDocumentTags });
             props.setLbConsigneeCompanyDocumentTags('');
             refTagInput.current.focus();
         }
         if (keyCode === 9) {
-            props.setLbSelectedConsigneeCompanyDocument({ ...props.selectedConsigneeCompanyDocument, tags: ((props.selectedConsigneeCompanyDocument.tags || '') + ' ' + props.consigneeCompanyDocumentTags).trim() });
+            e.preventDefault();
+            props.setLbSelectedConsigneeCompanyDocument({ ...props.selectedConsigneeCompanyDocument, tags: (props.selectedConsigneeCompanyDocument.tags || '') === '' ? props.consigneeCompanyDocumentTags : props.selectedConsigneeCompanyDocument.tags + '|' + props.consigneeCompanyDocumentTags });
             props.setLbConsigneeCompanyDocumentTags('');
             refTagInput.current.focus();
         }
@@ -122,6 +122,11 @@ function ConsigneeCompanyDocuments(props) {
         refDocumentInput.current.click();
     }
 
+    const quickTypeLinkClasses = classnames({
+        'quick-filling-btn': true,
+        'disabled': (props.selectedConsigneeCompanyDocument.id || 0) > 0
+    });
+
     return (
         <div className="panel-content">
             <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
@@ -152,6 +157,36 @@ function ConsigneeCompanyDocuments(props) {
                             <div className="mochi-button-base">Clear</div>
                             <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
                         </div>
+
+                        <div style={{
+                            margin: '0 0.5rem',
+                            fontSize: '0.7rem',
+                            color: 'rgba(0,0,0,0.7)'
+                        }}>Quick type links:</div>
+
+                        <div className={quickTypeLinkClasses} onClick={() => {
+                            props.setLbSelectedConsigneeCompanyDocument({
+                                id: 0,
+                                user_id: Math.floor(Math.random() * (15 - 1)) + 1,
+                                date_entered: moment().format('MM/DD/YYYY'),
+                                title: 'Signed Rate Confirmation',
+                                subject: 'Signed Rate Confirmation',
+                                tags: 'Signed Rate Confirmation|Rate Confirmation'                                
+                            });
+                            refTagInput.current.focus();
+                        }}>Signed Rate Confirmation</div>
+
+                        <div className={quickTypeLinkClasses} onClick={() => {
+                            props.setLbSelectedConsigneeCompanyDocument({
+                                id: 0,
+                                user_id: Math.floor(Math.random() * (15 - 1)) + 1,
+                                date_entered: moment().format('MM/DD/YYYY'),
+                                title: 'Signed Bill of Lading',
+                                subject: 'Signed BOL',
+                                tags: 'Signed BOL|BOL|Delivery Receipt'
+                            });
+                            refTagInput.current.focus();
+                        }}>Signed BOL</div>
                     </div>
 
                     <div className="documents-fields-row">
@@ -179,7 +214,7 @@ function ConsigneeCompanyDocuments(props) {
                             flexGrow: 1, marginRight: 10
                         }}>
                             {
-                                (props.selectedConsigneeCompanyDocument.tags || '').split(' ').map((item, index) => {
+                                (props.selectedConsigneeCompanyDocument.tags || '').split('|').map((item, index) => {
                                     if (item.trim() !== '') {
                                         return (
                                             <div key={index} style={{

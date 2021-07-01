@@ -367,10 +367,12 @@
   text-decoration: underline;
 }
 .dispatch-main-container .order-events-container > .order-events-item .event-time {
-  min-width: 3rem;
+  min-width: 3.5rem;
+  max-width: 3.5rem;
 }
 .dispatch-main-container .order-events-container > .order-events-item .event-date {
   min-width: 5rem;
+  max-width: 5rem;
 }
 .dispatch-main-container .order-events-container > .order-events-item .event-user-id {
   min-width: 3.5rem;
@@ -417,10 +419,12 @@
   background-color: rgba(0, 0, 0, 0.05);
 }
 .dispatch-main-container .order-events-container .order-events-wrapper .order-events-item .event-time {
-  min-width: 3rem;
+  min-width: 3.5rem;
+  max-width: 3.5rem;
 }
 .dispatch-main-container .order-events-container .order-events-wrapper .order-events-item .event-date {
   min-width: 5rem;
+  max-width: 5rem;
 }
 .dispatch-main-container .order-events-container .order-events-wrapper .order-events-item .event-user-id {
   min-width: 3.5rem;
