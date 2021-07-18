@@ -159,6 +159,8 @@ import LbCarrierInfoFactoringCompanyContactSearch from './../../../panels/contac
 import LbCarrierInfoFactoringCompanyDocuments from './../../../panels/documents/Documents.jsx';
 import LbCarrierInfoFactoringCompanyInvoiceSearch from './../../../panels/factoring-company-invoice-search/FactoringCompanyInvoiceSearch.jsx';
 
+import LbDispatch from './../../../dispatch/Dispatch.jsx';
+
 import LbRouting from './../../../panels/routing/Routing.jsx';
 import LbRateConf from './../../../panels/rate-conf/RateConf.jsx';
 import LbOrder from './../../../panels/order/Order.jsx';
@@ -602,6 +604,9 @@ function PanelContainer(props) {
                                 selectedOwnerDocument={props.selectedLbBillToCompanyDocument}
                                 selectedOwnerDocumentTags={props.selectedLbBillToCompanyDocumentTags}
                                 selectedOwnerDocumentNote={props.selectedLbBillToCompanyDocumentNote}
+
+                                origin='customer'
+                                
                                 savingDocumentUrl='/saveDocument'
                                 deletingDocumentUrl='/deleteCustomerDocument'
                                 savingDocumentNoteUrl='/saveCustomerDocumentNote'
@@ -1139,6 +1144,9 @@ function PanelContainer(props) {
                                 selectedOwnerDocument={props.selectedLbShipperCompanyDocument}
                                 selectedOwnerDocumentTags={props.selectedLbShipperCompanyDocumentTags}
                                 selectedOwnerDocumentNote={props.selectedLbShipperCompanyDocumentNote}
+
+                                origin='customer'
+                                
                                 savingDocumentUrl='/saveDocument'
                                 deletingDocumentUrl='/deleteCustomerDocument'
                                 savingDocumentNoteUrl='/saveCustomerDocumentNote'
@@ -1676,6 +1684,9 @@ function PanelContainer(props) {
                                 selectedOwnerDocument={props.selectedLbConsigneeCompanyDocument}
                                 selectedOwnerDocumentTags={props.selectedLbConsigneeCompanyDocumentTags}
                                 selectedOwnerDocumentNote={props.selectedLbConsigneeCompanyDocumentNote}
+
+                                origin='customer'
+                                
                                 savingDocumentUrl='/saveDocument'
                                 deletingDocumentUrl='/deleteCustomerDocument'
                                 savingDocumentNoteUrl='/saveCustomerDocumentNote'
@@ -2215,6 +2226,9 @@ function PanelContainer(props) {
                                 selectedOwnerDocument={props.selectedLbCarrierInfoDocument}
                                 selectedOwnerDocumentTags={props.selectedLbCarrierInfoDocumentTags}
                                 selectedOwnerDocumentNote={props.selectedLbCarrierInfoDocumentNote}
+
+                                origin='carrier'
+                                
                                 savingDocumentUrl='/saveCarrierDocument'
                                 deletingDocumentUrl='/deleteCarrierDocument'
                                 savingDocumentNoteUrl='/saveCarrierDocumentNote'
@@ -2804,6 +2818,9 @@ function PanelContainer(props) {
                                 selectedOwnerDocument={props.selectedLbCarrierInfoFactoringCompanyDocument}
                                 selectedOwnerDocumentTags={props.selectedLbCarrierInfoFactoringCompanyDocumentTags}
                                 selectedOwnerDocumentNote={props.selectedLbCarrierInfoFactoringCompanyDocumentNote}
+
+                                origin='factoring-company'
+                                
                                 savingDocumentUrl='/saveFactoringCompanyDocument'
                                 deletingDocumentUrl='/deleteFactoringCompanyDocument'
                                 savingDocumentNoteUrl='/saveFactoringCompanyDocumentNote'
@@ -2877,6 +2894,183 @@ function PanelContainer(props) {
                 ))}
             </Transition>
             {/* ================================== LB CARRIER INFO FACTORING COMPANY INVOICE SEARCH =============================== */}
+
+            {/* ================================== LB DISPATCH =============================== */}
+            {/* <Transition
+                from={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: props.openedPanels.indexOf('lb-dispatch')
+                }}
+                enter={{
+                    opacity: 1,
+                    right: window.innerWidth,
+                    zIndex: props.openedPanels.indexOf('lb-dispatch')
+                }}
+                leave={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: 0
+                }}
+                items={props.openedPanels.includes('lb-dispatch')}
+                config={{
+                    delay: 0,
+                    duration: 200,
+                    mass: 1, tension: 120, friction: 14
+                }}
+            >
+                {show => show && (styles => (
+                    <Draggable
+                        axis="x"
+                        handle=".drag-handler"
+                        onStart={(e, i) => eventControl(e, i, 'lb-dispatch')}
+                        onStop={(e, i) => eventControl(e, i, 'lb-dispatch')}
+                        onMouseDown={(e, i) => eventControl(e, i, 'lb-dispatch')}
+                        onMouseUp={(e, i) => eventControl(e, i, 'lb-dispatch')}
+                        onTouchStart={(e, i) => eventControl(e, i, 'lb-dispatch')}
+                        onTouchEnd={(e, i) => eventControl(e, i, 'lb-dispatch')}
+                        position={{ x: 0, y: 0 }}
+                    >
+                        <animated.div className="panel panel-lb-dispatch" ref={ref => openedPanelsRefs.current.push(ref)} onClick={e => onPanelClick(e, 'lb-dispatch')} style={{
+                            ...styles,
+                            width: (window.innerWidth * baseWidth) - (panelGap * props.openedPanels.indexOf('lb-dispatch'))
+                        }}>
+                            <div className="panel-content">
+                                <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+                                <div className="close-btn" title="Close" onClick={e => {
+                                    props.setOpenedPanels(props.openedPanels.filter((item, index) => {
+                                        return item !== 'lb-dispatch';
+                                    }));
+
+                                }}><span className="fas fa-times"></span></div>
+                                <div className="title">Dispatch</div><div className="side-title"><div>Dispatch</div></div>
+
+                                <LbDispatch
+                                    pageName={'Dispatch'}
+                                    panelName={'lb-dispatch'}
+                                    tabTimes={67000}
+                                    isOnPanel={true}
+                                    scale={props.scale}
+                                    serverUrl={props.serverUrl}
+                                    setOpenedPanels={props.setOpenedPanels}
+                                    openedPanels={props.openedPanels}
+
+                                    //dispatch
+                                    setNewCarrier={props.setNewCarrier}
+                                    setDispatchCarrierInfoCarriersChanging={props.setLbCarrierInfoCarriersChanging}
+                                    setDispatchCarrierInfoCarrierSearchChanging={props.setDispatchCarrierInfoCarrierSearchChanging}
+                                    setSelectedOrder={props.setSelectedOrder}
+                                    setLbSelectedOrder={props.setLbSelectedOrder}
+                                    setOrderNumber={props.setOrderNumber}
+                                    setTripNumber={props.setTripNumber}
+                                    setDivision={props.setDivision}
+                                    setLoadType={props.setLoadType}
+                                    setTemplate={props.setTemplate}
+                                    setIsShowingShipperSecondPage={props.setIsShowingShipperSecondPage}
+                                    setShipperBolNumber={props.setShipperBolNumber}
+                                    setShipperPoNumber={props.setShipperPoNumber}
+                                    setShipperRefNumber={props.setShipperRefNumber}
+                                    setIsShowingConsigneeSecondPage={props.setIsShowingConsigneeSecondPage}
+                                    setShowingChangeCarrier={props.setShowingChangeCarrier}
+                                    setDispatchEvent={props.setDispatchEvent}
+                                    setDispatchEventLocation={props.setDispatchEventLocation}
+                                    setDispatchEventNotes={props.setDispatchEventNotes}
+                                    setDispatchEventDate={props.setDispatchEventDate}
+                                    setDispatchEventTime={props.setDispatchEventTime}
+                                    
+                                    setSelectedNoteForCarrier={props.setSelectedNoteForCarrier}
+                                    setSelectedInternalNote={props.setSelectedInternalNote}
+                                    
+                                    selected_order={props.selected_order}
+                                    order_number={props.order_number}
+                                    trip_number={props.trip_number}
+                                    division={props.division}
+                                    load_type={props.load_type}
+                                    template={props.template}
+                                    shipperBolNumber={props.shipperBolNumber}
+                                    shipperPoNumber={props.shipperPoNumber}
+                                    shipperRefNumber={props.shipperRefNumber}
+                                    
+                                    newCarrier={props.lbDispatchNewCarrier}
+
+                                    dispatchEvent={props.dispatchEvent}
+                                    dispatchEventLocation={props.dispatchEventLocation}
+                                    dispatchEventNotes={props.dispatchEventNotes}
+                                    dispatchEventDate={props.dispatchEventDate}
+                                    dispatchEventTime={props.dispatchEventTime}
+                                    dispatchEvents={props.dispatchEvents}
+                                    selectedNoteForCarrier={props.selectedNoteForCarrier}
+                                    selectedInternalNote={props.selectedInternalNote}
+                                    isShowingShipperSecondPage={props.isShowingShipperSecondPage}
+                                    isShowingConsigneeSecondPage={props.isShowingConsigneeSecondPage}
+                                    setSelectedOrderDocument={props.setSelectedOrderDocument}
+
+                                    mileageLoaderVisible={props.mileageLoaderVisible}
+                                    showingChangeCarrier={props.showingChangeCarrier}
+
+                                    //customer
+                                    setBillToCompanies={props.setBillToCompanies}
+                                    setSelectedBillToCompanyInfo={props.setSelectedBillToCompanyInfo}
+                                    setBillToCompanySearch={props.setBillToCompanySearch}
+                                    setSelectedBillToCompanyContact={props.setSelectedBillToCompanyContact}
+                                    setShipperCompanies={props.setShipperCompanies}
+                                    setSelectedShipperCompanyInfo={props.setSelectedShipperCompanyInfo}
+                                    setShipperCompanySearch={props.setShipperCompanySearch}
+                                    setSelectedShipperCompanyContact={props.setSelectedShipperCompanyContact}
+
+                                    setConsigneeCompanies={props.setConsigneeCompanies}
+                                    setSelectedConsigneeCompanyInfo={props.setSelectedConsigneeCompanyInfo}
+                                    setConsigneeCompanySearch={props.setConsigneeCompanySearch}
+                                    setSelectedConsigneeCompanyContact={props.setSelectedConsigneeCompanyContact}
+
+                                    selectedBillToCompanyInfo={props.selectedBillToCompanyInfo}
+                                    selectedBillToCompanyContact={props.selectedBillToCompanyContact}
+                                    billToCompanySearch={props.billToCompanySearch}
+                                    selectedShipperCompanyInfo={props.selectedShipperCompanyInfo}
+                                    selectedShipperCompanyContact={props.selectedShipperCompanyContact}
+                                    shipperCompanySearch={props.shipperCompanySearch}
+                                    selectedConsigneeCompanyInfo={props.selectedConsigneeCompanyInfo}
+                                    selectedConsigneeCompanyContact={props.selectedConsigneeCompanyContact}
+                                    consigneeCompanySearch={props.consigneeCompanySearch}
+
+                                    //carrier
+                                    setSelectedDispatchCarrierInfoCarrier={props.setSelectedDispatchCarrierInfoCarrier}
+                                    setSelectedDispatchCarrierInfoContact={props.setSelectedDispatchCarrierInfoContact}
+                                    setSelectedDispatchCarrierInfoDriver={props.setSelectedDispatchCarrierInfoDriver}
+                                    setSelectedDispatchCarrierInfoInsurance={props.setSelectedDispatchCarrierInfoInsurance}
+                                    setDispatchCarrierInfoCarrierSearch={props.setDispatchCarrierInfoCarrierSearch}
+                                    setDispatchCarrierInfoCarriers={props.setDispatchCarrierInfoCarriers}
+
+                                    selectedDispatchCarrierInfoCarrier={props.selectedDispatchCarrierInfoCarrier}
+                                    selectedDispatchCarrierInfoContact={props.selectedDispatchCarrierInfoContact}
+                                    selectedDispatchCarrierInfoDriver={props.selectedDispatchCarrierInfoDriver}
+                                    selectedDispatchCarrierInfoInsurance={props.selectedDispatchCarrierInfoInsurance}
+
+
+                                    billToCompanyInfoPanelName='bill-to-company-info'
+                                    billToCompanySearchPanelName='bill-to-company-search'
+                                    shipperCompanyInfoPanelName='shipper-company-info'
+                                    shipperCompanySearchPanelName='shipper-company-search'
+                                    consigneeCompanyInfoPanelName='consignee-company-info'
+                                    consigneeCompanySearchPanelName='consignee-company-search'
+                                    carrierInfoPanelName='carrier-info'
+                                    carrierInfoSearchPanelName='carrier-info-search'
+                                    routingPanelName='routing'
+                                    ratingScreenPanelName='rating-screen'
+                                    adjustRatePanelName='adjust-rate'
+                                    rateConfPanelName='rate-conf'
+                                    orderPanelName='order'
+                                    bolPanelName='bol'
+                                    orderDocumentsPanelName='order-documents'
+                                    loadBoardPanelName='load-board'
+                                />
+                            </div>
+                        </animated.div>
+                    </Draggable>
+
+                ))}
+            </Transition> */}
+            {/* ================================== LB DISPATCH =============================== */}
 
             {/* ================================== LB ROUTING =============================== */}
             <Transition

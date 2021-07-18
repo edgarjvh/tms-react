@@ -487,3 +487,175 @@ export const setNewCarrier = carrier => {
         payload: carrier
     }
 }
+export const setIsSavingOrder = bool => {
+    return {
+        type: dispatchConstants.SET_IS_SAVING_ORDER,
+        payload: bool
+    }
+}
+
+
+// CUSTOMER DISPATCH
+
+export const setCustomerSelectedOrder = order => {
+    return {
+        type: dispatchConstants.SET_CUSTOMER_SELECTED_ORDER,
+        payload: order
+    }
+}
+export const setCustomerAeNumber = number => {
+    return {
+        type: dispatchConstants.SET_CUSTOMER_AE_NUMBER,
+        payload: number
+    }
+}
+export const setCustomerOrderNumber = number => {
+    return {
+        type: dispatchConstants.SET_CUSTOMER_ORDER_NUMBER,
+        payload: number
+    }
+}
+export const setCustomerTripNumber = number => {
+    return {
+        type: dispatchConstants.SET_CUSTOMER_TRIP_NUMBER,
+        payload: number
+    }
+}
+export const setCustomerDivision = division => {
+    return {
+        type: dispatchConstants.SET_CUSTOMER_DIVISION,
+        payload: division
+    }
+}
+export const setCustomerLoadType = loadType => {
+    return {
+        type: dispatchConstants.SET_CUSTOMER_LOAD_TYPE,
+        payload: loadType
+    }
+}
+export const setCustomerTemplate = template => {
+    return {
+        type: dispatchConstants.SET_CUSTOMER_TEMPLATE,
+        payload: template
+    }
+}
+export const setCustomerShipperBolNumber = number => {
+    return {
+        type: dispatchConstants.SET_CUSTOMER_SHIPPER_BOL_NUMBER,
+        payload: number
+    }
+}
+export const setCustomerShipperPoNumber = number => {
+    return {
+        type: dispatchConstants.SET_CUSTOMER_SHIPPER_PO_NUMBER,
+        payload: number
+    }
+}
+export const setCustomerShipperRefNumber = number => {
+    return {
+        type: dispatchConstants.SET_CUSTOMER_SHIPPER_REF_NUMBER,
+        payload: number
+    }
+}
+export const setCustomerDispatchEvent = event => {
+    return {
+        type: dispatchConstants.SET_CUSTOMER_DISPATCH_EVENT,
+        payload: event
+    }
+}
+export const setCustomerDispatchEventLocation = eventLocation => {
+    return {
+        type: dispatchConstants.SET_CUSTOMER_DISPATCH_EVENT_LOCATION,
+        payload: eventLocation
+    }
+}
+export const setCustomerDispatchEventNotes = notes => {
+    return {
+        type: dispatchConstants.SET_CUSTOMER_DISPATCH_EVENT_NOTES,
+        payload: notes
+    }
+}
+export const setCustomerDispatchEventDate = date => {
+    return {
+        type: dispatchConstants.SET_CUSTOMER_DISPATCH_EVENT_DATE,
+        payload: date
+    }
+}
+export const setCustomerDispatchEventTime = time => {
+    return {
+        type: dispatchConstants.SET_CUSTOMER_DISPATCH_EVENT_TIME,
+        payload: time
+    }
+}
+export const setCustomerDispatchEvents = events => {
+    return {
+        type: dispatchConstants.SET_CUSTOMER_DISPATCH_EVENTS,
+        payload: events
+    }
+}
+export const setCustomerSelectedNoteForCarrier = note => {
+    return {
+        type: dispatchConstants.SET_CUSTOMER_SELECTED_NOTE_FOR_CARRIER,
+        payload: note
+    }
+}
+export const setCustomerSelectedInternalNote = note => {
+    return {
+        type: dispatchConstants.SET_CUSTOMER_SELECTED_INTERNAL_NOTE,
+        payload: note
+    }
+}
+export const setCustomerIsShowingShipperSecondPage = bool => {
+    return {
+        type: dispatchConstants.SET_CUSTOMER_IS_SHOWING_SHIPPER_SECOND_PAGE,
+        payload: bool
+    }
+}
+export const setCustomerIsShowingConsigneeSecondPage = bool => {
+    return {
+        type: dispatchConstants.SET_CUSTOMER_IS_SHOWING_CONSIGNEE_SECOND_PAGE,
+        payload: bool
+    }
+}
+export const setCustomerMileageLoaderVisible = bool => {
+    return {
+        type: dispatchConstants.SET_CUSTOMER_MILEAGE_LOADER_VISIBLE,
+        payload: bool
+    }
+}
+export const setCustomerSelectedOrderDocument = document => {
+    return {
+        type: dispatchConstants.SET_CUSTOMER_SELECTED_ORDER_DOCUMENT,
+        payload: document
+    }
+}
+export const setCustomerSelectedOrderDocumentNote = note => {
+    return {
+        type: dispatchConstants.SET_CUSTOMER_SELECTED_ORDER_DOCUMENT_NOTE,
+        payload: note
+    }
+}
+export const setCustomerOrderDocumentTags = tags => {
+    return {
+        type: dispatchConstants.SET_CUSTOMER_ORDER_DOCUMENT_TAGS,
+        payload: tags
+    }
+}
+export const setCustomerShowingChangeCarrier = bool => {
+    return {
+        type: dispatchConstants.SET_CUSTOMER_SHOWING_CHANGE_CARRIER,
+        payload: bool
+    }
+}
+export const setCustomerNewCarrier = carrier => {
+    return {
+        type: dispatchConstants.SET_CUSTOMER_NEW_CARRIER,
+        payload: carrier
+    }
+}
+export const setCustomerIsSavingOrder = bool => {
+    return {
+        type: dispatchConstants.SET_CUSTOMER_IS_SAVING_ORDER,
+        payload: bool
+    }
+}

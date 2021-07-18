@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { connect } from "react-redux";
 import './EquipmentInformation.css';
 import EquipmentInformationPopup from './../popup/Popup.jsx';
@@ -6,25 +6,63 @@ import classnames from 'classnames';
 import $ from 'jquery';
 import { Transition, Spring, animated as animated2, config } from 'react-spring/renderprops';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCaretDown, faCaretRight, faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
+import { faCaretDown, faCaretRight, faCalendarAlt, faPencilAlt, faPen } from '@fortawesome/free-solid-svg-icons';
 import { useDetectClickOutside } from "react-detect-click-outside";
 import Highlighter from "react-highlight-words";
 
 function EquipmentInformation(props) {
-    var delayTimer;
     const refEquipment = useRef();
-    const refPopup = useRef();
-    const [popupItems, setPopupItems] = useState([]);
-    const popupContainerClasses = classnames({
-        'mochi-contextual-container': true,
-        'shown': popupItems.length > 0
-    });
-    const popupItemsRef = useRef([]);
-    const [popupActiveInput, setPopupActiveInput] = useState('');
+    const refEquipmentCarrierCode = useRef();
 
     const [equipmentDropdownItems, setEquipmentDropdownItems] = useState([]);
     const refEquipmentDropDown = useDetectClickOutside({ onTriggered: async () => { await setEquipmentDropdownItems([]) } });
     const refEquipmentPopupItems = useRef([]);
+
+    const [isSavingEquipmentInformation, setIsSavingEquipmentInformation] = useState(false);
+
+    useEffect(() => {
+        if (isSavingEquipmentInformation) {
+            let equipmentInformation = { ...props.equipmentInformation };
+            let carrier = props.equipmentInformation?.carrier || {};
+            let equipment = props.equipmentInformation?.equipment || {};
+
+            equipmentInformation.carrier_id = carrier.id || 0;
+            equipmentInformation.equipment_id = equipment.id || 0;
+
+            if (equipmentInformation.carrier_id > 0 &&
+                equipmentInformation.equipment_id > 0 &&
+                (equipmentInformation.units || '').trim() !== '' &&
+                (equipmentInformation.equipment_length || '').trim() !== '' &&
+                (equipmentInformation.equipment_width || '').trim() !== '' &&
+                (equipmentInformation.equipment_height || '').trim() !== '') {
+
+                $.post(props.serverUrl + '/saveCarrierEquipment', equipmentInformation).then(async res => {
+                    if (res.result === 'OK') {
+                        await props.setEquipmentInformation({
+                            ...props.equipmentInformation,
+                            carrier: {
+                                ...props.equipmentInformation.carrier,
+                                equipments_information: res.equipments_information
+                            },
+                            id: 0,
+                            equipment_id: 0,
+                            equipment: {},
+                            units: '',
+                            equipment_length: '',
+                            equipment_width: '',
+                            equipment_height: ''
+                        });
+
+                        refEquipment.current.focus();
+                    }
+                    setIsSavingEquipmentInformation(false);
+                }).catch(async e => {
+                    console.log('error on saving carrier equipment information', e);
+                    setIsSavingEquipmentInformation(false);
+                });
+            }
+        }
+    }, [isSavingEquipmentInformation]);
 
     const closePanelBtnClick = (e, name) => {
         props.setEquipmentInformation({});
@@ -32,239 +70,6 @@ function EquipmentInformation(props) {
         props.setOpenedPanels(props.openedPanels.filter((item, index) => {
             return item !== name;
         }));
-    }
-
-    const popupItemClick = async (item) => {
-        switch (popupActiveInput) {
-            case 'equipment':
-                props.setEquipmentInformation({ ...props.equipmentInformation, equipment: item, equipment_id: item.id });
-                await setPopupItems([]);
-                break;
-            default:
-                break;
-        }
-    }
-
-    const equipmentOnKeydown = (e) => {
-        let key = e.keyCode || e.which;
-        let selectedIndex = -1;
-        let items = popupItems.map((a, b) => {
-            if (a.selected) selectedIndex = b;
-            return a;
-        });
-
-        if (key === 37 || key === 38) {
-            e.preventDefault();
-            if (selectedIndex === -1) {
-                // items[0].selected = true;
-            } else {
-                items = items.map((a, b) => {
-                    if (selectedIndex === 0) {
-                        if (b === items.length - 1) {
-                            a.selected = true;
-                        } else {
-                            a.selected = false;
-                        }
-                    } else {
-                        if (b === selectedIndex - 1) {
-                            a.selected = true;
-                        } else {
-                            a.selected = false;
-                        }
-                    }
-                    return a;
-                });
-
-                setPopupItems(items);
-
-                popupItemsRef.current.map((r, i) => {
-                    if (r && r.classList.contains('selected')) {
-                        r.scrollIntoView()
-                    }
-                    return true;
-                });
-            }
-        }
-
-        if (key === 39 || key === 40) {
-            e.preventDefault();
-            if (selectedIndex === -1) {
-                // items[0].selected = true;
-            } else {
-                items = items.map((a, b) => {
-                    if (selectedIndex === items.length - 1) {
-                        if (b === 0) {
-                            a.selected = true;
-                        } else {
-                            a.selected = false;
-                        }
-                    } else {
-                        if (b === selectedIndex + 1) {
-                            a.selected = true;
-                        } else {
-                            a.selected = false;
-                        }
-                    }
-                    return a;
-                });
-
-                setPopupItems(items);
-
-                popupItemsRef.current.map((r, i) => {
-                    if (r && r.classList.contains('selected')) {
-                        r.scrollIntoView()
-                    }
-                    return true;
-                });
-            }
-        }
-
-        if (key === 13) {
-            popupItems.map((item, index) => {
-                if (item.selected) {
-
-                    props.setEquipmentInformation({ ...props.equipmentInformation, equipment: item });
-                    // let driver = { ...props.selectedDriver, carrier_id: props.selectedCarrier.id, equipment_id: item.id, equipment: item };
-
-
-                    // if (!driverPendingSave) {
-
-                    //     if ((driver.first_name || '').trim() !== '') {
-                    //         $.post(props.serverUrl + '/saveCarrierDriver', driver).then(res => {
-                    //             setDriverPendingSave(true);
-                    //             if (res.result === 'OK') {
-                    //                 props.setSelectedCarrier({ ...props.selectedCarrier, drivers: res.drivers });
-                    //                 props.setSelectedDriver({ ...res.driver });
-                    //             }
-                    //             setDriverPendingSave(false);
-                    //         });
-                    //     }
-                    // }
-                }
-
-                return true;
-            });
-
-            setPopupItems([]);
-        }
-
-        if (key === 9) {
-            if (popupItems.length === 0) {
-                // if ((props.selectedDriver.equipment_id || 0) === 0) {
-                //     props.setSelectedDriver({ ...props.selectedDriver, equipment: {} });
-                // } else {
-                //     validateDriverForSaving({ keyCode: 9 });
-                // }
-            } else {
-                popupItems.map((item, index) => {
-                    if (item.selected) {
-                        props.setEquipmentInformation({ ...props.equipmentInformation, equipment: item });
-                        // let driver = { ...props.selectedDriver, carrier_id: props.selectedCarrier.id, equipment_id: item.id, equipment: item };
-                        // if (!driverPendingSave) {
-
-                        //     if ((driver.first_name || '').trim() !== '') {
-                        //         $.post(props.serverUrl + '/saveCarrierDriver', driver).then(res => {
-                        //             setDriverPendingSave(true);
-                        //             if (res.result === 'OK') {
-                        //                 props.setSelectedCarrier({ ...props.selectedCarrier, drivers: res.drivers });
-                        //                 props.setSelectedDriver({ ...res.driver });
-                        //             }
-                        //             setDriverPendingSave(false);
-                        //         });
-                        //     }
-                        // }
-                    }
-
-                    return true;
-                });
-
-                // validateDriverForSaving({ keyCode: 9 });
-                setPopupItems([]);
-            }
-        }
-    }
-
-
-
-    const onEquipmentInput = async (e) => {
-
-        window.clearTimeout(delayTimer);
-        let equipment = props.equipmentInformation.equipment || {};
-        equipment.name = e.target.value.trim();
-        await props.setEquipmentInformation({ ...props.equipmentInformation, equipment_id: 0, equipment: equipment });
-
-        setPopupActiveInput('equipment');
-
-        if (e.target.value.trim() === '') {
-            await setPopupItems([]);
-        } else {
-            delayTimer = window.setTimeout(() => {
-                $.post(props.serverUrl + '/getEquipments', {
-                    name: e.target.value.toLowerCase().trim()
-                }).then(async res => {
-                    const input = refEquipment.current.getBoundingClientRect();
-
-                    let popup = refPopup.current;
-
-                    const { innerWidth, innerHeight } = window;
-                    let parentWidth = $(popup).parent().width();
-                    let parentLeft = $(popup).parent().position().left;
-
-                    let screenWSection = parentWidth / 3;
-                    let offset = innerWidth - parentWidth - 45;
-
-                    if (popup) {
-                        popup.childNodes[0].className = 'mochi-contextual-popup';
-                        popup.childNodes[0].classList.add('vertical');
-
-                        if ((innerHeight - 170 - 30) <= input.top) {
-                            popup.childNodes[0].classList.add('above');
-                            popup.style.top = (input.top - 175 - input.height) + 'px';
-                        } else if ((innerHeight - 170 - 30) > input.top) {
-                            popup.childNodes[0].classList.add('below');
-                            popup.style.top = (input.top + 10) + 'px';
-                        }
-
-                        if ((input.left - offset) <= (screenWSection * 1)) {
-                            popup.childNodes[0].classList.add('right');
-                            popup.style.left = (input.left - offset) + 'px';
-
-                            if (input.width < 70) {
-                                popup.style.left = ((input.left - offset) - 60 + (input.width / 2)) + 'px';
-
-                                if (input.left < 30) {
-                                    popup.childNodes[0].classList.add('corner');
-                                    popup.style.left = ((input.left - offset) + (input.width / 2)) + 'px';
-                                }
-                            }
-                        } else if ((input.left - offset) <= (screenWSection * 2)) {
-                            popup.style.left = ((input.left - offset) - 100) + 'px';
-                        } else if ((input.left - offset) > (screenWSection * 2)) {
-                            popup.childNodes[0].classList.add('left');
-                            popup.style.left = ((input.left - offset) - 200) + 'px';
-
-                            if ((innerWidth - (input.left - offset)) < 100) {
-                                popup.childNodes[0].classList.add('corner');
-                                popup.style.left = ((input.left - offset)) - (300 - (input.width / 2)) + 'px';
-                            }
-                        }
-                    }
-
-                    if (res.result === 'OK') {
-                        if (res.equipments.length > 0) {
-                            let items = res.equipments.map((equipment, i) => {
-                                equipment.selected = i === 0;
-                                return equipment;
-                            });
-
-                            await setPopupItems(e.target.value.trim() === '' ? [] : items);
-                        } else {
-                            await setPopupItems([]);
-                        }
-                    }
-                });
-            }, 300);
-        }
     }
 
     const searchCarrierByCode = (e) => {
@@ -280,7 +85,13 @@ function EquipmentInformation(props) {
                         if (res.carriers.length > 0) {
                             await props.setEquipmentInformation({
                                 ...props.equipmentInformation,
-                                carrier: res.carriers[0]
+                                carrier: {
+                                    id: res.carriers[0].id,
+                                    code: res.carriers[0].code,
+                                    code_number: res.carriers[0].code_number,
+                                    name: res.carriers[0].name,
+                                    equipments_information: res.carriers[0].equipments_information
+                                }
                             });
 
                             // await res.carriers[0].contacts.map(async c => {
@@ -292,9 +103,41 @@ function EquipmentInformation(props) {
 
                             // await props.setSelectedDriver({});
                             // await props.setSelectedInsurance({});
+                        } else {
+                            await props.setEquipmentInformation({
+                                ...props.equipmentInformation,
+                                carrier: {
+                                    ...props.equipmentInformation.carrier,
+                                    id: 0,
+                                    code_number: 0,
+                                    name: '',
+                                    equipments_information: []
+                                },
+                                id: 0,
+                                equipment_id: 0,
+                                equipment: {},
+                                units: '',
+                                equipment_length: '',
+                                equipment_width: '',
+                                equipment_height: ''
+                            });
                         }
                     }
                 });
+            }
+        }
+    }
+
+    const validateEquipmentForSaving = (e) => {
+        let key = e.keyCode || e.which;
+
+        if (key === 9) {
+            if (!isSavingEquipmentInformation) {
+                e.preventDefault();
+                setIsSavingEquipmentInformation(true);
+            } else {
+                e.preventDefault();
+                refEquipmentCarrierCode.current.focus();
             }
         }
     }
@@ -315,6 +158,7 @@ function EquipmentInformation(props) {
                 <div className="form-row">
                     <div className="input-box-container input-code">
                         <input type="text" maxLength="8" placeholder="Code"
+                            ref={refEquipmentCarrierCode}
                             onKeyDown={searchCarrierByCode}
                             onInput={e => {
                                 props.setEquipmentInformation({
@@ -709,7 +553,8 @@ function EquipmentInformation(props) {
                     </div>
                     <div className="form-h-sep"></div>
                     <div className="input-box-container grow">
-                        <input type="text" placeholder="Hieght"
+                        <input type="text" placeholder="Height"
+                            onKeyDown={validateEquipmentForSaving}
                             onInput={(e) => { props.setEquipmentInformation({ ...props.equipmentInformation, equipment_height: e.target.value }) }}
                             onChange={(e) => { props.setEquipmentInformation({ ...props.equipmentInformation, equipment_height: e.target.value }) }}
                             value={props.equipmentInformation.equipment_height || ''}
@@ -724,17 +569,59 @@ function EquipmentInformation(props) {
                     <div className='top-border top-border-middle'></div>
                     <div className='top-border top-border-right'></div>
                 </div>
-            </div>
 
-            <EquipmentInformationPopup
-                popupRef={refPopup}
-                popupClasses={popupContainerClasses}
-                popupItems={popupItems}
-                popupItemsRef={popupItemsRef}
-                popupItemClick={popupItemClick}
-                popupItemKeydown={() => { }}
-                setPopupItems={setPopupItems}
-            />
+                <div className="equipment-list-box">
+                    {
+                        (props.equipmentInformation?.carrier?.equipments_information || []).length > 0 &&
+                        <div className="equipment-list-header">
+                            <div className="equipment-list-col tcol equipment">Equipment</div>
+                            <div className="equipment-list-col tcol units">Number of Units</div>
+                            <div className="equipment-list-col tcol equipment_length">Length</div>
+                            <div className="equipment-list-col tcol equipment_width">Width</div>
+                            <div className="equipment-list-col tcol equipment_height">Height</div>
+                        </div>
+                    }
+
+                    <div className="equipment-list-wrapper">
+                        {
+                            (props.equipmentInformation?.carrier?.equipments_information || []).map((eq, index) => {
+                                const itemClasses = classnames({
+                                    'equipment-list-item': true,
+                                    'selected': eq.id === props.equipmentInformation.id
+                                })
+                                return (
+                                    <div className='equipment-list-item' key={index} onClick={() => {
+                                        props.setEquipmentInformation({
+                                            ...props.equipmentInformation,
+                                            id: eq.id,
+                                            equipment: eq.equipment,
+                                            equipment_id: eq.equipment.id,
+                                            units: eq.units,
+                                            equipment_length: eq.equipment_length,
+                                            equipment_width: eq.equipment_width,
+                                            equipment_height: eq.equipment_height
+                                        });
+
+                                        refEquipment.current.focus();
+                                    }}>
+                                        <div className="equipment-list-col tcol equipment">{eq.equipment.name}</div>
+                                        <div className="equipment-list-col tcol units">{eq.units}</div>
+                                        <div className="equipment-list-col tcol equipment_length">{eq.equipment_length}</div>
+                                        <div className="equipment-list-col tcol equipment_width">{eq.equipment_width}</div>
+                                        <div className="equipment-list-col tcol equipment_height">{eq.equipment_height}</div>
+                                        {
+                                            (eq.id === props.equipmentInformation.id) &&
+                                            <div className="equipment-list-col tcol equipment-selected">
+                                                <FontAwesomeIcon icon={faPencilAlt} />
+                                            </div>
+                                        }
+                                    </div>
+                                )
+                            })
+                        }
+                    </div>
+                </div>
+            </div>
         </div>
     )
 }

@@ -5,27 +5,26 @@ import $ from 'jquery';
 import './Carriers.css';
 import { useSpring, animated } from 'react-spring';
 import moment from 'moment';
-import CarrierPopup from './popup/Popup.jsx';
-import CalendarPopup from './calendarPopup/CalendarPopup.jsx';
 import MaskedInput from 'react-text-mask';
 import PanelContainer from './panels/panel-container/PanelContainer.jsx';
 import CarrierModal from './modal/Modal.jsx';
-import ReactStars from "react-rating-stars-component";
-import createNumberMask from 'text-mask-addons/dist/createNumberMask';
 import accounting from 'accounting';
 import { Transition, Spring, animated as animated2, config } from 'react-spring/renderprops';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCaretDown, faCaretRight, faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
+import { faCaretDown, faCaretRight, faCalendarAlt, faPencilAlt, faPen, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { useDetectClickOutside } from "react-detect-click-outside";
 import Highlighter from "react-highlight-words";
 import Calendar from './calendar/Calendar.jsx';
-import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import Rating from '@material-ui/lab/Rating';
 
 function Carriers(props) {
     const refCarrierCode = useRef(null);
     const refCarrierContactPhone = useRef();
+    const refCarrierContactFirstName = useRef();
+    const refCarrierDriverFirstName = useRef();
+    const refInsurancesListWrapper = useRef();
+    const [insurancesScrollBarVisible, setInsurancesScrollBarVisible] = useState(false);
     const [carrierContactPhoneItems, setCarrierContactPhoneItems] = useState([]);
     const [showCarrierContactPhones, setShowCarrierContactPhones] = useState(false);
     const refCarrierContactPhoneDropDown = useDetectClickOutside({ onTriggered: async () => { await setShowCarrierContactPhones(false) } });
@@ -77,6 +76,7 @@ function Carriers(props) {
     const [isSavingCarrier, setIsSavingCarrier] = useState(false);
     const [isSavingContact, setIsSavingContact] = useState(false);
     const [isSavingMailingAddress, setIsSavingMailingAddress] = useState(false);
+    const [isSavingFactoringCompany, setIsSavingFactoringCompany] = useState(false);
     const [isSavingDriver, setIsSavingDriver] = useState(false);
     const [isSavingInsurance, setIsSavingInsurance] = useState(false);
     const [popupActiveInput, setPopupActiveInput] = useState('');
@@ -86,27 +86,13 @@ function Carriers(props) {
     const refInsuranceCompany = useRef();
     const popupItemsRef = useRef([]);
     const refPopup = useRef();
-    const refCalendarPopup = useRef();
-    const popupContainerClasses = classnames({
-        'mochi-contextual-container': true,
-        'shown': popupItems.length > 0
-    });
+    const modalTransitionProps = useSpring({ opacity: (props.selectedNote.id !== undefined || props.selectedDirection.id !== undefined) ? 1 : 0 });
 
-    const calendarPopupContainerClasses = classnames({
-        'mochi-contextual-container': true,
-        'shown': isCalendarShown
-    });
-
-    const currencyMask = createNumberMask({
-        prefix: '',
-        suffix: '',
-        allowDecimal: true,
-    })
-
-    const [selectedEquipmentIndex, setSelectedEquipmentIndex] = useState(-1);
     var delayTimer;
 
-    const modalTransitionProps = useSpring({ opacity: (props.selectedNote.id !== undefined || props.selectedDirection.id !== undefined) ? 1 : 0 });
+    useEffect(() => {
+        setInsurancesScrollBarVisible($(`#${props.panelName}-insurances-list-wrapper`).hasScrollBar());
+    }, [props.selectedCarrier?.insurances?.length])
 
     useEffect(() => {
         if (isSavingCarrier) {
@@ -141,14 +127,29 @@ function Carriers(props) {
 
                 $.post(props.serverUrl + '/saveCarrier', selectedCarrier).then(async res => {
                     if (res.result === 'OK') {
+                        let carrier = JSON.parse(JSON.stringify(res.carrier));
+
                         if (props.selectedCarrier.id === undefined && (props.selectedCarrier.id || 0) === 0) {
-                            await props.setSelectedCarrier({ ...props.selectedCarrier, id: res.carrier.id });
+                            await props.setSelectedCarrier({
+                                ...props.selectedCarrier,
+                                id: carrier.id,
+                                code: carrier.code,
+                                code_number: carrier.code_number,
+                                contacts: carrier.contacts || []
+                            });
+                        } else {
+                            await props.setSelectedCarrier({
+                                ...props.selectedCarrier,
+                                contacts: carrier.contacts || []
+                            });
                         }
 
                         (res.carrier.contacts || []).map(async (contact, index) => {
 
                             if (contact.is_primary === 1) {
-                                await props.setSelectedCarrierContact(contact);
+                                if ((props.selectedContact?.id || 0) === 0 || props.selectedContact?.id === contact.id) {
+                                    await props.setSelectedCarrierContact(contact);
+                                }
                             }
 
                             return true;
@@ -160,6 +161,8 @@ function Carriers(props) {
                     console.log('error on saving carrier', e);
                     setIsSavingCarrier(false);
                 });
+            } else {
+                setIsSavingCarrier(false);
             }
         }
     }, [isSavingCarrier]);
@@ -167,6 +170,7 @@ function Carriers(props) {
     useEffect(() => {
         if (isSavingContact) {
             if (props.selectedCarrier.id === undefined) {
+                setIsSavingContact(false);
                 return;
             }
 
@@ -176,7 +180,14 @@ function Carriers(props) {
                 contact.carrier_id = props.selectedCarrier.id;
             }
 
-            if ((contact.first_name || '').trim() === '' || (contact.last_name || '').trim() === '' || (contact.phone_work || '').trim() === '' || (contact.email_work || '').trim() === '') {
+            if ((contact.first_name || '').trim() === '' ||
+                (contact.last_name || '').trim() === '' ||
+                ((contact.phone_work || '').trim() === '' &&
+                    (contact.phone_work_fax || '').trim() === '' &&
+                    (contact.phone_mobile || '').trim() === '' &&
+                    (contact.phone_direct || '').trim() === '' &&
+                    (contact.phone_other || '').trim() === '')) {
+                setIsSavingContact(false);
                 return;
             }
 
@@ -207,7 +218,7 @@ function Carriers(props) {
             if ((props.selectedCarrier.id || 0) > 0) {
                 let mailing_address = props.selectedCarrier.mailing_address || {};
 
-                if (mailing_address.id !== undefined) {
+                if (mailing_address.id === undefined) {
                     mailing_address.id = 0;
                 }
                 mailing_address.carrier_id = props.selectedCarrier.id;
@@ -233,7 +244,7 @@ function Carriers(props) {
 
                     let newCode = (mailing_address.name || '').trim().replace(/\s/g, "").replace("&", "A").substring(0, 3) + parseCity.substring(0, 2) + (mailing_address.state || '').trim().replace(/\s/g, "").substring(0, 2);
 
-                    mailing_address.code = newCode;
+                    mailing_address.code = newCode.toUpperCase();
 
                     $.post(props.serverUrl + '/saveCarrierMailingAddress', mailing_address).then(async res => {
                         if (res.result === 'OK') {
@@ -245,10 +256,60 @@ function Carriers(props) {
                         console.log('error on saving carrier mailing address', e);
                         setIsSavingMailingAddress(false);
                     });
+                } else {
+                    setIsSavingMailingAddress(false);
                 }
             }
         }
-    }, [isSavingMailingAddress])
+    }, [isSavingMailingAddress]);
+
+    useEffect(() => {
+        if (isSavingFactoringCompany) {
+            let factoring_company = props.selectedCarrier?.factoring_company || {};
+
+            if (factoring_company.id === undefined) {
+                factoring_company.id = 0;
+            }
+
+            factoring_company.carrier_id = props.selectedCarrier.id;
+
+            if (
+                (factoring_company.name || '').trim().replace(/\s/g, "").replace("&", "A") !== "" &&
+                (factoring_company.city || '').trim().replace(/\s/g, "") !== "" &&
+                (factoring_company.state || '').trim().replace(/\s/g, "") !== "" &&
+                (factoring_company.address1 || '').trim() !== "" &&
+                (factoring_company.zip || '').trim() !== ""
+            ) {
+                let parseCity = factoring_company.city.trim().replace(/\s/g, "").substring(0, 3);
+
+                if (parseCity.toLowerCase() === "ft.") {
+                    parseCity = "FO";
+                }
+                if (parseCity.toLowerCase() === "mt.") {
+                    parseCity = "MO";
+                }
+                if (parseCity.toLowerCase() === "st.") {
+                    parseCity = "SA";
+                }
+
+                let newCode = (factoring_company.name || '').trim().replace(/\s/g, "").replace("&", "A").substring(0, 3) + parseCity.substring(0, 2) + (factoring_company.state || '').trim().replace(/\s/g, "").substring(0, 2);
+
+                factoring_company.code = newCode.toUpperCase();
+
+                $.post(props.serverUrl + '/saveFactoringCompany', factoring_company).then(async res => {
+                    if (res.result === 'OK') {
+                        await props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: res.factoring_company });
+                    }
+                    setIsSavingFactoringCompany(false);
+                }).catch(async e => {
+                    console.log('error saving factoring company on carrier', e);
+                    setIsSavingFactoringCompany(false);
+                });
+            } else {
+                setIsSavingFactoringCompany(false);
+            }
+        }
+    }, [isSavingFactoringCompany]);
 
     useEffect(() => {
         refCarrierCode.current.focus({
@@ -350,16 +411,6 @@ function Carriers(props) {
         props.selectedCarrier?.mailing_address?.mailing_contact?.primary_phone
     ]);
 
-    const carrierStars = {
-        size: 30,
-        count: 5,
-        isHalf: false,
-        value: 0,
-        color: "rgba(137,137,137,1)",
-        activeColor: "yellow",
-        onChange: () => { }
-    };
-
     const setInitialValues = (clearCode = true) => {
         setIsSavingCarrier(false);
         setIsSavingDriver(false);
@@ -371,6 +422,8 @@ function Carriers(props) {
         props.setSelectedInsurance({})
         props.setSelectedCarrier({ id: 0, code: clearCode ? '' : props.selectedCarrier.code });
         setPopupItems([]);
+
+        refCarrierCode.current.focus();
     }
 
     const searchCarrierBtnClick = () => {
@@ -454,12 +507,10 @@ function Carriers(props) {
         }
     }
 
-
     const validateCarrierForSaving = (e) => {
-
         let keyCode = e.keyCode || e.which;
 
-        if (keyCode === 9 || e.target.id === 'cbox-carrier-do-not-use-btn') {
+        if (keyCode === 9) {
             if (!isSavingCarrier) {
                 setIsSavingCarrier(true);
             }
@@ -474,42 +525,6 @@ function Carriers(props) {
                 setIsSavingContact(true);
             }
         }
-    }
-
-    const selectedContactIsPrimaryChange = async (e) => {
-        console.log(e);
-        await props.setSelectedCarrierContact({ ...props.selectedContact, is_primary: e.target.checked ? 1 : 0 });
-
-        if (props.selectedCarrier.id === undefined) {
-            return;
-        }
-
-        let contact = props.selectedContact;
-        contact = { ...contact, is_primary: e.target.checked ? 1 : 0 };
-
-        if (contact.carrier_id === undefined || contact.carrier_id === 0) {
-            contact.carrier_id = props.selectedCarrier.id;
-        }
-
-        if ((contact.first_name || '').trim() === '' || (contact.last_name || '').trim() === '' || (contact.phone_work || '').trim() === '' || (contact.email_work || '').trim() === '') {
-            return;
-        }
-
-        if ((contact.address1 || '').trim() === '' && (contact.address2 || '').trim() === '') {
-            contact.address1 = props.selectedCarrier.address1;
-            contact.address2 = props.selectedCarrier.address2;
-            contact.city = props.selectedCarrier.city;
-            contact.state = props.selectedCarrier.state;
-            contact.zip_code = props.selectedCarrier.zip;
-        }
-
-        $.post(props.serverUrl + '/saveCarrierContact', contact).then(async res => {
-            if (res.result === 'OK') {
-                await props.setSelectedCarrierContact(res.contact);
-                await props.setSelectedCarrier({ ...props.selectedCarrier, contacts: res.contacts });
-            }
-        });
-
     }
 
     const searchContactBtnClick = () => {
@@ -565,804 +580,6 @@ function Carriers(props) {
                 }
             }
         });
-    }
-
-    const popupItemClick = async (item) => {
-        switch (popupActiveInput) {
-            case 'equipment':
-                await props.setSelectedDriver({
-                    ...props.selectedDriver,
-                    equipment: item,
-                    equipment_id: item.id,
-                    carrier_id: props.selectedCarrier.id || 0
-                });
-
-                if ((props.selectedCarrier?.id || 0) > 0) {
-                    let driver = {
-                        ...props.selectedDriver,
-                        id: (props.selectedDriver?.id || 0),
-                        carrier_id: props.selectedCarrier.id || 0,
-                        equipment: item,
-                        equipment_id: item.id
-                    };
-
-                    if ((driver.first_name || '').trim() !== '') {
-                        if (!isSavingDriver) {
-                            setIsSavingDriver(true);
-
-                            $.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
-                                if (res.result === 'OK') {
-                                    await props.setSelectedCarrier({ ...props.selectedCarrier, drivers: res.drivers });
-                                    await props.setSelectedDriver({ ...driver, id: res.driver.id });
-                                }
-
-                                await setIsSavingDriver(false);
-                            });
-                        }
-                    }
-                }
-                setPopupItems([]);
-                break;
-            case 'insurance-type':
-                props.setSelectedInsurance({ ...props.selectedInsurance, insurance_type_id: item.id, insurance_type: item });
-
-                let insurance = {
-                    ...props.selectedInsurance,
-                    carrier_id: props.selectedCarrier.id,
-                    insurance_type_id: item.id,
-                    insurance_type: item
-                };
-
-                if ((insurance.insurance_type_id || 0) >= 0 &&
-                    (insurance.company || '').trim() !== '' &&
-                    (insurance.expiration_date || '').trim() !== '' &&
-                    (insurance.amount || '').trim() !== '') {
-
-                    insurance.expiration_date = getFormattedDates(insurance.expiration_date);
-
-                    if (!isSavingInsurance) {
-                        setIsSavingInsurance(true);
-                        $.post(props.serverUrl + '/saveInsurance', insurance).then(async res => {
-                            if (res.result === 'OK') {
-                                await props.setSelectedCarrier({ ...props.selectedCarrier, insurances: res.insurances });
-                                await props.setSelectedInsurance({ ...insurance, id: res.insurance.id });
-                            }
-                            setIsSavingInsurance(false);
-                        });
-                    }
-                }
-
-                setPopupItems([]);
-                break;
-            case 'insurance-company':
-                props.setSelectedInsurance({ ...props.selectedInsurance, company: item.name });
-                await setPopupItems([]);
-                break;
-            default:
-
-                break;
-        }
-    }
-
-    const equipmentOnKeydown = (e) => {
-        let key = e.keyCode || e.which;
-        let selectedIndex = -1;
-        let items = popupItems.map((a, b) => {
-            if (a.selected) selectedIndex = b;
-            return a;
-        });
-
-        if (key === 37 || key === 38) {
-            e.preventDefault();
-            if (selectedIndex === -1) {
-                // items[0].selected = true;
-            } else {
-                items = items.map((a, b) => {
-                    if (selectedIndex === 0) {
-                        if (b === items.length - 1) {
-                            a.selected = true;
-                        } else {
-                            a.selected = false;
-                        }
-                    } else {
-                        if (b === selectedIndex - 1) {
-                            a.selected = true;
-                        } else {
-                            a.selected = false;
-                        }
-                    }
-                    return a;
-                });
-
-                setPopupItems(items);
-
-                popupItemsRef.current.map((r, i) => {
-                    if (r && r.classList.contains('selected')) {
-                        r.scrollIntoView({
-                            behavior: 'auto',
-                            block: 'center',
-                            inline: 'nearest'
-                        })
-                    }
-                    return true;
-                });
-            }
-        }
-
-        if (key === 39 || key === 40) {
-            e.preventDefault();
-            if (selectedIndex === -1) {
-                // items[0].selected = true;
-            } else {
-                items = items.map((a, b) => {
-                    if (selectedIndex === items.length - 1) {
-                        if (b === 0) {
-                            a.selected = true;
-                        } else {
-                            a.selected = false;
-                        }
-                    } else {
-                        if (b === selectedIndex + 1) {
-                            a.selected = true;
-                        } else {
-                            a.selected = false;
-                        }
-                    }
-                    return a;
-                });
-
-                setPopupItems(items);
-
-                popupItemsRef.current.map((r, i) => {
-                    if (r && r.classList.contains('selected')) {
-                        r.scrollIntoView({
-                            behavior: 'auto',
-                            block: 'center',
-                            inline: 'nearest'
-                        })
-                    }
-                    return true;
-                });
-            }
-        }
-
-        if (key === 13) {
-            popupItems.map((item, index) => {
-                if (item.selected) {
-                    props.setSelectedDriver({ ...props.selectedDriver, carrier_id: props.selectedCarrier.id, equipment_id: item.id, equipment: item });
-                    let driver = { ...props.selectedDriver, carrier_id: props.selectedCarrier.id, equipment_id: item.id, equipment: item };
-
-                    if ((driver.first_name || '').trim() !== '') {
-                        if (!isSavingDriver) {
-                            setIsSavingDriver(true);
-
-                            $.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
-                                if (res.result === 'OK') {
-                                    await props.setSelectedCarrier({ ...props.selectedCarrier, drivers: res.drivers });
-                                    await props.setSelectedDriver({ ...res.driver });
-                                }
-                                setIsSavingDriver(false);
-                            });
-                        }
-                    }
-                }
-
-                return true;
-            });
-
-            setPopupItems([]);
-        }
-
-        if (key === 9) {
-            if (popupItems.length === 0) {
-                if ((props.selectedDriver.equipment_id || 0) === 0) {
-                    props.setSelectedDriver({ ...props.selectedDriver, equipment: {} });
-                } else {
-                    validateDriverForSaving(e);
-                }
-            } else {
-                popupItems.map((item, index) => {
-                    if (item.selected) {
-                        props.setSelectedDriver({ ...props.selectedDriver, carrier_id: props.selectedCarrier.id, equipment_id: item.id, equipment: item });
-                        let driver = { ...props.selectedDriver, carrier_id: props.selectedCarrier.id, equipment_id: item.id, equipment: item };
-                        if ((driver.first_name || '').trim() !== '') {
-                            if (!isSavingDriver) {
-                                setIsSavingDriver(true);
-
-                                $.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
-                                    if (res.result === 'OK') {
-                                        await props.setSelectedCarrier({ ...props.selectedCarrier, drivers: res.drivers });
-                                        await props.setSelectedDriver({ ...res.driver });
-                                    }
-                                    setIsSavingDriver(false);
-                                });
-                            }
-                        }
-                    }
-
-                    return true;
-                });
-
-                validateDriverForSaving(e);
-                setPopupItems([]);
-            }
-        }
-    }
-
-
-
-    const onEquipmentInput = async (e) => {
-
-        window.clearTimeout(delayTimer);
-        let equipment = props.selectedDriver.equipment || {};
-        equipment.name = e.target.value.trim();
-        await props.setSelectedDriver({ ...props.selectedDriver, equipment_id: 0, equipment: equipment });
-
-        setPopupActiveInput('equipment');
-
-        if (props.selectedCarrier.id !== undefined) {
-            if (e.target.value.trim() === '') {
-                await setPopupItems([]);
-            } else {
-                delayTimer = window.setTimeout(() => {
-                    $.post(props.serverUrl + '/getEquipments', {
-                        name: e.target.value.toLowerCase().trim()
-                    }).then(async res => {
-                        const input = refEquipment.current.getBoundingClientRect();
-
-                        let popup = refPopup.current;
-
-                        const { innerWidth, innerHeight } = window;
-
-                        let screenWSection = innerWidth / 3;
-
-                        popup && popup.childNodes[0].classList.add('vertical');
-
-                        if ((innerHeight - 170 - 30) <= input.top) {
-                            popup && popup.childNodes[0].classList.add('above');
-                        }
-
-                        if ((innerHeight - 170 - 30) > input.top) {
-                            popup && popup.childNodes[0].classList.add('below');
-                            popup && (popup.style.top = (input.top + 10) + 'px');
-                        }
-
-                        if (input.left <= (screenWSection * 1)) {
-                            popup && popup.childNodes[0].classList.add('right');
-                            popup && (popup.style.left = input.left + 'px');
-
-                            if (input.width < 70) {
-                                popup && (popup.style.left = (input.left - 60 + (input.width / 2)) + 'px');
-
-                                if (input.left < 30) {
-                                    popup && popup.childNodes[0].classList.add('corner');
-                                    popup && (popup.style.left = (input.left + (input.width / 2)) + 'px');
-                                }
-                            }
-                        }
-
-                        if (input.left <= (screenWSection * 2)) {
-                            popup && (popup.style.left = (input.left - 100) + 'px');
-                        }
-
-                        if (input.left > (screenWSection * 2)) {
-                            popup && popup.childNodes[0].classList.add('left');
-                            popup && (popup.style.left = (input.left - 200) + 'px');
-
-                            if ((innerWidth - input.left) < 100) {
-                                popup && popup.childNodes[0].classList.add('corner');
-                                popup && (popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px');
-                            }
-                        }
-
-                        if (res.result === 'OK') {
-                            if (res.equipments.length > 0) {
-                                let items = res.equipments.map((equipment, i) => {
-                                    equipment.selected = i === 0;
-                                    return equipment;
-                                });
-
-                                await setPopupItems(e.target.value.trim() === '' ? [] : items);
-                            } else {
-                                await setPopupItems([]);
-                            }
-                        }
-                    });
-                }, 300);
-            }
-        }
-    }
-
-    const onInsuranceCompanyInput = (e) => {
-        window.clearTimeout(delayTimer);
-        setPopupActiveInput('insurance-company');
-        props.setSelectedInsurance({ ...props.selectedInsurance, company: e.target.value.trim() });
-
-        if (e.target.value.trim() === '') {
-            setPopupItems([]);
-        } else {
-            delayTimer = window.setTimeout(() => {
-                $.post(props.serverUrl + '/getInsuranceCompanies', { company: e.target.value.trim() }).then(async res => {
-
-                    const input = refInsuranceCompany.current.getBoundingClientRect();
-
-                    let popup = refPopup.current;
-
-                    const { innerWidth, innerHeight } = window;
-
-                    let screenWSection = innerWidth / 3;
-
-                    popup && popup.childNodes[0].classList.add('vertical');
-
-                    if ((innerHeight - 170 - 30) <= input.top) {
-                        popup && popup.childNodes[0].classList.add('above');
-                    }
-
-                    if ((innerHeight - 170 - 30) > input.top) {
-                        popup && popup.childNodes[0].classList.add('below');
-                        popup && (popup.style.top = (input.top + 10) + 'px');
-                    }
-
-                    if (input.left <= (screenWSection * 1)) {
-                        popup && popup.childNodes[0].classList.add('right');
-                        popup && (popup.style.left = input.left + 'px');
-
-                        if (input.width < 70) {
-                            popup && (popup.style.left = (input.left - 60 + (input.width / 2)) + 'px');
-
-                            if (input.left < 30) {
-                                popup && popup.childNodes[0].classList.add('corner');
-                                popup && (popup.style.left = (input.left + (input.width / 2)) + 'px');
-                            }
-                        }
-                    }
-
-                    if (input.left <= (screenWSection * 2)) {
-                        popup && (popup.style.left = (input.left - 100) + 'px');
-                    }
-
-                    if (input.left > (screenWSection * 2)) {
-                        popup && popup.childNodes[0].classList.add('left');
-                        popup && (popup.style.left = (input.left - 200) + 'px');
-
-                        if ((innerWidth - input.left) < 100) {
-                            popup && popup.childNodes[0].classList.add('corner');
-                            popup && (popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px');
-                        }
-                    }
-
-                    if (res.result === 'OK') {
-                        if (res.companies.length > 0) {
-                            let items = res.companies.map((company, i) => {
-                                company.name = company.company;
-                                company.selected = i === 0;
-                                return company;
-                            });
-
-                            await setPopupItems(e.target.value.trim() === '' ? [] : items);
-                        } else {
-                            await setPopupItems([]);
-                        }
-                    }
-                })
-            }, 300)
-        }
-    }
-
-    const onInsuranceCompanyKeydown = (e) => {
-
-        let key = e.keyCode || e.which;
-        setPopupActiveInput('insurance-company');
-
-        if (e.target.value.trim() !== '') {
-            if (popupItems.length === 0) {
-                if (key === 38 || key === 40) { // arrow keys pressed
-                    e.preventDefault();
-                    delayTimer = window.setTimeout(() => {
-                        $.post(props.serverUrl + '/getInsuranceCompanies', { company: e.target.value.trim() }).then(async res => {
-                            const input = refInsuranceCompany.current.getBoundingClientRect();
-
-                            let popup = refPopup.current;
-
-                            const { innerWidth, innerHeight } = window;
-
-                            let screenWSection = innerWidth / 3;
-
-                            popup && popup.childNodes[0].classList.add('vertical');
-
-                            if ((innerHeight - 170 - 30) <= input.top) {
-                                popup && popup.childNodes[0].classList.add('above');
-                            }
-
-                            if ((innerHeight - 170 - 30) > input.top) {
-                                popup && popup.childNodes[0].classList.add('below');
-                                popup && (popup.style.top = (input.top + 10) + 'px');
-                            }
-
-                            if (input.left <= (screenWSection * 1)) {
-                                popup && popup.childNodes[0].classList.add('right');
-                                popup && (popup.style.left = input.left + 'px');
-
-                                if (input.width < 70) {
-                                    popup && (popup.style.left = (input.left - 60 + (input.width / 2)) + 'px');
-
-                                    if (input.left < 30) {
-                                        popup && popup.childNodes[0].classList.add('corner');
-                                        popup && (popup.style.left = (input.left + (input.width / 2)) + 'px');
-                                    }
-                                }
-                            }
-
-                            if (input.left <= (screenWSection * 2)) {
-                                popup && (popup.style.left = (input.left - 100) + 'px');
-                            }
-
-                            if (input.left > (screenWSection * 2)) {
-                                popup && popup.childNodes[0].classList.add('left');
-                                popup && (popup.style.left = (input.left - 200) + 'px');
-
-                                if ((innerWidth - input.left) < 100) {
-                                    popup && popup.childNodes[0].classList.add('corner');
-                                    popup && (popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px');
-                                }
-                            }
-
-                            if (res.result === 'OK') {
-                                if (res.companies.length > 0) {
-                                    let items = res.companies.map((company, i) => {
-                                        company.name = company.company;
-                                        company.selected = i === 0;
-                                        return company;
-                                    });
-
-                                    await setPopupItems(e.target.value.trim() === '' ? [] : items);
-                                } else {
-                                    await setPopupItems([]);
-                                }
-                            }
-                        })
-                    }, 100)
-                }
-            } else {
-                if (key === 38) { // arrow up
-                    e.preventDefault();
-                    let selectedIndex = -1;
-
-                    popupItems.map((item, index) => {
-                        if (item.selected) {
-                            selectedIndex = index;
-                        }
-                        return true;
-                    });
-
-                    if (selectedIndex === -1) {
-                        selectedIndex = 0;
-                    } else {
-                        if (selectedIndex === 0) {
-                            selectedIndex = popupItems.length - 1;
-                        } else {
-                            selectedIndex -= 1;
-                        }
-                    }
-
-                    setPopupItems(popupItems.map((item, index) => {
-                        item.selected = index === selectedIndex;
-                        return item;
-                    }));
-                }
-
-                if (key === 40) { // arrow down
-                    e.preventDefault();
-                    let selectedIndex = -1;
-
-                    popupItems.map((item, index) => {
-                        if (item.selected) {
-                            selectedIndex = index;
-                        }
-                        return true;
-                    });
-
-                    if (selectedIndex === -1) {
-                        selectedIndex = 0;
-                    } else {
-                        if (selectedIndex === popupItems.length - 1) {
-                            selectedIndex = 0;
-                        } else {
-                            selectedIndex += 1;
-                        }
-                    }
-
-                    setPopupItems(popupItems.map((item, index) => {
-                        item.selected = index === selectedIndex;
-                        return item;
-                    }));
-                }
-
-                if (key === 13 || key === 9) { // enter key                    
-                    popupItems.map(item => {
-                        if (item.selected) {
-                            props.setSelectedInsurance({ ...props.selectedInsurance, company: item.name });
-                        }
-                        return true;
-                    });
-
-                    setPopupItems([]);
-                }
-            }
-        }
-    }
-
-    const onInsuranceTypeKeydown = (e) => {
-
-        let key = e.key.toLowerCase();
-        setPopupActiveInput('insurance-type');
-        let selectedInsurance = props.selectedInsurance || { id: 0 };
-        let selectedIndex = -1;
-
-        const input = refInsuranceType.current.getBoundingClientRect();
-
-        let popup = refPopup.current;
-
-        const { innerWidth, innerHeight } = window;
-
-        let screenWSection = innerWidth / 3;
-
-        popup && popup.childNodes[0].classList.add('vertical');
-
-        if ((innerHeight - 170 - 30) <= input.top) {
-            popup && popup.childNodes[0].classList.add('above');
-        }
-
-        if ((innerHeight - 170 - 30) > input.top) {
-            popup && popup.childNodes[0].classList.add('below');
-            popup && (popup.style.top = (input.top + 10) + 'px');
-        }
-
-        if (input.left <= (screenWSection * 1)) {
-            popup && popup.childNodes[0].classList.add('right');
-            popup && (popup.style.left = input.left + 'px');
-
-            if (input.width < 70) {
-                popup && (popup.style.left = (input.left - 60 + (input.width / 2)) + 'px');
-
-                if (input.left < 30) {
-                    popup && popup.childNodes[0].classList.add('corner');
-                    popup && (popup.style.left = (input.left + (input.width / 2)) + 'px');
-                }
-            }
-        }
-
-        if (input.left <= (screenWSection * 2)) {
-            popup && (popup.style.left = (input.left - 100) + 'px');
-        }
-
-        if (input.left > (screenWSection * 2)) {
-            popup && popup.childNodes[0].classList.add('left');
-            popup && (popup.style.left = (input.left - 200) + 'px');
-
-            if ((innerWidth - input.left) < 100) {
-                popup && popup.childNodes[0].classList.add('corner');
-                popup && (popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px');
-            }
-        }
-
-        if (key === 'enter') {
-            if (popupItems.length > 0) {
-                popupItems.map((type, index) => {
-
-                    if (type.selected) {
-                        selectedInsurance.insurance_type_id = type.id;
-                        selectedInsurance.insurance_type = type;
-                        props.setSelectedInsurance(selectedInsurance);
-                    };
-
-                    return true;
-                });
-
-                setPopupItems([]);
-            }
-        } else if (key === 'c' || key === 'l' || key === 'w') {
-            setPopupItems(props.insuranceTypes.map((type, index) => {
-                type.selected = type.name.substring(0, 1).toLowerCase() === key;
-
-                if (type.selected) {
-                    selectedIndex = index;
-                    selectedInsurance.insurance_type_id = type.id;
-                    selectedInsurance.insurance_type = type;
-                    props.setSelectedInsurance(selectedInsurance);
-                }
-
-                return type;
-            }));
-        } else if (key === 'tab') {
-            setPopupItems([]);
-
-
-        } else if (key === 'arrowleft' || key === 'arrowup') {
-            if (popupItems.length === 0) {
-                if ((props.selectedInsurance.insurance_type?.name || '') !== '') {
-                    setPopupItems(props.insuranceTypes.map((type, index) => {
-                        if (props.selectedInsurance.insurance_type.name === type.name) {
-                            selectedIndex = index;
-                        }
-
-                        if (type.selected) {
-                            selectedInsurance.insurance_type_id = type.id;
-                            selectedInsurance.insurance_type = type;
-                            props.setSelectedInsurance(selectedInsurance);
-                        }
-
-                        return type;
-                    }));
-                } else {
-                    setPopupItems(props.insuranceTypes.map((type, index) => {
-                        type.selected = index === 0;
-                        selectedIndex = 0;
-
-                        console.log(type.selected);
-
-                        if (type.selected) {
-                            selectedInsurance.insurance_type_id = type.id;
-                            selectedInsurance.insurance_type = type;
-                            props.setSelectedInsurance(selectedInsurance);
-                        }
-
-                        return type;
-                    }));
-                }
-            } else {
-                popupItems.map((type, index) => {
-                    if (type.selected) selectedIndex = index;
-                    return true;
-                });
-
-                if (selectedIndex === -1) {
-                    selectedIndex = 0;
-                } else {
-                    if (selectedIndex === 0) {
-                        selectedIndex = popupItems.length - 1;
-                    } else {
-                        selectedIndex = selectedIndex - 1;
-                    }
-                }
-
-                setPopupItems(props.insuranceTypes.map((type, index) => {
-                    type.selected = index === selectedIndex;
-
-                    if (type.selected) {
-                        selectedInsurance.insurance_type_id = type.id;
-                        selectedInsurance.insurance_type = type;
-                        props.setSelectedInsurance(selectedInsurance);
-                    }
-
-                    return type;
-                }));
-            }
-        } else if (key === 'arrowright' || key === 'arrowdown') {
-            if (popupItems.length === 0) {
-                if ((props.selectedInsurance.insurance_type?.name || '') !== '') {
-                    setPopupItems(props.insuranceTypes.map((type, index) => {
-                        if (props.selectedInsurance.insurance_type.name === type.name) {
-                            selectedIndex = index;
-                        }
-
-                        if (type.selected) {
-                            selectedInsurance.insurance_type_id = type.id;
-                            selectedInsurance.insurance_type = type;
-                            props.setSelectedInsurance(selectedInsurance);
-                        }
-
-                        return type;
-                    }));
-                } else {
-                    setPopupItems(props.insuranceTypes.map((type, index) => {
-                        type.selected = index === 0;
-                        selectedIndex = 0;
-
-                        console.log(type.selected);
-
-                        if (type.selected) {
-                            selectedInsurance.insurance_type_id = type.id;
-                            selectedInsurance.insurance_type = type;
-                            props.setSelectedInsurance(selectedInsurance);
-                        }
-
-                        return type;
-                    }));
-                }
-            } else {
-                popupItems.map((type, index) => {
-                    if (type.selected) selectedIndex = index;
-                    return true;
-                });
-
-                if (selectedIndex === -1) {
-                    selectedIndex = 0;
-                } else {
-                    if (selectedIndex === popupItems.length - 1) {
-                        selectedIndex = 0;
-                    } else {
-                        selectedIndex = selectedIndex + 1;
-                    }
-                }
-
-                setPopupItems(props.insuranceTypes.map((type, index) => {
-                    type.selected = index === selectedIndex;
-
-                    if (type.selected) {
-                        selectedInsurance.insurance_type_id = type.id;
-                        selectedInsurance.insurance_type = type;
-                        props.setSelectedInsurance(selectedInsurance);
-                    }
-
-                    return type;
-                }));
-            }
-        } else if (key === 'click') {
-            if (popupItems.length === 0) {
-                if ((props.selectedInsurance.insurance_type?.name || '') !== '') {
-                    setPopupItems(props.insuranceTypes.map((type, index) => {
-                        if (props.selectedInsurance.insurance_type.name === type.name) {
-                            type.selected = true;
-                            selectedIndex = index;
-                        }
-
-                        if (type.selected) {
-                            selectedInsurance.insurance_type_id = type.id;
-                            selectedInsurance.insurance_type = type;
-                            props.setSelectedInsurance(selectedInsurance);
-                        }
-
-                        return type;
-                    }));
-                } else {
-                    setPopupItems(props.insuranceTypes.map((type, index) => {
-                        type.selected = index === 0;
-                        selectedIndex = 0;
-
-
-                        if (type.selected) {
-                            selectedInsurance.insurance_type_id = type.id;
-                            selectedInsurance.insurance_type = type;
-                            props.setSelectedInsurance(selectedInsurance);
-                        }
-
-                        return type;
-                    }));
-                }
-            } else {
-                popupItems.map((type, index) => {
-                    if (type.selected) selectedIndex = index;
-                    return true;
-                });
-
-                if (selectedIndex === -1) {
-                    selectedIndex = 0;
-                } else {
-                    if (selectedIndex === popupItems.length - 1) {
-                        selectedIndex = 0;
-                    } else {
-                        selectedIndex = selectedIndex + 1;
-                    }
-                }
-
-                setPopupItems(props.insuranceTypes.map((type, index) => {
-                    type.selected = index === selectedIndex;
-
-                    if (type.selected) {
-                        selectedInsurance.insurance_type_id = type.id;
-                        selectedInsurance.insurance_type = type;
-                        props.setSelectedInsurance(selectedInsurance);
-                    }
-
-                    return type;
-                }));
-            }
-        }
-
-        if (key !== 'tab') {
-            e.preventDefault();
-        }
     }
 
     const validateMailingAddressToSave = (e) => {
@@ -1498,47 +715,9 @@ function Carriers(props) {
 
         if (keyCode === 9) {
             if ((props.selectedCarrier.id || 0) > 0) {
-
-                window.clearTimeout(delayTimer);
-
-                window.setTimeout(() => {
-                    let factoring_company = props.selectedCarrier.factoring_company || {};
-
-                    if (factoring_company.id !== undefined) {
-                        factoring_company.id = 0;
-                    }
-                    factoring_company.carrier_id = props.selectedCarrier.id;
-
-                    if (
-                        (factoring_company.name || '').trim().replace(/\s/g, "").replace("&", "A") !== "" &&
-                        (factoring_company.city || '').trim().replace(/\s/g, "") !== "" &&
-                        (factoring_company.state || '').trim().replace(/\s/g, "") !== "" &&
-                        (factoring_company.address1 || '').trim() !== "" &&
-                        (factoring_company.zip || '').trim() !== ""
-                    ) {
-                        let parseCity = factoring_company.city.trim().replace(/\s/g, "").substring(0, 3);
-
-                        if (parseCity.toLowerCase() === "ft.") {
-                            parseCity = "FO";
-                        }
-                        if (parseCity.toLowerCase() === "mt.") {
-                            parseCity = "MO";
-                        }
-                        if (parseCity.toLowerCase() === "st.") {
-                            parseCity = "SA";
-                        }
-
-                        let newCode = (factoring_company.name || '').trim().replace(/\s/g, "").replace("&", "A").substring(0, 3) + parseCity.substring(0, 2) + (factoring_company.state || '').trim().replace(/\s/g, "").substring(0, 2);
-
-                        factoring_company.code = newCode;
-
-                        $.post(props.serverUrl + '/saveCarrierFactoringCompany', factoring_company).then(async res => {
-                            if (res.result === 'OK') {
-                                await props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: res.factoring_company });
-                            }
-                        });
-                    }
-                }, 300);
+                if (!isSavingFactoringCompany) {
+                    setIsSavingFactoringCompany(true);
+                }
             }
         }
     }
@@ -1620,7 +799,7 @@ function Carriers(props) {
 
     const clearFactoringCompanyBtnClick = async () => {
         let selectedCarrier = { ...props.selectedCarrier };
-        selectedCarrier.factoring_company_id = 0;
+        selectedCarrier.factoring_company_id = null;
         await props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: {} });
 
         if (props.selectedCarrier.id || 0 > 0) {
@@ -1646,95 +825,46 @@ function Carriers(props) {
         return true;
     }
 
+    useEffect(() => {
+        if (isSavingDriver) {
+            if ((props.selectedCarrier?.id || 0) > 0) {
+                let driver = { ...props.selectedDriver, carrier_id: props.selectedCarrier.id };
+
+                if ((driver?.first_name || '').trim() !== '') {
+
+                    $.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
+                        if (res.result === 'OK') {
+                            props.setSelectedCarrier({ ...props.selectedCarrier, drivers: res.drivers });
+                            props.setSelectedDriver({ ...props.selectedDriver, id: res.driver.id });
+                        }
+
+                        setIsSavingDriver(false);
+                    }).catch(e => {
+                        console.log('error on saving carrier driver', e);
+                        setIsSavingDriver(false);
+                    });
+                } else {
+                    setIsSavingDriver(false);
+                }
+            }
+        }
+    }, [isSavingDriver])
 
     const validateDriverForSaving = (e) => {
         let key = e.keyCode || e.which;
-        let tabindex = e.target.getAttribute('tabindex');
 
         if (key === 9) {
-            if ((props.selectedCarrier.id || 0) > 0) {
-                let driver = { ...props.selectedDriver, carrier_id: props.selectedCarrier.id };
-
-                if ((driver.first_name || '').trim() !== '') {
-                    if (!isSavingDriver) {
-                        setIsSavingDriver(true);
-
-                        $.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
-                            if (res.result === 'OK') {
-                                if (props.selectedDriver.id === undefined || (props.selectedDriver.id || 0) === 0) {
-                                    if (tabindex === (99 + props.tabTimes).toString()) {
-                                        e.preventDefault();
-                                        await props.setSelectedDriver({});
-                                        goToTabindex((92 + props.tabTimes).toString());
-                                    } else {
-                                        await props.setSelectedDriver({ ...props.selectedDriver, id: res.driver.id });
-                                    }
-                                } else {
-                                    if (tabindex === (99 + props.tabTimes).toString()) {
-                                        e.preventDefault();
-                                        await props.setSelectedDriver({});
-                                        goToTabindex((92 + props.tabTimes).toString());
-                                    } else {
-                                        await props.setSelectedDriver({ ...props.selectedDriver, id: res.driver.id });
-                                    }
-                                }
-
-                                await props.setSelectedCarrier({ ...props.selectedCarrier, drivers: res.drivers });
-                            }
-
-                            await setIsSavingDriver(false);
-                        });
-                    } else {
-                        if (tabindex === (99 + props.tabTimes).toString()) {
-                            e.preventDefault();
-                            if (isObjectEmpty(props.selectedDriver)) {
-                                goToTabindex((43 + props.tabTimes).toString());
-                            } else {
-                                goToTabindex((92 + props.tabTimes).toString());
-                            }
-                            props.setSelectedDriver({});
-                        }
-                    }
-                } else {
-                    if (tabindex === (99 + props.tabTimes).toString()) {
-                        e.preventDefault();
-                        if (isObjectEmpty(props.selectedDriver)) {
-                            goToTabindex((43 + props.tabTimes).toString());
-                        } else {
-                            goToTabindex((92 + props.tabTimes).toString());
-                        }
-                        props.setSelectedDriver({});
-                    }
-                }
-            } else {
-                if (tabindex === (99 + props.tabTimes).toString()) {
-                    e.preventDefault();
-                    if (isObjectEmpty(props.selectedDriver)) {
-                        goToTabindex((43 + props.tabTimes).toString());
-                    } else {
-                        goToTabindex((92 + props.tabTimes).toString());
-                    }
-                    props.setSelectedDriver({});
-                }
+            if (!isSavingDriver) {
+                setIsSavingDriver(true);
             }
         }
-    }
-
-    const isObjectEmpty = (obj) => {
-        for (let key in obj) {
-            if (obj[key] !== null && obj[key] !== '' && obj[key] !== undefined) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     useEffect(() => {
         if (isSavingInsurance) {
-            let insurance = { ...props.selectedInsurance, carrier_id: props.selectedCarrier.id };
+            let insurance = { ...props.selectedInsurance, carrier_id: (props.selectedCarrier?.id || 0) };
 
-            if ((insurance.insurance_type_id || 0) >= 0 &&
+            if ((insurance.insurance_type_id || 0) > 0 &&
                 (insurance.company || '') !== '' &&
                 (insurance.expiration_date || '') !== '' &&
                 (insurance.amount || '') !== '') {
@@ -1755,8 +885,11 @@ function Carriers(props) {
                     }
                     setIsSavingInsurance(false);
                 }).catch(e => {
+                    console.log('error on saving carrier insurance', e);
                     setIsSavingInsurance(false);
                 });
+            } else {
+                setIsSavingInsurance(false);
             }
         }
     }, [isSavingInsurance])
@@ -1764,11 +897,11 @@ function Carriers(props) {
     const validateInsuranceForSaving = async (e) => {
         let key = e.keyCode || e.which;
 
-        if (key === 9 && (props.selectedCarrier.id || 0) > 0) {
-            setIsSavingInsurance(true);
+        if (key === 9) {
+            if (!isSavingInsurance) {
+                setIsSavingInsurance(true);
+            }
         }
-
-
 
         if (key === 13) {
             let expiration_date = e.target.value.trim() === '' ? moment() : moment(getFormattedDates(props.selectedInsurance?.expiration_date || ''), 'MM/DD/YYYY');
@@ -1782,23 +915,9 @@ function Carriers(props) {
 
                 await props.setSelectedInsurance(insurance);
 
-                if ((insurance.insurance_type_id || 0) >= 0 &&
-                    (insurance.company || '').trim() !== '' &&
-                    (insurance.expiration_date || '').trim() !== '' &&
-                    (insurance.amount || '').trim() !== '') {
-
-                    if (!isSavingInsurance) {
-                        setIsSavingInsurance(true);
-                        $.post(props.serverUrl + '/saveInsurance', insurance).then(async res => {
-                            if (res.result === 'OK') {
-                                await props.setSelectedCarrier({ ...props.selectedCarrier, insurances: res.insurances });
-                                await props.setSelectedInsurance({ ...insurance, id: res.insurance.id });
-                            }
-                            setIsSavingInsurance(false);
-                        });
-                    }
+                if (!isSavingInsurance) {
+                    setIsSavingInsurance(true);
                 }
-
                 await setIsCalendarShown(false);
             }
         }
@@ -2035,56 +1154,86 @@ function Carriers(props) {
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container grow">
-                                <input tabIndex={44 + props.tabTimes} type="text" placeholder="Name" onKeyDown={validateCarrierForSaving} onChange={e => props.setSelectedCarrier({ ...props.selectedCarrier, name: e.target.value })} value={props.selectedCarrier.name || ''} />
+                                <input tabIndex={44 + props.tabTimes} type="text" placeholder="Name"
+                                    // onKeyDown={validateCarrierForSaving} 
+                                    onChange={e => props.setSelectedCarrier({ ...props.selectedCarrier, name: e.target.value })}
+                                    value={props.selectedCarrier.name || ''} />
                             </div>
                         </div>
                         <div className="form-v-sep"></div>
                         <div className="form-row">
                             <div className="input-box-container grow">
-                                <input tabIndex={45 + props.tabTimes} type="text" placeholder="Address 1" onKeyDown={validateCarrierForSaving} onChange={e => props.setSelectedCarrier({ ...props.selectedCarrier, address1: e.target.value })} value={props.selectedCarrier.address1 || ''} />
+                                <input tabIndex={45 + props.tabTimes} type="text" placeholder="Address 1"
+                                    // onKeyDown={validateCarrierForSaving} 
+                                    onChange={e => props.setSelectedCarrier({ ...props.selectedCarrier, address1: e.target.value })}
+                                    value={props.selectedCarrier.address1 || ''} />
                             </div>
                         </div>
                         <div className="form-v-sep"></div>
                         <div className="form-row">
                             <div className="input-box-container grow">
-                                <input tabIndex={46 + props.tabTimes} type="text" placeholder="Address 2" onKeyDown={validateCarrierForSaving} onChange={e => props.setSelectedCarrier({ ...props.selectedCarrier, address2: e.target.value })} value={props.selectedCarrier.address2 || ''} />
+                                <input tabIndex={46 + props.tabTimes} type="text" placeholder="Address 2"
+                                    // onKeyDown={validateCarrierForSaving} 
+                                    onChange={e => props.setSelectedCarrier({ ...props.selectedCarrier, address2: e.target.value })}
+                                    value={props.selectedCarrier.address2 || ''} />
                             </div>
                         </div>
                         <div className="form-v-sep"></div>
                         <div className="form-row">
                             <div className="input-box-container grow">
-                                <input tabIndex={47 + props.tabTimes} type="text" placeholder="City" onKeyDown={validateCarrierForSaving} onChange={e => props.setSelectedCarrier({ ...props.selectedCarrier, city: e.target.value })} value={props.selectedCarrier.city || ''} />
+                                <input tabIndex={47 + props.tabTimes} type="text" placeholder="City"
+                                    // onKeyDown={validateCarrierForSaving} 
+                                    onChange={e => props.setSelectedCarrier({ ...props.selectedCarrier, city: e.target.value })}
+                                    value={props.selectedCarrier.city || ''} />
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container input-state">
-                                <input tabIndex={48 + props.tabTimes} type="text" placeholder="State" maxLength="2" onKeyDown={validateCarrierForSaving} onChange={e => props.setSelectedCarrier({ ...props.selectedCarrier, state: e.target.value })} value={props.selectedCarrier.state || ''} />
+                                <input tabIndex={48 + props.tabTimes} type="text" placeholder="State" maxLength="2"
+                                    // onKeyDown={validateCarrierForSaving} 
+                                    onChange={e => props.setSelectedCarrier({ ...props.selectedCarrier, state: e.target.value })}
+                                    value={props.selectedCarrier.state || ''} />
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container input-zip-code">
-                                <input tabIndex={49 + props.tabTimes} type="text" placeholder="Postal Code" onKeyDown={validateCarrierForSaving} onChange={e => props.setSelectedCarrier({ ...props.selectedCarrier, zip: e.target.value })} value={props.selectedCarrier.zip || ''} />
+                                <input tabIndex={49 + props.tabTimes} type="text" placeholder="Postal Code"
+                                    onKeyDown={validateCarrierForSaving}
+                                    onChange={e => props.setSelectedCarrier({ ...props.selectedCarrier, zip: e.target.value })}
+                                    value={props.selectedCarrier.zip || ''} />
                             </div>
                         </div>
                         <div className="form-v-sep"></div>
                         <div className="form-row">
                             <div className="input-box-container grow">
-                                <input tabIndex={50 + props.tabTimes} type="text" placeholder="Contact Name" onKeyDown={validateCarrierForSaving} onChange={e => props.setSelectedCarrier({ ...props.selectedCarrier, contact_name: e.target.value })} value={props.selectedCarrier.contact_name || ''} />
+                                <input tabIndex={50 + props.tabTimes} type="text" placeholder="Contact Name"
+                                    // onKeyDown={validateCarrierForSaving} 
+                                    onChange={e => props.setSelectedCarrier({ ...props.selectedCarrier, contact_name: e.target.value })}
+                                    value={props.selectedCarrier.contact_name || ''} />
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container input-phone">
                                 <MaskedInput tabIndex={51 + props.tabTimes}
                                     mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                     guide={true}
-                                    type="text" placeholder="Contact Phone" onKeyDown={validateCarrierForSaving} onChange={e => props.setSelectedCarrier({ ...props.selectedCarrier, contact_phone: e.target.value })} value={props.selectedCarrier.contact_phone || ''} />
+                                    type="text" placeholder="Contact Phone"
+                                    onKeyDown={validateCarrierForSaving}
+                                    onChange={e => props.setSelectedCarrier({ ...props.selectedCarrier, contact_phone: e.target.value })}
+                                    value={props.selectedCarrier.contact_phone || ''} />
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container input-phone-ext">
-                                <input tabIndex={52 + props.tabTimes} type="text" placeholder="Ext" onKeyDown={validateCarrierForSaving} onChange={e => props.setSelectedCarrier({ ...props.selectedCarrier, ext: e.target.value })} value={props.selectedCarrier.ext || ''} />
+                                <input tabIndex={52 + props.tabTimes} type="text" placeholder="Ext"
+                                    onKeyDown={validateCarrierForSaving}
+                                    onChange={e => props.setSelectedCarrier({ ...props.selectedCarrier, ext: e.target.value })}
+                                    value={props.selectedCarrier.ext || ''} />
                             </div>
                         </div>
                         <div className="form-v-sep"></div>
                         <div className="form-row">
                             <div className="input-box-container grow">
-                                <input tabIndex={53 + props.tabTimes} type="text" placeholder="E-Mail" style={{ textTransform: 'lowercase' }} onKeyDown={validateCarrierForSaving} onChange={e => props.setSelectedCarrier({ ...props.selectedCarrier, email: e.target.value })} value={props.selectedCarrier.email || ''} />
+                                <input tabIndex={53 + props.tabTimes} type="text" placeholder="E-Mail" style={{ textTransform: 'lowercase' }}
+                                    onKeyDown={validateCarrierForSaving}
+                                    onChange={e => props.setSelectedCarrier({ ...props.selectedCarrier, email: e.target.value })}
+                                    value={props.selectedCarrier.email || ''} />
                             </div>
                         </div>
                     </div>
@@ -2098,7 +1247,7 @@ function Carriers(props) {
                         <div className="input-toggle-container">
                             <input type="checkbox" id={props.panelName + 'cbox-carrier-do-not-use-btn'} onChange={(e) => {
                                 props.setSelectedCarrier({ ...props.selectedCarrier, do_not_use: e.target.checked ? 1 : 0 });
-                                // validateCarrierForSaving(e)
+                                validateCarrierForSaving({ keyCode: 9 });
                             }} checked={(props.selectedCarrier.do_not_use || 0) === 1} />
                             <label htmlFor={props.panelName + 'cbox-carrier-do-not-use-btn'}>
                                 <div className="label-text">DO NOT USE</div>
@@ -2109,9 +1258,14 @@ function Carriers(props) {
                         {/* <ReactStars {...carrierStars} /> */}
                         <Rating
                             name="simple-controlled"
-                            value={ratingValue}
-                            onChange={(event, newValue) => {
-                                setRatingValue(newValue);
+                            value={props.selectedCarrier?.rating || 0}
+                            onChange={(e, newValue) => {
+                                props.setSelectedCarrier({
+                                    ...props.selectedCarrier,
+                                    rating: newValue
+                                });
+
+                                validateCarrierForSaving({ keyCode: 9 });
                             }}
                         />
 
@@ -2217,14 +1371,18 @@ function Carriers(props) {
 
                         <div className="form-row">
                             <div className="input-box-container grow">
-                                <input tabIndex={80 + props.tabTimes} type="text" placeholder="First Name" onKeyDown={validateContactForSaving} onChange={e => {
-
-                                    props.setSelectedCarrierContact({ ...props.selectedContact, first_name: e.target.value })
-                                }} value={props.selectedContact.first_name || ''} />
+                                <input tabIndex={80 + props.tabTimes} type="text" placeholder="First Name"
+                                    ref={refCarrierContactFirstName}
+                                    // onKeyDown={validateContactForSaving} 
+                                    onChange={e => { props.setSelectedCarrierContact({ ...props.selectedContact, first_name: e.target.value }) }}
+                                    value={props.selectedContact.first_name || ''} />
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container grow">
-                                <input tabIndex={81 + props.tabTimes} type="text" placeholder="Last Name" onKeyDown={validateContactForSaving} onChange={e => props.setSelectedCarrierContact({ ...props.selectedContact, last_name: e.target.value })} value={props.selectedContact.last_name || ''} />
+                                <input tabIndex={81 + props.tabTimes} type="text" placeholder="Last Name"
+                                    // onKeyDown={validateContactForSaving}
+                                    onChange={e => props.setSelectedCarrierContact({ ...props.selectedContact, last_name: e.target.value })}
+                                    value={props.selectedContact.last_name || ''} />
                             </div>
                         </div>
                         <div className="form-v-sep"></div>
@@ -2384,71 +1542,103 @@ function Carriers(props) {
                                             }
                                         }}
                                         onInput={(e) => {
-                                            switch (props.selectedContact?.primary_phone) {
-                                                case 'work':
+                                            if ((props.selectedContact?.id || 0) === 0) {
+                                                props.setSelectedCarrierContact({
+                                                    ...props.selectedContact,
+                                                    phone_work: e.target.value,
+                                                    primary_phone: 'work'
+                                                });
+                                            } else {
+                                                if ((props.selectedContact?.primary_phone || '') === '') {
                                                     props.setSelectedCarrierContact({
                                                         ...props.selectedContact,
-                                                        phone_work: e.target.value
+                                                        phone_work: e.target.value,
+                                                        primary_phone: 'work'
                                                     });
-                                                    break;
-                                                case 'fax':
-                                                    props.setSelectedCarrierContact({
-                                                        ...props.selectedContact,
-                                                        phone_work_fax: e.target.value
-                                                    });
-                                                    break;
-                                                case 'mobile':
-                                                    props.setSelectedCarrierContact({
-                                                        ...props.selectedContact,
-                                                        phone_mobile: e.target.value
-                                                    });
-                                                    break;
-                                                case 'direct':
-                                                    props.setSelectedCarrierContact({
-                                                        ...props.selectedContact,
-                                                        phone_direct: e.target.value
-                                                    });
-                                                    break;
-                                                case 'other':
-                                                    props.setSelectedCarrierContact({
-                                                        ...props.selectedContact,
-                                                        phone_other: e.target.value
-                                                    });
-                                                    break;
+                                                } else {
+                                                    switch (props.selectedContact?.primary_phone) {
+                                                        case 'work':
+                                                            props.setSelectedCarrierContact({
+                                                                ...props.selectedContact,
+                                                                phone_work: e.target.value
+                                                            });
+                                                            break;
+                                                        case 'fax':
+                                                            props.setSelectedCarrierContact({
+                                                                ...props.selectedContact,
+                                                                phone_work_fax: e.target.value
+                                                            });
+                                                            break;
+                                                        case 'mobile':
+                                                            props.setSelectedCarrierContact({
+                                                                ...props.selectedContact,
+                                                                phone_mobile: e.target.value
+                                                            });
+                                                            break;
+                                                        case 'direct':
+                                                            props.setSelectedCarrierContact({
+                                                                ...props.selectedContact,
+                                                                phone_direct: e.target.value
+                                                            });
+                                                            break;
+                                                        case 'other':
+                                                            props.setSelectedCarrierContact({
+                                                                ...props.selectedContact,
+                                                                phone_other: e.target.value
+                                                            });
+                                                            break;
+                                                    }
+                                                }
                                             }
                                         }}
                                         onChange={(e) => {
-                                            switch (props.selectedContact?.primary_phone) {
-                                                case 'work':
+                                            if ((props.selectedContact?.id || 0) === 0) {
+                                                props.setSelectedCarrierContact({
+                                                    ...props.selectedContact,
+                                                    phone_work: e.target.value,
+                                                    primary_phone: 'work'
+                                                });
+                                            } else {
+                                                if ((props.selectedContact?.primary_phone || '') === '') {
                                                     props.setSelectedCarrierContact({
                                                         ...props.selectedContact,
-                                                        phone_work: e.target.value
+                                                        phone_work: e.target.value,
+                                                        primary_phone: 'work'
                                                     });
-                                                    break;
-                                                case 'fax':
-                                                    props.setSelectedCarrierContact({
-                                                        ...props.selectedContact,
-                                                        phone_work_fax: e.target.value
-                                                    });
-                                                    break;
-                                                case 'mobile':
-                                                    props.setSelectedCarrierContact({
-                                                        ...props.selectedContact,
-                                                        phone_mobile: e.target.value
-                                                    });
-                                                    break;
-                                                case 'direct':
-                                                    props.setSelectedCarrierContact({
-                                                        ...props.selectedContact,
-                                                        phone_direct: e.target.value
-                                                    });
-                                                    break;
-                                                case 'other':
-                                                    props.setSelectedCarrierContact({
-                                                        ...props.selectedContact,
-                                                        phone_other: e.target.value
-                                                    });
-                                                    break;
+                                                } else {
+                                                    switch (props.selectedContact?.primary_phone) {
+                                                        case 'work':
+                                                            props.setSelectedCarrierContact({
+                                                                ...props.selectedContact,
+                                                                phone_work: e.target.value
+                                                            });
+                                                            break;
+                                                        case 'fax':
+                                                            props.setSelectedCarrierContact({
+                                                                ...props.selectedContact,
+                                                                phone_work_fax: e.target.value
+                                                            });
+                                                            break;
+                                                        case 'mobile':
+                                                            props.setSelectedCarrierContact({
+                                                                ...props.selectedContact,
+                                                                phone_mobile: e.target.value
+                                                            });
+                                                            break;
+                                                        case 'direct':
+                                                            props.setSelectedCarrierContact({
+                                                                ...props.selectedContact,
+                                                                phone_direct: e.target.value
+                                                            });
+                                                            break;
+                                                        case 'other':
+                                                            props.setSelectedCarrierContact({
+                                                                ...props.selectedContact,
+                                                                phone_other: e.target.value
+                                                            });
+                                                            break;
+                                                    }
+                                                }
                                             }
                                         }}
                                         value={
@@ -2593,13 +1783,18 @@ function Carriers(props) {
                             <div style={{ width: '50%', display: 'flex', justifyContent: 'space-between' }}>
                                 <div className="input-box-container input-phone-ext">
                                     <input tabIndex={83 + props.tabTimes} type="text" placeholder="Ext"
-                                        onKeyDown={validateContactForSaving}
+                                        // onKeyDown={validateContactForSaving}
                                         onChange={e => props.setSelectedCarrierContact({ ...props.selectedContact, phone_ext: e.target.value })}
                                         value={props.selectedContact.phone_ext || ''}
                                     />
                                 </div>
                                 <div className="input-toggle-container">
-                                    <input type="checkbox" id={props.panelName + 'cbox-carrier-contacts-primary-btn'} onChange={selectedContactIsPrimaryChange} checked={(props.selectedContact.is_primary || 0) === 1} />
+                                    <input type="checkbox" id={props.panelName + 'cbox-carrier-contacts-primary-btn'}
+                                        onChange={(e) => {
+                                            props.setSelectedCarrierContact({ ...props.selectedContact, is_primary: e.target.checked ? 1 : 0 });
+                                            validateContactForSaving({ keyCode: 9 });
+                                        }}
+                                        checked={(props.selectedContact.is_primary || 0) === 1} />
                                     <label htmlFor={props.panelName + 'cbox-carrier-contacts-primary-btn'}>
                                         <div className="label-text">Primary</div>
                                         <div className="input-toggle-btn"></div>
@@ -3010,7 +2205,10 @@ function Carriers(props) {
                                                         if (!props.openedPanels.includes(props.carrierContactsPanelName)) {
                                                             props.setOpenedPanels([...props.openedPanels, props.carrierContactsPanelName]);
                                                         }
-                                                    }} onClick={() => props.setSelectedCarrierContact(contact)}>
+                                                    }} onClick={() => {
+                                                        props.setSelectedCarrierContact(contact);
+                                                        refCarrierContactFirstName.current.focus();
+                                                    }}>
                                                         <div className="contact-list-col tcol first-name">{contact.first_name}</div>
                                                         <div className="contact-list-col tcol last-name">{contact.last_name}</div>
                                                         <div className="contact-list-col tcol phone-work">{
@@ -3027,12 +2225,18 @@ function Carriers(props) {
                                                                     : contact.primary_email === 'other' ? contact.email_other
                                                                         : ''
                                                         }</div>
-                                                        <div className="contact-list-col tcol pri">
-                                                            {
-                                                                (contact.is_primary === 1) &&
-                                                                <span className='fas fa-check'></span>
-                                                            }
-                                                        </div>
+                                                        {
+                                                            (contact.id === (props.selectedContact?.id || 0)) &&
+                                                            <div className="contact-list-col tcol contact-selected">
+                                                                <FontAwesomeIcon icon={faPencilAlt} />
+                                                            </div>
+                                                        }
+                                                        {
+                                                            (contact.is_primary === 1) &&
+                                                            <div className="contact-list-col tcol pri">
+                                                                <FontAwesomeIcon icon={faCheck} />
+                                                            </div>
+                                                        }
                                                     </div>
                                                 )
                                             })
@@ -3104,7 +2308,7 @@ function Carriers(props) {
                                         return;
                                     }
 
-                                    if ((props.selectedDriver.id || 0) === 0) {
+                                    if ((props.selectedDriver?.id || 0) === 0) {
                                         window.alert('You must selecte a driver first!');
                                         return;
                                     }
@@ -3124,7 +2328,10 @@ function Carriers(props) {
                                     <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
                                 </div>
 
-                                <div className="mochi-button" onClick={() => { props.setSelectedDriver({}) }}>
+                                <div className="mochi-button" onClick={() => {
+                                    props.setSelectedDriver({});
+                                    refCarrierDriverFirstName.current.focus();
+                                }}>
                                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                     <div className="mochi-button-base">Clear</div>
                                     <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
@@ -3135,15 +2342,28 @@ function Carriers(props) {
 
                         <div className="form-row">
                             <div className="input-box-container grow">
-                                <input tabIndex={92 + props.tabTimes} type="text" placeholder="First Name" onKeyDown={validateDriverForSaving} onChange={e => {
-                                    props.setSelectedDriver({ ...props.selectedDriver, first_name: e.target.value })
-                                }} value={props.selectedDriver.first_name || ''} />
+                                <input tabIndex={92 + props.tabTimes} type="text" placeholder="First Name"
+                                    ref={refCarrierDriverFirstName}
+                                    onKeyDown={validateDriverForSaving}
+                                    onInput={e => {
+                                        props.setSelectedDriver({ ...props.selectedDriver, first_name: e.target.value })
+                                    }}
+                                    onChange={e => {
+                                        props.setSelectedDriver({ ...props.selectedDriver, first_name: e.target.value })
+                                    }}
+                                    value={props.selectedDriver?.first_name || ''} />
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container grow">
-                                <input tabIndex={93 + props.tabTimes} type="text" placeholder="Last Name" onKeyDown={validateDriverForSaving} onChange={e => {
-                                    props.setSelectedDriver({ ...props.selectedDriver, last_name: e.target.value })
-                                }} value={props.selectedDriver.last_name || ''} />
+                                <input tabIndex={93 + props.tabTimes} type="text" placeholder="Last Name"
+                                    onKeyDown={validateDriverForSaving}
+                                    onInput={e => {
+                                        props.setSelectedDriver({ ...props.selectedDriver, last_name: e.target.value })
+                                    }}
+                                    onChange={e => {
+                                        props.setSelectedDriver({ ...props.selectedDriver, last_name: e.target.value })
+                                    }}
+                                    value={props.selectedDriver?.last_name || ''} />
                             </div>
                         </div>
 
@@ -3154,17 +2374,29 @@ function Carriers(props) {
                                 <MaskedInput tabIndex={94 + props.tabTimes}
                                     mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                     guide={true}
-                                    type="text" placeholder="Phone" onKeyDown={validateDriverForSaving} onChange={e => {
+                                    type="text" placeholder="Phone"
+                                    onKeyDown={validateDriverForSaving}
+                                    onInput={e => {
                                         props.setSelectedDriver({ ...props.selectedDriver, phone: e.target.value })
-                                    }} value={props.selectedDriver.phone || ''} />
+                                    }}
+                                    onChange={e => {
+                                        props.setSelectedDriver({ ...props.selectedDriver, phone: e.target.value })
+                                    }}
+                                    value={props.selectedDriver?.phone || ''} />
                             </div>
 
                             <div className="form-h-sep"></div>
 
                             <div className="input-box-container" style={{ flexGrow: 1 }}>
-                                <input tabIndex={95 + props.tabTimes} type="text" placeholder="E-mail" style={{ textTransform: 'lowercase' }} onKeyDown={validateDriverForSaving} onChange={e => {
-                                    props.setSelectedDriver({ ...props.selectedDriver, email: e.target.value })
-                                }} value={props.selectedDriver.email || ''} />
+                                <input tabIndex={95 + props.tabTimes} type="text" placeholder="E-mail" style={{ textTransform: 'lowercase' }}
+                                    onKeyDown={validateDriverForSaving}
+                                    onInput={e => {
+                                        props.setSelectedDriver({ ...props.selectedDriver, email: e.target.value })
+                                    }}
+                                    onChange={e => {
+                                        props.setSelectedDriver({ ...props.selectedDriver, email: e.target.value })
+                                    }}
+                                    value={props.selectedDriver?.email || ''} />
                             </div>
 
                         </div>
@@ -3217,7 +2449,7 @@ function Carriers(props) {
                                                                 await setDriverEquipmentDropdownItems(res.equipments.map((item, index) => {
                                                                     item.selected = (props.selectedDriver?.equipment?.id || 0) === 0
                                                                         ? index === 0
-                                                                        : item.id === props.selectedDriver.equipment.id
+                                                                        : item.id === props.selectedDriver?.equipment.id
                                                                     return item;
                                                                 }))
 
@@ -3275,7 +2507,7 @@ function Carriers(props) {
                                                                 await setDriverEquipmentDropdownItems(res.equipments.map((item, index) => {
                                                                     item.selected = (props.selectedDriver?.equipment?.id || 0) === 0
                                                                         ? index === 0
-                                                                        : item.id === props.selectedDriver.equipment.id
+                                                                        : item.id === props.selectedDriver?.equipment.id
                                                                     return item;
                                                                 }))
 
@@ -3304,8 +2536,10 @@ function Carriers(props) {
                                                     if (driverEquipmentDropdownItems.length > 0 && driverEquipmentDropdownItems.findIndex(item => item.selected) > -1) {
                                                         await props.setSelectedDriver({
                                                             ...props.selectedDriver,
-                                                            equipment: driverEquipmentDropdownItems[driverEquipmentDropdownItems.findIndex(item => item.selected)]
+                                                            equipment: driverEquipmentDropdownItems[driverEquipmentDropdownItems.findIndex(item => item.selected)],
+                                                            equipment_id: driverEquipmentDropdownItems[driverEquipmentDropdownItems.findIndex(item => item.selected)].id
                                                         });
+                                                        validateDriverForSaving({ keyCode: 9 });
                                                         setDriverEquipmentDropdownItems([]);
                                                         refEquipment.current.focus();
                                                     }
@@ -3316,8 +2550,10 @@ function Carriers(props) {
                                                         e.preventDefault();
                                                         await props.setSelectedDriver({
                                                             ...props.selectedDriver,
-                                                            equipment: driverEquipmentDropdownItems[driverEquipmentDropdownItems.findIndex(item => item.selected)]
+                                                            equipment: driverEquipmentDropdownItems[driverEquipmentDropdownItems.findIndex(item => item.selected)],
+                                                            equipment_id: driverEquipmentDropdownItems[driverEquipmentDropdownItems.findIndex(item => item.selected)].id
                                                         });
+                                                        validateDriverForSaving({ keyCode: 9 });
                                                         setDriverEquipmentDropdownItems([]);
                                                         refEquipment.current.focus();
                                                     }
@@ -3326,8 +2562,6 @@ function Carriers(props) {
                                                 default:
                                                     break;
                                             }
-
-
                                         }}
                                         onBlur={async () => {
                                             if ((props.selectedDriver?.equipment?.id || 0) === 0) {
@@ -3350,7 +2584,7 @@ function Carriers(props) {
                                                         await setDriverEquipmentDropdownItems(res.equipments.map((item, index) => {
                                                             item.selected = (props.selectedDriver?.equipment?.id || 0) === 0
                                                                 ? index === 0
-                                                                : item.id === props.selectedDriver.equipment.id
+                                                                : item.id === props.selectedDriver?.equipment.id
                                                             return item;
                                                         }))
                                                     }
@@ -3379,7 +2613,7 @@ function Carriers(props) {
                                                         await setDriverEquipmentDropdownItems(res.equipments.map((item, index) => {
                                                             item.selected = (props.selectedDriver?.equipment?.id || 0) === 0
                                                                 ? index === 0
-                                                                : item.id === props.selectedDriver.equipment.id
+                                                                : item.id === props.selectedDriver?.equipment.id
                                                             return item;
                                                         }))
 
@@ -3403,7 +2637,7 @@ function Carriers(props) {
                                                         await setDriverEquipmentDropdownItems(res.equipments.map((item, index) => {
                                                             item.selected = (props.selectedDriver?.equipment?.id || 0) === 0
                                                                 ? index === 0
-                                                                : item.id === props.selectedDriver.equipment.id
+                                                                : item.id === props.selectedDriver?.equipment.id
                                                             return item;
                                                         }))
 
@@ -3465,7 +2699,12 @@ function Carriers(props) {
                                                                         className={mochiItemClasses}
                                                                         id={item.id}
                                                                         onClick={async () => {
-                                                                            await props.setSelectedDriver({ ...props.selectedDriver, equipment: item });
+                                                                            await props.setSelectedDriver({
+                                                                                ...props.selectedDriver,
+                                                                                equipment: item,
+                                                                                equipment_id: item.id
+                                                                            });
+                                                                            validateDriverForSaving({ keyCode: 9 });
                                                                             setDriverEquipmentDropdownItems([]);
                                                                             refEquipment.current.focus();
                                                                         }}
@@ -3500,23 +2739,75 @@ function Carriers(props) {
                         <div className="form-v-sep"></div>
                         <div className="form-row">
                             <div className="input-box-container grow">
-                                <input tabIndex={97 + props.tabTimes} type="text" placeholder="Truck" onKeyDown={validateDriverForSaving} onChange={e => {
-                                    props.setSelectedDriver({ ...props.selectedDriver, truck: e.target.value })
-                                }} value={props.selectedDriver.truck || ''} />
+                                <input tabIndex={97 + props.tabTimes} type="text" placeholder="Truck"
+                                    onKeyDown={validateDriverForSaving}
+                                    onInput={e => {
+                                        props.setSelectedDriver({ ...props.selectedDriver, truck: e.target.value })
+                                    }}
+                                    onChange={e => {
+                                        props.setSelectedDriver({ ...props.selectedDriver, truck: e.target.value })
+                                    }}
+                                    value={props.selectedDriver?.truck || ''} />
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container grow">
-                                <input tabIndex={98 + props.tabTimes} type="text" placeholder="Trailer" onKeyDown={validateDriverForSaving} onChange={e => {
-                                    props.setSelectedDriver({ ...props.selectedDriver, trailer: e.target.value })
-                                }} value={props.selectedDriver.trailer || ''} />
+                                <input tabIndex={98 + props.tabTimes} type="text" placeholder="Trailer"
+                                    onKeyDown={validateDriverForSaving}
+                                    onInput={e => {
+                                        props.setSelectedDriver({ ...props.selectedDriver, trailer: e.target.value })
+                                    }}
+                                    onChange={e => {
+                                        props.setSelectedDriver({ ...props.selectedDriver, trailer: e.target.value })
+                                    }}
+                                    value={props.selectedDriver?.trailer || ''} />
                             </div>
                         </div>
                         <div className="form-v-sep"></div>
                         <div className="form-row">
                             <div className="input-box-container grow">
-                                <input tabIndex={99 + props.tabTimes} type="text" placeholder="Notes" onKeyDown={validateDriverForSaving} onChange={e => {
-                                    props.setSelectedDriver({ ...props.selectedDriver, notes: e.target.value })
-                                }} value={props.selectedDriver.notes || ''} />
+                                <input tabIndex={99 + props.tabTimes} type="text" placeholder="Notes"
+                                    onKeyDown={(e) => {
+                                        let key = e.keyCode || e.which;
+
+                                        if (key === 9) {
+                                            if (props.selectedCarrier?.id || 0 > 0) {
+                                                let driver = { ...props.selectedDriver, carrier_id: props.selectedCarrier.id };
+
+                                                if ((driver.first_name || '').trim() !== '') {
+                                                    e.preventDefault();
+
+                                                    $.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
+                                                        if (res.result === 'OK') {
+                                                            props.setSelectedCarrier({ ...props.selectedCarrier, drivers: res.drivers });
+                                                            props.setSelectedDriver({});
+
+                                                            refCarrierDriverFirstName.current.focus();
+                                                        }
+
+                                                        await setIsSavingDriver(false);
+                                                    }).catch(e => {
+                                                        console.log('error on saving carrier driver', e);
+                                                        setIsSavingDriver(false);
+                                                    });
+                                                } else {
+                                                    e.preventDefault();
+                                                    setIsSavingDriver(false);
+                                                    refCarrierCode.current.focus();
+                                                }
+                                            } else {
+                                                e.preventDefault();
+                                                setIsSavingDriver(false);
+                                                refCarrierCode.current.focus();
+                                            }
+                                        }
+                                    }}
+                                    onInput={e => {
+                                        props.setSelectedDriver({ ...props.selectedDriver, notes: e.target.value })
+                                    }}
+                                    onChange={e => {
+                                        props.setSelectedDriver({ ...props.selectedDriver, notes: e.target.value })
+                                    }}
+                                    value={props.selectedDriver?.notes || ''} />
                             </div>
                         </div>
 
@@ -3536,7 +2827,6 @@ function Carriers(props) {
                     </div>
                 </div>
             </div>
-
 
             <div className="fields-container-row" style={{ marginTop: 10 }}>
                 <div className="fields-container-col">
@@ -3574,57 +2864,75 @@ function Carriers(props) {
                             <div className="form-h-sep"></div>
 
                             <div className="input-box-container grow">
-                                <input tabIndex={55 + props.tabTimes} type="text" placeholder="Name" onKeyDown={validateMailingAddressToSave} onChange={e => {
-                                    let mailing_address = props.selectedCarrier.mailing_address || {};
-                                    mailing_address.name = e.target.value;
-                                    props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: mailing_address });
-                                }} value={props.selectedCarrier.mailing_address?.name || ''} />
+                                <input tabIndex={55 + props.tabTimes} type="text" placeholder="Name"
+                                    // onKeyDown={validateMailingAddressToSave} 
+                                    onChange={e => {
+                                        let mailing_address = props.selectedCarrier.mailing_address || {};
+                                        mailing_address.name = e.target.value;
+                                        props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: mailing_address });
+                                    }}
+                                    value={props.selectedCarrier.mailing_address?.name || ''} />
                             </div>
                         </div>
                         <div className="form-v-sep"></div>
                         <div className="form-row">
                             <div className="input-box-container grow">
-                                <input tabIndex={56 + props.tabTimes} type="text" placeholder="Address 1" onKeyDown={validateMailingAddressToSave} onChange={e => {
-                                    let mailing_address = props.selectedCarrier.mailing_address || {};
-                                    mailing_address.address1 = e.target.value;
-                                    props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: mailing_address });
-                                }} value={props.selectedCarrier.mailing_address?.address1 || ''} />
+                                <input tabIndex={56 + props.tabTimes} type="text" placeholder="Address 1"
+                                    // onKeyDown={validateMailingAddressToSave} 
+                                    onChange={e => {
+                                        let mailing_address = props.selectedCarrier.mailing_address || {};
+                                        mailing_address.address1 = e.target.value;
+                                        props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: mailing_address });
+                                    }}
+                                    value={props.selectedCarrier.mailing_address?.address1 || ''} />
                             </div>
                         </div>
                         <div className="form-v-sep"></div>
                         <div className="form-row">
                             <div className="input-box-container grow">
-                                <input tabIndex={57 + props.tabTimes} type="text" placeholder="Address 2" onKeyDown={validateMailingAddressToSave} onChange={e => {
-                                    let mailing_address = props.selectedCarrier.mailing_address || {};
-                                    mailing_address.address2 = e.target.value;
-                                    props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: mailing_address });
-                                }} value={props.selectedCarrier.mailing_address?.address2 || ''} />
+                                <input tabIndex={57 + props.tabTimes} type="text" placeholder="Address 2"
+                                    // onKeyDown={validateMailingAddressToSave} 
+                                    onChange={e => {
+                                        let mailing_address = props.selectedCarrier.mailing_address || {};
+                                        mailing_address.address2 = e.target.value;
+                                        props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: mailing_address });
+                                    }}
+                                    value={props.selectedCarrier.mailing_address?.address2 || ''} />
                             </div>
                         </div>
                         <div className="form-v-sep"></div>
                         <div className="form-row">
                             <div className="input-box-container grow">
-                                <input tabIndex={58 + props.tabTimes} type="text" placeholder="City" onKeyDown={validateMailingAddressToSave} onChange={e => {
-                                    let mailing_address = props.selectedCarrier.mailing_address || {};
-                                    mailing_address.city = e.target.value;
-                                    props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: mailing_address });
-                                }} value={props.selectedCarrier.mailing_address?.city || ''} />
+                                <input tabIndex={58 + props.tabTimes} type="text" placeholder="City"
+                                    // onKeyDown={validateMailingAddressToSave} 
+                                    onChange={e => {
+                                        let mailing_address = props.selectedCarrier.mailing_address || {};
+                                        mailing_address.city = e.target.value;
+                                        props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: mailing_address });
+                                    }}
+                                    value={props.selectedCarrier.mailing_address?.city || ''} />
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container input-state">
-                                <input tabIndex={59 + props.tabTimes} type="text" placeholder="State" maxLength="2" onKeyDown={validateMailingAddressToSave} onChange={e => {
-                                    let mailing_address = props.selectedCarrier.mailing_address || {};
-                                    mailing_address.state = e.target.value;
-                                    props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: mailing_address });
-                                }} value={props.selectedCarrier.mailing_address?.state || ''} />
+                                <input tabIndex={59 + props.tabTimes} type="text" placeholder="State" maxLength="2"
+                                    // onKeyDown={validateMailingAddressToSave} 
+                                    onChange={e => {
+                                        let mailing_address = props.selectedCarrier.mailing_address || {};
+                                        mailing_address.state = e.target.value;
+                                        props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: mailing_address });
+                                    }}
+                                    value={props.selectedCarrier.mailing_address?.state || ''} />
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container input-zip-code">
-                                <input tabIndex={60 + props.tabTimes} type="text" placeholder="Postal Code" onKeyDown={validateMailingAddressToSave} onChange={e => {
-                                    let mailing_address = props.selectedCarrier.mailing_address || {};
-                                    mailing_address.zip = e.target.value;
-                                    props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: mailing_address });
-                                }} value={props.selectedCarrier.mailing_address?.zip || ''} />
+                                <input tabIndex={60 + props.tabTimes} type="text" placeholder="Postal Code"
+                                    onKeyDown={validateMailingAddressToSave}
+                                    onChange={e => {
+                                        let mailing_address = props.selectedCarrier.mailing_address || {};
+                                        mailing_address.zip = e.target.value;
+                                        props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: mailing_address });
+                                    }}
+                                    value={props.selectedCarrier.mailing_address?.zip || ''} />
                             </div>
                         </div>
                         <div className="form-v-sep"></div>
@@ -4644,7 +3952,10 @@ function Carriers(props) {
                             <div className="form-title">Insurances</div>
                             <div className="top-border top-border-middle"></div>
                             <div className="form-buttons">
-                                <div className="mochi-button" onClick={() => props.setSelectedInsurance({})}>
+                                <div className="mochi-button" onClick={() => {
+                                    props.setSelectedInsurance({});
+                                    refInsuranceType.current.focus();
+                                }}>
                                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                     <div className="mochi-button-base">Clear</div>
                                     <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
@@ -4788,7 +4099,8 @@ function Carriers(props) {
                                                     if (insuranceTypeDropdownItems.length > 0 && insuranceTypeDropdownItems.findIndex(item => item.selected) > -1) {
                                                         await props.setSelectedInsurance({
                                                             ...props.selectedInsurance,
-                                                            insurance_type: insuranceTypeDropdownItems[insuranceTypeDropdownItems.findIndex(item => item.selected)]
+                                                            insurance_type: insuranceTypeDropdownItems[insuranceTypeDropdownItems.findIndex(item => item.selected)],
+                                                            insurance_type_id: insuranceTypeDropdownItems[insuranceTypeDropdownItems.findIndex(item => item.selected)].id
                                                         });
                                                         validateInsuranceForSaving({ keyCode: 9 });
                                                         setInsuranceTypeDropdownItems([]);
@@ -4801,7 +4113,8 @@ function Carriers(props) {
                                                         e.preventDefault();
                                                         await props.setSelectedInsurance({
                                                             ...props.selectedInsurance,
-                                                            insurance_type: insuranceTypeDropdownItems[insuranceTypeDropdownItems.findIndex(item => item.selected)]
+                                                            insurance_type: insuranceTypeDropdownItems[insuranceTypeDropdownItems.findIndex(item => item.selected)],
+                                                            insurance_type_id: insuranceTypeDropdownItems[insuranceTypeDropdownItems.findIndex(item => item.selected)].id
                                                         });
                                                         validateInsuranceForSaving({ keyCode: 9 });
                                                         setInsuranceTypeDropdownItems([]);
@@ -4949,7 +4262,11 @@ function Carriers(props) {
                                                                         className={mochiItemClasses}
                                                                         id={item.id}
                                                                         onClick={async () => {
-                                                                            await props.setSelectedInsurance({ ...props.selectedInsurance, insurance_type: item });
+                                                                            await props.setSelectedInsurance({
+                                                                                ...props.selectedInsurance,
+                                                                                insurance_type: item,
+                                                                                insurance_type_id: item.id
+                                                                            });
                                                                             validateInsuranceForSaving({ keyCode: 9 });
                                                                             setInsuranceTypeDropdownItems([]);
                                                                             refInsuranceType.current.focus();
@@ -5114,6 +4431,7 @@ function Carriers(props) {
                                                             ...props.selectedInsurance,
                                                             company: insuranceCompanyDropdownItems[insuranceCompanyDropdownItems.findIndex(item => item.selected)].company
                                                         });
+                                                        validateInsuranceForSaving({ keyCode: 9 });
                                                         setInsuranceCompanyDropdownItems([]);
                                                         refInsuranceCompany.current.focus();
                                                     }
@@ -5126,6 +4444,7 @@ function Carriers(props) {
                                                             ...props.selectedInsurance,
                                                             company: insuranceCompanyDropdownItems[insuranceCompanyDropdownItems.findIndex(item => item.selected)].company
                                                         });
+                                                        validateInsuranceForSaving({ keyCode: 9 });
                                                         setInsuranceCompanyDropdownItems([]);
                                                         refInsuranceCompany.current.focus();
                                                     }
@@ -5200,6 +4519,7 @@ function Carriers(props) {
                                                                         id={item.id}
                                                                         onClick={async () => {
                                                                             await props.setSelectedInsurance({ ...props.selectedInsurance, company: item.company });
+                                                                            validateInsuranceForSaving({ keyCode: 9 });
                                                                             setInsuranceCompanyDropdownItems([]);
                                                                             refInsuranceCompany.current.focus();
                                                                         }}
@@ -5287,7 +4607,8 @@ function Carriers(props) {
                                                                 ? moment(props.selectedInsurance?.expiration_date, 'MM/DD/YYYY')
                                                                 : moment()}
                                                             onChange={(day) => {
-                                                                props.setSelectedInsurance({ ...props.selectedInsurance, expiration_date: day.format('MM/DD/YYYY') })
+                                                                props.setSelectedInsurance({ ...props.selectedInsurance, expiration_date: day.format('MM/DD/YYYY') });
+                                                                validateInsuranceForSaving({ keyCode: 9 });
                                                             }}
                                                             closeCalendar={() => { setIsCalendarShown(false); }}
                                                             preDay={preSelectedExpirationDate}
@@ -5329,7 +4650,46 @@ function Carriers(props) {
                         <div className="form-v-sep"></div>
                         <div className="form-row">
                             <div className="input-box-container grow">
-                                <input tabIndex={91 + props.tabTimes} type="text" placeholder="Notes" onKeyDown={validateInsuranceForSaving} onChange={e => props.setSelectedInsurance({ ...props.selectedInsurance, notes: e.target.value })} value={props.selectedInsurance.notes || ''} />
+                                <input tabIndex={91 + props.tabTimes} type="text" placeholder="Notes"
+                                    onKeyDown={(e) => {
+                                        let key = e.keyCode || e.which;
+
+                                        if (key === 9) {
+                                            let insurance = { ...props.selectedInsurance, carrier_id: (props.selectedCarrier?.id || 0) };
+
+                                            if ((insurance.insurance_type_id || 0) > 0 &&
+                                                (insurance.company || '') !== '' &&
+                                                (insurance.expiration_date || '') !== '' &&
+                                                (insurance.amount || '') !== '') {
+
+                                                insurance.expiration_date = getFormattedDates(insurance.expiration_date);
+                                                insurance.amount = accounting.unformat(insurance.amount);
+                                                insurance.deductible = accounting.unformat(insurance.deductible);
+
+                                                e.preventDefault();
+
+                                                $.post(props.serverUrl + '/saveInsurance', insurance).then(res => {
+                                                    if (res.result === 'OK') {
+                                                        props.setSelectedCarrier({ ...props.selectedCarrier, insurances: res.insurances });
+
+                                                        props.setSelectedInsurance({});
+                                                        refInsuranceType.current.focus();
+                                                    } else {
+                                                        console.log(res.result);
+                                                    }
+
+                                                    setIsSavingInsurance(false);
+                                                }).catch(e => {
+                                                    console.log('error on saving carrier insurance', e);
+                                                    setIsSavingInsurance(false);
+                                                });
+                                            } else {
+                                                setIsSavingInsurance(false);
+                                            }
+                                        }
+                                    }}
+                                    onChange={e => props.setSelectedInsurance({ ...props.selectedInsurance, notes: e.target.value })}
+                                    value={props.selectedInsurance.notes || ''} />
                             </div>
                         </div>
                     </div>
@@ -5346,7 +4706,7 @@ function Carriers(props) {
                         <div className="insurances-list-container">
                             {
                                 (props.selectedCarrier.insurances || []).length > 0 &&
-                                <div className="insurances-list-header">
+                                <div className={`insurances-list-header ${insurancesScrollBarVisible ? 'scrolling' : ''}`}>
                                     <div className="contact-list-col tcol type">Type</div>
                                     <div className="contact-list-col tcol company">Company</div>
                                     <div className="contact-list-col tcol expiration-date">Exp. Date</div>
@@ -5354,7 +4714,7 @@ function Carriers(props) {
                                 </div>
                             }
 
-                            <div className="insurances-list-wrapper">
+                            <div className="insurances-list-wrapper" id={props.panelName + '-insurances-list-wrapper'} ref={refInsurancesListWrapper}>
                                 {
                                     (props.selectedCarrier.insurances || []).map((insurance, index) => {
                                         const itemClasses = classnames({
@@ -5362,11 +4722,19 @@ function Carriers(props) {
                                             'selected': insurance.id === props.selectedInsurance.id
                                         })
                                         return (
-                                            <div className={itemClasses} key={index} onClick={() => { props.setSelectedInsurance({ ...insurance }) }}>
-                                                <div className="contact-list-col tcol type">{insurance.insurance_type.name}</div>
-                                                <div className="contact-list-col tcol company">{insurance.company}</div>
-                                                <div className="contact-list-col tcol expiration-date">{insurance.expiration_date}</div>
-                                                <div className="contact-list-col tcol amount">{accounting.formatMoney(insurance.amount)}</div>
+                                            <div className={itemClasses} key={index} onClick={() => {
+                                                props.setSelectedInsurance({ ...insurance });
+                                            }}>
+                                                <div className="insurances-list-col tcol type">{insurance.insurance_type.name}</div>
+                                                <div className="insurances-list-col tcol company">{insurance.company}</div>
+                                                <div className="insurances-list-col tcol expiration-date">{insurance.expiration_date}</div>
+                                                <div className="insurances-list-col tcol amount">{accounting.formatMoney(insurance.amount)}</div>
+                                                {
+                                                    (insurance.id === (props.selectedInsurance?.id || 0)) &&
+                                                    <div className="insurances-list-col tcol insurances-selected">
+                                                        <FontAwesomeIcon icon={faPencilAlt} />
+                                                    </div>
+                                                }
                                             </div>
                                         )
                                     })
@@ -5429,10 +4797,10 @@ function Carriers(props) {
                             {
                                 (props.selectedCarrier.drivers || []).length > 0 &&
                                 <div className="drivers-list-header">
-                                    <div className="contact-list-col tcol first-name">First Name</div>
-                                    <div className="contact-list-col tcol last-name">Last Name</div>
-                                    <div className="contact-list-col tcol phone">Phone</div>
-                                    <div className="contact-list-col tcol email">E-Mail</div>
+                                    <div className="driver-list-col tcol first-name">First Name</div>
+                                    <div className="driver-list-col tcol last-name">Last Name</div>
+                                    <div className="driver-list-col tcol phone">Phone</div>
+                                    <div className="driver-list-col tcol email">E-Mail</div>
                                 </div>
                             }
 
@@ -5442,11 +4810,18 @@ function Carriers(props) {
                                         return (
                                             <div className="drivers-list-item" key={index} onClick={() => {
                                                 props.setSelectedDriver({ ...driver });
+                                                refCarrierDriverFirstName.current.focus();
                                             }}>
-                                                <div className="contact-list-col tcol first-name">{driver.first_name}</div>
-                                                <div className="contact-list-col tcol last-name">{driver.last_name}</div>
-                                                <div className="contact-list-col tcol phone">{driver.phone}</div>
-                                                <div className="contact-list-col tcol email">{driver.email}</div>
+                                                <div className="driver-list-col tcol first-name">{driver.first_name}</div>
+                                                <div className="driver-list-col tcol last-name">{driver.last_name}</div>
+                                                <div className="driver-list-col tcol phone">{driver.phone}</div>
+                                                <div className="driver-list-col tcol email">{driver.email}</div>
+                                                {
+                                                    (driver.id === (props.selectedDriver?.id || 0)) &&
+                                                    <div className="driver-list-col tcol driver-selected">
+                                                        <FontAwesomeIcon icon={faPencilAlt} />
+                                                    </div>
+                                                }
                                             </div>
                                         )
                                     })
@@ -5493,55 +4868,65 @@ function Carriers(props) {
                         <div className="form-row">
                             <div className="input-box-container input-code">
                                 <input tabIndex={65 + props.tabTimes} type="text" placeholder="Code" maxLength="8" readOnly={true}
-                                    value={props.selectedCarrier.factoring_company?.code || ''} />
+                                    value={(props.selectedCarrier?.factoring_company?.code || '') + ((props.selectedCarrier?.factoring_company?.code_number || 0) === 0 ? '' : props.selectedCarrier?.factoring_company?.code_number)} />
                             </div>
 
                             <div className="form-h-sep"></div>
 
                             <div className="input-box-container grow">
-                                <input tabIndex={66 + props.tabTimes} type="text" placeholder="Name" onKeyDown={validateFactoringCompanyToSave} onChange={e => {
-                                    let factoring_company = props.selectedCarrier.factoring_company || {};
-                                    factoring_company.name = e.target.value;
-                                    props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: factoring_company });
-                                }} value={props.selectedCarrier.factoring_company?.name || ''} />
+                                <input tabIndex={66 + props.tabTimes} type="text" placeholder="Name"
+                                    // onKeyDown={validateFactoringCompanyToSave} 
+                                    onChange={e => {
+                                        let factoring_company = props.selectedCarrier.factoring_company || {};
+                                        factoring_company.name = e.target.value;
+                                        props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: factoring_company });
+                                    }} value={props.selectedCarrier.factoring_company?.name || ''} />
                             </div>
                         </div>
                         <div className="form-v-sep"></div>
                         <div className="form-row">
                             <div className="input-box-container grow">
-                                <input tabIndex={67 + props.tabTimes} type="text" placeholder="Address 1" onKeyDown={validateFactoringCompanyToSave} onChange={e => {
-                                    let factoring_company = props.selectedCarrier.factoring_company || {};
-                                    factoring_company.address1 = e.target.value;
-                                    props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: factoring_company });
-                                }} value={props.selectedCarrier.factoring_company?.address1 || ''} />
+                                <input tabIndex={67 + props.tabTimes} type="text" placeholder="Address 1"
+                                    // onKeyDown={validateFactoringCompanyToSave} 
+                                    onChange={e => {
+                                        let factoring_company = props.selectedCarrier.factoring_company || {};
+                                        factoring_company.address1 = e.target.value;
+                                        props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: factoring_company });
+                                    }} value={props.selectedCarrier.factoring_company?.address1 || ''} />
                             </div>
                         </div>
                         <div className="form-v-sep"></div>
                         <div className="form-row">
                             <div className="input-box-container grow">
-                                <input tabIndex={68 + props.tabTimes} type="text" placeholder="Address 2" onKeyDown={validateFactoringCompanyToSave} onChange={e => {
-                                    let factoring_company = props.selectedCarrier.factoring_company || {};
-                                    factoring_company.address2 = e.target.value;
-                                    props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: factoring_company });
-                                }} value={props.selectedCarrier.factoring_company?.address2 || ''} />
+                                <input tabIndex={68 + props.tabTimes} type="text" placeholder="Address 2"
+                                    // onKeyDown={validateFactoringCompanyToSave} 
+                                    onChange={e => {
+                                        let factoring_company = props.selectedCarrier.factoring_company || {};
+                                        factoring_company.address2 = e.target.value;
+                                        props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: factoring_company });
+                                    }} value={props.selectedCarrier.factoring_company?.address2 || ''} />
                             </div>
                         </div>
                         <div className="form-v-sep"></div>
                         <div className="form-row">
                             <div className="input-box-container grow">
-                                <input tabIndex={69 + props.tabTimes} type="text" placeholder="City" onKeyDown={validateFactoringCompanyToSave} onChange={e => {
-                                    let factoring_company = props.selectedCarrier.factoring_company || {};
-                                    factoring_company.city = e.target.value;
-                                    props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: factoring_company });
-                                }} value={props.selectedCarrier.factoring_company?.city || ''} />
+                                <input tabIndex={69 + props.tabTimes} type="text" placeholder="City"
+                                    // onKeyDown={validateFactoringCompanyToSave} 
+                                    onChange={e => {
+                                        let factoring_company = props.selectedCarrier.factoring_company || {};
+                                        factoring_company.city = e.target.value;
+                                        props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: factoring_company });
+                                    }} value={props.selectedCarrier.factoring_company?.city || ''} />
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container input-state">
-                                <input tabIndex={70 + props.tabTimes} type="text" placeholder="State" maxLength="2" onKeyDown={validateFactoringCompanyToSave} onChange={e => {
-                                    let factoring_company = props.selectedCarrier.factoring_company || {};
-                                    factoring_company.state = e.target.value;
-                                    props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: factoring_company });
-                                }} value={props.selectedCarrier.factoring_company?.state || ''} />
+                                <input tabIndex={70 + props.tabTimes} type="text" placeholder="State" maxLength="2"
+                                    // onKeyDown={validateFactoringCompanyToSave} 
+                                    onChange={e => {
+                                        let factoring_company = props.selectedCarrier.factoring_company || {};
+                                        factoring_company.state = e.target.value;
+                                        props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: factoring_company });
+                                    }} value={props.selectedCarrier.factoring_company?.state || ''} />
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container input-zip-code">
@@ -5555,18 +4940,22 @@ function Carriers(props) {
                         <div className="form-v-sep"></div>
                         <div className="form-row">
                             <div className="input-box-container grow">
-                                <input tabIndex={72 + props.tabTimes} type="text" placeholder="Contact Name" onKeyDown={validateFactoringCompanyToSave} onChange={e => {
-                                    let factoring_company = props.selectedCarrier.factoring_company || {};
-                                    factoring_company.contact_name = e.target.value;
-                                    props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: factoring_company });
-                                }} value={props.selectedCarrier.factoring_company?.contact_name || ''} />
+                                <input tabIndex={72 + props.tabTimes} type="text" placeholder="Contact Name"
+                                    // onKeyDown={validateFactoringCompanyToSave} 
+                                    onChange={e => {
+                                        let factoring_company = props.selectedCarrier.factoring_company || {};
+                                        factoring_company.contact_name = e.target.value;
+                                        props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: factoring_company });
+                                    }} value={props.selectedCarrier.factoring_company?.contact_name || ''} />
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container input-phone">
                                 <MaskedInput tabIndex={73 + props.tabTimes}
                                     mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                     guide={true}
-                                    type="text" placeholder="Contact Phone" onKeyDown={validateFactoringCompanyToSave} onChange={e => {
+                                    type="text" placeholder="Contact Phone"
+                                    onKeyDown={validateFactoringCompanyToSave}
+                                    onChange={e => {
                                         let factoring_company = props.selectedCarrier.factoring_company || {};
                                         factoring_company.contact_phone = e.target.value;
                                         props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: factoring_company });
@@ -5574,21 +4963,25 @@ function Carriers(props) {
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container input-phone-ext">
-                                <input tabIndex={74 + props.tabTimes} type="text" placeholder="Ext" onKeyDown={validateFactoringCompanyToSave} onChange={e => {
-                                    let factoring_company = props.selectedCarrier.factoring_company || {};
-                                    factoring_company.ext = e.target.value;
-                                    props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: factoring_company });
-                                }} value={props.selectedCarrier.factoring_company?.ext || ''} />
+                                <input tabIndex={74 + props.tabTimes} type="text" placeholder="Ext"
+                                    // onKeyDown={validateFactoringCompanyToSave} 
+                                    onChange={e => {
+                                        let factoring_company = props.selectedCarrier.factoring_company || {};
+                                        factoring_company.ext = e.target.value;
+                                        props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: factoring_company });
+                                    }} value={props.selectedCarrier.factoring_company?.ext || ''} />
                             </div>
                         </div>
                         <div className="form-v-sep"></div>
                         <div className="form-row">
                             <div className="input-box-container grow">
-                                <input tabIndex={75 + props.tabTimes} type="text" placeholder="E-Mail" style={{ textTransform: 'lowercase' }} onKeyDown={validateFactoringCompanyToSave} onChange={e => {
-                                    let factoring_company = props.selectedCarrier.factoring_company || {};
-                                    factoring_company.email = e.target.value;
-                                    props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: factoring_company });
-                                }} value={props.selectedCarrier.factoring_company?.email || ''} />
+                                <input tabIndex={75 + props.tabTimes} type="text" placeholder="E-Mail" style={{ textTransform: 'lowercase' }}
+                                    onKeyDown={validateFactoringCompanyToSave}
+                                    onChange={e => {
+                                        let factoring_company = props.selectedCarrier.factoring_company || {};
+                                        factoring_company.email = e.target.value;
+                                        props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: factoring_company });
+                                    }} value={props.selectedCarrier.factoring_company?.email || ''} />
                             </div>
                         </div>
                     </div>
@@ -5645,7 +5038,13 @@ function Carriers(props) {
                                     (props.selectedCarrier.notes || []).map((note, index) => {
                                         return (
                                             <div className="notes-list-item" key={index} onClick={() => props.setSelectedCarrierNote(note)}>
-                                                {note.text}
+                                                <div className="notes-list-col tcol note-text">{note.text}</div>
+                                                {
+                                                    (note.id === (props.selectedNote?.id || 0)) &&
+                                                    <div className="notes-list-col tcol notes-selected">
+                                                        <FontAwesomeIcon icon={faPencilAlt} />
+                                                    </div>
+                                                }
                                             </div>
                                         )
                                     })

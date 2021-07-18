@@ -15,21 +15,61 @@ function Routing(props) {
     const [list, setList] = useState([
         {
             title: 'pickup',
-            items: ((props.selected_order?.pickups || []).filter(item => (props.selected_order?.routing || []).find(x => x.id === item.id && x.extra_data.type === 'pickup') === undefined)).map(item => {
-                // item.extra_data = { type: 'pickup' };
-                return item;
+            items: ((props.selected_order?.pickups || []).filter(item => (props.selected_order?.routing || []).find(x => x.pickup_id === item.id && x.type === 'pickup') === undefined)).map(item => {
+                let pickup = {
+                    id: 0,
+                    order_id: props.selected_order?.id || 0,
+                    pickup_id: item.id,
+                    delivery_id: null,
+                    type: 'pickup',
+                    customer: item.customer
+                }
+
+                return pickup;
             })
         },
         {
             title: 'delivery',
-            items: ((props.selected_order?.deliveries || []).filter(item => (props.selected_order?.routing || []).find(x => x.id === item.id && x.extra_data.type === 'delivery') === undefined)).map(item => {
-                // item.extra_data = { type: 'delivery' };
-                return item;
+            items: ((props.selected_order?.deliveries || []).filter(item => (props.selected_order?.routing || []).find(x => x.delivery_id === item.id && x.type === 'delivery') === undefined)).map(item => {
+                let delivery = {
+                    id: 0,
+                    order_id: props.selected_order?.id || 0,
+                    pickup_id: null,
+                    delivery_id: item.id,
+                    type: 'delivery',
+                    customer: item.customer
+                }
+
+                return delivery;
             })
         },
         {
             title: 'route',
-            items: (props.selected_order?.routing || [])
+            items: (props.selected_order?.routing || []).map((r, i) => {
+                let route = {
+                    id: 0,
+                    order_id: props.selected_order?.id || 0,
+                    pickup_id: null,
+                    delivery_id: null,
+                    type: '',
+                    customer: {}
+                }
+
+                if (r.type === 'pickup') {
+                    let pickup = (props.selected_order?.pickups || []).find(p => p.id === r.pickup_id);
+                    route.pickup_id = pickup.id;
+                    route.customer = pickup.customer;
+                    route.type = pickup.type;
+                }
+
+                if (r.type === 'delivery') {
+                    let delivery = (props.selected_order?.deliveries || []).find(p => p.id === r.delivery_id);
+                    route.delivery_id = delivery.id;
+                    route.customer = delivery.customer;
+                    route.type = delivery.type;
+                }
+                return route;
+            })
         }
     ]);
 
@@ -310,80 +350,36 @@ function Routing(props) {
         if (trigger) {
             setTrigger(false);
 
-            let pickups = list[2].items.filter(item => {
-                return item.extra_data.type === 'pickup';
+            let routing = list[2].items.map((item, index) => {
+                let route = {
+                    id: 0,
+                    pickup_id: item.type === 'pickup' ? item.pickup_id : null,
+                    delivery_id: item.type === 'delivery' ? item.delivery_id : null,
+                    type: item.type
+                }
+                return route;
             })
-
-            pickups = [
-                ...pickups,
-                ...list[0].items
-            ]
-
-            let deliveries = list[2].items.filter(item => {
-                return item.extra_data.type === 'delivery';
-            })
-
-            deliveries = [
-                ...deliveries,
-                ...list[1].items
-            ]
-
-            let routing = [
-                ...list[2].items
-            ]
 
             let selected_order = { ...props.selected_order };
-            selected_order.pickups = pickups;
-            selected_order.deliveries = deliveries;
             selected_order.routing = routing;
 
-            if (routing.length >= 2) {
-                props.setMileageLoaderVisible(true);
-                let params = {
-                    mode: 'fastest;car;traffic:disabled',
-                    routeAttributes: 'summary'
+            $.post(props.serverUrl + '/saveOrderRouting', {
+                order_id: props.selected_order?.id || 0,
+                routing: routing
+            }).then(res => {
+                console.log(res);
+
+                if (res.result === 'OK') {
+                    props.setSelectedOrder({
+                        ...props.selected_order,
+                        routing: res.order_routing
+                    });
+
+                    props.setMileageLoaderVisible(true);
                 }
-
-                let waypointCount = 0;
-
-                routing.map((item, i) => {
-                    if (item.zip_data) {
-                        params['waypoint' + waypointCount] = 'geo!' + item.zip_data.latitude.toString() + ',' + item.zip_data.longitude.toString();
-                        waypointCount += 1;
-                    }
-
-                    return true;
-                });
-
-                routingService.calculateRoute(params,
-                    (result) => {
-                        let miles = result.response.route[0].summary.distance || 0;
-
-                        selected_order.miles = miles;
-
-
-                        $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
-                            if (res.result === 'OK') {
-                                await props.setSelectedOrder(res.order);
-                                props.setMileageLoaderVisible(false);
-                            }
-                        });
-                    },
-                    (error) => {
-                        console.log('error', error);
-                        props.setMileageLoaderVisible(false);
-                    })
-
-            } else {
-                selected_order.miles = 0;
-
-                $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
-                    if (res.result === 'OK') {
-                        await props.setSelectedOrder(res.order);
-                    }
-
-                });
-            }
+            }).catch(e => {
+                console.log('error on saving order routing', e);
+            })
         }
     }, [trigger])
 
@@ -438,24 +434,20 @@ function Routing(props) {
 
             if (currentItem.grpI === 2) {
                 if (params.grpI === 0) {
-                    if (list[currentItem.grpI].items[currentItem.itemI].extra_data.type === 'pickup') {
+                    if (list[currentItem.grpI].items[currentItem.itemI].type === 'pickup') {
                         let curList = JSON.parse(JSON.stringify(list));
                         curList[params.grpI].items.splice(params.itemI, 0, curList[currentItem.grpI].items.splice(currentItem.itemI, 1)[0])
                         dragItem.current = params;
                         setList(curList);
-
-
                     }
                 }
 
                 if (params.grpI === 1) {
-                    if (list[currentItem.grpI].items[currentItem.itemI].extra_data.type === 'delivery') {
+                    if (list[currentItem.grpI].items[currentItem.itemI].type === 'delivery') {
                         let curList = JSON.parse(JSON.stringify(list));
                         curList[params.grpI].items.splice(params.itemI, 0, curList[currentItem.grpI].items.splice(currentItem.itemI, 1)[0])
                         dragItem.current = params;
                         setList(curList);
-
-
                     }
                 }
 
@@ -464,8 +456,6 @@ function Routing(props) {
                     curList[params.grpI].items.splice(params.itemI, 0, curList[currentItem.grpI].items.splice(currentItem.itemI, 1)[0])
                     dragItem.current = params;
                     setList(curList);
-
-
                 }
             }
         }
@@ -1048,7 +1038,7 @@ function Routing(props) {
                                                     onDragStart={(e) => { handleDragStart(e, { grpI, itemI }) }}
                                                     onDragEnter={dragging ? (e) => { handleDragEnter(e, { grpI, itemI }) } : null}
                                                 >
-                                                    <span>{item.code}</span> <span>{item.name}</span> <span>{item.city}-{item.state}</span>
+                                                    <span>{item.customer?.code || ''}</span> <span>{item.customer?.name || ''}</span> <span>{item.customer?.city || ''}-{item.customer?.state || ''}</span>
                                                 </div>
                                             })
                                         }
@@ -1108,16 +1098,17 @@ function Routing(props) {
                         <div className="form-row">
                             <div className="input-box-container grow">
                                 <input tabIndex={52 + props.tabTimes} type="text" placeholder="Carrier Load - Starting City State - Destination City State"
-                                    onInput={(e) => {
-                                        props.setSelectedOrder({ ...props.selected_order, carrier_load: e.target.value });
-                                    }}
-                                    onChange={(e) => {
-                                        props.setSelectedOrder({ ...props.selected_order, carrier_load: e.target.value });
-                                    }}
+                                    readOnly={true}
+                                    // onInput={(e) => {
+                                    //     props.setSelectedOrder({ ...props.selected_order, carrier_load: e.target.value });
+                                    // }}
+                                    // onChange={(e) => {
+                                    //     props.setSelectedOrder({ ...props.selected_order, carrier_load: e.target.value });
+                                    // }}
                                     value={
-                                        ((props.selected_order.pickups || []).length > 0 && (props.selected_order.deliveries || []).length > 0)
-                                            ? props.selected_order.pickups[0].city + ', ' + props.selected_order.pickups[0].state +
-                                            ' - ' + props.selected_order.deliveries[props.selected_order.deliveries.length - 1].city + ', ' + props.selected_order.deliveries[props.selected_order.deliveries.length - 1].state
+                                        ((props.selected_order?.carrier?.id || 0) > 0 && (props.selected_order?.pickups || []).length > 0 && (props.selected_order?.deliveries || []).length > 0)
+                                            ? props.selected_order?.pickups[0].customer?.city + ', ' + props.selected_order?.pickups[0].customer?.state +
+                                            ' - ' + (props.selected_order?.deliveries[props.selected_order?.deliveries.length - 1].customer?.city || '') + ', ' + (props.selected_order?.deliveries[props.selected_order?.deliveries.length - 1].customer?.state || '')
                                             : ''
                                     }
                                 />
@@ -1555,7 +1546,7 @@ function Routing(props) {
                                                     onDragStart={(e) => { handleDragStart(e, { grpI, itemI }) }}
                                                     onDragEnter={dragging ? (e) => { handleDragEnter(e, { grpI, itemI }) } : null}
                                                 >
-                                                    <span>{item.code}</span> <span>{item.name}</span> <span>{item.city}-{item.state}</span>
+                                                    <span>{item.customer?.code || ''}</span> <span>{item.customer?.name || ''}</span> <span>{item.customer?.city || ''}-{item.customer?.state || ''}</span>
                                                 </div>
                                             })
                                         }
@@ -1627,7 +1618,7 @@ function Routing(props) {
                                         key={grpI}
                                         className="routing-route-container"
                                         onDragEnter={dragging && !grp.items.length ? (e) => handleDragEnter(e, { grpI, itemI: 0 }) : null}
-                                        // onDragEnter={dragging ? (e) => handleDragEnter(e, { grpI, itemI: grp.items.length }) : null}
+                                    // onDragEnter={dragging ? (e) => handleDragEnter(e, { grpI, itemI: grp.items.length }) : null}
                                     >
                                         {
                                             grp.items.map((item, itemI) => {
@@ -1638,10 +1629,9 @@ function Routing(props) {
                                                     onDragStart={(e) => { handleDragStart(e, { grpI, itemI }) }}
                                                     onDragEnter={dragging ? (e) => { handleDragEnter(e, { grpI, itemI }) } : null}
                                                 >
-                                                    {/* <span className={item.extra_data.type === 'pickup' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'}></span> */}
-                                                    <span>{item.code}</span>
-                                                    <span>{item.name}</span>
-                                                    <span>{item.city}-{item.state}</span>
+                                                    {/* <span className={item.type === 'pickup' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'}></span> */}
+                                                    <span>{item.customer?.code || ''}</span> <span>{item.customer?.name || ''}</span> <span>{item.customer?.city || ''}-{item.customer?.state || ''}</span>
+
                                                 </div>
                                             })
                                         }

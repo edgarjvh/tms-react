@@ -28,8 +28,8 @@
     text-transform: capitalize;
     font-weight   : bold;
 
-    &.pushed{
-      right         : 20px;
+    &.pushed {
+      right: 20px;
     }
   }
 
@@ -42,8 +42,8 @@
     text-transform: capitalize;
     font-weight   : bold;
 
-    &.pushed{
-      right         : 20px;
+    &.pushed {
+      right: 20px;
     }
   }
 
@@ -56,8 +56,8 @@
     text-transform: capitalize;
     font-weight   : bold;
 
-    &.pushed{
-      right         : 20px;
+    &.pushed {
+      right: 20px;
     }
   }
 
@@ -70,8 +70,8 @@
     text-transform: capitalize;
     font-weight   : bold;
 
-    &.pushed{
-      right         : 20px;
+    &.pushed {
+      right: 20px;
     }
   }
 
@@ -163,8 +163,8 @@
           }
 
           .tcol.pri {
-            min-width : 0.65rem;
-            max-width : 0.65rem;
+            // min-width : 0.65rem;
+            // max-width : 0.65rem;
             text-align: center;
           }
 
@@ -173,7 +173,7 @@
             width      : 100%;
             height     : calc(100% - 1rem);
             bottom     : 0;
-            overflow-y : scroll;
+            overflow-y : auto;
             padding-top: 5px;
 
             .contact-list-item {
@@ -226,9 +226,23 @@
           padding      : 5px 0;
           cursor       : pointer;
           transition   : ease 0.3s;
-          text-overflow: ellipsis;
-          white-space  : nowrap;
-          overflow     : hidden;
+          display      : flex;
+          align-items  : center;
+
+          .tcol.note-text {
+            flex-grow    : 1;
+            text-overflow: ellipsis;
+            white-space  : nowrap;
+            overflow     : hidden;
+          }
+
+          .tcol.notes-selected {
+            margin-left: 0.5rem;
+            text-align     : center;
+            display        : flex;
+            justify-content: flex-end;
+            align-items    : center;
+          }
         }
 
         .notes-list-item:hover {
@@ -255,9 +269,23 @@
           padding      : 5px 0;
           cursor       : pointer;
           transition   : ease 0.3s;
-          text-overflow: ellipsis;
-          white-space  : nowrap;
-          overflow     : hidden;
+          display      : flex;
+          align-items  : center;
+
+          .tcol.note-text {
+            flex-grow    : 1;
+            text-overflow: ellipsis;
+            white-space  : nowrap;
+            overflow     : hidden;
+          }
+
+          .tcol.directions-selected {
+            margin-left: 0.5rem;
+            text-align     : center;
+            display        : flex;
+            justify-content: flex-end;
+            align-items    : center;
+          }
         }
 
         .directions-list-item:hover {

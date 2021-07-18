@@ -1,5 +1,4 @@
 import { dispatchConstants } from './../constants/';
-import Documents from './../components/company/dispatch/panels/documents/Documents.jsx';
 
 export const dispatchReducers = (state = {
 
@@ -71,6 +70,37 @@ export const dispatchReducers = (state = {
     lbMileageLoaderVisible: false,
     showingChangeCarrier: false,
     newCarrier: {},
+
+    isSavingOrder: false,
+
+
+    customer_selected_order: { order_number: 0 },
+    customer_order_number: '',
+    customer_trip_number: '',
+    customer_ae_number: '',
+    customerLoadType: {},
+    customerDivision: {},
+    customerTemplate: {},
+    customerShipperBolNumber: '',
+    customerShipperPoNumber: '',
+    customerShipperRefNumber: '',
+    customerDispatchEvent: {},
+    customerDispatchEventLocation: '',
+    customerDispatchEventNotes: '',
+    customerDispatchEventDate: '',
+    customerDispatchEventTime: '',
+    customerDispatchEvents: [],
+    customerSelectedNoteForCarrier: {},
+    customerSelectedInternalNote: {},
+    customerIsShowingShipperSecondPage: false,
+    customerIsShowingConsigneeSecondPage: false,
+    customerMileageLoaderVisible: false,
+    customerSelectedOrderDocument: {},
+    customerOrderDocumentTags: '',
+    customerSelectedOrderDocumentNote: {},
+    customerShowingChangeCarrier: false,
+    customerNewCarrier: {},
+    customerIsSavingOrder: false,
 
 }, action) => {
     switch (action.type) {
@@ -457,7 +487,180 @@ export const dispatchReducers = (state = {
             }
             break;
 
+        case dispatchConstants.SET_IS_SAVING_ORDER:
+            state = {
+                ...state,
+                isSavingOrder: action.payload
+            }
+            break;
 
+
+
+
+        case dispatchConstants.SET_CUSTOMER_SELECTED_ORDER:
+            state = {
+                ...state,
+                customer_selected_order: action.payload,
+                customer_order_number: action.payload.order_number,
+                customer_trip_number: action.payload.trip_number,
+            }
+            break;        
+        case dispatchConstants.SET_CUSTOMER_AE_NUMBER:
+            state = {
+                ...state,
+                customer_ae_number: action.payload
+            }
+            break;
+        case dispatchConstants.SET_CUSTOMER_ORDER_NUMBER:
+            state = {
+                ...state,
+                customer_order_number: action.payload
+            }
+            break;
+        case dispatchConstants.SET_CUSTOMER_TRIP_NUMBER:
+            state = {
+                ...state,
+                customer_trip_number: action.payload
+            }
+            break;
+        case dispatchConstants.SET_CUSTOMER_DIVISION:
+            state = {
+                ...state,
+                customerDivision: action.payload,
+            }
+            break;
+        case dispatchConstants.SET_CUSTOMER_LOAD_TYPE:
+            state = {
+                ...state,
+                customerLoadType: action.payload
+            }
+            break;
+        case dispatchConstants.SET_CUSTOMER_TEMPLATE:
+            state = {
+                ...state,
+                customerTemplate: action.payload
+            }
+            break;        
+        case dispatchConstants.SET_CUSTOMER_SHIPPER_BOL_NUMBER:
+            state = {
+                ...state,
+                customerShipperBolNumber: action.payload
+            }
+            break;
+        case dispatchConstants.SET_CUSTOMER_SHIPPER_PO_NUMBER:
+            state = {
+                ...state,
+                customerShipperPoNumber: action.payload
+            }
+            break;
+        case dispatchConstants.SET_CUSTOMER_SHIPPER_REF_NUMBER:
+            state = {
+                ...state,
+                customerShipperRefNumber: action.payload
+            }
+            break;        
+        case dispatchConstants.SET_CUSTOMER_DISPATCH_EVENT:
+            state = {
+                ...state,
+                customerDispatchEvent: action.payload
+            }
+            break;
+        case dispatchConstants.SET_CUSTOMER_DISPATCH_EVENT_LOCATION:
+            state = {
+                ...state,
+                customerDispatchEventLocation: action.payload
+            }
+            break;
+        case dispatchConstants.SET_CUSTOMER_DISPATCH_EVENT_NOTES:
+            state = {
+                ...state,
+                customerDispatchEventNotes: action.payload
+            }
+            break;
+        case dispatchConstants.SET_CUSTOMER_DISPATCH_EVENT_DATE:
+            state = {
+                ...state,
+                customerDispatchEventDate: action.payload
+            }
+            break;
+        case dispatchConstants.SET_CUSTOMER_DISPATCH_EVENT_TIME:
+            state = {
+                ...state,
+                customerDispatchEventTime: action.payload
+            }
+            break;
+        case dispatchConstants.SET_CUSTOMER_DISPATCH_EVENTS:
+            state = {
+                ...state,
+                customerDispatchEvents: action.payload
+            }
+            break;        
+        case dispatchConstants.SET_CUSTOMER_SELECTED_NOTE_FOR_CARRIER:
+            state = {
+                ...state,
+                customerSelectedNoteForCarrier: action.payload
+            }
+            break;        
+        case dispatchConstants.SET_CUSTOMER_SELECTED_INTERNAL_NOTE:
+            state = {
+                ...state,
+                customerSelectedInternalNote: action.payload
+            }
+            break;
+        case dispatchConstants.SET_CUSTOMER_IS_SHOWING_SHIPPER_SECOND_PAGE:
+            state = {
+                ...state,
+                customerIsShowingShipperSecondPage: action.payload
+            }
+            break;
+        case dispatchConstants.SET_CUSTOMER_IS_SHOWING_CONSIGNEE_SECOND_PAGE:
+            state = {
+                ...state,
+                customerIsShowingConsigneeSecondPage: action.payload
+            }
+            break;        
+        case dispatchConstants.SET_CUSTOMER_MILEAGE_LOADER_VISIBLE:
+            state = {
+                ...state,
+                customerMileageLoaderVisible: action.payload
+            }
+            break;
+        case dispatchConstants.SET_CUSTOMER_SELECTED_ORDER_DOCUMENT:
+            state = {
+                ...state,
+                customerSelectedOrderDocument: action.payload
+            }
+            break;
+        case dispatchConstants.SET_CUSTOMER_ORDER_DOCUMENT_TAGS:
+            state = {
+                ...state,
+                customerOrderDocumentTags: action.payload
+            }
+            break;
+        case dispatchConstants.SET_CUSTOMER_SELECTED_ORDER_DOCUMENT_NOTE:
+            state = {
+                ...state,
+                customerSelectedOrderDocumentNote: action.payload
+            }
+            break;        
+        case dispatchConstants.SET_CUSTOMER_SHOWING_CHANGE_CARRIER:
+            state = {
+                ...state,
+                customerShowingChangeCarrier: action.payload
+            }
+            break;
+        case dispatchConstants.SET_CUSTOMER_NEW_CARRIER:
+            state = {
+                ...state,
+                customerNewCarrier: action.payload
+            }
+            break;
+        case dispatchConstants.SET_CUSTOMER_IS_SAVING_ORDER:
+            state = {
+                ...state,
+                customerIsSavingOrder: action.payload
+            }
+            break;
         default:
             break;
     }

@@ -730,6 +730,243 @@ export const setInvoiceCarrierInfoEquipmentInformation = info => {
     }
 }
 
+// ============================== CUSTOMER CARRIER INFO =================================
+
+export const setCustomerCarrierInfoCarriers = carriers => {
+    return {
+        type: carriersConstants.SET_CUSTOMER_CARRIER_INFO_CARRIERS,
+        payload: carriers
+    }
+}
+export const setSelectedCustomerCarrierInfoCarrier = carrier => {
+    return {
+        type: carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_CARRIER,
+        payload: carrier
+    }
+}
+export const setSelectedCustomerCarrierInfoContact = contact => {
+    return {
+        type: carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_CONTACT,
+        payload: contact
+    }
+}
+export const setSelectedCustomerCarrierInfoNote = note => {
+    return {
+        type: carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_NOTE,
+        payload: note
+    }
+}
+export const setSelectedCustomerCarrierInfoDirection = direction => {
+    return {
+        type: carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_DIRECTION,
+        payload: direction
+    }
+}
+export const setCustomerCarrierInfoContactSearch = contactSearch => {
+    return {
+        type: carriersConstants.SET_CUSTOMER_CARRIER_INFO_CONTACT_SEARCH,
+        payload: contactSearch
+    }
+}
+export const setCustomerCarrierInfoShowingContactList = show => {
+    return {
+        type: carriersConstants.SET_CUSTOMER_CARRIER_INFO_SHOWING_CONTACT_LIST,
+        payload: show
+    }
+}
+export const setCustomerCarrierInfoCarrierSearch = carrierSearch => {
+    return {
+        type: carriersConstants.SET_CUSTOMER_CARRIER_INFO_CARRIER_SEARCH,
+        payload: carrierSearch
+    }
+}
+export const setCustomerCarrierInfoCarrierContacts = contacts => {
+    return {
+        type: carriersConstants.SET_CUSTOMER_CARRIER_INFO_CARRIER_CONTACTS,
+        payload: contacts
+    }
+}
+export const setCustomerCarrierInfoContactSearchCarrier = carrier => {
+    return {
+        type: carriersConstants.SET_CUSTOMER_CARRIER_INFO_CONTACT_SEARCH_CARRIER,
+        payload: carrier
+    }
+}
+export const setCustomerCarrierInfoIsEditingContact = isEditing => {
+    return {
+        type: carriersConstants.SET_CUSTOMER_CARRIER_INFO_IS_EDITING_CONTACT,
+        payload: isEditing
+    }
+}
+export const setSelectedCustomerCarrierInfoDocument = document => {
+    return {
+        type: carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_DOCUMENT,
+        payload: document
+    }
+}
+export const setCustomerCarrierInfoDocumentTags = tags => {
+    return {
+        type: carriersConstants.SET_CUSTOMER_CARRIER_INFO_DOCUMENT_TAGS,
+        payload: tags
+    }
+}
+export const setSelectedCustomerCarrierInfoDocumentNote = note => {
+    return {
+        type: carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_DOCUMENT_NOTE,
+        payload: note
+    }
+}
+export const setSelectedCustomerCarrierInfoFactoringCompanyDocument = document => {
+    return {
+        type: carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY_DOCUMENT,
+        payload: document
+    }
+}
+export const setCustomerCarrierInfoFactoringCompanyDocumentTags = tags => {
+    return {
+        type: carriersConstants.SET_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY_DOCUMENT_TAGS,
+        payload: tags
+    }
+}
+export const setSelectedCustomerCarrierInfoFactoringCompanyDocumentNote = note => {
+    return {
+        type: carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY_DOCUMENT_NOTE,
+        payload: note
+    }
+}
+export const setCustomerCarrierInfoDrivers = drivers => {
+    return {
+        type: carriersConstants.SET_CUSTOMER_CARRIER_INFO_DRIVERS,
+        payload: drivers
+    }
+}
+export const setSelectedCustomerCarrierInfoDriver = driver => {
+    return {
+        type: carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_DRIVER,
+        payload: driver
+    }
+}
+export const setCustomerCarrierInfoEquipments = equipments => {
+    return {
+        type: carriersConstants.SET_CUSTOMER_CARRIER_INFO_EQUIPMENTS,
+        payload: equipments
+    }
+}
+export const setCustomerCarrierInfoInsuranceTypes = insuranceTypes => {
+    return {
+        type: carriersConstants.SET_CUSTOMER_CARRIER_INFO_INSURANCE_TYPES,
+        payload: insuranceTypes
+    }
+}
+export const setSelectedCustomerCarrierInfoEquipment = equipment => {
+    return {
+        type: carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_EQUIPMENT,
+        payload: equipment
+    }
+}
+export const setSelectedCustomerCarrierInfoInsuranceType = insuranceType => {
+    return {
+        type: carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_INSURANCE_TYPE,
+        payload: insuranceType
+    }
+}
+export const setCustomerCarrierInfoFactoringCompanySearch = factoringCompanySearch => {
+    return {
+        type: carriersConstants.SET_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY_SEARCH,
+        payload: factoringCompanySearch
+    }
+}
+export const setCustomerCarrierInfoFactoringCompanies = factoringCompanies => {
+    return {
+        type: carriersConstants.SET_CUSTOMER_CARRIER_INFO_FACTORING_COMPANIES,
+        payload: factoringCompanies
+    }
+}
+export const setSelectedCustomerCarrierInfoFactoringCompany = factoringCompany => {
+    return {
+        type: carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY,
+        payload: factoringCompany
+    }
+}
+export const setSelectedCustomerCarrierInfoFactoringCompanyContact = contact => {
+    return {
+        type: carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY_CONTACT,
+        payload: contact
+    }
+}
+export const setSelectedCustomerCarrierInfoFactoringCompanyContactSearch = search => {
+    return {
+        type: carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY_CONTACT_SEARCH,
+        payload: search
+    }
+}
+export const setSelectedCustomerCarrierInfoFactoringCompanyIsShowingContactList = bool => {
+    return {
+        type: carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY_IS_SHOWING_CONTACT_LIST,
+        payload: bool
+    }
+}
+export const setCustomerCarrierInfoFactoringCompanyContacts = contacts => {
+    return {
+        type: carriersConstants.SET_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY_CONTACTS,
+        payload: contacts
+    }
+}
+export const setCustomerCarrierInfoFactoringCompanyIsEditingContact = bool => {
+    return {
+        type: carriersConstants.SET_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY_IS_EDITING_CONTACT,
+        payload: bool
+    }
+}
+export const setSelectedCustomerCarrierInfoFactoringCompanyNote = note => {
+    return {
+        type: carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY_NOTE,
+        payload: note
+    }
+}
+export const setSelectedCustomerCarrierInfoFactoringCompanyCustomerSearch = search => {
+    return {
+        type: carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY_CUSTOMER_SEARCH,
+        payload: search
+    }
+}
+export const setSelectedCustomerCarrierInfoFactoringCompanyCustomers = invoices => {
+    return {
+        type: carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY_CUSTOMERS,
+        payload: invoices
+    }
+}
+export const setSelectedCustomerCarrierInfoFactoringCompanyCustomer = invoice => {
+    return {
+        type: carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY_CUSTOMER,
+        payload: invoice
+    }
+}
+export const setSelectedCustomerCarrierInfoFactoringCompanyIsShowingCustomerList = bool => {
+    return {
+        type: carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY_IS_SHOWING_CUSTOMER_LIST,
+        payload: bool
+    }
+}
+export const setCustomerCarrierInfoCarrierInsurances = insurances => {
+    return {
+        type: carriersConstants.SET_CUSTOMER_CARRIER_INFO_CARRIER_INSURANCES,
+        payload: insurances
+    }
+}
+export const setSelectedCustomerCarrierInfoInsurance = insurance => {
+    return {
+        type: carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_INSURANCE,
+        payload: insurance
+    }
+}
+export const setCustomerCarrierInfoEquipmentInformation = info => {
+    return {
+        type: carriersConstants.SET_CUSTOMER_CARRIER_INFO_EQUIPMENT_INFORMATION,
+        payload: info
+    }
+}
+
 // ============================== LOAD BOARD CARRIER INFO =================================
 
 export const setLbCarrierInfoCarriers = carriers => {

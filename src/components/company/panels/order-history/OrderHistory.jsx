@@ -193,7 +193,7 @@ function OrderHistory(props) {
 
                             const baseWidth = 0.95;
                             const panelGap = 70;
-                            const panelWidth = (window.innerWidth * baseWidth) - (panelGap * props.customerOpenedPanels.indexOf(props.panelName));
+                            const panelWidth = (window.innerWidth * baseWidth) - (panelGap * props.openedPanels.indexOf(props.panelName));
 
                             const input = refDateStart.current.inputElement.getBoundingClientRect();
 
@@ -243,6 +243,7 @@ function OrderHistory(props) {
                                 }
                             }
 
+                            setIsDateEndCalendarShown(false);
                             setIsDateStartCalendarShown(true)
 
                             refDateStart.current.inputElement.focus();
@@ -328,7 +329,7 @@ function OrderHistory(props) {
 
                             const baseWidth = 0.95;
                             const panelGap = 70;
-                            const panelWidth = (window.innerWidth * baseWidth) - (panelGap * props.customerOpenedPanels.indexOf(props.panelName));
+                            const panelWidth = (window.innerWidth * baseWidth) - (panelGap * props.openedPanels.indexOf(props.panelName));
 
                             const input = refDateEnd.current.inputElement.getBoundingClientRect();
 
@@ -378,6 +379,7 @@ function OrderHistory(props) {
                                 }
                             }
 
+                            setIsDateStartCalendarShown(false);
                             setIsDateEndCalendarShown(true)
 
                             refDateEnd.current.inputElement.focus();

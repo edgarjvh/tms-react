@@ -235,6 +235,9 @@
 .dispatch-main-container .pickups-container .order-pickup.expired {
   background-color: lightcoral;
 }
+.dispatch-main-container .pickups-container .order-pickup.unsaved {
+  background-color: lightgray;
+}
 .dispatch-main-container .deliveries-container {
   display: 'flex' !important;
   flex-direction: row;
@@ -348,6 +351,9 @@
 }
 .dispatch-main-container .deliveries-container .order-delivery.expired {
   background-color: lightcoral;
+}
+.dispatch-main-container .deliveries-container .order-delivery.unsaved {
+  background-color: lightgray;
 }
 .dispatch-main-container .order-events-container {
   flex-grow: 1;

@@ -18,7 +18,60 @@ import {
     setDocumentTags,
     setSelectedDocumentNote,
 
-} from '../../../../../actions';
+    setCustomerBillToCompanies,
+    setCustomerSelectedBillToCompanyInfo,
+    setCustomerBillToCompanySearch,
+    setCustomerSelectedBillToCompanyContact,
+
+    setCustomerShipperCompanies,
+    setCustomerSelectedShipperCompanyInfo,
+    setCustomerShipperCompanySearch,
+    setCustomerSelectedShipperCompanyContact,
+
+    setCustomerConsigneeCompanies,
+    setCustomerSelectedConsigneeCompanyInfo,
+    setCustomerConsigneeCompanySearch,
+    setCustomerSelectedConsigneeCompanyContact,
+
+} from '../../../../../actions/customersActions';
+
+import {
+    setCustomerSelectedOrder,
+    setCustomerOrderNumber,
+    setCustomerTripNumber,
+    setCustomerDivision,
+    setCustomerLoadType,
+    setCustomerTemplate,
+    setCustomerIsShowingShipperSecondPage,
+    setCustomerShipperBolNumber,
+    setCustomerShipperPoNumber,
+    setCustomerShipperRefNumber,
+    setCustomerIsShowingConsigneeSecondPage,
+    setCustomerShowingChangeCarrier,
+    setCustomerDispatchEvent,
+    setCustomerDispatchEventLocation,
+    setCustomerDispatchEventNotes,
+    setCustomerDispatchEventDate,
+    setCustomerDispatchEventTime,
+    setCustomerSelectedNoteForCarrier,
+    setCustomerSelectedInternalNote,
+    setCustomerSelectedOrderDocument,
+    setCustomerNewCarrier,
+    setCustomerIsSavingOrder,
+    setCustomerMileageLoaderVisible
+} from '../../../../../actions/dispatchActions';
+
+import {
+    setSelectedCustomerCarrierInfoCarrier,
+    setSelectedCustomerCarrierInfoContact,
+    setSelectedCustomerCarrierInfoDriver,
+    setSelectedCustomerCarrierInfoInsurance,
+    setSelectedCustomerCarrierInfoDocument,
+    setCustomerCarrierInfoDocumentTags as setSelectedCustomerCarrierInfoDocumentTags,
+    setSelectedCustomerCarrierInfoDocumentNote,
+
+} from '../../../../../actions/carriersActions';
+
 import { useSpring, config } from 'react-spring';
 import { Transition, Spring, animated } from 'react-spring/renderprops';
 
@@ -29,6 +82,7 @@ import OrderHistory from './../../../panels/order-history/OrderHistory.jsx';
 import LaneHistory from './../../../panels/lane-history/LaneHistory.jsx';
 import Documents from './../../../panels/documents/Documents.jsx';
 import Contacts from './../../../panels/contacts/Contacts.jsx';
+import Dispatch from './../../../dispatch/Dispatch.jsx';
 
 function PanelContainer(props) {
 
@@ -501,6 +555,9 @@ function PanelContainer(props) {
                                 selectedOwnerDocument={props.selectedDocument}
                                 selectedOwnerDocumentTags={props.selectedDocumentTags}
                                 selectedOwnerDocumentNote={props.selectedDocumentNote}
+
+                                origin='customer'
+
                                 savingDocumentUrl='/saveDocument'
                                 deletingDocumentUrl='/deleteCustomerDocument'
                                 savingDocumentNoteUrl='/saveCustomerDocumentNote'
@@ -511,6 +568,174 @@ function PanelContainer(props) {
                 ))}
             </Transition>
             {/* ================================== DOCUMENTS =============================== */}
+
+            {/* ================================== DISPATCH =============================== */}
+            <Transition
+                from={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: props.openedPanels.indexOf('customer-dispatch')
+                }}
+                enter={{
+                    opacity: 1,
+                    right: window.innerWidth,
+                    zIndex: props.openedPanels.indexOf('customer-dispatch')
+                }}
+                leave={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: 0
+                }}
+                items={props.openedPanels.includes('customer-dispatch')}
+                config={{
+                    delay: 0,
+                    duration: 200,
+                    mass: 1, tension: 120, friction: 14
+                }}
+            >
+                {show => show && (styles => (
+                    <Draggable
+                        axis="x"
+                        handle=".drag-handler"
+                        onStart={(e, i) => eventControl(e, i, 'customer-dispatch')}
+                        onStop={(e, i) => eventControl(e, i, 'customer-dispatch')}
+                        onMouseDown={(e, i) => eventControl(e, i, 'customer-dispatch')}
+                        onMouseUp={(e, i) => eventControl(e, i, 'customer-dispatch')}
+                        onTouchStart={(e, i) => eventControl(e, i, 'customer-dispatch')}
+                        onTouchEnd={(e, i) => eventControl(e, i, 'customer-dispatch')}
+                        position={{ x: 0, y: 0 }}
+                    >
+                        <animated.div className="panel panel-customer-dispatch" ref={ref => openedPanelsRefs.current.push(ref)} onClick={e => onPanelClick(e, 'customer-dispatch')} style={{
+                            ...styles,
+                            width: (window.innerWidth * baseWidth) - (panelGap * props.openedPanels.indexOf('customer-dispatch'))
+                        }}>
+                            <div className="panel-content">
+                                <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+                                <div className="close-btn" title="Close" onClick={e => {
+                                    props.setOpenedPanels(props.openedPanels.filter((item, index) => {
+                                        return item !== 'customer-dispatch';
+                                    }));
+
+                                }}><span className="fas fa-times"></span></div>
+                                <div className="title">Dispatch</div><div className="side-title"><div>Dispatch</div></div>
+
+                                <Dispatch
+                                    title='Dispatch'
+                                    panelName='customer-dispatch'
+                                    tabTimes={10000}
+                                    isOnPanel={true}
+                                    scale={props.scale}
+                                    serverUrl={props.serverUrl}
+                                    setOpenedPanels={props.setOpenedPanels}
+                                    openedPanels={props.openedPanels}
+
+                                    setNewCarrier={props.setCustomerNewCarrier}
+                                    // setDispatchCarrierInfoCarriersChanging={props.Changing}
+                                    // setDispatchCarrierInfoCarrierSearchChanging={props.setDispatchCarrierInfoCarrierSearchChanging}
+                                    setSelectedOrder={props.setCustomerSelectedOrder}
+                                    setOrderNumber={props.setCustomerOrderNumber}
+                                    setTripNumber={props.setCustomerTripNumber}
+                                    setBillToCompanies={props.setCustomerBillToCompanies}
+                                    setSelectedBillToCompanyInfo={props.setCustomerSelectedBillToCompanyInfo}
+                                    setBillToCompanySearch={props.setCustomerBillToCompanySearch}
+                                    setSelectedBillToCompanyContact={props.setCustomerSelectedBillToCompanyContact}
+                                    setShipperCompanies={props.setCustomerShipperCompanies}
+                                    setSelectedShipperCompanyInfo={props.setCustomerSelectedShipperCompanyInfo}
+                                    setShipperCompanySearch={props.setCustomerShipperCompanySearch}
+                                    setSelectedShipperCompanyContact={props.setCustomerSelectedShipperCompanyContact}
+                                    setIsShowingShipperSecondPage={props.setCustomerIsShowingShipperSecondPage}
+                                    setShipperBolNumber={props.setCustomerShipperBolNumber}
+                                    setShipperPoNumber={props.setCustomerShipperPoNumber}
+                                    setShipperRefNumber={props.setCustomerShipperRefNumber}
+                                    setConsigneeCompanies={props.setCustomerConsigneeCompanies}
+                                    setSelectedConsigneeCompanyInfo={props.setCustomerSelectedConsigneeCompanyInfo}
+                                    setConsigneeCompanySearch={props.setCustomerConsigneeCompanySearch}
+                                    setSelectedConsigneeCompanyContact={props.setCustomerSelectedConsigneeCompanyContact}
+                                    setIsShowingConsigneeSecondPage={props.setCustomerIsShowingConsigneeSecondPage}
+                                    setSelectedDispatchCarrierInfoCarrier={props.setSelectedCustomerCarrierInfoCarrier}
+                                    setSelectedDispatchCarrierInfoContact={props.setSelectedCustomerCarrierInfoContact}
+                                    setSelectedDispatchCarrierInfoDriver={props.setSelectedCustomerCarrierInfoDriver}
+                                    setSelectedDispatchCarrierInfoInsurance={props.setSelectedCustomerCarrierInfoInsurance}
+                                    setDispatchCarrierInfoCarrierSearch={props.setCustomerCarrierInfoCarrierSearch}
+                                    setDispatchCarrierInfoCarriers={props.setCustomerCarrierInfoCarriers}
+                                    setShowingChangeCarrier={props.setCustomerShowingChangeCarrier}
+                                    setDispatchEvent={props.setCustomerDispatchEvent}
+                                    setDispatchEventLocation={props.setCustomerDispatchEventLocation}
+                                    setDispatchEventNotes={props.setCustomerDispatchEventNotes}
+                                    setDispatchEventDate={props.setCustomerDispatchEventDate}
+                                    setDispatchEventTime={props.setCustomerDispatchEventTime}
+                                    setSelectedNoteForCarrier={props.setCustomerSelectedNoteForCarrier}
+                                    setSelectedInternalNote={props.setCustomerSelectedInternalNote}
+                                    setMileageLoaderVisible={props.setCustomerMileageLoaderVisible}
+                                    setIsSavingOrder={props.setCustomerIsSavingOrder}
+
+                                    newCarrier={props.customerNewCarrier}
+                                    selected_order={props.customer_selected_order}
+                                    order_number={props.customer_order_number}
+                                    trip_number={props.customer_trip_number}
+                                    division={props.customerDivision}
+                                    load_type={props.customerLoadType}
+                                    template={props.customerTemplate}
+
+                                    selectedBillToCompanyInfo={props.selectedCustomerBillToCompanyInfo}
+                                    selectedBillToCompanyContact={props.selectedCustomerBillToCompanyContact}
+                                    billToCompanySearch={props.customerBillToCompanySearch}
+
+                                    selectedShipperCompanyInfo={props.selectedCustomerShipperCompanyInfo}
+                                    selectedShipperCompanyContact={props.selectedCustomerShipperCompanyContact}
+                                    shipperCompanySearch={props.customerShipperCompanySearch}                                    
+
+                                    selectedConsigneeCompanyInfo={props.selectedCustomerConsigneeCompanyInfo}
+                                    selectedConsigneeCompanyContact={props.selectedCustomerConsigneeCompanyContact}
+                                    consigneeCompanySearch={props.customerConsigneeCompanySearch}
+
+                                    dispatchEvent={props.customerDispatchEvent}
+                                    dispatchEventLocation={props.customerDispatchEventLocation}
+                                    dispatchEventNotes={props.customerDispatchEventNotes}
+                                    dispatchEventDate={props.customerDispatchEventDate}
+                                    dispatchEventTime={props.customerDispatchEventTime}
+                                    dispatchEvents={props.customerDispatchEvents}
+
+                                    selectedNoteForCarrier={props.customerSelectedNoteForCarrier}
+                                    selectedInternalNote={props.customerSelectedInternalNote}
+                                    isShowingShipperSecondPage={props.customerIsShowingShipperSecondPage}
+                                    isShowingConsigneeSecondPage={props.customerIsShowingConsigneeSecondPage}
+
+                                    selectedDispatchCarrierInfoCarrier={props.selectedCustomerCarrierInfoCarrier}
+                                    selectedDispatchCarrierInfoContact={props.selectedCustomerCarrierInfoContact}
+                                    selectedDispatchCarrierInfoDriver={props.selectedCustomerCarrierInfoDriver}
+                                    selectedDispatchCarrierInfoInsurance={props.selectedCustomerCarrierInfoInsurance}
+
+                                    setSelectedOrderDocument={props.customerSelectedOrderDocument}
+
+                                    mileageLoaderVisible={props.customerMileageLoaderVisible}
+                                    showingChangeCarrier={props.customerShowingChangeCarrier}
+
+                                    isSavingOrder={props.customerIsSavingOrder}
+
+                                    billToCompanyInfoPanelName='customer-bill-to-company-info'
+                                    billToCompanySearchPanelName='customer-bill-to-company-search'
+                                    shipperCompanyInfoPanelName='customer-shipper-company-info'
+                                    shipperCompanySearchPanelName='customer-shipper-company-search'
+                                    consigneeCompanyInfoPanelName='customer-consignee-company-info'
+                                    consigneeCompanySearchPanelName='customer-consignee-company-search'
+                                    carrierInfoPanelName='customer-carrier-info'
+                                    carrierInfoSearchPanelName='customer-carrier-info-search'
+                                    routingPanelName='customer-routing'
+                                    ratingScreenPanelName='customer-rating-screen'
+                                    adjustRatePanelName='customer-adjust-rate'
+                                    rateConfPanelName='customer-rate-conf'
+                                    orderPanelName='customer-order'
+                                    bolPanelName='customer-bol'
+                                    orderDocumentsPanelName='customer-order-documents'
+                                    loadBoardPanelName='customer-load-board'
+                                />
+                            </div>
+                        </animated.div>
+                    </Draggable>
+                ))}
+            </Transition>
+            {/* ================================== DISPATCH =============================== */}
         </div>
     )
 }
@@ -532,11 +757,140 @@ const mapStateToProps = state => {
         selectedDocument: state.customerReducers.selectedDocument,
         selectedDocumentTags: state.customerReducers.selectedDocumentTags,
         selectedDocumentNote: state.customerReducers.selectedDocumentNote,
+
+        //DISPATCH
+        customer_selected_order: state.dispatchReducers.customer_selected_order,
+        customer_order_number: state.dispatchReducers.customer_order_number,
+        customer_trip_number: state.dispatchReducers.customer_trip_number,
+        customer_ae_number: state.dispatchReducers.customer_ae_number,
+        customerLoadType: state.dispatchReducers.customerLoadType,
+        customerDivision: state.dispatchReducers.customerDivision,
+        customerTemplate: state.dispatchReducers.customerTemplate,
+        customerShipperBolNumber: state.dispatchReducers.customerShipperBolNumber,
+        customerShipperPoNumber: state.dispatchReducers.customerShipperPoNumber,
+        customerShipperRefNumber: state.dispatchReducers.customerShipperRefNumber,
+        customerDispatchEvent: state.dispatchReducers.customerDispatchEvent,
+        customerDispatchEventLocation: state.dispatchReducers.customerDispatchEventLocation,
+        customerDispatchEventNotes: state.dispatchReducers.customerDispatchEventNotes,
+        customerDispatchEventDate: state.dispatchReducers.customerDispatchEventDate,
+        customerDispatchEventTime: state.dispatchReducers.customerDispatchEventTime,
+        customerDispatchEvents: state.dispatchReducers.customerDispatchEvents,
+        customerSelectedNoteForCarrier: state.dispatchReducers.customerSelectedNoteForCarrier,
+        customerSelectedInternalNote: state.dispatchReducers.customerSelectedInternalNote,
+        customerIsShowingShipperSecondPage: state.dispatchReducers.customerIsShowingShipperSecondPage,
+        customerIsShowingConsigneeSecondPage: state.dispatchReducers.customerIsShowingConsigneeSecondPage,
+        customerMileageLoaderVisible: state.dispatchReducers.customerMileageLoaderVisible,
+        customerSelectedOrderDocument: state.dispatchReducers.customerSelectedOrderDocument,
+        customerOrderDocumentTags: state.dispatchReducers.customerOrderDocumentTags,
+        customerSelectedOrderDocumentNote: state.dispatchReducers.customerSelectedOrderDocumentNote,
+        customerShowingChangeCarrier: state.dispatchReducers.customerShowingChangeCarrier,
+        customerNewCarrier: state.dispatchReducers.customerNewCarrier,
+        customerIsSavingOrder: state.dispatchReducers.customerIsSavingOrder,
+
+        //CUSTOMER
+        customerBillToCompanies: state.customerReducers.customerBillToCompanies,
+        selectedCustomerBillToCompanyInfo: state.customerReducers.selectedCustomerBillToCompanyInfo,
+        selectedCustomerBillToCompanyContact: state.customerReducers.selectedCustomerBillToCompanyContact,
+        customerBillToCompanySearch: state.customerReducers.customerBillToCompanySearch,
+        selectedCustomerBillToCompanyNote: state.customerReducers.selectedCustomerBillToCompanyNote,
+        selectedCustomerBillToCompanyDirection: state.customerReducers.selectedCustomerBillToCompanyDirection,
+        customerBillToCompanyContactSearch: state.customerReducers.customerBillToCompanyContactSearch,
+        customerBillToCompanyAutomaticEmailsTo: state.customerReducers.customerBillToCompanyAutomaticEmailsTo,
+        customerBillToCompanyAutomaticEmailsCc: state.customerReducers.customerBillToCompanyAutomaticEmailsCc,
+        customerBillToCompanyAutomaticEmailsBcc: state.customerReducers.customerBillToCompanyAutomaticEmailsBcc,
+        customerBillToCompanyShowingContactList: state.customerReducers.customerBillToCompanyShowingContactList,
+        customerBillToCompanyContacts: state.customerReducers.customerBillToCompanyContacts,
+        customerBillToCompanyIsEditingContact: state.customerReducers.customerBillToCompanyIsEditingContact,
+        customerBillToCompanyContactSearchCustomer: state.customerReducers.customerBillToCompanyContactSearchCustomer,
+        selectedCustomerBillToCompanyDocument: state.customerReducers.selectedCustomerBillToCompanyDocument,
+        customerBillToCompanyDocumentTags: state.customerReducers.customerBillToCompanyDocumentTags,
+        selectedCustomerBillToCompanyDocumentNote: state.customerReducers.selectedCustomerBillToCompanyDocumentNote,
+
+        customerShipperCompanies: state.customerReducers.customerShipperCompanies,
+        selectedCustomerShipperCompanyInfo: state.customerReducers.selectedCustomerShipperCompanyInfo,
+        selectedCustomerShipperCompanyContact: state.customerReducers.selectedCustomerShipperCompanyContact,
+        customerShipperCompanySearch: state.customerReducers.customerShipperCompanySearch,
+        selectedCustomerShipperCompanyNote: state.customerReducers.selectedCustomerShipperCompanyNote,
+        selectedCustomerShipperCompanyDirection: state.customerReducers.selectedCustomerShipperCompanyDirection,
+        customerShipperCompanyContactSearch: state.customerReducers.customerShipperCompanyContactSearch,
+        customerShipperCompanyAutomaticEmailsTo: state.customerReducers.customerShipperCompanyAutomaticEmailsTo,
+        customerShipperCompanyAutomaticEmailsCc: state.customerReducers.customerShipperCompanyAutomaticEmailsCc,
+        customerShipperCompanyAutomaticEmailsBcc: state.customerReducers.customerShipperCompanyAutomaticEmailsBcc,
+        customerShipperCompanyShowingContactList: state.customerReducers.customerShipperCompanyShowingContactList,
+        customerShipperCompanyContacts: state.customerReducers.customerShipperCompanyContacts,
+        customerShipperCompanyIsEditingContact: state.customerReducers.customerShipperCompanyIsEditingContact,
+        customerShipperCompanyContactSearchCustomer: state.customerReducers.customerShipperCompanyContactSearchCustomer,
+        selectedCustomerShipperCompanyDocument: state.customerReducers.selectedCustomerShipperCompanyDocument,
+        customerShipperCompanyDocumentTags: state.customerReducers.customerShipperCompanyDocumentTags,
+        selectedCustomerShipperCompanyDocumentNote: state.customerReducers.selectedCustomerShipperCompanyDocumentNote,
+
+        customerConsigneeCompanies: state.customerReducers.customerConsigneeCompanies,
+        selectedCustomerConsigneeCompanyInfo: state.customerReducers.selectedCustomerConsigneeCompanyInfo,
+        selectedCustomerConsigneeCompanyContact: state.customerReducers.selectedCustomerConsigneeCompanyContact,
+        customerConsigneeCompanySearch: state.customerReducers.customerConsigneeCompanySearch,
+        selectedCustomerConsigneeCompanyNote: state.customerReducers.selectedCustomerConsigneeCompanyNote,
+        selectedCustomerConsigneeCompanyDirection: state.customerReducers.selectedCustomerConsigneeCompanyDirection,
+        customerConsigneeCompanyContactSearch: state.customerReducers.customerConsigneeCompanyContactSearch,
+        customerConsigneeCompanyAutomaticEmailsTo: state.customerReducers.customerConsigneeCompanyAutomaticEmailsTo,
+        customerConsigneeCompanyAutomaticEmailsCc: state.customerReducers.customerConsigneeCompanyAutomaticEmailsCc,
+        customerConsigneeCompanyAutomaticEmailsBcc: state.customerReducers.customerConsigneeCompanyAutomaticEmailsBcc,
+        customerConsigneeCompanyShowingContactList: state.customerReducers.customerConsigneeCompanyShowingContactList,
+        customerConsigneeCompanyContacts: state.customerReducers.customerConsigneeCompanyContacts,
+        customerConsigneeCompanyIsEditingContact: state.customerReducers.customerConsigneeCompanyIsEditingContact,
+        customerConsigneeCompanyContactSearchCustomer: state.customerReducers.customerConsigneeCompanyContactSearchCustomer,
+        selectedCustomerConsigneeCompanyDocument: state.customerReducers.selectedCustomerConsigneeCompanyDocument,
+        customerConsigneeCompanyDocumentTags: state.customerReducers.customerConsigneeCompanyDocumentTags,
+        selectedCustomerConsigneeCompanyDocumentNote: state.customerReducers.selectedCustomerConsigneeCompanyDocumentNote,
+
+        //CARRIER
+        customerCarrierInfoCarriersChanging: state.carrierReducers.customerCarrierInfoCarriersChanging,
+        customerCarrierInfoCarrierSearchChanging: state.carrierReducers.customerCarrierInfoCarrierSearchChanging,
+        selectedCustomerCarrierInfoCarrier: state.carrierReducers.selectedCustomerCarrierInfoCarrier,
+        selectedCustomerCarrierInfoContact: state.carrierReducers.selectedCustomerCarrierInfoContact,
+        selectedCustomerCarrierInfoNote: state.carrierReducers.selectedCustomerCarrierInfoNote,
+        selectedCustomerCarrierInfoDirection: state.carrierReducers.selectedCustomerCarrierInfoDirection,
+        customerCarrierInfoContactSearch: state.carrierReducers.customerCarrierInfoContactSearch,
+        customerCarrierInfoFactoringCompanySearch: state.carrierReducers.customerCarrierInfoFactoringCompanySearch,
+        customerCarrierInfoFactoringCompanies: state.carrierReducers.customerCarrierInfoFactoringCompanies,
+        customerCarrierInfoFactoringCompanyContacts: state.carrierReducers.customerCarrierInfoFactoringCompanyContacts,
+        selectedCustomerCarrierInfoFactoringCompany: state.carrierReducers.selectedCustomerCarrierInfoFactoringCompany,
+        selectedCustomerCarrierInfoFactoringCompanyContact: state.carrierReducers.selectedCustomerCarrierInfoFactoringCompanyContact,
+        selectedCustomerCarrierInfoFactoringCompanyContactSearch: state.carrierReducers.selectedCustomerCarrierInfoFactoringCompanyContactSearch,
+        selectedCustomerCarrierInfoFactoringCompanyIsShowingContactList: state.carrierReducers.selectedCustomerCarrierInfoFactoringCompanyIsShowingContactList,
+        selectedCustomerCarrierInfoFactoringCompanyNote: state.carrierReducers.selectedCustomerCarrierInfoFactoringCompanyNote,
+        customerCarrierInfoFactoringCompanyIsEditingContact: state.carrierReducers.customerCarrierInfoFactoringCompanyIsEditingContact,
+        customerCarrierInfoCarrierSearch: state.carrierReducers.customerCarrierInfoCarrierSearch,
+        customerCarrierInfoShowingContactList: state.carrierReducers.customerCarrierInfoShowingContactList,
+        customerCarrierInfoContacts: state.carrierReducers.customerCarrierInfoContacts,
+        customerCarrierInfoIsEditingContact: state.carrierReducers.customerCarrierInfoIsEditingContact,
+        customerCarrierInfoContactSearchCarrier: state.carrierReducers.customerCarrierInfoContactSearchCarrier,
+        selectedCustomerCarrierInfoDocument: state.carrierReducers.selectedCustomerCarrierInfoDocument,
+        selectedCustomerCarrierInfoDocumentNote: state.carrierReducers.selectedCustomerCarrierInfoDocumentNote,
+        customerCarrierInfoDocumentTags: state.carrierReducers.customerCarrierInfoDocumentTags,
+        selectedCustomerCarrierInfoFactoringCompanyCustomers: state.carrierReducers.selectedCustomerCarrierInfoFactoringCompanyCustomers,
+        selectedCustomerCarrierInfoFactoringCompanyCustomer: state.carrierReducers.selectedCustomerCarrierInfoFactoringCompanyCustomer,
+        selectedCustomerCarrierInfoFactoringCompanyIsShowingCustomerList: state.carrierReducers.selectedCustomerCarrierInfoFactoringCompanyIsShowingCustomerList,
+        selectedCustomerCarrierInfoFactoringCompanyCustomerSearch: state.carrierReducers.selectedCustomerCarrierInfoFactoringCompanyCustomerSearch,
+        selectedCustomerCarrierInfoFactoringCompanyDocument: state.carrierReducers.selectedCustomerCarrierInfoFactoringCompanyDocument,
+        selectedCustomerCarrierInfoFactoringCompanyDocumentNote: state.carrierReducers.selectedCustomerCarrierInfoFactoringCompanyDocumentNote,
+        customerCarrierInfoFactoringCompanyDocumentTags: state.carrierReducers.customerCarrierInfoFactoringCompanyDocumentTags,
+        customerCarrierInfoDrivers: state.carrierReducers.customerCarrierInfoDrivers,
+        selectedCustomerCarrierInfoDriver: state.carrierReducers.selectedCustomerCarrierInfoDriver,
+        customerCarrierInfoEquipments: state.carrierReducers.customerCarrierInfoEquipments,
+        selectedCustomerCarrierInfoEquipment: state.carrierReducers.selectedCustomerCarrierInfoEquipment,
+        customerCarrierInfoInsuranceTypes: state.carrierReducers.customerCarrierInfoInsuranceTypes,
+        selectedCustomerCarrierInfoInsuranceType: state.carrierReducers.selectedCustomerCarrierInfoInsuranceType,
+        customerCarrierInfoCarrierInsurances: state.carrierReducers.customerCarrierInfoCarrierInsurances,
+        selectedCustomerCarrierInfoInsurance: state.carrierReducers.selectedCustomerCarrierInfoInsurance,
+        customerCarrierInfoEquipmentInformation: state.carrierReducers.customerCarrierInfoEquipmentInformation,
+        customerCarrierInfoRating: state.carrierReducers.customerCarrierInfoRating,
     }
 }
 
 export default connect(mapStateToProps, {
     setOpenedPanels,
+
+    // CUSTOMER    
     setSelectedCustomer,
     setCustomerContacts,
     setSelectedContact,
@@ -547,4 +901,50 @@ export default connect(mapStateToProps, {
     setSelectedDocument,
     setDocumentTags,
     setSelectedDocumentNote,
+    setCustomerBillToCompanies,
+    setCustomerSelectedBillToCompanyInfo,
+    setCustomerBillToCompanySearch,
+    setCustomerSelectedBillToCompanyContact,
+    setCustomerShipperCompanies,
+    setCustomerSelectedShipperCompanyInfo,
+    setCustomerShipperCompanySearch,
+    setCustomerSelectedShipperCompanyContact,
+    setCustomerConsigneeCompanies,
+    setCustomerSelectedConsigneeCompanyInfo,
+    setCustomerConsigneeCompanySearch,
+    setCustomerSelectedConsigneeCompanyContact,
+
+    // DISPATCH    
+    setCustomerSelectedOrder,
+    setCustomerOrderNumber,
+    setCustomerTripNumber,
+    setCustomerDivision,
+    setCustomerLoadType,
+    setCustomerTemplate,
+    setCustomerIsShowingShipperSecondPage,
+    setCustomerShipperBolNumber,
+    setCustomerShipperPoNumber,
+    setCustomerShipperRefNumber,
+    setCustomerIsShowingConsigneeSecondPage,
+    setCustomerShowingChangeCarrier,
+    setCustomerDispatchEvent,
+    setCustomerDispatchEventLocation,
+    setCustomerDispatchEventNotes,
+    setCustomerDispatchEventDate,
+    setCustomerDispatchEventTime,
+    setCustomerSelectedNoteForCarrier,
+    setCustomerSelectedInternalNote,
+    setCustomerSelectedOrderDocument,
+    setCustomerNewCarrier,
+    setCustomerIsSavingOrder,
+    setCustomerMileageLoaderVisible,
+
+    // CARRIER
+    setSelectedCustomerCarrierInfoCarrier,
+    setSelectedCustomerCarrierInfoContact,
+    setSelectedCustomerCarrierInfoDriver,
+    setSelectedCustomerCarrierInfoInsurance,
+    setSelectedCustomerCarrierInfoDocument,
+    setSelectedCustomerCarrierInfoDocumentTags,
+    setSelectedCustomerCarrierInfoDocumentNote,
 })(PanelContainer)

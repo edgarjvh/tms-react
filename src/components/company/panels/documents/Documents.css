@@ -66,28 +66,51 @@
   font-size: 0.8rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   padding: 5px 0;
-  cursor: pointer;
+  cursor: default;
   transition: ease 0.3s;
+  align-items: center;
 }
 .documents-list .form-bordered-box .form-wrapper .documents-list-item span,
 .documents-list .form-bordered-box .form-wrapper .documents-notes-list-item span {
   margin-right: 10px;
 }
+.documents-list .form-bordered-box .form-wrapper .documents-list-item .item-info,
+.documents-list .form-bordered-box .form-wrapper .documents-notes-list-item .item-info {
+  display: flex;
+  flex-grow: 1;
+  align-items: center;
+}
+.documents-list .form-bordered-box .form-wrapper .documents-list-item .tcol.note-text,
+.documents-list .form-bordered-box .form-wrapper .documents-notes-list-item .tcol.note-text {
+  flex-grow: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  margin-right: 0.2rem;
+}
+.documents-list .form-bordered-box .form-wrapper .documents-list-item .tcol.documents-selected,
+.documents-list .form-bordered-box .form-wrapper .documents-notes-list-item .tcol.documents-selected {
+  min-width: 1rem;
+  max-width: 1rem;
+  text-align: center;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-right: 0.2rem;
+}
 .documents-list .form-bordered-box .form-wrapper .documents-list-item .item-btn,
 .documents-list .form-bordered-box .form-wrapper .documents-notes-list-item .item-btn {
   transition: ease 0.3s;
+  cursor: pointer;
 }
 .documents-list .form-bordered-box .form-wrapper .documents-list-item .item-btn:hover,
 .documents-list .form-bordered-box .form-wrapper .documents-notes-list-item .item-btn:hover {
   color: rgba(0, 0, 0, 0.8);
-  transform: scale(1.2);
+  transform: scale(1.1);
 }
 .documents-list .form-bordered-box .form-wrapper .documents-list-item:hover,
 .documents-list .form-bordered-box .form-wrapper .documents-notes-list-item:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-.documents-list .form-bordered-box .form-wrapper .documents-list-item.selected {
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: rgba(0, 0, 0, 0.1);
 }
 .documents-list .form-separator {
   width: 15px;

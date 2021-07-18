@@ -13,6 +13,7 @@ function CustomerSearch(props) {
     }
 
     const rowDoubleClick = async (e, c) => {
+        console.log(c);
         await props.setSelectedCustomer(c);
         await c.contacts.map(async contact => {
             if (contact.is_primary === 1){
@@ -20,6 +21,13 @@ function CustomerSearch(props) {
             }
             return true;
         });
+
+        if (props.toSaveOrder || false){
+            if ((props.origin || '') === 'carrier'){
+                props.setSelectedDriver((c.drivers || []).length > 0 ? c.drivers[0] : {});
+            }
+            props.setIsSavingOrder(true)
+        }
 
         closePanelBtnClick(null, props.panelName);
     }
@@ -78,7 +86,7 @@ function CustomerSearch(props) {
                             props.customers.length > 0
                                 ? props.customers.map((c, i) => {
                                     return (
-                                        <div className="trow" onDoubleClick={(e) => { rowDoubleClick(e, c) }}>
+                                        <div key={i} className="trow" onDoubleClick={(e) => { rowDoubleClick(e, c) }}>
                                             <div className="tcol code">{c.code + (c.code_number === 0 ? '' : c.code_number)}</div>
                                             <div className="tcol name">{c.name}</div>
                                             <div className="tcol address1">{c.address1}</div>

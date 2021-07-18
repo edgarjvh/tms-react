@@ -139,20 +139,20 @@ function LoadBoard(props) {
 
         props.setSelectedLbCarrierInfoDriver(order.carrier?.driver || {});
 
-        props.setLbSelectedShipperCompanyInfo(order.pickups[0] || {});
+        props.setLbSelectedShipperCompanyInfo(order.pickups[0].customer || {});
         props.setLbSelectedShipperCompanyContact({});
 
-        ((order.pickups.length > 0 ? order.pickups[0] : {}).contacts || []).map(c => {
+        ((order.pickups.length > 0 ? order.pickups[0].customer : {}).contacts || []).map(c => {
             if (c.is_primary === 1) {
                 props.setLbSelectedShipperCompanyContact(c);
             }
             return true;
         });
 
-        props.setLbSelectedConsigneeCompanyInfo(order.deliveries.length > 0 ? order.deliveries[0] : {});
+        props.setLbSelectedConsigneeCompanyInfo(order.deliveries.length > 0 ? order.deliveries[0].customer : {});
         props.setLbSelectedConsigneeCompanyContact({});
 
-        ((order.deliveries.length > 0 ? order.deliveries[0] : {}).contacts || []).map(c => {
+        ((order.deliveries.length > 0 ? order.deliveries[0].customer : {}).contacts || []).map(c => {
             if (c.is_primary === 1) {
                 props.setLbSelectedConsigneeCompanyContact(c);
             }
@@ -295,11 +295,11 @@ function LoadBoard(props) {
                                             <div style="min-width:20%;max-width:20%">${item.order_number}</div>
                                             <div style="min-width:20%;max-width:20%">${item.carrier.code.toUpperCase() + (item.carrier.code_number === 0 ? '' : item.carrier.code_number)}</div>
                                             <div style="min-width:30%;max-width:30%">${item.pickups.length > 0
-                                            ? item.pickups[0].city + ', ' + item.pickups[0].state
+                                            ? item.pickups[0].customer?.city + ', ' + item.pickups[0].customer?.state
                                             : ''
                                         }</div>
                                             <div style="min-width:30%;max-width:30%">${item.deliveries.length > 0
-                                            ? item.deliveries[item.deliveries.length - 1].city + ', ' + item.deliveries[item.deliveries.length - 1].state
+                                            ? item.deliveries[item.deliveries.length - 1].customer?.city + ', ' + item.deliveries[item.deliveries.length - 1].customer?.state
                                             : ''
                                         }</div>
                                             
@@ -343,15 +343,15 @@ function LoadBoard(props) {
                                     return (
                                         <div className={itemClasses} key={i} onClick={() => { onOrderClick(item) }}>
                                             <div className="order-number">{item.order_number}</div>
-                                            <div className="carrier-code">{item.carrier.code.toUpperCase() + (item.carrier.code_number === 0 ? '' : item.carrier.code_number)}</div>
+                                            <div className="carrier-code">{item.carrier?.code.toUpperCase() + (item.carrier?.code_number === 0 ? '' : item.carrier?.code_number)}</div>
                                             <div className="starting-city-state">{
                                                 item.pickups.length > 0
-                                                    ? item.pickups[0].city + ', ' + item.pickups[0].state
+                                                    ? item.pickups[0].customer?.city + ', ' + item.pickups[0].customer?.state
                                                     : ''
                                             }</div>
                                             <div className="destination-city-state">{
                                                 item.deliveries.length > 0
-                                                    ? item.deliveries[item.deliveries.length - 1].city + ', ' + item.deliveries[item.deliveries.length - 1].state
+                                                    ? item.deliveries[item.deliveries.length - 1].customer?.city + ', ' + item.deliveries[item.deliveries.length - 1].customer?.state
                                                     : ''
                                             }</div>
                                         </div>
@@ -392,11 +392,11 @@ function LoadBoard(props) {
                                             <div style="min-width:20%;max-width:20%">${item.order_number}</div>
                                             <div style="min-width:20%;max-width:20%">${item.carrier.code.toUpperCase() + (item.carrier.code_number === 0 ? '' : item.carrier.code_number)}</div>
                                             <div style="min-width:30%;max-width:30%">${item.pickups.length > 0
-                                            ? item.pickups[0].city + ', ' + item.pickups[0].state
+                                            ? item.pickups[0].customer?.city + ', ' + item.pickups[0].customer?.state
                                             : ''
                                         }</div>
                                             <div style="min-width:30%;max-width:30%">${item.deliveries.length > 0
-                                            ? item.deliveries[item.deliveries.length - 1].city + ', ' + item.deliveries[item.deliveries.length - 1].state
+                                            ? item.deliveries[item.deliveries.length - 1].customer?.city + ', ' + item.deliveries[item.deliveries.length - 1].customer?.state
                                             : ''
                                         }</div>
                                             
@@ -443,12 +443,12 @@ function LoadBoard(props) {
                                             <div className="carrier-code">{item.carrier.code.toUpperCase() + (item.carrier.code_number === 0 ? '' : item.carrier.code_number)}</div>
                                             <div className="starting-city-state">{
                                                 item.pickups.length > 0
-                                                    ? item.pickups[0].city + ', ' + item.pickups[0].state
+                                                    ? item.pickups[0].customer?.city + ', ' + item.pickups[0].customer?.state
                                                     : ''
                                             }</div>
                                             <div className="destination-city-state">{
                                                 item.deliveries.length > 0
-                                                    ? item.deliveries[item.deliveries.length - 1].city + ', ' + item.deliveries[item.deliveries.length - 1].state
+                                                    ? item.deliveries[item.deliveries.length - 1].customer?.city + ', ' + item.deliveries[item.deliveries.length - 1].customer?.state
                                                     : ''
                                             }</div>
                                         </div>
@@ -3286,11 +3286,11 @@ function LoadBoard(props) {
                                             <div style="min-width:20%;max-width:20%">${item.order_number}</div>
                                             <div style="min-width:20%;max-width:20%">${item.carrier.code.toUpperCase() + (item.carrier.code_number === 0 ? '' : item.carrier.code_number)}</div>
                                             <div style="min-width:30%;max-width:30%">${item.pickups.length > 0
-                                            ? item.pickups[0].city + ', ' + item.pickups[0].state
+                                            ? item.pickups[0].customer?.city + ', ' + item.pickups[0].customer?.state
                                             : ''
                                         }</div>
                                             <div style="min-width:30%;max-width:30%">${item.deliveries.length > 0
-                                            ? item.deliveries[item.deliveries.length - 1].city + ', ' + item.deliveries[item.deliveries.length - 1].state
+                                            ? item.deliveries[item.deliveries.length - 1].customer?.city + ', ' + item.deliveries[item.deliveries.length - 1].customer?.state
                                             : ''
                                         }</div>
                                             
@@ -3337,12 +3337,12 @@ function LoadBoard(props) {
                                             <div className="carrier-code">{item.carrier.code.toUpperCase() + (item.carrier.code_number === 0 ? '' : item.carrier.code_number)}</div>
                                             <div className="starting-city-state">{
                                                 item.pickups.length > 0
-                                                    ? item.pickups[0].city + ', ' + item.pickups[0].state
+                                                    ? item.pickups[0].customer?.city + ', ' + item.pickups[0].customer?.state
                                                     : ''
                                             }</div>
                                             <div className="destination-city-state">{
                                                 item.deliveries.length > 0
-                                                    ? item.deliveries[item.deliveries.length - 1].city + ', ' + item.deliveries[item.deliveries.length - 1].state
+                                                    ? item.deliveries[item.deliveries.length - 1].customer?.city + ', ' + item.deliveries[item.deliveries.length - 1].customer?.state
                                                     : ''
                                             }</div>
                                         </div>

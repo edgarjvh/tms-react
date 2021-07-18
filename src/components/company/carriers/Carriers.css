@@ -167,8 +167,6 @@
   flex-grow: 1;
 }
 .carriers-main-container .form-slider .form-slider-wrapper .contact-list-box .tcol.pri {
-  min-width: 0.65rem;
-  max-width: 0.65rem;
   text-align: center;
 }
 .carriers-main-container .form-slider .form-slider-wrapper .contact-list-box .contact-list-wrapper {
@@ -276,7 +274,10 @@
   color: rgba(0, 0, 0, 0.7);
   min-height: 1rem;
   max-height: 1rem;
-  padding-right: 15px;
+  padding-right: 1.2rem;
+}
+.carriers-main-container .insurances-list-container .insurances-list-header.scrolling {
+  padding-right: 1.8rem;
 }
 .carriers-main-container .insurances-list-container .tcol.type {
   min-width: 6rem;
@@ -286,20 +287,28 @@
   flex-grow: 1;
 }
 .carriers-main-container .insurances-list-container .tcol.expiration-date {
-  min-width: 5rem;
-  max-width: 5rem;
+  min-width: 4.5rem;
+  max-width: 4.5rem;
 }
 .carriers-main-container .insurances-list-container .tcol.amount {
   min-width: 6rem;
   max-width: 6rem;
   text-align: right;
 }
+.carriers-main-container .insurances-list-container .tcol.insurances-selected {
+  min-width: 1rem;
+  max-width: 1rem;
+  text-align: center;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
 .carriers-main-container .insurances-list-container .insurances-list-wrapper {
   position: absolute;
   width: 100%;
   height: calc(100% - 1rem);
   bottom: 0;
-  overflow-y: scroll;
+  overflow-y: auto;
   padding-top: 5px;
 }
 .carriers-main-container .insurances-list-container .insurances-list-wrapper .insurances-list-item {
@@ -314,14 +323,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-right: 5px;
+  padding-right: 0.2rem;
 }
 .carriers-main-container .insurances-list-container .insurances-list-wrapper .insurances-list-item:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-.carriers-main-container .insurances-list-container .insurances-list-wrapper .insurances-list-item.selected {
   background-color: rgba(0, 0, 0, 0.1);
-  font-weight: bold;
 }
 .carriers-main-container .insurances-list-container .insurances-list-wrapper .insurances-list-item > div {
   white-space: nowrap;
@@ -345,9 +350,21 @@
   padding: 5px 0;
   cursor: pointer;
   transition: ease 0.3s;
+  display: flex;
+  align-items: center;
+}
+.carriers-main-container .notes-list-container .notes-list-wrapper .notes-list-item .tcol.note-text {
+  flex-grow: 1;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
+}
+.carriers-main-container .notes-list-container .notes-list-wrapper .notes-list-item .tcol.notes-selected {
+  margin-left: 0.5rem;
+  text-align: center;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
 }
 .carriers-main-container .notes-list-container .notes-list-wrapper .notes-list-item:hover {
   background-color: rgba(0, 0, 0, 0.1);

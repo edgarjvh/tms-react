@@ -55,7 +55,6 @@ import FactoringCompanySearch from './../../../panels/factoring-company-search/F
 import FactoringCompanyInvoiceSearch from './../../../panels/factoring-company-invoice-search/FactoringCompanyInvoiceSearch.jsx';
 
 function PanelContainer(props) {
-
     const baseWidth = 0.95;
     const panelGap = 70;
 
@@ -359,6 +358,9 @@ function PanelContainer(props) {
                                 selectedOwnerDocument={props.selectedCarrierDocument}
                                 selectedOwnerDocumentTags={props.selectedCarrierDocumentTags}
                                 selectedOwnerDocumentNote={props.selectedCarrierDocumentNote}
+
+                                origin='carrier'
+
                                 savingDocumentUrl='/saveCarrierDocument'
                                 deletingDocumentUrl='/deleteCarrierDocument'
                                 savingDocumentNoteUrl='/saveCarrierDocumentNote'
@@ -605,6 +607,7 @@ function PanelContainer(props) {
                                 setFactoringCompanySearch={props.setFactoringCompanySearch}
                                 setFactoringCompanies={props.setFactoringCompanies}
                                 setSelectedFactoringCompanyDocument={props.setSelectedFactoringCompanyDocument}
+                                setSelectedCarrier={props.setSelectedCarrier}
 
                                 factoringCompanySearch={props.factoringCompanySearch}
                                 selectedFactoringCompany={props.selectedFactoringCompany}
@@ -615,6 +618,7 @@ function PanelContainer(props) {
                                 selectedFactoringCompanyInvoice={props.selectedFactoringCompanyInvoice}
                                 selectedFactoringCompanyIsShowingInvoiceList={props.selectedFactoringCompanyIsShowingInvoiceList}
                                 selectedFactoringCompanyInvoiceSearch={props.selectedFactoringCompanyInvoiceSearch}
+                                selectedCarrier={props.selectedCarrier}
 
                                 factoringCompanySearchPanelName='carrier-factoring-company-search'
                                 factoringCompanyPanelSearchPanelName='carrier-factoring-company-panel-search'
@@ -1009,6 +1013,9 @@ function PanelContainer(props) {
                                 selectedOwnerDocument={props.selectedFactoringCompanyDocument}
                                 selectedOwnerDocumentTags={props.selectedFactoringCompanyDocumentTags}
                                 selectedOwnerDocumentNote={props.selectedFactoringCompanyDocumentNote}
+
+                                origin='factoring-company'
+
                                 savingDocumentUrl='/saveFactoringCompanyDocument'
                                 deletingDocumentUrl='/deleteFactoringCompanyDocument'
                                 savingDocumentNoteUrl='/saveFactoringCompanyDocumentNote'

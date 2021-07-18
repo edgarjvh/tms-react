@@ -30,8 +30,8 @@
     text-transform: capitalize;
     font-weight   : bold;
 
-    &.pushed{
-      right         : 20px;
+    &.pushed {
+      right: 20px;
     }
   }
 
@@ -44,8 +44,8 @@
     text-transform: capitalize;
     font-weight   : bold;
 
-    &.pushed{
-      right         : 20px;
+    &.pushed {
+      right: 20px;
     }
   }
 
@@ -58,8 +58,8 @@
     text-transform: capitalize;
     font-weight   : bold;
 
-    &.pushed{
-      right         : 20px;
+    &.pushed {
+      right: 20px;
     }
   }
 
@@ -72,8 +72,8 @@
     text-transform: capitalize;
     font-weight   : bold;
 
-    &.pushed{
-      right         : 20px;
+    &.pushed {
+      right: 20px;
     }
   }
 
@@ -195,8 +195,8 @@
         }
 
         .tcol.pri {
-          min-width : 0.65rem;
-          max-width : 0.65rem;
+          // min-width : 0.65rem;
+          // max-width : 0.65rem;
           text-align: center;
         }
 
@@ -323,7 +323,11 @@
       color          : rgba(0, 0, 0, 0.7);
       min-height     : 1rem;
       max-height     : 1rem;
-      padding-right: 15px;
+      padding-right  : 1.2rem;
+
+      &.scrolling {
+        padding-right: 1.8rem;
+      }
     }
 
     .tcol.type {
@@ -336,8 +340,8 @@
     }
 
     .tcol.expiration-date {
-      min-width: 5rem;
-      max-width: 5rem;
+      min-width: 4.5rem;
+      max-width: 4.5rem;
     }
 
     .tcol.amount {
@@ -346,12 +350,21 @@
       text-align: right;
     }
 
+    .tcol.insurances-selected {
+      min-width      : 1rem;
+      max-width      : 1rem;
+      text-align     : center;
+      display        : flex;
+      justify-content: flex-end;
+      align-items    : center;
+    }
+
     .insurances-list-wrapper {
       position   : absolute;
       width      : 100%;
       height     : calc(100% - 1rem);
       bottom     : 0;
-      overflow-y : scroll;
+      overflow-y : auto;
       padding-top: 5px;
 
       .insurances-list-item {
@@ -366,16 +379,16 @@
         display        : flex;
         align-items    : center;
         justify-content: space-between;
-        padding-right  : 5px;
+        padding-right  : 0.2rem;
 
         &:hover {
-          background-color: rgba(0, 0, 0, 0.05);
+          background-color: rgba(0, 0, 0, 0.1);
         }
 
-        &.selected {
-          background-color: rgba(0, 0, 0, 0.1);
-          font-weight     : bold;
-        }
+        // &.selected {
+        //   background-color: rgba(0, 0, 0, 0.1);
+        //   font-weight     : bold;
+        // }
 
         >div {
           white-space  : nowrap;
@@ -403,9 +416,23 @@
         padding      : 5px 0;
         cursor       : pointer;
         transition   : ease 0.3s;
-        text-overflow: ellipsis;
-        white-space  : nowrap;
-        overflow     : hidden;
+        display: flex;
+        align-items: center;        
+
+        .tcol.note-text {
+          flex-grow    : 1;
+          text-overflow: ellipsis;
+          white-space  : nowrap;
+          overflow     : hidden;
+        }
+
+        .tcol.notes-selected {
+          margin-left: 0.5rem;
+          text-align     : center;
+          display        : flex;
+          justify-content: flex-end;
+          align-items    : center;
+        }
       }
 
       .notes-list-item:hover {

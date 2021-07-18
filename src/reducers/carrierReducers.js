@@ -43,6 +43,7 @@ export const carrierReducers = (state = {
     carrierInsurances: [],
     selectedInsurance: {},
     equipmentInformation: {},
+    rating: 0,
 
     carrierOpenedPanels: [],
 
@@ -93,6 +94,56 @@ export const carrierReducers = (state = {
     selectedDispatchCarrierInfoInsurance: {},
     dispatchCarrierInfoEquipmentInformation: {},
 
+    dispatchCarrierInfoRating: 0,
+
+    // =============================== customer carrier info ===================================
+
+    customerCarrierInfoCarriersChanging: [],
+    customerCarrierInfoCarrierSearchChanging: [],
+
+    selectedCustomerCarrierInfoCarrier: {},
+    selectedCustomerCarrierInfoContact: {},
+    selectedCustomerCarrierInfoNote: {},
+    selectedCustomerCarrierInfoDirection: {},
+    customerCarrierInfoContactSearch: {},
+    customerCarrierInfoFactoringCompanySearch: [],
+    customerCarrierInfoFactoringCompanies: [],
+    customerCarrierInfoFactoringCompanyContacts: [],
+    selectedCustomerCarrierInfoFactoringCompany: {},
+    selectedCustomerCarrierInfoFactoringCompanyContact: {},
+    selectedCustomerCarrierInfoFactoringCompanyContactSearch: { selectedCustomerCarrierInfoContact: {} },
+    selectedCustomerCarrierInfoFactoringCompanyIsShowingContactList: true,
+    selectedCustomerCarrierInfoFactoringCompanyNote: {},
+    customerCarrierInfoFactoringCompanyIsEditingContact: false,
+    customerCarrierInfoCarrierSearch: [],
+    customerCarrierInfoShowingContactList: true,
+    customerCarrierInfoContacts: [],
+    customerCarrierInfoIsEditingContact: false,
+    customerCarrierInfoContactSearchCarrier: { selectedCustomerCarrierInfoContact: {} },
+    selectedCustomerCarrierInfoDocument: {},
+    selectedCustomerCarrierInfoDocumentNote: {},
+    customerCarrierInfoDocumentTags: '',
+
+    selectedCustomerCarrierInfoFactoringCompanyCustomers: [],
+    selectedCustomerCarrierInfoFactoringCompanyCustomer: {},
+    selectedCustomerCarrierInfoFactoringCompanyIsShowingCustomerList: true,
+    selectedCustomerCarrierInfoFactoringCompanyCustomerSearch: { selectedCustomerCarrierInfoFactoringCompanyCustomer: {} },
+
+    selectedCustomerCarrierInfoFactoringCompanyDocument: {},
+    selectedCustomerCarrierInfoFactoringCompanyDocumentNote: {},
+    customerCarrierInfoFactoringCompanyDocumentTags: '',
+
+    customerCarrierInfoDrivers: [],
+    selectedCustomerCarrierInfoDriver: {},
+    customerCarrierInfoEquipments: [],
+    selectedCustomerCarrierInfoEquipment: {},
+    customerCarrierInfoInsuranceTypes: [],
+    selectedCustomerCarrierInfoInsuranceType: {},
+    customerCarrierInfoCarrierInsurances: [],
+    selectedCustomerCarrierInfoInsurance: {},
+    customerCarrierInfoEquipmentInformation: {},
+    customerCarrierInfoRating: 0,
+
     // =============================== invoice carrier info ===================================
 
     invoiceCarrierInfoCarriersChanging: [],
@@ -139,6 +190,7 @@ export const carrierReducers = (state = {
     invoiceCarrierInfoCarrierInsurances: [],
     selectedInvoiceCarrierInfoInsurance: {},
     invoiceCarrierInfoEquipmentInformation: {},
+    invoiceCarrierInfoRating: 0,
 
     // =============================== load board carrier info ===================================
 
@@ -184,6 +236,7 @@ export const carrierReducers = (state = {
     lbCarrierInfoCarrierInsurances: [],
     selectedLbCarrierInfoInsurance: {},
     lbCarrierInfoEquipmentInformation: {},
+    lbCarrierInfoRating: 0,
 
 
     panels: []
@@ -726,6 +779,251 @@ export const carrierReducers = (state = {
             }
             break;
 
+            // ======================= CUSTOMER CARRIER INFO =========================
+        case carriersConstants.SET_CUSTOMER_CARRIER_INFO_CARRIERS:
+            state = {
+                ...state,
+                customerCarrierInfoCarriers: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_CARRIER:
+            state = {
+                ...state,
+                selectedCustomerCarrierInfoCarrier: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_CONTACT:
+            state = {
+                ...state,
+                selectedCustomerCarrierInfoContact: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_NOTE:
+            state = {
+                ...state,
+                selectedCustomerCarrierInfoNote: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_DIRECTION:
+            state = {
+                ...state,
+                selectedCustomerCarrierInfoDirection: action.payload
+            }
+            break;
+        case carriersConstants.SET_CUSTOMER_CARRIER_INFO_CONTACT_SEARCH:
+            state = {
+                ...state,
+                customerCarrierInfoContactSearch: action.payload
+            }
+            break;
+        case carriersConstants.SET_CUSTOMER_CARRIER_INFO_CARRIER_SEARCH:
+            state = {
+                ...state,
+                customerCarrierInfoCarrierSearch: action.payload
+            }
+            break;
+        case carriersConstants.SET_CUSTOMER_CARRIER_INFO_SHOWING_CONTACT_LIST:
+            state = {
+                ...state,
+                customerCarrierInfoShowingContactList: action.payload
+            }
+            break;
+        case carriersConstants.SET_CUSTOMER_CARRIER_INFO_CARRIER_CONTACTS:
+            state = {
+                ...state,
+                customerCarrierInfoContacts: action.payload
+            }
+            break;
+        case carriersConstants.SET_CUSTOMER_CARRIER_INFO_IS_EDITING_CONTACT:
+            state = {
+                ...state,
+                customerCarrierInfoIsEditingContact: action.payload
+            }
+            break;
+        case carriersConstants.SET_CUSTOMER_CARRIER_INFO_CONTACT_SEARCH_CARRIER:
+            state = {
+                ...state,
+                customerCarrierInfoContactSearchCarrier: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_DOCUMENT:
+            state = {
+                ...state,
+                selectedCustomerCarrierInfoDocument: action.payload
+            }
+            break;
+        case carriersConstants.SET_CUSTOMER_CARRIER_INFO_DOCUMENT_TAGS:
+            state = {
+                ...state,
+                customerCarrierInfoDocumentTags: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_DOCUMENT_NOTE:
+            state = {
+                ...state,
+                selectedCustomerCarrierInfoDocumentNote: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY_DOCUMENT:
+            state = {
+                ...state,
+                selectedCustomerCarrierInfoFactoringCompanyDocument: action.payload
+            }
+            break;
+        case carriersConstants.SET_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY_DOCUMENT_TAGS:
+            state = {
+                ...state,
+                customerCarrierInfoFactoringCompanyDocumentTags: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY_DOCUMENT_NOTE:
+            state = {
+                ...state,
+                selectedCustomerCarrierInfoFactoringCompanyDocumentNote: action.payload
+            }
+            break;
+        case carriersConstants.SET_CUSTOMER_CARRIER_INFO_DRIVERS:
+            state = {
+                ...state,
+                customerCarrierInfoDrivers: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_DRIVER:
+            state = {
+                ...state,
+                selectedCustomerCarrierInfoDriver: action.payload
+            }
+            break;
+        case carriersConstants.SET_CUSTOMER_CARRIER_INFO_EQUIPMENTS:
+            state = {
+                ...state,
+                customerCarrierInfoEquipments: action.payload
+            }
+            break;
+        case carriersConstants.SET_CUSTOMER_CARRIER_INFO_INSURANCE_TYPES:
+            state = {
+                ...state,
+                customerCarrierInfoInsuranceTypes: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_EQUIPMENT:
+            state = {
+                ...state,
+                selectedCustomerCarrierInfoEquipment: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_INSURANCE_TYPE:
+            state = {
+                ...state,
+                selectedCustomerCarrierInfoInsuranceType: action.payload
+            }
+            break;
+        case carriersConstants.SET_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY_SEARCH:
+            state = {
+                ...state,
+                customerCarrierInfoFactoringCompanySearch: action.payload
+            }
+            break;
+        case carriersConstants.SET_CUSTOMER_CARRIER_INFO_FACTORING_COMPANIES:
+            state = {
+                ...state,
+                customerCarrierInfoFactoringCompanies: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY:
+            state = {
+                ...state,
+                selectedCustomerCarrierInfoFactoringCompany: action.payload
+            }
+            break;
+        case carriersConstants.SET_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY_CONTACTS:
+            state = {
+                ...state,
+                customerCarrierInfoFactoringCompanyContacts: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY_CONTACT:
+            state = {
+                ...state,
+                selectedCustomerCarrierInfoFactoringCompanyContact: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY_CONTACT_SEARCH:
+            state = {
+                ...state,
+                selectedCustomerCarrierInfoFactoringCompanyContactSearch: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY_IS_SHOWING_CONTACT_LIST:
+            state = {
+                ...state,
+                selectedCustomerCarrierInfoFactoringCompanyIsShowingContactList: action.payload
+            }
+            break;
+        case carriersConstants.SET_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY_IS_EDITING_CONTACT:
+            state = {
+                ...state,
+                customerCarrierInfoFactoringCompanyIsEditingContact: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY_NOTE:
+            state = {
+                ...state,
+                selectedCustomerCarrierInfoFactoringCompanyNote: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY_CUSTOMER_SEARCH:
+
+            state = {
+                ...state,
+                selectedCustomerCarrierInfoFactoringCompanyCustomerSearch: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY_CUSTOMERS:
+            state = {
+                ...state,
+                selectedCustomerCarrierInfoFactoringCompanyCustomers: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY_CUSTOMER:
+            state = {
+                ...state,
+                selectedCustomerCarrierInfoFactoringCompanyCustomer: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_FACTORING_COMPANY_IS_SHOWING_CUSTOMER_LIST:
+            state = {
+                ...state,
+                selectedCustomerCarrierInfoFactoringCompanyIsShowingCustomerList: action.payload,
+                selectedCustomerCarrierInfoFactoringCompanyCustomerSearch: action.payload ? { selectedCustomerCarrierInfoCustomer: {} } : state.selectedCustomerCarrierInfoFactoringCompanyCustomerSearch,
+            }
+            break;
+        case carriersConstants.SET_CUSTOMER_CARRIER_INFO_CARRIER_INSURANCES:
+            state = {
+                ...state,
+                customerCarrierInfoCarrierInsurances: action.payload
+            }
+            break;
+        case carriersConstants.SET_SELECTED_CUSTOMER_CARRIER_INFO_INSURANCE:
+            state = {
+                ...state,
+                selectedCustomerCarrierInfoInsurance: action.payload
+            }
+            break;
+
+        case carriersConstants.SET_CARRIER_OPENED_PANELS:
+            state = {
+                ...state,
+                carrierOpenedPanels: action.payload
+            }
+            break;
+
+        case carriersConstants.SET_CUSTOMER_CARRIER_INFO_EQUIPMENT_INFORMATION:
+            state = {
+                ...state,
+                customerCarrierInfoEquipmentInformation: action.payload
+            }
+            break;
 
         // ======================= INVOICE CARRIER INFO =========================
         case carriersConstants.SET_INVOICE_CARRIER_INFO_CARRIERS:

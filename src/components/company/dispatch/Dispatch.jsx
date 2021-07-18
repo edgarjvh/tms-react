@@ -47,11 +47,11 @@ function Dispatch(props) {
     }, [])
 
     useEffect(() => {
-        if (props.screenFocused){
+        if (props.screenFocused) {
             refOrderNumber.current.focus({
                 preventScroll: true
             });
-        }        
+        }
     }, [props.screenFocused])
 
     const [currentSystemDateTime, setCurrentSystemDateTime] = useState(moment());
@@ -135,38 +135,26 @@ function Dispatch(props) {
 
     const modalTransitionProps = useSpring({ opacity: (props.selectedNoteForCarrier.id !== undefined || props.selectedInternalNote.id !== undefined) ? 1 : 0 });
 
-    const refPopup = useRef();
-    const [orderNumberFocused, setOrderNumberFocused] = useState(false);
-    const [popupItems, setPopupItems] = useState([]);
-    const popupContainerClasses = classnames({
-        'mochi-contextual-container': true,
-        'shown': popupItems.length > 0
-    });
-    const popupItemsRef = useRef([]);
-    const panelRefs = useRef([]);
-
     const refBolNumbers = useRef();
     const refPoNumbers = useRef();
     const refRefNumbers = useRef();
 
-    const [popupActiveInput, setPopupActiveInput] = useState('');
 
     const [isSavingOrder, setIsSavingOrder] = useState(false);
-
     const [isSavingBillToCompanyInfo, setIsSavingBillToCompanyInfo] = useState(false);
     const [isSavingBillToCompanyContact, setIsSavingBillToCompanyContact] = useState(false);
     const [isSavingShipperCompanyInfo, setIsSavingShipperCompanyInfo] = useState(false);
     const [isSavingShipperCompanyContact, setIsSavingShipperCompanyContact] = useState(false);
     const [isSavingConsigneeCompanyInfo, setIsSavingConsigneeCompanyInfo] = useState(false);
     const [isSavingConsigneeCompanyContact, setIsSavingConsigneeCompanyContact] = useState(false);
+    const [isSavingRouting, setIsSavingRouting] = useState(false);
+    const [isSavingPickupId, setIsSavingPickupId] = useState(-1);
+    const [isSavingDeliveryId, setIsSavingDeliveryId] = useState(-1);
 
     const [isSavingCarrierInfo, setIsSavingCarrierInfo] = useState(false);
     const [isSavingCarrierContact, setIsSavingCarrierContact] = useState(false);
     const [isSavingCarrierDriver, setIsSavingCarrierDriver] = useState(false);
 
-
-    const [carrierEquipment, setCarrierEquipment] = useState({});
-    const [dispatchEvent, setDispatchEvent] = useState({});
     const refDivision = useRef();
     const refLoadType = useRef();
     const refTemplate = useRef();
@@ -193,6 +181,9 @@ function Dispatch(props) {
 
     const refDriverDropDown = useDetectClickOutside({ onTriggered: async () => { await setDriverItems([]) } });
     const refDriverPopupItems = useRef([]);
+
+    const refShipperCompanyCode = useRef([]);
+    const refConsigneeCompanyCode = useRef([]);
 
     const [dispatchEventItems, setDispatchEventItems] = useState([
         {
@@ -292,18 +283,15 @@ function Dispatch(props) {
         }
     }, [showDispatchEventItems]);
 
-
-
     const dispatchClearBtnClick = () => {
         props.setSelectedOrder({});
-        
+
         props.setOrderNumber('');
         props.setTripNumber('');
 
         props.setDivision({});
         props.setLoadType({});
         props.setTemplate({});
-        setCarrierEquipment({});
 
         props.setSelectedBillToCompanyInfo({});
         props.setSelectedBillToCompanyContact({});
@@ -311,16 +299,16 @@ function Dispatch(props) {
         props.setSelectedShipperCompanyContact({});
         props.setSelectedConsigneeCompanyInfo({});
         props.setSelectedConsigneeCompanyContact({});
-        
+
         props.setShipperBolNumber('');
         props.setShipperPoNumber('');
         props.setShipperRefNumber('');
-                
+
         props.setDispatchEvent({});
         setSelectedOrderEvent({});
         props.setDispatchEventLocation('');
-        props.setDispatchEventNotes('');                
-        
+        props.setDispatchEventNotes('');
+
         props.setSelectedNoteForCarrier({});
         props.setSelectedInternalNote({});
         props.setIsShowingShipperSecondPage(false);
@@ -330,49 +318,8 @@ function Dispatch(props) {
         props.setSelectedDispatchCarrierInfoDriver({});
         props.setSelectedDispatchCarrierInfoInsurance({});
         props.setSelectedDispatchCarrierInfoContact({});
-    }
 
-    const setPopupPosition = (input) => {
-        let popup = refPopup.current;
-        const { innerWidth, innerHeight } = window;
-        const screenWSection = innerWidth / 3;
-
-        if (popup) {
-            popup.childNodes[0].className = 'mochi-contextual-popup';
-            popup.childNodes[0].classList.add('vertical');
-
-            if ((innerHeight - 170 - 30) <= input.top) {
-                popup.childNodes[0].classList.add('above');
-                popup.style.top = (input.top - 175 - input.height) + 'px';
-            } else if ((innerHeight - 170 - 30) > input.top) {
-                popup.childNodes[0].classList.add('below');
-                popup.style.top = (input.top + 10) + 'px';
-            }
-
-            if (input.left <= (screenWSection * 1)) {
-                popup.childNodes[0].classList.add('right');
-                popup.style.left = input.left + 'px';
-
-                if (input.width < 70) {
-                    popup.style.left = (input.left - 60 + (input.width / 2)) + 'px';
-
-                    if (input.left < 30) {
-                        popup.childNodes[0].classList.add('corner');
-                        popup.style.left = (input.left + (input.width / 2)) + 'px';
-                    }
-                }
-            } else if (input.left <= (screenWSection * 2)) {
-                popup.style.left = (input.left - 100) + 'px';
-            } else if (input.left > (screenWSection * 2)) {
-                popup.childNodes[0].classList.add('left');
-                popup.style.left = (input.left - 200) + 'px';
-
-                if ((innerWidth - input.left) < 100) {
-                    popup.childNodes[0].classList.add('corner');
-                    popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px';
-                }
-            }
-        }
+        refOrderNumber.current.focus();
     }
 
     const getBillToCompanyByCode = (e) => {
@@ -386,42 +333,15 @@ function Dispatch(props) {
                 }).then(async res => {
                     if (res.result === 'OK') {
                         if (res.customers.length > 0) {
-
                             props.setSelectedBillToCompanyInfo(res.customers[0]);
-
-                            res.customers[0].contacts.map(c => {
-                                if (c.is_primary === 1) {
-                                    props.setSelectedBillToCompanyContact(c);
-                                }
-                                return true;
-                            });
+                            props.setSelectedBillToCompanyContact((res.customers[0].contacts || []).find(c => c.is_primary === 1) || {});
 
                             let selected_order = { ...props.selected_order } || { order_number: 0 };
-
                             selected_order.bill_to_customer_id = res.customers[0].id;
-                            selected_order.shipper_customer_id = (props.selectedShipperCompanyInfo?.id || 0);
-                            selected_order.consignee_customer_id = (props.selectedConsigneeCompanyInfo?.id || 0);
-                            selected_order.carrier_id = (props.selectedDispatchCarrierInfoCarrier?.id || 0);
-                            selected_order.carrier_driver_id = (props.selectedDispatchCarrierInfoDriver?.id || 0);
 
-                            if ((selected_order.ae_number || '') === '') {
-                                selected_order.ae_number = getRandomInt(1, 100);
-                            }
+                            props.setSelectedOrder(selected_order);
 
-                            if (!isSavingOrder) {
-                                setIsSavingOrder(true);
-                                $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
-                                    if (res.result === 'OK') {
-                                        await props.setSelectedOrder(res.order);
-                                    }
-
-                                    setIsSavingOrder(false);
-                                }).catch(e => {
-                                    console.log('error saving order', e);
-                                    setIsSavingOrder(false);
-                                });
-                            }
-
+                            validateOrderForSaving({ keyCode: 9 });
                         } else {
                             props.setSelectedBillToCompanyInfo({});
                             props.setSelectedBillToCompanyContact({});
@@ -449,102 +369,78 @@ function Dispatch(props) {
                 }).then(async res => {
                     if (res.result === 'OK') {
                         if (res.customers.length > 0) {
-                            let pickups = props.selected_order?.pickups || [];
+                            if ((props.selected_order?.id || 0) > 0) {
+                                props.setSelectedOrder({
+                                    ...props.selected_order,
+                                    pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                        if (p.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                                            p.order_id = props.selected_order.id;
+                                            p.customer = res.customers[0];
+                                            p.customer_id = res.customers[0].id;
 
-                            let isAdding = pickups.filter(pu => pu.id === 0).length > 0;
+                                            props.setSelectedShipperCompanyInfo({
+                                                ...res.customers[0],
+                                                ...p,
+                                                customer: {},
+                                                pickup_id: p.id
+                                            });
 
-                            if (isAdding) {
-                                pickups = pickups.map((pu, i) => {
-                                    if (pu.id === 0) {
-                                        let extra_data = {};
-                                        pu = res.customers[0];
-                                        pu.extra_data = extra_data;
-                                    }
-                                    return pu;
-                                })
-                            } else {
-                                if (pickups.length > 0) {
-                                    pickups = pickups.map((pu, i) => {
-                                        if (pu.id === (props.selectedShipperCompanyInfo.id || 0)) {
-                                            let extra_data = pu.extra_data || {};
-                                            pu = res.customers[0];
-                                            pu.extra_data = extra_data;
+                                            props.setSelectedShipperCompanyContact((res.customers[0].contacts || []).find(c => c.is_primary === 1) || {});
+
+                                            setIsSavingPickupId(p.id);
                                         }
-                                        return pu;
+                                        return p;
                                     })
-                                } else {
-                                    pickups.push(res.customers[0]);
-                                }
-                            }
+                                })
 
-                            props.setSelectedShipperCompanyInfo(res.customers[0]);
+                            } else {
 
-                            res.customers[0].contacts.map(c => {
-                                if (c.is_primary === 1) {
-                                    props.setSelectedShipperCompanyContact(c);
-                                }
-                                return true;
-                            });
+                                props.setSelectedOrder({
+                                    ...props.selected_order,
+                                    pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                        if (p.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                                            p.customer = res.customers[0];
+                                            p.customer_id = res.customers[0].id;
 
-                            let selected_order = { ...props.selected_order } || { order_number: 0 };
-                            selected_order.shipper_customer_id = res.customers[0].id;
-                            selected_order.pickups = pickups;
+                                            props.setSelectedShipperCompanyInfo({
+                                                ...res.customers[0],
+                                                ...p,
+                                                customer: {},
+                                                pickup_id: p.id
+                                            });
 
-                            if ((props.selectedBillToCompanyInfo?.id || 0) === 0) {
+                                            props.setSelectedShipperCompanyContact((res.customers[0].contacts || []).find(c => c.is_primary === 1) || {});
 
-                                if (res.customers[0].mailing_bll_to !== '') {
+                                        }
+                                        return p;
+                                    })
+                                })
 
-                                    $.post(props.serverUrl + '/customers', {
-                                        code: res.customers[0].mailing_bll_to
-                                    }).then(res => {
-                                        if (res.result === 'OK') {
-                                            if (res.customers.length > 0) {
-                                                props.setSelectedBillToCompanyInfo(res.customers[0]);
+                                if ((props.selectedBillToCompanyInfo?.id || 0) === 0) {
+                                    if ((res.customers[0].mailing_address?.bill_to_code || '') !== '') {
 
-                                                selected_order.bill_to_customer_id = res.customers[0].id;
-                                                selected_order.carrier_id = (props.selectedDispatchCarrierInfoCarrier?.id || 0);
-                                                selected_order.carrier_driver_id = (props.selectedDispatchCarrierInfoDriver?.id || 0);
+                                        $.post(props.serverUrl + '/customers', {
+                                            code: (res.customers[0].mailing_address?.bill_to_code || '') + ((res.customers[0].mailing_address?.bill_to_code_number || 0) === 0 ? '' : res.customers[0].mailing_address.bill_to_code_number)
+                                        }).then(res => {
+                                            if (res.result === 'OK') {
+                                                if (res.customers.length > 0) {
 
-                                                if ((selected_order.ae_number || '') === '') {
-                                                    selected_order.ae_number = getRandomInt(1, 100);
-                                                }
+                                                    props.setSelectedBillToCompanyInfo(res.customers[0]);
+                                                    props.setSelectedBillToCompanyContact((res.customers[0].contacts || []).find(c => c.is_primary === 1) || {});
 
-                                                if (!isSavingOrder) {
-                                                    setIsSavingOrder(true);
-                                                    $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
-                                                        if (res.result === 'OK') {
-                                                            await props.setSelectedOrder(res.order);
-                                                        }
-
-                                                        setIsSavingOrder(false);
-                                                    }).catch(e => {
-                                                        console.log('error saving order', e);
-                                                        setIsSavingOrder(false);
+                                                    props.setSelectedOrder({
+                                                        ...props.selected_order,
+                                                        ae_number: (props.selected_order?.ae_number || '') === '' ? getRandomInt(1, 100) : props.selected_order.ae_number,
+                                                        bill_to_customer_id: res.customers[0].id
                                                     });
+
+                                                    validateOrderForSaving({ keyCode: 9 });
                                                 }
                                             }
-                                        }
-                                    })
-
-                                }
-
-                                return;
-                            } else {
-                                if (!isSavingOrder) {
-                                    setIsSavingOrder(true);
-                                    $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
-                                        if (res.result === 'OK') {
-                                            await props.setSelectedOrder(res.order);
-                                        }
-
-                                        setIsSavingOrder(false);
-                                    }).catch(e => {
-                                        console.log('error saving order', e);
-                                        setIsSavingOrder(false);
-                                    });
+                                        })
+                                    }
                                 }
                             }
-
                         } else {
                             props.setSelectedShipperCompanyInfo({});
                             props.setSelectedShipperCompanyContact({});
@@ -554,9 +450,6 @@ function Dispatch(props) {
                         props.setSelectedShipperCompanyContact({});
                     }
                 });
-            } else {
-                props.setSelectedShipperCompanyInfo({});
-                props.setSelectedShipperCompanyContact({});
             }
         }
     }
@@ -572,6 +465,7 @@ function Dispatch(props) {
                     window.alert('You must create or load an order first!');
                     props.setSelectedConsigneeCompanyInfo({});
                     props.setSelectedConsigneeCompanyContact({});
+                    props.setSelectedOrder({ ...props.selected_order, deliveries: [] })
                     return;
                 }
 
@@ -580,71 +474,30 @@ function Dispatch(props) {
                 }).then(async res => {
                     if (res.result === 'OK') {
                         if (res.customers.length > 0) {
-                            let selected_order = { ...props.selected_order } || { order_number: 0 };
+                            props.setSelectedOrder({
+                                ...props.selected_order,
+                                deliveries: (props.selected_order?.deliveries || []).map((d, i) => {
+                                    if (d.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
+                                        d.order_id = props.selected_order.id;
+                                        d.customer = res.customers[0];
+                                        d.customer_id = res.customers[0].id;
 
-                            let deliveries = selected_order.deliveries || [];
+                                        props.setSelectedConsigneeCompanyInfo({
+                                            ...res.customers[0],
+                                            ...d,
+                                            customer: {},
+                                            delivery_id: d.id
+                                        });
 
-                            let isAdding = deliveries.filter(delivery => delivery.id === 0).length > 0;
+                                        props.setSelectedConsigneeCompanyContact((res.customers[0].contacts || []).find(c => c.is_primary === 1) || {});
 
-                            if (isAdding) {
-                                deliveries = deliveries.map((delivery, i) => {
-                                    if (delivery.id === 0) {
-                                        let extra_data = {};
-                                        delivery = res.customers[0];
-                                        delivery.extra_data = extra_data;
+                                        setIsSavingDeliveryId(d.id);
                                     }
-                                    return delivery;
+                                    return d;
                                 })
-                            } else {
-                                if (deliveries.length > 0) {
-                                    deliveries = deliveries.map((delivery, i) => {
-                                        if (delivery.id === (props.selectedConsigneeCompanyInfo.id || 0)) {
-                                            let extra_data = delivery.extra_data || {};
-                                            delivery = res.customers[0];
-                                            delivery.extra_data = extra_data;
-                                        }
-                                        return delivery;
-                                    })
-                                } else {
-                                    deliveries.push(res.customers[0]);
-                                }
-                            }
+                            })
 
-                            selected_order.deliveries = deliveries;
-
-                            props.setSelectedConsigneeCompanyInfo(res.customers[0]);
-
-                            res.customers[0].contacts.map(c => {
-                                if (c.is_primary === 1) {
-                                    props.setSelectedConsigneeCompanyContact(c);
-                                }
-                                return true;
-                            });
-
-                            selected_order.consignee_customer_id = res.customers[0].id;
-                            selected_order.shipper_customer_id = (props.selectedShipperCompanyInfo?.id || 0);
-                            selected_order.bill_to_customer_id = (props.selectedBillToCompanyInfo?.id || 0);
-                            selected_order.carrier_id = (props.selectedDispatchCarrierInfoCarrier?.id || 0);
-                            selected_order.carrier_driver_id = (props.selectedDispatchCarrierInfoDriver?.id || 0);
-
-                            if ((selected_order.ae_number || '') === '') {
-                                selected_order.ae_number = getRandomInt(1, 100);
-                            }
-
-                            if (!isSavingOrder) {
-                                setIsSavingOrder(true);
-                                $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
-                                    if (res.result === 'OK') {
-                                        await props.setSelectedOrder(res.order);
-                                    }
-
-                                    setIsSavingOrder(false);
-                                }).catch(e => {
-                                    console.log('error saving order', e);
-                                    setIsSavingOrder(false);
-                                });
-                            }
-
+                            validateOrderForSaving({ keyCode: 9 });
                         } else {
                             props.setSelectedConsigneeCompanyInfo({});
                             props.setSelectedConsigneeCompanyContact({});
@@ -654,9 +507,6 @@ function Dispatch(props) {
                         props.setSelectedConsigneeCompanyContact({});
                     }
                 });
-            } else {
-                props.setSelectedConsigneeCompanyInfo({});
-                props.setSelectedConsigneeCompanyContact({});
             }
         }
     }
@@ -792,7 +642,6 @@ function Dispatch(props) {
             }
         });
     }
-
 
     const getCarrierInfoByCode = (e) => {
         let keyCode = e.keyCode || e.which;
@@ -952,7 +801,6 @@ function Dispatch(props) {
 
     }
 
-
     const getFormattedDates = (date) => {
         let formattedDate = date;
 
@@ -1034,7 +882,6 @@ function Dispatch(props) {
 
         return formattedDate;
     }
-
 
     const getFormattedHours = (hour) => {
         let formattedHour = hour;
@@ -1166,88 +1013,6 @@ function Dispatch(props) {
                 }
             }
         });
-    }
-
-    const onEquipmentInput = async (e) => {
-
-        window.clearTimeout(delayTimer);
-        let equipment = props.selectedDispatchCarrierInfoDriver.equipment || {};
-        equipment.name = e.target.value.trim();
-        await props.setSelectedDispatchCarrierInfoDriver({ ...props.selectedDispatchCarrierInfoDriver, equipment_id: 0, equipment: equipment });
-
-        setPopupActiveInput('equipment');
-
-        if (props.selectedDispatchCarrierInfoCarrier.id !== undefined) {
-            if (e.target.value.trim() === '') {
-                await setPopupItems([]);
-            } else {
-                delayTimer = window.setTimeout(() => {
-                    $.post(props.serverUrl + '/getEquipments', {
-                        name: e.target.value.toLowerCase().trim()
-                    }).then(async res => {
-                        const input = refEquipment.current.getBoundingClientRect();
-
-                        let popup = refPopup.current;
-
-                        const { innerWidth, innerHeight } = window;
-
-                        let screenWSection = innerWidth / 3;
-
-                        popup && popup.childNodes[0].classList.add('vertical');
-
-                        if ((innerHeight - 170 - 30) <= input.top) {
-                            popup && popup.childNodes[0].classList.add('above');
-                        }
-
-                        if ((innerHeight - 170 - 30) > input.top) {
-                            popup && popup.childNodes[0].classList.add('below');
-                            popup && (popup.style.top = (input.top + 10) + 'px');
-                        }
-
-                        if (input.left <= (screenWSection * 1)) {
-                            popup && popup.childNodes[0].classList.add('right');
-                            popup && (popup.style.left = input.left + 'px');
-
-                            if (input.width < 70) {
-                                popup && (popup.style.left = (input.left - 60 + (input.width / 2)) + 'px');
-
-                                if (input.left < 30) {
-                                    popup && popup.childNodes[0].classList.add('corner');
-                                    popup && (popup.style.left = (input.left + (input.width / 2)) + 'px');
-                                }
-                            }
-                        }
-
-                        if (input.left <= (screenWSection * 2)) {
-                            popup && (popup.style.left = (input.left - 100) + 'px');
-                        }
-
-                        if (input.left > (screenWSection * 2)) {
-                            popup && popup.childNodes[0].classList.add('left');
-                            popup && (popup.style.left = (input.left - 200) + 'px');
-
-                            if ((innerWidth - input.left) < 100) {
-                                popup && popup.childNodes[0].classList.add('corner');
-                                popup && (popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px');
-                            }
-                        }
-
-                        if (res.result === 'OK') {
-                            if (res.equipments.length > 0) {
-                                let items = res.equipments.map((equipment, i) => {
-                                    equipment.selected = i === 0;
-                                    return equipment;
-                                });
-
-                                await setPopupItems(e.target.value.trim() === '' ? [] : items);
-                            } else {
-                                await setPopupItems([]);
-                            }
-                        }
-                    });
-                }, 300);
-            }
-        }
     }
 
     const validateBillToCompanyInfoForSaving = (e) => {
@@ -1768,7 +1533,9 @@ function Dispatch(props) {
         let key = e.keyCode || e.which;
 
         if (key === 9) {
-            setIsSavingOrder(true);
+            if (!isSavingOrder) {
+                setIsSavingOrder(true);
+            }
         }
     }
 
@@ -1778,51 +1545,307 @@ function Dispatch(props) {
 
             // check if there's a bill-to-company loaded
             if ((props.selectedBillToCompanyInfo?.id || 0) === 0) {
+                setIsSavingOrder(false);
+                props.setMileageLoaderVisible(false);
                 return;
             }
 
-            selected_order.bill_to_customer_id = (props.selectedBillToCompanyInfo?.id || 0);
-            selected_order.carrier_id = (props.selectedDispatchCarrierInfoCarrier?.id || 0);
-            selected_order.carrier_driver_id = (props.selectedDispatchCarrierInfoDriver?.id || 0);
+            selected_order.bill_to_customer_id = (props.selectedBillToCompanyInfo?.id || 0) === 0 ? null : props.selectedBillToCompanyInfo.id;
+            selected_order.carrier_id = (props.selectedDispatchCarrierInfoCarrier?.id || 0) === 0 ? null : props.selectedDispatchCarrierInfoCarrier.id;
+            selected_order.carrier_driver_id = (props.selectedDispatchCarrierInfoDriver?.id || 0) === 0 ? null : props.selectedDispatchCarrierInfoDriver.id;
 
             if ((selected_order.ae_number || '') === '') {
                 selected_order.ae_number = getRandomInt(1, 100);
             }
 
-            selected_order.pickups = (selected_order.pickups || []).map((pu, i) => {
-                let extra_data = pu.extra_data || {};
-                extra_data.pu_date1 = getFormattedDates(extra_data?.pu_date1 || '');
-                extra_data.pu_date2 = getFormattedDates(extra_data?.pu_date2 || '');
-                extra_data.pu_time1 = getFormattedHours(extra_data?.pu_time1 || '');
-                extra_data.pu_time2 = getFormattedHours(extra_data?.pu_time2 || '');
-                pu.extra_data = extra_data;
-                return pu;
-            });
+            if ((props.selected_order?.id || 0) === 0 && (selected_order.pickups || []).length === 1 && selected_order.pickups[0].id === 0 && (selected_order.pickups[0].customer_id || 0) > 0) {
+                selected_order.pickups = (selected_order.pickups || []).map((pu, i) => {
+                    pu.pu_date1 = getFormattedDates(pu.pu_date1 || '');
+                    pu.pu_date2 = getFormattedDates(pu.pu_date2 || '');
+                    pu.pu_time1 = getFormattedHours(pu.pu_time1 || '');
+                    pu.pu_time2 = getFormattedHours(pu.pu_time2 || '');
+                    return pu;
+                });
+            } else {
+                selected_order.pickups = []; // se envia vacio para no tocarlo
+            }
 
-            selected_order.deliveries = (selected_order.deliveries || []).map((delivery, i) => {
-                let extra_data = delivery.extra_data || {};
-                extra_data.delivery_date1 = getFormattedDates(extra_data?.delivery_date1 || '');
-                extra_data.delivery_date2 = getFormattedDates(extra_data?.delivery_date2 || '');
-                extra_data.delivery_time1 = getFormattedHours(extra_data?.delivery_time1 || '');
-                extra_data.delivery_time2 = getFormattedHours(extra_data?.delivery_time2 || '');
-                delivery.extra_data = extra_data;
-                return delivery;
-            });
+            if ((props.selected_order?.id || 0) === 0 && (selected_order.deliveries || []).length === 1 && selected_order.deliveries[0].id === 0 && (selected_order.deliveries[0].customer_id || 0) > 0) {
+                selected_order.deliveries = (selected_order.deliveries || []).map((delivery, i) => {
+                    delivery.delivery_date1 = getFormattedDates(delivery.delivery_date1 || '');
+                    delivery.delivery_date2 = getFormattedDates(delivery.delivery_date2 || '');
+                    delivery.delivery_time1 = getFormattedHours(delivery.delivery_time1 || '');
+                    delivery.delivery_time2 = getFormattedHours(delivery.delivery_time2 || '');
+                    return delivery;
+                });
+            } else {
+                selected_order.deliveries = []; // se envia vacio para no tocarlo
+            }
 
-            setIsSavingOrder(true);
             $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
                 console.log(res);
                 if (res.result === 'OK') {
                     await props.setSelectedOrder(res.order);
+                } else {
+                    console.log(res.result);
                 }
 
+                props.setMileageLoaderVisible(false);
                 setIsSavingOrder(false);
             }).catch(e => {
                 console.log('error saving order', e);
+                props.setMileageLoaderVisible(false);
                 setIsSavingOrder(false);
             });
         }
-    }, [isSavingOrder])
+    }, [isSavingOrder]);
+
+    useEffect(() => {
+        if (isSavingPickupId > -1) {
+            if ((props.selected_order?.id || 0) > 0) {
+                let pickup = (props.selected_order?.pickups || []).find(p => p.id === isSavingPickupId);
+
+                if (pickup !== undefined) {
+                    if ((pickup.customer?.id || 0) > 0) {
+                        $.post(props.serverUrl + '/saveOrderPickup', {
+                            id: isSavingPickupId,
+                            order_id: props.selected_order?.id || 0,
+                            customer_id: pickup.customer.id,
+                            pu_date1: pickup.pu_date1 || '',
+                            pu_date2: pickup.pu_date2 || '',
+                            pu_time1: pickup.pu_time1 || '',
+                            pu_time2: pickup.pu_time2 || '',
+                            bol_numbers: pickup.bol_numbers || '',
+                            po_numbers: pickup.po_numbers || '',
+                            ref_numbers: pickup.ref_numbers || '',
+                            seal_number: pickup.seal_number || '',
+                            special_instructions: pickup.special_instructions || '',
+                            type: 'pickup'
+                        }).then(res => {
+                            if (res.result === 'OK') {
+                                props.setSelectedOrder({
+                                    ...props.selected_order,
+                                    pickups: (props.selected_order.pickups || []).map((p, i) => {
+                                        if (p.id === isSavingPickupId) {
+                                            p = res.pickup;
+                                        }
+                                        return p;
+                                    })
+                                })
+
+                                if (res.order_pickups.length === 1 && res.order_deliveries.length === 1) {
+                                    let routing = [
+                                        {
+                                            id: 0,
+                                            pickup_id: res.order_pickups[0].id,
+                                            delivery_id: null,
+                                            type: 'pickup'
+                                        },
+                                        {
+                                            id: 0,
+                                            pickup_id: null,
+                                            delivery_id: res.order_deliveries[0].id,
+                                            type: 'delivery'
+                                        }
+                                    ]
+
+                                    $.post(props.serverUrl + '/saveOrderRouting', {
+                                        order_id: props.selected_order?.id || 0,
+                                        routing: routing
+                                    }).then(res => {
+                                        if (res.result === 'OK') {
+                                            props.setSelectedOrder({
+                                                ...props.selected_order,
+                                                routing: res.order_routing
+                                            });
+
+                                            props.setMileageLoaderVisible(true);
+                                        }
+                                    }).catch(e => {
+                                        console.log('error on saving order routing', e);
+                                    })
+                                }
+                            } else {
+                                console.log(res.result);
+                            }
+                            setIsSavingPickupId(-1);
+                        }).catch(e => {
+                            console.log('error on saving pickup', e);
+                            setIsSavingPickupId(-1);
+                        })
+                    } else {
+                        console.log('saving pickup customer undefined');
+                        setIsSavingPickupId(-1);
+                    }
+                } else {
+                    console.log('saving pickup undefined');
+                    setIsSavingPickupId(-1);
+                }
+
+            } else {
+                console.log('no order selected');
+                setIsSavingPickupId(-1);
+            }
+        }
+    }, [isSavingPickupId]);
+
+    useEffect(() => {
+        if (isSavingDeliveryId > -1) {
+            if ((props.selected_order?.id || 0) > 0) {
+                let delivery = (props.selected_order?.deliveries || []).find(d => d.id === isSavingDeliveryId);
+
+                if (delivery !== undefined) {
+                    if ((delivery.customer?.id || 0) > 0) {
+                        $.post(props.serverUrl + '/saveOrderDelivery', {
+                            id: isSavingDeliveryId,
+                            order_id: props.selected_order?.id || 0,
+                            customer_id: delivery.customer.id,
+                            delivery_date1: delivery.delivery_date1 || '',
+                            delivery_date2: delivery.delivery_date2 || '',
+                            delivery_time1: delivery.delivery_time1 || '',
+                            delivery_time2: delivery.delivery_time2 || '',
+                            special_instructions: delivery.special_instructions || '',
+                            type: 'delivery'
+                        }).then(res => {
+                            if (res.result === 'OK') {
+                                props.setSelectedOrder({
+                                    ...props.selected_order,
+                                    deliveries: (props.selected_order.deliveries || []).map((d, i) => {
+                                        if (d.id === isSavingDeliveryId) {
+                                            d = res.delivery;
+                                        }
+                                        return d;
+                                    })
+                                })
+
+                                if (res.order_pickups.length === 1 && res.order_deliveries.length === 1) {
+                                    let routing = [
+                                        {
+                                            id: 0,
+                                            pickup_id: res.order_pickups[0].id,
+                                            delivery_id: null,
+                                            type: 'pickup'
+                                        },
+                                        {
+                                            id: 0,
+                                            pickup_id: null,
+                                            delivery_id: res.order_deliveries[0].id,
+                                            type: 'delivery'
+                                        }
+                                    ]
+
+                                    $.post(props.serverUrl + '/saveOrderRouting', {
+                                        order_id: props.selected_order?.id || 0,
+                                        routing: routing
+                                    }).then(res => {
+                                        if (res.result === 'OK') {
+                                            props.setSelectedOrder({
+                                                ...props.selected_order,
+                                                routing: res.order_routing
+                                            });
+
+                                            props.setMileageLoaderVisible(true);
+                                        }
+                                    }).catch(e => {
+                                        console.log('error on saving order routing', e);
+                                    })
+                                }
+                            } else {
+                                console.log(res.result);
+                            }
+                            setIsSavingDeliveryId(-1);
+                        }).catch(e => {
+                            console.log('error on saving delivery', e);
+                            setIsSavingDeliveryId(-1);
+                        })
+                    } else {
+                        console.log('saving delivery customer undefined');
+                        setIsSavingDeliveryId(-1);
+                    }
+                } else {
+                    console.log('saving delivery undefined');
+                    setIsSavingDeliveryId(-1);
+                }
+
+            } else {
+                console.log('no order selected');
+                setIsSavingDeliveryId(-1);
+            }
+        }
+    }, [isSavingDeliveryId]);
+
+    useEffect(() => {
+        
+        if (props.mileageLoaderVisible) {
+            if ((props.selected_order?.id || 0) > 0) {
+                if ((props.selected_order.routing || []).length >= 2) {
+
+                    let params = {
+                        mode: 'fastest;car;traffic:disabled',
+                        routeAttributes: 'summary'
+                    }
+
+                    let waypointCount = 0;
+
+                    props.selected_order.routing.map((item, i) => {
+                        if (item.type === 'pickup') {
+                            props.selected_order.pickups.map((p, i) => {
+                                if (p.id === item.pickup_id) {
+                                    if ((p.customer?.zip_data || '') !== '') {
+                                        params['waypoint' + waypointCount] = 'geo!' + p.customer.zip_data.latitude.toString() + ',' + p.customer.zip_data.longitude.toString();
+                                        waypointCount += 1;
+                                    }
+                                }
+                                return false;
+                            })
+                        } else {
+                            props.selected_order.deliveries.map((d, i) => {
+                                if (d.id === item.delivery_id) {
+                                    if ((d.customer?.zip_data || '') !== '') {
+                                        params['waypoint' + waypointCount] = 'geo!' + d.customer.zip_data.latitude.toString() + ',' + d.customer.zip_data.longitude.toString();
+                                        waypointCount += 1;
+                                    }
+                                }
+                                return false;
+                            })
+                        }
+
+                        return true;
+                    });
+
+                    routingService.calculateRoute(params,
+                        (result) => {
+                            let miles = result.response.route[0].summary.distance || 0;
+
+                            props.setSelectedOrder({ ...props.selected_order, miles: miles })
+                            props.setMileageLoaderVisible(false);
+                            validateOrderForSaving({ keyCode: 9 });
+                        },
+                        (error) => {
+                            console.log('error getting mileage', error);
+
+                            props.setSelectedOrder({ ...props.selected_order, miles: 0 })
+                            props.setMileageLoaderVisible(false);
+                            validateOrderForSaving({ keyCode: 9 });
+                        })
+                } else {
+                    props.setSelectedOrder({
+                        ...props.selected_order,
+                        miles: 0
+                    });
+                    validateOrderForSaving({ keyCode: 9 });
+                    props.setMileageLoaderVisible(false);
+                }
+            }else{
+                props.setSelectedOrder({
+                    ...props.selected_order,
+                    miles: 0
+                });
+                validateOrderForSaving({ keyCode: 9 });
+                props.setMileageLoaderVisible(false);
+            }
+        }
+    }, [props.mileageLoaderVisible])
 
     const getOrderByOrderNumber = (e) => {
         let key = e.keyCode || e.which;
@@ -1837,6 +1860,8 @@ function Dispatch(props) {
                         await props.setTripNumber(res.order.trip_number === 0 ? '' : res.order.trip_number);
                         await props.setSelectedBillToCompanyInfo(res.order.bill_to_company || {});
 
+                        console.log(res.order.pickups);
+
                         if (res.order.bill_to_company) {
                             (res.order.bill_to_company.contacts || []).map(async (contact, index) => {
                                 if (contact.is_primary === 1) {
@@ -1846,10 +1871,25 @@ function Dispatch(props) {
                             })
                         }
 
-                        await props.setSelectedShipperCompanyInfo(res.order.pickups.length > 0 ? res.order.pickups[0] : {});
+                        await props.setSelectedShipperCompanyInfo(res.order.pickups.length > 0
+                            ? {
+                                ...res.order.pickups[0].customer,
+                                pickup_id: res.order.pickups[0].id,
+                                pu_date1: res.order.pickups[0].pu_date1,
+                                pu_date2: res.order.pickups[0].pu_date2,
+                                pu_time1: res.order.pickups[0].pu_time1,
+                                pu_time2: res.order.pickups[0].pu_time2,
+                                bol_numbers: res.order.pickups[0].bol_numbers,
+                                po_numbers: res.order.pickups[0].po_numbers,
+                                ref_numbers: res.order.pickups[0].ref_numbers,
+                                seal_number: res.order.pickups[0].seal_number,
+                                special_instructions: res.order.pickups[0].special_instructions,
+                                type: res.order.pickups[0].type,
+                            }
+                            : {});
 
                         if (res.order.pickups.length > 0) {
-                            (res.order.pickups[0].contacts || []).map(async (contact, index) => {
+                            (res.order.pickups[0].customer?.contacts || []).map(async (contact, index) => {
                                 if (contact.is_primary === 1) {
                                     await props.setSelectedShipperCompanyContact(contact);
                                 }
@@ -1857,10 +1897,21 @@ function Dispatch(props) {
                             })
                         }
 
-                        await props.setSelectedConsigneeCompanyInfo(res.order.deliveries.length > 0 ? res.order.deliveries[0] : {});
+                        await props.setSelectedConsigneeCompanyInfo(res.order.deliveries.length > 0
+                            ? {
+                                ...res.order.deliveries[0].customer,
+                                delivery_id: res.order.deliveries[0].id,
+                                delivery_date1: res.order.deliveries[0].delivery_date1,
+                                delivery_date2: res.order.deliveries[0].delivery_date2,
+                                delivery_time1: res.order.deliveries[0].delivery_time1,
+                                delivery_time2: res.order.deliveries[0].delivery_time2,
+                                special_instructions: res.order.deliveries[0].special_instructions,
+                                type: res.order.deliveries[0].type,
+                            }
+                            : {});
 
                         if (res.order.deliveries.length > 0) {
-                            (res.order.deliveries[0].contacts || []).map(async (contact, index) => {
+                            (res.order.deliveries[0].customer?.contacts || []).map(async (contact, index) => {
                                 if (contact.is_primary === 1) {
                                     await props.setSelectedConsigneeCompanyContact(contact);
                                 }
@@ -1871,7 +1922,7 @@ function Dispatch(props) {
                         await props.setSelectedDispatchCarrierInfoCarrier(res.order.carrier || {});
 
                         if (res.order.carrier) {
-                            (res.order.carrier.contacts || []).map(async (contact, index) => {
+                            (res.order.carrier?.contacts || []).map(async (contact, index) => {
                                 if (contact.is_primary === 1) {
                                     await props.setSelectedDispatchCarrierInfoContact(contact);
                                 }
@@ -1979,22 +2030,26 @@ function Dispatch(props) {
 
         if (keyCode === 32) {
             e.preventDefault();
-            let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
-            extra_data.bol_numbers = ((props.selectedShipperCompanyInfo?.extra_data?.bol_numbers || '') + ' ' + props.shipperBolNumber).trim();
-            await props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data });
 
-            let pickups = (props.selected_order?.pickups || []).map((pu, i) => {
-                if (pu.id === props.selectedShipperCompanyInfo.id) {
-                    pu.extra_data = extra_data;
-                }
-                return pu;
-            })
+            await props.setSelectedShipperCompanyInfo({
+                ...props.selectedShipperCompanyInfo,
+                bol_numbers: ((props.selectedShipperCompanyInfo?.bol_numbers || '') + ' ' + props.shipperBolNumber).trim()
+            });
 
-            await props.setSelectedOrder({ ...props.selected_order, pickups: pickups });
+
+            await props.setSelectedOrder({
+                ...props.selected_order,
+                pickups: (props.selected_order?.pickups || []).map((pu, i) => {
+                    if (pu.id === props.selectedShipperCompanyInfo.pickup_id) {
+                        pu.bol_numbers = ((props.selectedShipperCompanyInfo?.bol_numbers || '') + ' ' + props.shipperBolNumber).trim();
+                    }
+                    return pu;
+                })
+            });
             await props.setShipperBolNumber('');
             refBolNumbers.current.focus();
 
-            validateOrderForSaving({ keyCode: 9 });
+            setIsSavingPickupId(props.selectedShipperCompanyInfo?.pickup_id || 0);
         }
         if (keyCode === 9) {
             if (props.shipperBolNumber || '' !== '') {
@@ -2002,13 +2057,14 @@ function Dispatch(props) {
                 e.stopPropagation();
             }
 
-            let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
-            extra_data.bol_numbers = ((props.selectedShipperCompanyInfo?.extra_data?.bol_numbers || '') + ' ' + props.shipperBolNumber).trim();
-            await props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data });
+            await props.setSelectedShipperCompanyInfo({
+                ...props.selectedShipperCompanyInfo,
+                bol_numbers: ((props.selectedShipperCompanyInfo?.bol_numbers || '') + ' ' + props.shipperBolNumber).trim()
+            });
 
             let pickups = (props.selected_order?.pickups || []).map((pu, i) => {
-                if (pu.id === props.selectedShipperCompanyInfo.id) {
-                    pu.extra_data = extra_data;
+                if (pu.id === props.selectedShipperCompanyInfo.pickup_id) {
+                    pu.bol_numbers = ((props.selectedShipperCompanyInfo?.bol_numbers || '') + ' ' + props.shipperBolNumber).trim();
                 }
                 return pu;
             })
@@ -2017,7 +2073,7 @@ function Dispatch(props) {
             await props.setShipperBolNumber('');
             refBolNumbers.current.focus();
 
-            validateOrderForSaving({ keyCode: 9 });
+            setIsSavingPickupId(props.selectedShipperCompanyInfo?.pickup_id || 0);
         }
     }
 
@@ -2026,22 +2082,26 @@ function Dispatch(props) {
 
         if (keyCode === 32) {
             e.preventDefault();
-            let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
-            extra_data.po_numbers = ((props.selectedShipperCompanyInfo?.extra_data?.po_numbers || '') + ' ' + props.shipperPoNumber).trim();
-            await props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data });
 
-            let pickups = (props.selected_order?.pickups || []).map((pu, i) => {
-                if (pu.id === props.selectedShipperCompanyInfo.id) {
-                    pu.extra_data = extra_data;
-                }
-                return pu;
-            })
+            await props.setSelectedShipperCompanyInfo({
+                ...props.selectedShipperCompanyInfo,
+                po_numbers: ((props.selectedShipperCompanyInfo?.po_numbers || '') + ' ' + props.shipperPoNumber).trim()
+            });
 
-            await props.setSelectedOrder({ ...props.selected_order, pickups: pickups });
+
+            await props.setSelectedOrder({
+                ...props.selected_order,
+                pickups: (props.selected_order?.pickups || []).map((pu, i) => {
+                    if (pu.id === props.selectedShipperCompanyInfo.pickup_id) {
+                        pu.po_numbers = ((props.selectedShipperCompanyInfo?.po_numbers || '') + ' ' + props.shipperPoNumber).trim();
+                    }
+                    return pu;
+                })
+            });
             await props.setShipperPoNumber('');
             refPoNumbers.current.focus();
 
-            validateOrderForSaving({ keyCode: 9 });
+            setIsSavingPickupId(props.selectedShipperCompanyInfo?.pickup_id || 0);
         }
         if (keyCode === 9) {
             if (props.shipperPoNumber || '' !== '') {
@@ -2049,13 +2109,14 @@ function Dispatch(props) {
                 e.stopPropagation();
             }
 
-            let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
-            extra_data.po_numbers = ((props.selectedShipperCompanyInfo?.extra_data?.po_numbers || '') + ' ' + props.shipperPoNumber).trim();
-            await props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data });
+            await props.setSelectedShipperCompanyInfo({
+                ...props.selectedShipperCompanyInfo,
+                po_numbers: ((props.selectedShipperCompanyInfo?.po_numbers || '') + ' ' + props.shipperPoNumber).trim()
+            });
 
             let pickups = (props.selected_order?.pickups || []).map((pu, i) => {
-                if (pu.id === props.selectedShipperCompanyInfo.id) {
-                    pu.extra_data = extra_data;
+                if (pu.id === props.selectedShipperCompanyInfo.pickup_id) {
+                    pu.po_numbers = ((props.selectedShipperCompanyInfo?.po_numbers || '') + ' ' + props.shipperPoNumber).trim();
                 }
                 return pu;
             })
@@ -2064,7 +2125,7 @@ function Dispatch(props) {
             await props.setShipperPoNumber('');
             refPoNumbers.current.focus();
 
-            validateOrderForSaving({ keyCode: 9 });
+            setIsSavingPickupId(props.selectedShipperCompanyInfo?.pickup_id || 0);
         }
     }
 
@@ -2073,22 +2134,26 @@ function Dispatch(props) {
 
         if (keyCode === 32) {
             e.preventDefault();
-            let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
-            extra_data.ref_numbers = ((props.selectedShipperCompanyInfo?.extra_data?.ref_numbers || '') + ' ' + props.shipperRefNumber).trim();
-            await props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data });
 
-            let pickups = (props.selected_order?.pickups || []).map((pu, i) => {
-                if (pu.id === props.selectedShipperCompanyInfo.id) {
-                    pu.extra_data = extra_data;
-                }
-                return pu;
-            })
+            await props.setSelectedShipperCompanyInfo({
+                ...props.selectedShipperCompanyInfo,
+                ref_numbers: ((props.selectedShipperCompanyInfo?.ref_numbers || '') + ' ' + props.shipperRefNumber).trim()
+            });
 
-            await props.setSelectedOrder({ ...props.selected_order, pickups: pickups });
+
+            await props.setSelectedOrder({
+                ...props.selected_order,
+                pickups: (props.selected_order?.pickups || []).map((pu, i) => {
+                    if (pu.id === props.selectedShipperCompanyInfo.pickup_id) {
+                        pu.ref_numbers = ((props.selectedShipperCompanyInfo?.ref_numbers || '') + ' ' + props.shipperRefNumber).trim();
+                    }
+                    return pu;
+                })
+            });
             await props.setShipperRefNumber('');
             refRefNumbers.current.focus();
 
-            validateOrderForSaving({ keyCode: 9 });
+            setIsSavingPickupId(props.selectedShipperCompanyInfo?.pickup_id || 0);
         }
         if (keyCode === 9) {
             if (props.shipperRefNumber || '' !== '') {
@@ -2096,13 +2161,14 @@ function Dispatch(props) {
                 e.stopPropagation();
             }
 
-            let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
-            extra_data.ref_numbers = ((props.selectedShipperCompanyInfo?.extra_data?.ref_numbers || '') + ' ' + props.shipperRefNumber).trim();
-            await props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data });
+            await props.setSelectedShipperCompanyInfo({
+                ...props.selectedShipperCompanyInfo,
+                ref_numbers: ((props.selectedShipperCompanyInfo?.ref_numbers || '') + ' ' + props.shipperRefNumber).trim()
+            });
 
             let pickups = (props.selected_order?.pickups || []).map((pu, i) => {
-                if (pu.id === props.selectedShipperCompanyInfo.id) {
-                    pu.extra_data = extra_data;
+                if (pu.id === props.selectedShipperCompanyInfo.pickup_id) {
+                    pu.ref_numbers = ((props.selectedShipperCompanyInfo?.ref_numbers || '') + ' ' + props.shipperRefNumber).trim();
                 }
                 return pu;
             })
@@ -2111,18 +2177,8 @@ function Dispatch(props) {
             await props.setShipperRefNumber('');
             refRefNumbers.current.focus();
 
-            validateOrderForSaving({ keyCode: 9 });
+            setIsSavingPickupId(props.selectedShipperCompanyInfo?.pickup_id || 0);
         }
-    }
-
-    const calculateMileage = (routing) => {
-
-        if (routing.length >= 2) {
-
-        }
-
-        return 0;
-
     }
 
     const printWindow = (data) => {
@@ -3465,9 +3521,9 @@ function Dispatch(props) {
                                         //     props.setSelectedOrder({ ...props.selected_order, carrier_load: e.target.value });
                                         // }}
                                         value={
-                                            ((props.selected_order?.carrier || {}).id !== undefined && (props.selected_order.pickups || []).length > 0 && (props.selected_order.deliveries || []).length > 0)
-                                                ? props.selected_order.pickups[0].city + ', ' + props.selected_order.pickups[0].state +
-                                                ' - ' + props.selected_order.deliveries[props.selected_order.deliveries.length - 1].city + ', ' + props.selected_order.deliveries[props.selected_order.deliveries.length - 1].state
+                                            ((props.selected_order?.carrier?.id || 0) > 0 && (props.selected_order?.pickups || []).length > 0 && (props.selected_order?.deliveries || []).length > 0)
+                                                ? props.selected_order?.pickups[0].customer?.city + ', ' + props.selected_order?.pickups[0].customer?.state +
+                                                ' - ' + (props.selected_order?.deliveries[props.selected_order?.deliveries.length - 1].customer?.city || '') + ', ' + (props.selected_order?.deliveries[props.selected_order?.deliveries.length - 1].customer?.state || '')
                                                 : ''
                                         }
                                     />
@@ -4571,262 +4627,120 @@ function Dispatch(props) {
                         }}
                     >
                         {
-                            (props.selected_order?.pickups || []).length > 0
-                                ? (props.selected_order?.pickups || []).map((pickup, index) => {
-                                    let fulDateTime1 = (pickup.extra_data?.pu_date1 || '') + ' ' + (pickup.extra_data?.pu_time1 || '');
-                                    let fulDateTime2 = (pickup.extra_data?.pu_date2 || '') + ' ' + (pickup.extra_data?.pu_time2 || '');
-                                    let puDateTime = undefined;
-                                    let statusClass = 'active';
-                                    let curDateTime = currentSystemDateTime;
+                            (props.selected_order?.pickups || []).map((pickup, index) => {
+                                let fulDateTime1 = (pickup.pu_date1 || '') + ' ' + (pickup.pu_time1 || '');
+                                let fulDateTime2 = (pickup.pu_date2 || '') + ' ' + (pickup.pu_time2 || '');
+                                let puDateTime = undefined;
+                                let statusClass = 'active';
+                                let curDateTime = currentSystemDateTime;
 
-                                    if (moment(fulDateTime2, 'MM/DD/YYYY HHmm').format('MM/DD/YYYY HHmm') === fulDateTime2) {
-                                        puDateTime = moment(fulDateTime2, 'MM/DD/YYYY HHmm');
-                                    } else if (moment(fulDateTime1, 'MM/DD/YYYY HHmm').format('MM/DD/YYYY HHmm') === fulDateTime1) {
-                                        puDateTime = moment(fulDateTime1, 'MM/DD/YYYY HHmm');
+                                if (moment(fulDateTime2, 'MM/DD/YYYY HHmm').format('MM/DD/YYYY HHmm') === fulDateTime2) {
+                                    puDateTime = moment(fulDateTime2, 'MM/DD/YYYY HHmm');
+                                } else if (moment(fulDateTime1, 'MM/DD/YYYY HHmm').format('MM/DD/YYYY HHmm') === fulDateTime1) {
+                                    puDateTime = moment(fulDateTime1, 'MM/DD/YYYY HHmm');
+                                }
+
+                                if (puDateTime !== undefined) {
+                                    let pastHour = puDateTime.clone().subtract(1, 'hours');
+
+                                    if ((props.selected_order?.events || []).length > 0) {
+                                        props.selected_order.events.map(item => {
+                                            if (item.event_type === 'loaded' && item.shipper_id === pickup.id) {
+                                                curDateTime = moment(item.event_date + ' ' + item.event_time, 'MM/DD/YYYY HHmm');
+                                            }
+                                            return true;
+                                        })
                                     }
 
-                                    if (puDateTime !== undefined) {
-                                        let pastHour = puDateTime.clone().subtract(1, 'hours');
-
-                                        if ((props.selected_order?.events || []).length > 0) {
-                                            props.selected_order.events.map(item => {
-                                                if (item.event_type === 'loaded' && item.shipper_id === pickup.id) {
-                                                    curDateTime = moment(item.event_date + ' ' + item.event_time, 'MM/DD/YYYY HHmm');
-                                                }
-                                                return true;
-                                            })
-                                        }
-
-                                        if (curDateTime < pastHour) {
-                                            statusClass = 'active';
-                                        } else if (curDateTime >= pastHour && curDateTime <= puDateTime) {
-                                            statusClass = 'warning';
-                                        } else {
-                                            statusClass = 'expired';
-                                        }
+                                    if (curDateTime < pastHour) {
+                                        statusClass = 'active';
+                                    } else if (curDateTime >= pastHour && curDateTime <= puDateTime) {
+                                        statusClass = 'warning';
+                                    } else {
+                                        statusClass = 'expired';
                                     }
+                                }
 
-                                    let classes = classnames({
-                                        'order-pickup': true,
-                                        'selected': props.selectedShipperCompanyInfo?.id === pickup.id,
-                                        'active': true,
-                                        'warning': statusClass === 'warning',
-                                        'expired': statusClass === 'expired'
-                                    })
-
-                                    return (
-                                        <SwiperSlide className={classes} key={index} onClick={() => {
-                                            props.setSelectedShipperCompanyInfo(pickup);
-
-                                            (pickup.contacts || []).map((contact, index) => {
-                                                if (contact.is_primary === 1) {
-                                                    props.setSelectedShipperCompanyContact(contact);
-                                                }
-
-                                                return true;
-                                            })
-                                        }}>
-                                            <div>PU {index + 1}</div>
-                                            <div className="pu-remove-btn" title="Remove this pickup" onClick={async (e) => {
-                                                e.stopPropagation();
-
-                                                let pickups = (props.selected_order?.pickups || []).filter((pu, i) => {
-                                                    return pu.id !== pickup.id;
-                                                });
-
-                                                let routing = [];
-
-                                                if (pickups.length === 1 && (props.selected_order?.deliveries || []).length === 1) {
-                                                    routing = [
-                                                        { ...pickups[0], extra_data: { type: 'pickup' } },
-                                                        { ...props.selected_order?.deliveries[0], extra_data: { type: 'delivery' } }
-                                                    ]
-                                                } else {
-                                                    routing = (props.selected_order?.routing || []).filter((r, i) => {
-                                                        return !(r.id === pickup.id && r.extra_data.type === 'pickup')
-                                                    })
-                                                }
-
-                                                let selected_order = { ...props.selected_order } || { order_number: 0 };
-                                                selected_order.pickups = pickups;
-                                                selected_order.routing = routing;
-                                                await props.setSelectedOrder({ ...props.selected_order, pickups: pickups });
-
-                                                // check if there's a bill-to-company loaded
-                                                if ((props.selectedBillToCompanyInfo?.id || 0) === 0) {
-                                                    return;
-                                                }
-
-                                                selected_order.bill_to_customer_id = (props.selectedBillToCompanyInfo?.id || 0);
-                                                selected_order.carrier_id = (props.selectedDispatchCarrierInfoCarrier?.id || 0);
-                                                selected_order.carrier_driver_id = (props.selectedDispatchCarrierInfoDriver?.id || 0);
-
-                                                if ((selected_order.ae_number || '') === '') {
-                                                    selected_order.ae_number = getRandomInt(1, 100);
-                                                }
-
-                                                if (!isSavingOrder) {
-                                                    setIsSavingOrder(true);
-
-                                                    if (routing.length >= 2) {
-
-                                                        props.setMileageLoaderVisible(true);
-                                                        let params = {
-                                                            mode: 'fastest;car;traffic:disabled',
-                                                            routeAttributes: 'summary'
-                                                        }
-
-
-                                                        let waypointCount = 0;
-
-                                                        routing.map((item, i) => {
-                                                            if (item.zip_data) {
-                                                                params['waypoint' + waypointCount] = 'geo!' + item.zip_data.latitude.toString() + ',' + item.zip_data.longitude.toString();
-                                                                waypointCount += 1;
-                                                            }
-
-                                                            return true;
-                                                        });
-
-                                                        routingService.calculateRoute(params,
-                                                            (result) => {
-                                                                let miles = result.response.route[0].summary.distance || 0;
-
-                                                                selected_order.miles = miles;
-
-                                                                $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
-                                                                    if (res.result === 'OK') {
-                                                                        await props.setSelectedOrder(res.order);
-
-                                                                        if (res.order.pickups.length === 0) {
-                                                                            props.setSelectedShipperCompanyInfo({});
-                                                                            props.setSelectedShipperCompanyContact({});
-                                                                        } else {
-                                                                            let filteredPickups = res.order.pickups.filter((pu, i) => {
-                                                                                return pu.id === props.selectedShipperCompanyInfo.id;
-                                                                            });
-
-                                                                            if (filteredPickups.length === 0) {
-                                                                                let lastPu = res.order.pickups[0];
-                                                                                props.setSelectedShipperCompanyInfo(lastPu);
-
-                                                                                if (lastPu.contacts.length > 0) {
-                                                                                    (lastPu.contacts || []).map((contact, i) => {
-                                                                                        if (contact.is_primary === 1) {
-                                                                                            props.setSelectedShipperCompanyContact(contact);
-                                                                                        }
-                                                                                        return true;
-                                                                                    })
-                                                                                } else {
-                                                                                    props.setSelectedShipperCompanyContact({});
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                        props.setMileageLoaderVisible(false);
-                                                                        setIsSavingOrder(false);
-                                                                    }
-                                                                }).catch(e => {
-                                                                    console.log(e);
-                                                                    props.setMileageLoaderVisible(false);
-                                                                    setIsSavingOrder(false);
-                                                                });
-                                                            },
-                                                            (error) => {
-                                                                console.log('error getting mileage', error);
-
-                                                                selected_order.miles = 0;
-
-                                                                $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
-                                                                    if (res.result === 'OK') {
-                                                                        await props.setSelectedOrder(res.order);
-
-                                                                        if (res.order.pickups.length === 0) {
-                                                                            props.setSelectedShipperCompanyInfo({});
-                                                                            props.setSelectedShipperCompanyContact({});
-                                                                        } else {
-                                                                            let filteredPickups = res.order.pickups.filter((pu, i) => {
-                                                                                return pu.id === props.selectedShipperCompanyInfo.id;
-                                                                            });
-
-                                                                            if (filteredPickups.length === 0) {
-                                                                                let lastPu = res.order.pickups[0];
-                                                                                props.setSelectedShipperCompanyInfo(lastPu);
-
-                                                                                if (lastPu.contacts.length > 0) {
-                                                                                    (lastPu.contacts || []).map((contact, i) => {
-                                                                                        if (contact.is_primary === 1) {
-                                                                                            props.setSelectedShipperCompanyContact(contact);
-                                                                                        }
-                                                                                        return true;
-                                                                                    })
-                                                                                } else {
-                                                                                    props.setSelectedShipperCompanyContact({});
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                        props.setMileageLoaderVisible(false);
-                                                                        setIsSavingOrder(false);
-                                                                    }
-                                                                }).catch(e => {
-                                                                    console.log(e);
-                                                                    props.setMileageLoaderVisible(false);
-                                                                    setIsSavingOrder(false);
-                                                                });
-                                                            })
-                                                    } else {
-                                                        selected_order.miles = 0;
-
-                                                        $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
-                                                            if (res.result === 'OK') {
-                                                                await props.setSelectedOrder(res.order);
-
-                                                                if (res.order.pickups.length === 0) {
-                                                                    props.setSelectedShipperCompanyInfo({});
-                                                                    props.setSelectedShipperCompanyContact({});
-                                                                } else {
-                                                                    let filteredPickups = res.order.pickups.filter((pu, i) => {
-                                                                        return pu.id === props.selectedShipperCompanyInfo.id;
-                                                                    });
-
-                                                                    if (filteredPickups.length === 0) {
-                                                                        let lastPu = res.order.pickups[0];
-                                                                        props.setSelectedShipperCompanyInfo(lastPu);
-
-                                                                        if (lastPu.contacts.length > 0) {
-                                                                            (lastPu.contacts || []).map((contact, i) => {
-                                                                                if (contact.is_primary === 1) {
-                                                                                    props.setSelectedShipperCompanyContact(contact);
-                                                                                }
-                                                                                return true;
-                                                                            })
-                                                                        } else {
-                                                                            props.setSelectedShipperCompanyContact({});
-                                                                        }
-                                                                    }
-                                                                }
-                                                                props.setMileageLoaderVisible(false);
-                                                                setIsSavingOrder(false);
-                                                            }
-                                                        }).catch(e => {
-                                                            console.log(e);
-                                                            props.setMileageLoaderVisible(false);
-                                                            setIsSavingOrder(false);
-                                                        });
-                                                    }
-                                                }
-                                            }}>
-                                                <span className="fas fa-times"></span>
-                                            </div>
-                                        </SwiperSlide>
-                                    )
+                                let classes = classnames({
+                                    'order-pickup': true,
+                                    'selected': props.selectedShipperCompanyInfo?.pickup_id === pickup.id,
+                                    'active': statusClass === 'active',
+                                    'warning': statusClass === 'warning',
+                                    'expired': statusClass === 'expired',
+                                    'unsaved': pickup.id === 0
                                 })
-                                : ''
+
+                                return (
+                                    <SwiperSlide className={classes} key={index} onClick={() => {
+                                        props.setSelectedShipperCompanyInfo({
+                                            ...pickup.customer,
+                                            pickup_id: pickup.id,
+                                            pu_date1: pickup.pu_date1,
+                                            pu_date2: pickup.pu_date2,
+                                            pu_time1: pickup.pu_time1,
+                                            pu_time2: pickup.pu_time2,
+                                            bol_numbers: pickup.bol_numbers,
+                                            po_numbers: pickup.po_numbers,
+                                            ref_numbers: pickup.ref_numbers,
+                                            seal_number: pickup.seal_number,
+                                            special_instructions: pickup.special_instructions,
+                                            type: pickup.type,
+                                        });
+
+                                        props.setSelectedShipperCompanyContact((pickup.customer?.contacts || []).find(c => c.is_primary === 1) || {});
+
+                                        refShipperCompanyCode.current.focus();
+                                    }}>
+                                        <div>PU {index + 1}</div>
+                                        <div className="pu-remove-btn" title="Remove this pickup" onClick={async (e) => {
+                                            e.stopPropagation();
+
+                                            $.post(props.serverUrl + '/removeOrderPickup', { id: pickup.id, order_id: props.selected_order?.id || 0 }).then(res => {
+                                                if (res.result === 'OK') {
+                                                    let pickups = (props.selected_order?.pickups || []).filter((pu, i) => {
+                                                        return pu.id !== pickup.id;
+                                                    });
+
+                                                    props.setSelectedOrder({
+                                                        ...props.selected_order,
+                                                        pickups: pickups,
+                                                        routing: res.order_routing
+                                                    });
+
+                                                    props.setMileageLoaderVisible(true);
+
+                                                    if (pickup.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                                                        if (pickups.length > 0) {
+
+                                                            props.setSelectedShipperCompanyInfo({
+                                                                ...pickups[0].customer || {},
+                                                                ...pickups[0],
+                                                                customer: {},
+                                                                pickup_id: pickups[0].id
+                                                            })
+
+                                                            props.setSelectedShipperCompanyContact((pickups[0].customer?.contacts || []).find(c => c.is_primary === 1) || {});
+                                                        } else {
+                                                            props.setSelectedShipperCompanyInfo({});
+                                                            props.setSelectedShipperCompanyContact({});
+                                                        }
+                                                    }
+                                                } else {
+                                                    console.log(res);
+                                                }
+                                            }).catch(e => {
+                                                console.log('error on removing order pickup', e);
+                                            });
+                                        }}>
+                                            <span className="fas fa-times"></span>
+                                        </div>
+                                    </SwiperSlide>
+                                )
+                            })
                         }
 
                         {
-                            (props.selected_order?.pickups || []).filter((pu, i) => {
-                                return pu.id === 0;
-                            }).length === 0
+                            (props.selected_order?.pickups || []).find(p => p.id === 0) === undefined
                             && <SwiperSlide className="order-pickup adding" title="Add new pickup" onClick={() => {
                                 // if ((props.selected_order?.id || 0) === 0) {
                                 //     window.alert('You must create or load an order first!');
@@ -4837,9 +4751,11 @@ function Dispatch(props) {
 
                                 let pickups = props.selected_order?.pickups || [];
                                 pickups.push({ id: 0 });
-                                props.setSelectedShipperCompanyInfo({ id: 0 });
+                                props.setSelectedShipperCompanyInfo({ id: 0, pickup_id: 0 });
                                 props.setSelectedShipperCompanyContact({});
                                 props.setSelectedOrder({ ...props.selected_order, pickups: pickups })
+
+                                refShipperCompanyCode.current.focus();
                             }}>
                                 <div><span className="fas fa-plus"></span></div>
                             </SwiperSlide>
@@ -4876,264 +4792,116 @@ function Dispatch(props) {
                         }}
                     >
                         {
-                            (props.selected_order?.deliveries || []).length > 0
-                                ? (props.selected_order?.deliveries || []).map((delivery, index) => {
-                                    let fulDateTime1 = (delivery.extra_data?.delivery_date1 || '') + ' ' + (delivery.extra_data?.delivery_time1 || '');
-                                    let fulDateTime2 = (delivery.extra_data?.delivery_date2 || '') + ' ' + (delivery.extra_data?.delivery_time2 || '');
-                                    let deliveryDateTime = undefined;
-                                    let statusClass = 'active';
-                                    let curDateTime = currentSystemDateTime;
+                            (props.selected_order?.deliveries || []).map((delivery, index) => {
+                                let fulDateTime1 = (delivery.extra_data?.delivery_date1 || '') + ' ' + (delivery.extra_data?.delivery_time1 || '');
+                                let fulDateTime2 = (delivery.extra_data?.delivery_date2 || '') + ' ' + (delivery.extra_data?.delivery_time2 || '');
+                                let deliveryDateTime = undefined;
+                                let statusClass = 'active';
+                                let curDateTime = currentSystemDateTime;
 
-                                    if (moment(fulDateTime2, 'MM/DD/YYYY HHmm').format('MM/DD/YYYY HHmm') === fulDateTime2) {
-                                        deliveryDateTime = moment(fulDateTime2, 'MM/DD/YYYY HHmm');
-                                    } else if (moment(fulDateTime1, 'MM/DD/YYYY HHmm').format('MM/DD/YYYY HHmm') === fulDateTime1) {
-                                        deliveryDateTime = moment(fulDateTime1, 'MM/DD/YYYY HHmm');
+                                if (moment(fulDateTime2, 'MM/DD/YYYY HHmm').format('MM/DD/YYYY HHmm') === fulDateTime2) {
+                                    deliveryDateTime = moment(fulDateTime2, 'MM/DD/YYYY HHmm');
+                                } else if (moment(fulDateTime1, 'MM/DD/YYYY HHmm').format('MM/DD/YYYY HHmm') === fulDateTime1) {
+                                    deliveryDateTime = moment(fulDateTime1, 'MM/DD/YYYY HHmm');
+                                }
+
+                                if (deliveryDateTime !== undefined) {
+                                    let pastHour = deliveryDateTime.clone().subtract(1, 'hours');
+
+                                    if ((props.selected_order?.events || []).length > 0) {
+                                        props.selected_order.events.map(item => {
+                                            if (item.event_type === 'delivered' && item.consignee_id === delivery.id) {
+                                                curDateTime = moment(item.event_date + ' ' + item.event_time, 'MM/DD/YYYY HHmm');
+                                            }
+                                            return true;
+                                        })
                                     }
 
-                                    if (deliveryDateTime !== undefined) {
-                                        let pastHour = deliveryDateTime.clone().subtract(1, 'hours');
-
-                                        if ((props.selected_order?.events || []).length > 0) {
-                                            props.selected_order.events.map(item => {
-                                                if (item.event_type === 'delivered' && item.consignee_id === delivery.id) {
-                                                    curDateTime = moment(item.event_date + ' ' + item.event_time, 'MM/DD/YYYY HHmm');
-                                                }
-                                                return true;
-                                            })
-                                        }
-
-                                        if (curDateTime < pastHour) {
-                                            statusClass = 'active';
-                                        } else if (curDateTime >= pastHour && curDateTime <= deliveryDateTime) {
-                                            statusClass = 'warning';
-                                        } else {
-                                            statusClass = 'expired';
-                                        }
+                                    if (curDateTime < pastHour) {
+                                        statusClass = 'active';
+                                    } else if (curDateTime >= pastHour && curDateTime <= deliveryDateTime) {
+                                        statusClass = 'warning';
+                                    } else {
+                                        statusClass = 'expired';
                                     }
+                                }
 
-                                    let classes = classnames({
-                                        'order-delivery': true,
-                                        'selected': props.selectedConsigneeCompanyInfo?.id === delivery.id,
-                                        'active': true,
-                                        'warning': statusClass === 'warning',
-                                        'expired': statusClass === 'expired'
-                                    })
+                                let classes = classnames({
+                                    'order-delivery': true,
+                                    'selected': props.selectedConsigneeCompanyInfo?.delivery_id === delivery.id,
+                                    'active': statusClass === 'active',
+                                    'warning': statusClass === 'warning',
+                                    'expired': statusClass === 'expired',
+                                    'unsaved': delivery.id === 0
+                                })
 
-                                    return (
-                                        <SwiperSlide className={classes} key={index} onClick={() => {
-                                            props.setSelectedConsigneeCompanyInfo(delivery);
+                                return (
+                                    <SwiperSlide className={classes} key={index} onClick={() => {
+                                        props.setSelectedConsigneeCompanyInfo({
+                                            ...delivery.customer,
+                                            delivery_id: delivery.id,
+                                            delivery_date1: delivery.delivery_date1,
+                                            delivery_date2: delivery.delivery_date2,
+                                            delivery_time1: delivery.delivery_time1,
+                                            delivery_time2: delivery.delivery_time2,
+                                            special_instructions: delivery.special_instructions,
+                                            type: delivery.type,
+                                        });
 
-                                            (delivery.contacts || []).map((contact, index) => {
-                                                if (contact.is_primary === 1) {
-                                                    props.setSelectedConsigneeCompanyContact(contact);
-                                                }
+                                        props.setSelectedConsigneeCompanyContact((delivery.customer?.contacts || []).find(c => c.is_primary === 1) || {});
 
-                                                return true;
-                                            })
-                                        }}>
-                                            <div>Delivery {index + 1}</div>
-                                            <div className="delivery-remove-btn" title="Remove this delivery" onClick={async (e) => {
-                                                e.stopPropagation();
+                                        refConsigneeCompanyCode.current.focus();
+                                    }}>
+                                        <div>Delivery {index + 1}</div>
+                                        <div className="delivery-remove-btn" title="Remove this delivery" onClick={async (e) => {
+                                            e.stopPropagation();
 
-                                                let deliveries = (props.selected_order?.deliveries || []).filter((d, i) => {
-                                                    return d.id !== delivery.id;
-                                                });
+                                            $.post(props.serverUrl + '/removeOrderDelivery', { id: delivery.id, order_id: props.selected_order?.id || 0 }).then(res => {
+                                                if (res.result === 'OK') {
+                                                    let deliveries = (props.selected_order?.deliveries || []).filter((del, i) => {
+                                                        return del.id !== delivery.id;
+                                                    });
 
-                                                let routing = [];
+                                                    props.setSelectedOrder({
+                                                        ...props.selected_order,
+                                                        deliveries: deliveries,
+                                                        routing: res.order_routing
+                                                    });
 
-                                                if (deliveries.length === 1 && (props.selected_order?.pickups || []).length === 1) {
-                                                    routing = [
-                                                        { ...props.selected_order?.deliveries[0], extra_data: { type: 'pickup' } },
-                                                        { ...deliveries[0], extra_data: { type: 'delivery' } }
-                                                    ]
-                                                } else {
-                                                    routing = (props.selected_order?.routing || []).filter((r, i) => {
-                                                        return !(r.id === delivery.id && r.extra_data.type === 'delivery')
-                                                    })
-                                                }
+                                                    props.setMileageLoaderVisible(true);
 
-                                                let selected_order = { ...props.selected_order } || { order_number: 0 };
-                                                selected_order.deliveries = deliveries;
-                                                selected_order.routing = routing;
-                                                await props.setSelectedOrder({ ...props.selected_order, deliveries: deliveries });
+                                                    if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
+                                                        if (deliveries.length > 0) {
 
-
-                                                // check if there's a bill-to-company loaded
-                                                if ((props.selectedBillToCompanyInfo?.id || 0) === 0) {
-                                                    return;
-                                                }
-
-                                                selected_order.bill_to_customer_id = (props.selectedBillToCompanyInfo?.id || 0);
-                                                selected_order.carrier_id = (props.selectedDispatchCarrierInfoCarrier?.id || 0);
-                                                selected_order.carrier_driver_id = (props.selectedDispatchCarrierInfoDriver?.id || 0);
-
-                                                if ((selected_order.ae_number || '') === '') {
-                                                    selected_order.ae_number = getRandomInt(1, 100);
-                                                }
-
-                                                if (!isSavingOrder) {
-                                                    setIsSavingOrder(true);
-
-                                                    if (routing.length >= 2) {
-
-                                                        props.setMileageLoaderVisible(true);
-                                                        let params = {
-                                                            mode: 'fastest;car;traffic:disabled',
-                                                            routeAttributes: 'summary'
-                                                        }
-
-                                                        let waypointCount = 0;
-
-                                                        routing.map((item, i) => {
-                                                            if (item.zip_data) {
-                                                                params['waypoint' + waypointCount] = 'geo!' + item.zip_data.latitude.toString() + ',' + item.zip_data.longitude.toString();
-                                                                waypointCount += 1;
-                                                            }
-
-                                                            return true;
-                                                        });
-
-                                                        routingService.calculateRoute(params,
-                                                            (result) => {
-                                                                let miles = result.response.route[0].summary.distance || 0;
-
-                                                                selected_order.miles = miles;
-
-                                                                $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
-                                                                    if (res.result === 'OK') {
-                                                                        await props.setSelectedOrder(res.order);
-
-                                                                        if (res.order.deliveries.length === 0) {
-                                                                            props.setSelectedConsigneeCompanyInfo({});
-                                                                            props.setSelectedConsigneeCompanyContact({});
-                                                                        } else {
-                                                                            let filteredPickups = res.order.deliveries.filter((delivery, i) => {
-                                                                                return delivery.id === props.selectedConsigneeCompanyInfo.id;
-                                                                            });
-
-                                                                            if (filteredPickups.length === 0) {
-                                                                                let lastDelivery = res.order.deliveries[0];
-                                                                                props.setSelectedConsigneeCompanyInfo(lastDelivery);
-
-                                                                                if (lastDelivery.contacts.length > 0) {
-                                                                                    (lastDelivery.contacts || []).map((contact, i) => {
-                                                                                        if (contact.is_primary === 1) {
-                                                                                            props.setSelectedConsigneeCompanyContact(contact);
-                                                                                        }
-                                                                                        return true;
-                                                                                    })
-                                                                                } else {
-                                                                                    props.setSelectedConsigneeCompanyContact({});
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                    props.setMileageLoaderVisible(false);
-                                                                    setIsSavingOrder(false);
-                                                                }).catch(e => {
-                                                                    console.log(e);
-                                                                    props.setMileageLoaderVisible(false);
-                                                                    setIsSavingOrder(false);
-                                                                });
-                                                            },
-                                                            (error) => {
-                                                                console.log('error getting mileage', error);
-
-                                                                selected_order.miles = 0;
-
-                                                                $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
-                                                                    if (res.result === 'OK') {
-                                                                        await props.setSelectedOrder(res.order);
-
-                                                                        if (res.order.deliveries.length === 0) {
-                                                                            props.setSelectedConsigneeCompanyInfo({});
-                                                                            props.setSelectedConsigneeCompanyContact({});
-                                                                        } else {
-                                                                            let filteredPickups = res.order.deliveries.filter((delivery, i) => {
-                                                                                return delivery.id === props.selectedConsigneeCompanyInfo.id;
-                                                                            });
-
-                                                                            if (filteredPickups.length === 0) {
-                                                                                let lastDelivery = res.order.deliveries[0];
-                                                                                props.setSelectedConsigneeCompanyInfo(lastDelivery);
-
-                                                                                if (lastDelivery.contacts.length > 0) {
-                                                                                    (lastDelivery.contacts || []).map((contact, i) => {
-                                                                                        if (contact.is_primary === 1) {
-                                                                                            props.setSelectedConsigneeCompanyContact(contact);
-                                                                                        }
-                                                                                        return true;
-                                                                                    })
-                                                                                } else {
-                                                                                    props.setSelectedConsigneeCompanyContact({});
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                    props.setMileageLoaderVisible(false);
-                                                                    setIsSavingOrder(false);
-                                                                }).catch(e => {
-                                                                    console.log(e);
-                                                                    props.setMileageLoaderVisible(false);
-                                                                    setIsSavingOrder(false);
-                                                                });
+                                                            props.setSelectedConsigneeCompanyInfo({
+                                                                ...deliveries[0].customer || {},
+                                                                ...deliveries[0],
+                                                                customer: {},
+                                                                delivery_id: deliveries[0].id
                                                             })
 
-                                                    } else {
-                                                        selected_order.miles = 0;
-
-                                                        $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
-                                                            if (res.result === 'OK') {
-                                                                await props.setSelectedOrder(res.order);
-
-                                                                if (res.order.deliveries.length === 0) {
-                                                                    props.setSelectedConsigneeCompanyInfo({});
-                                                                    props.setSelectedConsigneeCompanyContact({});
-                                                                } else {
-                                                                    let filteredPickups = res.order.deliveries.filter((delivery, i) => {
-                                                                        return delivery.id === props.selectedConsigneeCompanyInfo.id;
-                                                                    });
-
-                                                                    if (filteredPickups.length === 0) {
-                                                                        let lastDelivery = res.order.deliveries[0];
-                                                                        props.setSelectedConsigneeCompanyInfo(lastDelivery);
-
-                                                                        if (lastDelivery.contacts.length > 0) {
-                                                                            (lastDelivery.contacts || []).map((contact, i) => {
-                                                                                if (contact.is_primary === 1) {
-                                                                                    props.setSelectedConsigneeCompanyContact(contact);
-                                                                                }
-                                                                                return true;
-                                                                            })
-                                                                        } else {
-                                                                            props.setSelectedConsigneeCompanyContact({});
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                            props.setMileageLoaderVisible(false);
-                                                            setIsSavingOrder(false);
-                                                        }).catch(e => {
-                                                            console.log(e);
-                                                            props.setMileageLoaderVisible(false);
-                                                            setIsSavingOrder(false);
-                                                        });
+                                                            props.setSelectedConsigneeCompanyContact((deliveries[0].customer?.contacts || []).find(c => c.is_primary === 1) || {});
+                                                        } else {
+                                                            props.setSelectedConsigneeCompanyInfo({});
+                                                            props.setSelectedConsigneeCompanyContact({});
+                                                        }
                                                     }
-
+                                                } else {
+                                                    console.log(res);
                                                 }
-                                            }}>
-                                                <span className="fas fa-times"></span>
-                                            </div>
-                                        </SwiperSlide>
-                                    )
-                                })
-                                : ''
+                                            }).catch(e => {
+                                                console.log('error on removing order delivery', e);
+                                            });
+                                        }}>
+                                            <span className="fas fa-times"></span>
+                                        </div>
+                                    </SwiperSlide>
+                                )
+                            })
                         }
 
                         {
-                            (props.selected_order?.deliveries || []).filter((delivery, i) => {
-                                return delivery.id === 0;
-                            }).length === 0
+                            (props.selected_order?.deliveries || []).find(d => d.id === 0) === undefined
                             && <SwiperSlide className="order-delivery adding" title="Add new delivery" onClick={() => {
                                 if ((props.selected_order?.id || 0) === 0) {
                                     window.alert('You must create or load an order first!');
@@ -5144,9 +4912,11 @@ function Dispatch(props) {
 
                                 let deliveries = props.selected_order?.deliveries || [];
                                 deliveries.push({ id: 0 });
-                                props.setSelectedConsigneeCompanyInfo({ id: 0 });
+                                props.setSelectedConsigneeCompanyInfo({ id: 0, delivery_id: 0 });
                                 props.setSelectedConsigneeCompanyContact({});
                                 props.setSelectedOrder({ ...props.selected_order, deliveries: deliveries })
+
+                                refConsigneeCompanyCode.current.focus();
                             }}>
                                 <div><span className="fas fa-plus"></span></div>
                             </SwiperSlide>
@@ -5160,7 +4930,7 @@ function Dispatch(props) {
             <div className="fields-container-row" style={{ marginTop: 10 }}>
                 <div className="fields-container-col" style={{ minWidth: '91%', maxWidth: '91%', display: 'flex', flexDirection: 'column', marginRight: 10 }}>
                     <div style={{ display: 'flex', flexDirection: 'row', marginBottom: 10, flexGrow: 1, flexBasis: '100%' }}>
-                        <div className='form-bordered-box' style={{ minWidth: '38%', maxWidth: '38%', marginRight: 10, height: '9rem' }} onKeyDown={validateOrderForSaving}>
+                        <div className='form-bordered-box' style={{ minWidth: '38%', maxWidth: '38%', marginRight: 10, height: '9rem' }}>
                             <div className='form-header'>
                                 <div className='top-border top-border-left'></div>
                                 <div className='form-title'>Shipper</div>
@@ -5210,19 +4980,212 @@ function Dispatch(props) {
                             <div className="form-row">
                                 <div className="input-box-container input-code">
                                     <input tabIndex={16 + props.tabTimes} type="text" placeholder="Code" maxLength="8"
+                                        ref={refShipperCompanyCode}
                                         onKeyDown={getShipperCompanyByCode}
-                                        onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, code: e.target.value }) }}
-                                        onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, code: e.target.value }) }}
-                                        value={props.selectedShipperCompanyInfo.code || ''}
+                                        onInput={(e) => {
+                                            if (props.selectedShipperCompanyInfo?.id || 0 === 0) {
+                                                if ((props.selected_order?.pickups || []).find(p => p.id === 0) === undefined) {
+                                                    props.setSelectedOrder({
+                                                        ...props.selected_order,
+                                                        pickups: [
+                                                            ...props.selected_order?.pickups || [],
+                                                            {
+                                                                id: 0,
+                                                                customer: {
+                                                                    id: 0,
+                                                                    code: e.target.value.toUpperCase()
+                                                                }
+                                                            }
+                                                        ]
+                                                    })
+                                                } else {
+                                                    props.setSelectedOrder({
+                                                        ...props.selected_order,
+                                                        pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                            if (p.id === 0) {
+                                                                p.customer = {
+                                                                    ...p.customer,
+                                                                    code: e.target.value.toUpperCase()
+                                                                }
+                                                            }
+                                                            return p;
+                                                        })
+                                                    })
+                                                }
+
+                                                props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, id: 0, code: e.target.value.toUpperCase() })
+                                            } else {
+                                                props.setSelectedOrder({
+                                                    ...props.selected_order,
+                                                    pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                        if (p.id === props.selectedShipperCompanyInfo?.id) {
+                                                            p.customer = {
+                                                                ...p.customer,
+                                                                code: e.target.value.toUpperCase()
+                                                            }
+                                                        }
+                                                        return p;
+                                                    })
+                                                })
+
+                                                props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, code: e.target.value.toUpperCase() })
+                                            }
+                                        }}
+                                        onChange={(e) => {
+                                            if (props.selectedShipperCompanyInfo?.id || 0 === 0) {
+                                                if ((props.selected_order?.pickups || []).find(p => p.id === 0) === undefined) {
+                                                    props.setSelectedOrder({
+                                                        ...props.selected_order,
+                                                        pickups: [
+                                                            ...props.selected_order?.pickups || [],
+                                                            {
+                                                                id: 0,
+                                                                customer: {
+                                                                    id: 0,
+                                                                    code: e.target.value.toUpperCase()
+                                                                }
+                                                            }
+                                                        ]
+                                                    })
+                                                } else {
+                                                    props.setSelectedOrder({
+                                                        ...props.selected_order,
+                                                        pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                            if (p.id === 0) {
+                                                                p.customer = {
+                                                                    ...p.customer,
+                                                                    code: e.target.value.toUpperCase()
+                                                                }
+                                                            }
+                                                            return p;
+                                                        })
+                                                    })
+                                                }
+
+                                                props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, id: 0, code: e.target.value.toUpperCase() })
+                                            } else {
+                                                props.setSelectedOrder({
+                                                    ...props.selected_order,
+                                                    pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                        if (p.id === props.selectedShipperCompanyInfo?.id) {
+                                                            p.customer = {
+                                                                ...p.customer,
+                                                                code: e.target.value.toUpperCase()
+                                                            }
+                                                        }
+                                                        return p;
+                                                    })
+                                                })
+
+                                                props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, code: e.target.value.toUpperCase() })
+                                            }
+                                        }}
+                                        value={(props.selectedShipperCompanyInfo?.code || '') + ((props.selectedShipperCompanyInfo?.code_number || 0) === 0 ? '' : props.selectedShipperCompanyInfo?.code_number)}
                                     />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container grow">
                                     <input tabIndex={17 + props.tabTimes} type="text" placeholder="Name"
-                                        onKeyDown={validateShipperCompanyInfoForSaving}
-                                        onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, name: e.target.value }) }}
-                                        onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, name: e.target.value }) }}
-                                        value={props.selectedShipperCompanyInfo.name || ''}
+                                        // onKeyDown={validateShipperCompanyInfoForSaving}                                        
+                                        onInput={(e) => {
+                                            if (props.selectedShipperCompanyInfo?.id || 0 === 0) {
+                                                if ((props.selected_order?.pickups || []).find(p => p.id === 0) === undefined) {
+                                                    props.setSelectedOrder({
+                                                        ...props.selected_order,
+                                                        pickups: [
+                                                            ...props.selected_order?.pickups || [],
+                                                            {
+                                                                id: 0,
+                                                                customer: {
+                                                                    id: 0,
+                                                                    name: e.target.value
+                                                                }
+                                                            }
+                                                        ]
+                                                    })
+                                                } else {
+                                                    props.setSelectedOrder({
+                                                        ...props.selected_order,
+                                                        pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                            if (p.id === 0) {
+                                                                p.customer = {
+                                                                    ...p.customer,
+                                                                    name: e.target.value
+                                                                }
+                                                            }
+                                                            return p;
+                                                        })
+                                                    })
+                                                }
+
+                                                props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, id: 0, name: e.target.value })
+                                            } else {
+                                                props.setSelectedOrder({
+                                                    ...props.selected_order,
+                                                    pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                        if (p.id === props.selectedShipperCompanyInfo?.id) {
+                                                            p.customer = {
+                                                                ...p.customer,
+                                                                name: e.target.value
+                                                            }
+                                                        }
+                                                        return p;
+                                                    })
+                                                })
+
+                                                props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, name: e.target.value })
+                                            }
+                                        }}
+                                        onChange={(e) => {
+                                            if (props.selectedShipperCompanyInfo?.id || 0 === 0) {
+                                                if ((props.selected_order?.pickups || []).find(p => p.id === 0) === undefined) {
+                                                    props.setSelectedOrder({
+                                                        ...props.selected_order,
+                                                        pickups: [
+                                                            ...props.selected_order?.pickups || [],
+                                                            {
+                                                                id: 0,
+                                                                customer: {
+                                                                    id: 0,
+                                                                    name: e.target.value
+                                                                }
+                                                            }
+                                                        ]
+                                                    })
+                                                } else {
+                                                    props.setSelectedOrder({
+                                                        ...props.selected_order,
+                                                        pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                            if (p.id === 0) {
+                                                                p.customer = {
+                                                                    ...p.customer,
+                                                                    name: e.target.value
+                                                                }
+                                                            }
+                                                            return p;
+                                                        })
+                                                    })
+                                                }
+
+                                                props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, id: 0, name: e.target.value })
+                                            } else {
+                                                props.setSelectedOrder({
+                                                    ...props.selected_order,
+                                                    pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                        if (p.id === props.selectedShipperCompanyInfo.id) {
+                                                            p.customer = {
+                                                                ...p.customer,
+                                                                name: e.target.value
+                                                            }
+                                                        }
+                                                        return p;
+                                                    })
+                                                })
+
+                                                props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, name: e.target.value })
+                                            }
+                                        }}
+                                        value={props.selectedShipperCompanyInfo?.name || ''}
                                     />
                                 </div>
                             </div>
@@ -5233,10 +5196,106 @@ function Dispatch(props) {
                                         <div className="form-row">
                                             <div className="input-box-container grow">
                                                 <input tabIndex={18 + props.tabTimes} type="text" placeholder="Address 1"
-                                                    onKeyDown={validateShipperCompanyInfoForSaving}
-                                                    onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, address1: e.target.value }) }}
-                                                    onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, address1: e.target.value }) }}
-                                                    value={props.selectedShipperCompanyInfo.address1 || ''}
+                                                    // onKeyDown={validateShipperCompanyInfoForSaving}
+                                                    onInput={(e) => {
+                                                        if (props.selectedShipperCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.pickups || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: [
+                                                                        ...props.selected_order?.pickups || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                id: 0,
+                                                                                address1: e.target.value
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                address1: e.target.value
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, id: 0, address1: e.target.value })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                    if (p.id === props.selectedShipperCompanyInfo?.id) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            address1: e.target.value
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, address1: e.target.value })
+                                                        }
+                                                    }}
+                                                    onChange={(e) => {
+                                                        if (props.selectedShipperCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.pickups || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: [
+                                                                        ...props.selected_order?.pickups || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                id: 0,
+                                                                                address1: e.target.value
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                address1: e.target.value
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, id: 0, address1: e.target.value })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            address1: e.target.value
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, address1: e.target.value })
+                                                        }
+                                                    }}
+                                                    value={props.selectedShipperCompanyInfo?.address1 || ''}
                                                 />
                                             </div>
                                         </div>
@@ -5244,10 +5303,106 @@ function Dispatch(props) {
                                         <div className="form-row">
                                             <div className="input-box-container grow">
                                                 <input tabIndex={19 + props.tabTimes} type="text" placeholder="Address 2"
-                                                    onKeyDown={validateShipperCompanyInfoForSaving}
-                                                    onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, address2: e.target.value }) }}
-                                                    onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, address2: e.target.value }) }}
-                                                    value={props.selectedShipperCompanyInfo.address2 || ''}
+                                                    // onKeyDown={validateShipperCompanyInfoForSaving}
+                                                    onInput={(e) => {
+                                                        if (props.selectedShipperCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.pickups || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: [
+                                                                        ...props.selected_order?.pickups || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                id: 0,
+                                                                                address2: e.target.value
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                address2: e.target.value
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, id: 0, address2: e.target.value })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            address2: e.target.value
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, address2: e.target.value })
+                                                        }
+                                                    }}
+                                                    onChange={(e) => {
+                                                        if (props.selectedShipperCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.pickups || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: [
+                                                                        ...props.selected_order?.pickups || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                id: 0,
+                                                                                address2: e.target.value
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                address2: e.target.value
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, id: 0, address2: e.target.value })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            address2: e.target.value
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, address2: e.target.value })
+                                                        }
+                                                    }}
+                                                    value={props.selectedShipperCompanyInfo?.address2 || ''}
                                                 />
                                             </div>
                                         </div>
@@ -5255,28 +5410,316 @@ function Dispatch(props) {
                                         <div className="form-row">
                                             <div className="input-box-container grow">
                                                 <input tabIndex={20 + props.tabTimes} type="text" placeholder="City"
-                                                    onKeyDown={validateShipperCompanyInfoForSaving}
-                                                    onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, city: e.target.value }) }}
-                                                    onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, city: e.target.value }) }}
-                                                    value={props.selectedShipperCompanyInfo.city || ''}
+                                                    // onKeyDown={validateShipperCompanyInfoForSaving}
+                                                    onInput={(e) => {
+                                                        if (props.selectedShipperCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.pickups || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: [
+                                                                        ...props.selected_order?.pickups || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                id: 0,
+                                                                                city: e.target.value
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                city: e.target.value
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, id: 0, city: e.target.value })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            city: e.target.value
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, city: e.target.value })
+                                                        }
+                                                    }}
+                                                    onChange={(e) => {
+                                                        if (props.selectedShipperCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.pickups || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: [
+                                                                        ...props.selected_order?.pickups || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                id: 0,
+                                                                                city: e.target.value
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                city: e.target.value
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, id: 0, city: e.target.value })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            city: e.target.value
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, city: e.target.value })
+                                                        }
+                                                    }}
+                                                    value={props.selectedShipperCompanyInfo?.city || ''}
                                                 />
                                             </div>
                                             <div className="form-h-sep"></div>
                                             <div className="input-box-container input-state">
                                                 <input tabIndex={21 + props.tabTimes} type="text" placeholder="State" maxLength="2"
-                                                    onKeyDown={validateShipperCompanyInfoForSaving}
-                                                    onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, state: e.target.value }) }}
-                                                    onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, state: e.target.value }) }}
-                                                    value={props.selectedShipperCompanyInfo.state || ''}
+                                                    // onKeyDown={validateShipperCompanyInfoForSaving}
+                                                    onInput={(e) => {
+                                                        if (props.selectedShipperCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.pickups || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: [
+                                                                        ...props.selected_order?.pickups || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                id: 0,
+                                                                                state: e.target.value.toUpperCase()
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                state: e.target.value.toUpperCase()
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, id: 0, state: e.target.value.toUpperCase() })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            state: e.target.value.toUpperCase()
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, state: e.target.value.toUpperCase() })
+                                                        }
+                                                    }}
+                                                    onChange={(e) => {
+                                                        if (props.selectedShipperCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.pickups || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: [
+                                                                        ...props.selected_order?.pickups || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                id: 0,
+                                                                                state: e.target.value.toUpperCase()
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                state: e.target.value.toUpperCase()
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, id: 0, state: e.target.value.toUpperCase() })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            state: e.target.value.toUpperCase()
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, state: e.target.value.toUpperCase() })
+                                                        }
+                                                    }}
+                                                    value={props.selectedShipperCompanyInfo?.state || ''}
                                                 />
                                             </div>
                                             <div className="form-h-sep"></div>
                                             <div className="input-box-container input-zip-code">
                                                 <input tabIndex={22 + props.tabTimes} type="text" placeholder="Postal Code"
                                                     onKeyDown={validateShipperCompanyInfoForSaving}
-                                                    onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, zip: e.target.value }) }}
-                                                    onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, zip: e.target.value }) }}
-                                                    value={props.selectedShipperCompanyInfo.zip || ''}
+                                                    onInput={(e) => {
+                                                        if (props.selectedShipperCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.pickups || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: [
+                                                                        ...props.selected_order?.pickups || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                id: 0,
+                                                                                zip: e.target.value
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                zip: e.target.value
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, id: 0, zip: e.target.value })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            zip: e.target.value
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, zip: e.target.value })
+                                                        }
+                                                    }}
+                                                    onChange={(e) => {
+                                                        if (props.selectedShipperCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.pickups || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: [
+                                                                        ...props.selected_order?.pickups || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                id: 0,
+                                                                                zip: e.target.value
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                zip: e.target.value
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, id: 0, zip: e.target.value })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            zip: e.target.value
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, zip: e.target.value })
+                                                        }
+                                                    }}
+                                                    value={props.selectedShipperCompanyInfo?.zip || ''}
                                                 />
                                             </div>
                                         </div>
@@ -5303,7 +5746,71 @@ function Dispatch(props) {
                                                             return true;
                                                         })
 
-                                                        props.setSelectedShipperCompanyContact({ ...props.selectedShipperCompanyContact, first_name: first_name, last_name: last_name });
+                                                        if (props.selectedShipperCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.pickups || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: [
+                                                                        ...props.selected_order?.pickups || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                contacts: [
+                                                                                    {
+                                                                                        id: 0,
+                                                                                        first_name: first_name,
+                                                                                        last_name: last_name,
+                                                                                        is_primary: 1
+                                                                                    }
+                                                                                ]
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                contacts: (p.customer.contacts || []).map((c, i) => {
+                                                                                    if (c.is_primary === 1) {
+                                                                                        c.first_name = first_name;
+                                                                                        c.last_name = last_name;
+                                                                                    }
+                                                                                    return c;
+                                                                                })
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedShipperCompanyContact({ ...props.selectedShipperCompanyContact, first_name: first_name, last_name: last_name })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            contacts: (p.customer.contacts || []).map((c, i) => {
+                                                                                if (c.is_primary === 1) {
+                                                                                    c.first_name = first_name;
+                                                                                    c.last_name = last_name;
+                                                                                }
+                                                                                return c;
+                                                                            })
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedShipperCompanyContact({ ...props.selectedShipperCompanyContact, first_name: first_name, last_name: last_name })
+                                                        }
                                                     }}
 
                                                     onInput={(e) => {
@@ -5314,6 +5821,7 @@ function Dispatch(props) {
                                                             first_name += ' ';
                                                         }
 
+
                                                         let last_name = '';
 
                                                         splitted.map((item, index) => {
@@ -5323,9 +5831,72 @@ function Dispatch(props) {
                                                             return true;
                                                         })
 
-                                                        props.setSelectedShipperCompanyContact({ ...props.selectedShipperCompanyContact, first_name: first_name, last_name: last_name });
-                                                    }}
+                                                        if (props.selectedShipperCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.pickups || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: [
+                                                                        ...props.selected_order?.pickups || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                contacts: [
+                                                                                    {
+                                                                                        id: 0,
+                                                                                        first_name: first_name,
+                                                                                        last_name: last_name,
+                                                                                        is_primary: 1
+                                                                                    }
+                                                                                ]
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                contacts: (p.customer.contacts || []).map((c, i) => {
+                                                                                    if (c.is_primary === 1) {
+                                                                                        c.first_name = first_name;
+                                                                                        c.last_name = last_name;
+                                                                                    }
+                                                                                    return c;
+                                                                                })
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
 
+                                                            props.setSelectedShipperCompanyContact({ ...props.selectedShipperCompanyContact, first_name: first_name, last_name: last_name })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            contacts: (p.customer.contacts || []).map((c, i) => {
+                                                                                if (c.is_primary === 1) {
+                                                                                    c.first_name = first_name;
+                                                                                    c.last_name = last_name;
+                                                                                }
+                                                                                return c;
+                                                                            })
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedShipperCompanyContact({ ...props.selectedShipperCompanyContact, first_name: first_name, last_name: last_name })
+                                                        }
+                                                    }}
                                                     value={(props.selectedShipperCompanyContact?.first_name || '') + ((props.selectedShipperCompanyContact?.last_name || '').trim() === '' ? '' : ' ' + props.selectedShipperCompanyContact?.last_name)}
                                                 />
                                             </div>
@@ -5336,18 +5907,318 @@ function Dispatch(props) {
                                                     guide={true}
                                                     type="text" placeholder="Contact Phone"
                                                     onKeyDown={validateShipperCompanyContactForSaving}
-                                                    onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, contact_phone: e.target.value }) }}
-                                                    onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, contact_phone: e.target.value }) }}
-                                                    value={props.selectedShipperCompanyInfo.contact_phone || ''}
+                                                    onInput={(e) => {
+                                                        if (props.selectedShipperCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.pickups || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: [
+                                                                        ...props.selected_order?.pickups || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                contacts: [
+                                                                                    {
+                                                                                        id: 0,
+                                                                                        phone_work: e.target.value,
+                                                                                        primary_phone: 'work'
+                                                                                    }
+                                                                                ]
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                contacts: (p.customer.contacts || []).map((c, i) => {
+                                                                                    if (c.is_primary === 1) {
+                                                                                        c.phone_work = e.target.value;
+                                                                                        c.primary_phone = 'work';
+                                                                                    }
+                                                                                    return c;
+                                                                                })
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedShipperCompanyContact({
+                                                                ...props.selectedShipperCompanyContact,
+                                                                phone_work: (props.selectedShipperCompanyContact?.primary_phone || 'work') === 'work' ? e.target.value : (props.selectedShipperCompanyContact?.phone_work || ''),
+                                                                phone_work_fax: (props.selectedShipperCompanyContact?.primary_phone || 'work') === 'fax' ? e.target.value : (props.selectedShipperCompanyContact?.phone_work_fax || ''),
+                                                                phone_mobile: (props.selectedShipperCompanyContact?.primary_phone || 'work') === 'mobile' ? e.target.value : (props.selectedShipperCompanyContact?.phone_mobile || ''),
+                                                                phone_direct: (props.selectedShipperCompanyContact?.primary_phone || 'work') === 'direct' ? e.target.value : (props.selectedShipperCompanyContact?.phone_direct || ''),
+                                                                phone_other: (props.selectedShipperCompanyContact?.primary_phone || 'work') === 'other' ? e.target.value : (props.selectedShipperCompanyContact?.phone_other || ''),
+                                                            })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            contacts: (p.customer.contacts || []).map((c, i) => {
+                                                                                if (c.is_primary === 1) {
+                                                                                    c.phone_work = (c.primary_phone || 'work') === 'work' ? e.target.value : (c.phone_work || '');
+                                                                                    c.phone_work_fax = (c.primary_phone || 'work') === 'fax' ? e.target.value : (c.phone_work_fax || '');
+                                                                                    c.phone_mobile = (c.primary_phone || 'work') === 'mobile' ? e.target.value : (c.phone_mobile || '');
+                                                                                    c.phone_direct = (c.primary_phone || 'work') === 'direct' ? e.target.value : (c.phone_direct || '');
+                                                                                    c.phone_other = (c.primary_phone || 'work') === 'other' ? e.target.value : (c.phone_other || '');
+                                                                                }
+                                                                                return c;
+                                                                            })
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedShipperCompanyContact({
+                                                                ...props.selectedShipperCompanyContact,
+                                                                phone_work: (props.selectedShipperCompanyContact?.primary_phone || 'work') === 'work' ? e.target.value : (props.selectedShipperCompanyContact?.phone_work || ''),
+                                                                phone_work_fax: (props.selectedShipperCompanyContact?.primary_phone || 'work') === 'fax' ? e.target.value : (props.selectedShipperCompanyContact?.phone_work_fax || ''),
+                                                                phone_mobile: (props.selectedShipperCompanyContact?.primary_phone || 'work') === 'mobile' ? e.target.value : (props.selectedShipperCompanyContact?.phone_mobile || ''),
+                                                                phone_direct: (props.selectedShipperCompanyContact?.primary_phone || 'work') === 'direct' ? e.target.value : (props.selectedShipperCompanyContact?.phone_direct || ''),
+                                                                phone_other: (props.selectedShipperCompanyContact?.primary_phone || 'work') === 'other' ? e.target.value : (props.selectedShipperCompanyContact?.phone_other || ''),
+                                                            })
+                                                        }
+                                                    }}
+                                                    onChange={(e) => {
+                                                        if (props.selectedShipperCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.pickups || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: [
+                                                                        ...props.selected_order?.pickups || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                contacts: [
+                                                                                    {
+                                                                                        id: 0,
+                                                                                        phone_work: e.target.value,
+                                                                                        primary_phone: 'work'
+                                                                                    }
+                                                                                ]
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                contacts: (p.customer.contacts || []).map((c, i) => {
+                                                                                    if (c.is_primary === 1) {
+                                                                                        c.phone_work = e.target.value;
+                                                                                        c.primary_phone = 'work';
+                                                                                    }
+                                                                                    return c;
+                                                                                })
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedShipperCompanyContact({
+                                                                ...props.selectedShipperCompanyContact,
+                                                                phone_work: (props.selectedShipperCompanyContact?.primary_phone || 'work') === 'work' ? e.target.value : (props.selectedShipperCompanyContact?.phone_work || ''),
+                                                                phone_work_fax: (props.selectedShipperCompanyContact?.primary_phone || 'work') === 'fax' ? e.target.value : (props.selectedShipperCompanyContact?.phone_work_fax || ''),
+                                                                phone_mobile: (props.selectedShipperCompanyContact?.primary_phone || 'work') === 'mobile' ? e.target.value : (props.selectedShipperCompanyContact?.phone_mobile || ''),
+                                                                phone_direct: (props.selectedShipperCompanyContact?.primary_phone || 'work') === 'direct' ? e.target.value : (props.selectedShipperCompanyContact?.phone_direct || ''),
+                                                                phone_other: (props.selectedShipperCompanyContact?.primary_phone || 'work') === 'other' ? e.target.value : (props.selectedShipperCompanyContact?.phone_other || ''),
+                                                            })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            contacts: (p.customer.contacts || []).map((c, i) => {
+                                                                                if (c.is_primary === 1) {
+                                                                                    c.phone_work = (c.primary_phone || 'work') === 'work' ? e.target.value : (c.phone_work || '');
+                                                                                    c.phone_work_fax = (c.primary_phone || 'work') === 'fax' ? e.target.value : (c.phone_work_fax || '');
+                                                                                    c.phone_mobile = (c.primary_phone || 'work') === 'mobile' ? e.target.value : (c.phone_mobile || '');
+                                                                                    c.phone_direct = (c.primary_phone || 'work') === 'direct' ? e.target.value : (c.phone_direct || '');
+                                                                                    c.phone_other = (c.primary_phone || 'work') === 'other' ? e.target.value : (c.phone_other || '');
+                                                                                }
+                                                                                return c;
+                                                                            })
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedShipperCompanyContact({
+                                                                ...props.selectedShipperCompanyContact,
+                                                                phone_work: (props.selectedShipperCompanyContact?.primary_phone || 'work') === 'work' ? e.target.value : (props.selectedShipperCompanyContact?.phone_work || ''),
+                                                                phone_work_fax: (props.selectedShipperCompanyContact?.primary_phone || 'work') === 'fax' ? e.target.value : (props.selectedShipperCompanyContact?.phone_work_fax || ''),
+                                                                phone_mobile: (props.selectedShipperCompanyContact?.primary_phone || 'work') === 'mobile' ? e.target.value : (props.selectedShipperCompanyContact?.phone_mobile || ''),
+                                                                phone_direct: (props.selectedShipperCompanyContact?.primary_phone || 'work') === 'direct' ? e.target.value : (props.selectedShipperCompanyContact?.phone_direct || ''),
+                                                                phone_other: (props.selectedShipperCompanyContact?.primary_phone || 'work') === 'other' ? e.target.value : (props.selectedShipperCompanyContact?.phone_other || ''),
+                                                            })
+                                                        }
+                                                    }}
+                                                    value={
+                                                        (props.selectedShipperCompanyContact?.primary_phone || 'work') === 'work'
+                                                            ? (props.selectedShipperCompanyContact?.phone_work || '')
+                                                            : (props.selectedShipperCompanyContact?.primary_phone || 'work') === 'fax'
+                                                                ? (props.selectedShipperCompanyContact?.phone_work_fax || '')
+                                                                : (props.selectedShipperCompanyContact?.primary_phone || 'work') === 'mobile'
+                                                                    ? (props.selectedShipperCompanyContact?.phone_mobile || '')
+                                                                    : (props.selectedShipperCompanyContact?.primary_phone || 'work') === 'direct'
+                                                                        ? (props.selectedShipperCompanyContact?.phone_direct || '')
+                                                                        : (props.selectedShipperCompanyContact?.primary_phone || 'work') === 'other'
+                                                                            ? (props.selectedShipperCompanyContact?.phone_other || '')
+                                                                            : ''
+                                                    }
                                                 />
                                             </div>
                                             <div className="form-h-sep"></div>
                                             <div className="input-box-container input-phone-ext">
                                                 <input tabIndex={25 + props.tabTimes} type="text" placeholder="Ext"
                                                     onKeyDown={validateShipperCompanyContactForSaving}
-                                                    onInput={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, ext: e.target.value }) }}
-                                                    onChange={(e) => { props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, ext: e.target.value }) }}
-                                                    value={props.selectedShipperCompanyInfo.ext || ''}
+                                                    onInput={(e) => {
+                                                        if (props.selectedShipperCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.pickups || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: [
+                                                                        ...props.selected_order?.pickups || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                contacts: [
+                                                                                    {
+                                                                                        id: 0,
+                                                                                        phone_ext: e.target.value
+                                                                                    }
+                                                                                ]
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                contacts: (p.customer.contacts || []).map((c, i) => {
+                                                                                    if (c.is_primary === 1) {
+                                                                                        c.phone_ext = e.target.value
+                                                                                    }
+                                                                                    return c;
+                                                                                })
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedShipperCompanyContact({ ...props.selectedShipperCompanyContact, phone_ext: e.target.value })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            contacts: (p.customer.contacts || []).map((c, i) => {
+                                                                                if (c.is_primary === 1) {
+                                                                                    c.phone_ext = e.target.value
+                                                                                }
+                                                                                return c;
+                                                                            })
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedShipperCompanyContact({ ...props.selectedShipperCompanyContact, phone_ext: e.target.value })
+                                                        }
+                                                    }}
+                                                    onChange={(e) => {
+                                                        if (props.selectedShipperCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.pickups || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: [
+                                                                        ...props.selected_order?.pickups || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                contacts: [
+                                                                                    {
+                                                                                        id: 0,
+                                                                                        phone_ext: e.target.value
+                                                                                    }
+                                                                                ]
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                contacts: (p.customer.contacts || []).map((c, i) => {
+                                                                                    if (c.is_primary === 1) {
+                                                                                        c.phone_ext = e.target.value
+                                                                                    }
+                                                                                    return c;
+                                                                                })
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedShipperCompanyContact({ ...props.selectedShipperCompanyContact, phone_ext: e.target.value })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                pickups: (props.selected_order?.pickups || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            contacts: (p.customer.contacts || []).map((c, i) => {
+                                                                                if (c.is_primary === 1) {
+                                                                                    c.phone_ext = e.target.value
+                                                                                }
+                                                                                return c;
+                                                                            })
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedShipperCompanyContact({ ...props.selectedShipperCompanyContact, phone_ext: e.target.value })
+                                                        }
+                                                    }}
+                                                    value={props.selectedShipperCompanyContact?.phone_ext || ''}
                                                 />
                                             </div>
                                         </div>
@@ -5366,17 +6237,33 @@ function Dispatch(props) {
                                                         let key = e.keyCode || e.which;
                                                         await setPuDate1KeyCode(key);
 
-                                                        let puDate1 = e.target.value.trim() === '' ? moment() : moment(getFormattedDates(props.selectedShipperCompanyInfo?.extra_data?.pu_date1 || ''), 'MM/DD/YYYY');
+                                                        let puDate1 = e.target.value.trim() === '' ? moment() : moment(getFormattedDates(props.selectedShipperCompanyInfo?.pu_date1 || ''), 'MM/DD/YYYY');
                                                         await setPreSelectedPickupDate1(puDate1);
-                                                        let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
 
                                                         if (key === 13) {
-                                                            extra_data.pu_date1 = preSelectedPickupDate1.clone().format('MM/DD/YYYY');
+                                                            await props.setSelectedShipperCompanyInfo({
+                                                                ...props.selectedShipperCompanyInfo,
+                                                                pu_date1: preSelectedPickupDate1.clone().format('MM/DD/YYYY')
+                                                            });
+
+                                                            await props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                pickups: (props.selected_order?.pickups || []).map((pu, i) => {
+                                                                    if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                                                                        pu.pu_date1 = preSelectedPickupDate1.clone().format('MM/DD/YYYY');
+                                                                        pu.pu_date2 = preSelectedPickupDate1.clone().format('MM/DD/YYYY');
+                                                                    }
+                                                                    return pu;
+                                                                })
+                                                            });
 
                                                             await setIsPickupDate1CalendarShown(false);
                                                             await setIsPickupDate2CalendarShown(false);
                                                             await setIsDeliveryDate1CalendarShown(false);
                                                             await setIsDeliveryDate2CalendarShown(false);
+
+                                                            // await validateOrderForSaving({ keyCode: 9 });
+
                                                         }
 
                                                         if (key >= 37 && key <= 40) {
@@ -5399,52 +6286,74 @@ function Dispatch(props) {
                                                                     setPreSelectedPickupDate1(preSelectedPickupDate1.clone().add(7, 'day'));
                                                                 }
 
-                                                                await props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data })
-
-                                                                let pickups = (props.selected_order?.pickups || []).map((pu, i) => {
-                                                                    if (pu.id === props.selectedShipperCompanyInfo.id) {
-                                                                        pu.extra_data = extra_data;
-                                                                    }
-                                                                    return pu;
+                                                                await props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: (props.selected_order?.pickups || []).map((pu, i) => {
+                                                                        if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                                                                            pu.pu_date1 = preSelectedPickupDate1.clone().format('MM/DD/YYYY');
+                                                                        }
+                                                                        return pu;
+                                                                    })
                                                                 });
-
-                                                                await props.setSelectedOrder({ ...props.selected_order, pickups: pickups });
-                                                                await validateOrderForSaving({ keyCode: 9 });
+                                                                // await validateOrderForSaving({ keyCode: 9 });
                                                             }
                                                         }
                                                     }}
                                                     onBlur={async (e) => {
                                                         if (puDate1KeyCode === 9) {
                                                             let formatted = getFormattedDates(e.target.value);
-                                                            
-                                                            let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
-                                                            extra_data.pu_date1 = formatted;
-                                                            extra_data.pu_date2 = formatted;
-                                                            await props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data })
+
+                                                            await props.setSelectedShipperCompanyInfo({
+                                                                ...props.selectedShipperCompanyInfo,
+                                                                pu_date1: formatted,
+                                                                pu_date2: formatted
+                                                            })
 
                                                             let pickups = (props.selected_order?.pickups || []).map((pu, i) => {
-                                                                if (pu.id === props.selectedShipperCompanyInfo.id) {
-                                                                    pu.extra_data = extra_data;
+                                                                if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                                                                    pu.pu_date1 = formatted;
+                                                                    pu.pu_date2 = formatted;
+                                                                    setIsSavingPickupId(pu.id);
                                                                 }
                                                                 return pu;
                                                             });
 
                                                             await props.setSelectedOrder({ ...props.selected_order, pickups: pickups });
-
-                                                            await validateOrderForSaving({ keyCode: 9 });
                                                         }
                                                     }}
                                                     onInput={(e) => {
-                                                        let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
-                                                        extra_data.pu_date1 = e.target.value;
-                                                        props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data })
+                                                        props.setSelectedShipperCompanyInfo({
+                                                            ...props.selectedShipperCompanyInfo,
+                                                            pu_date1: e.target.value
+                                                        });
+
+                                                        props.setSelectedOrder({
+                                                            ...props.selected_order,
+                                                            pickups: (props.selected_order?.pickups || []).map((pu, i) => {
+                                                                if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                                                                    pu.pu_date1 = e.target.value;
+                                                                }
+                                                                return pu;
+                                                            })
+                                                        })
                                                     }}
                                                     onChange={(e) => {
-                                                        let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
-                                                        extra_data.pu_date1 = e.target.value;
-                                                        props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data })
+                                                        props.setSelectedShipperCompanyInfo({
+                                                            ...props.selectedShipperCompanyInfo,
+                                                            pu_date1: e.target.value
+                                                        });
+
+                                                        props.setSelectedOrder({
+                                                            ...props.selected_order,
+                                                            pickups: (props.selected_order?.pickups || []).map((pu, i) => {
+                                                                if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                                                                    pu.pu_date1 = e.target.value;
+                                                                }
+                                                                return pu;
+                                                            })
+                                                        })
                                                     }}
-                                                    value={props.selectedShipperCompanyInfo?.extra_data?.pu_date1 || ''}
+                                                    value={(props.selectedShipperCompanyInfo?.pu_date1 || '')}
                                                 />
 
                                                 <span className="fas fa-calendar-alt open-calendar-btn" onClick={async (e) => {
@@ -5452,8 +6361,8 @@ function Dispatch(props) {
                                                     await setIsDeliveryDate1CalendarShown(false);
                                                     await setIsDeliveryDate2CalendarShown(false);
 
-                                                    if (moment((props.selectedShipperCompanyInfo?.extra_data?.pu_date1 || '').trim(), 'MM/DD/YYYY').format('MM/DD/YYYY') === (props.selectedShipperCompanyInfo?.extra_data?.pu_date1 || '').trim()) {
-                                                        setPreSelectedPickupDate1(moment(props.selectedShipperCompanyInfo?.extra_data?.pu_date1, 'MM/DD/YYYY'));
+                                                    if (moment((props.selectedShipperCompanyInfo?.pu_date1 || '').trim(), 'MM/DD/YYYY').format('MM/DD/YYYY') === (props.selectedShipperCompanyInfo?.pu_date1 || '').trim()) {
+                                                        setPreSelectedPickupDate1(moment(props.selectedShipperCompanyInfo?.pu_date1, 'MM/DD/YYYY'));
                                                     } else {
                                                         setPreSelectedPickupDate1(moment());
                                                     }
@@ -5521,34 +6430,56 @@ function Dispatch(props) {
                                                     onBlur={async (e) => {
                                                         if (puTime1KeyCode === 9) {
                                                             let formatted = getFormattedHours(e.target.value);
-                                                            
-                                                            let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
-                                                            extra_data.pu_time1 = formatted;
-                                                            await props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data })
+
+                                                            await props.setSelectedShipperCompanyInfo({
+                                                                ...props.selectedShipperCompanyInfo,
+                                                                pu_time1: formatted
+                                                            })
 
                                                             let pickups = (props.selected_order?.pickups || []).map((pu, i) => {
-                                                                if (pu.id === props.selectedShipperCompanyInfo.id) {
-                                                                    pu.extra_data = extra_data;
+                                                                if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                                                                    pu.pu_time1 = formatted;
+                                                                    setIsSavingPickupId(pu.id);
                                                                 }
                                                                 return pu;
                                                             });
 
                                                             await props.setSelectedOrder({ ...props.selected_order, pickups: pickups });
-
-                                                            await validateOrderForSaving({ keyCode: 9 });
                                                         }
                                                     }}
                                                     onInput={(e) => {
-                                                        let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
-                                                        extra_data.pu_time1 = e.target.value;
-                                                        props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data })
+                                                        props.setSelectedShipperCompanyInfo({
+                                                            ...props.selectedShipperCompanyInfo,
+                                                            pu_time1: e.target.value
+                                                        });
+
+                                                        props.setSelectedOrder({
+                                                            ...props.selected_order,
+                                                            pickups: (props.selected_order?.pickups || []).map((pu, i) => {
+                                                                if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                                                                    pu.pu_time1 = e.target.value;
+                                                                }
+                                                                return pu;
+                                                            })
+                                                        })
                                                     }}
                                                     onChange={(e) => {
-                                                        let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
-                                                        extra_data.pu_time1 = e.target.value;
-                                                        props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data })
+                                                        props.setSelectedShipperCompanyInfo({
+                                                            ...props.selectedShipperCompanyInfo,
+                                                            pu_time1: e.target.value
+                                                        });
+
+                                                        props.setSelectedOrder({
+                                                            ...props.selected_order,
+                                                            pickups: (props.selected_order?.pickups || []).map((pu, i) => {
+                                                                if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                                                                    pu.pu_time1 = e.target.value;
+                                                                }
+                                                                return pu;
+                                                            })
+                                                        })
                                                     }}
-                                                    value={props.selectedShipperCompanyInfo?.extra_data?.pu_time1 || ''}
+                                                    value={props.selectedShipperCompanyInfo?.pu_time1 || ''}
                                                 />
                                             </div>
                                             <div style={{ minWidth: '1.8rem', fontSize: '1rem', textAlign: 'center' }}>To</div>
@@ -5563,17 +6494,32 @@ function Dispatch(props) {
                                                         let key = e.keyCode || e.which;
                                                         await setPuDate2KeyCode(key);
 
-                                                        let puDate2 = e.target.value.trim() === '' ? moment() : moment(getFormattedDates(props.selectedShipperCompanyInfo?.extra_data?.pu_date2 || ''), 'MM/DD/YYYY');
-                                                        await setPreSelectedPickupDate1(puDate2);
-                                                        let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
+                                                        let puDate2 = e.target.value.trim() === '' ? moment() : moment(getFormattedDates(props.selectedShipperCompanyInfo?.pu_date2 || ''), 'MM/DD/YYYY');
+                                                        await setPreSelectedPickupDate2(puDate2);
 
                                                         if (key === 13) {
-                                                            extra_data.pu_date2 = preSelectedPickupDate2.clone().format('MM/DD/YYYY');
+                                                            await props.setSelectedShipperCompanyInfo({
+                                                                ...props.selectedShipperCompanyInfo,
+                                                                pu_date2: preSelectedPickupDate2.clone().format('MM/DD/YYYY')
+                                                            });
+
+                                                            await props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                pickups: (props.selected_order?.pickups || []).map((pu, i) => {
+                                                                    if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                                                                        pu.pu_date2 = preSelectedPickupDate2.clone().format('MM/DD/YYYY')
+                                                                    }
+                                                                    return pu;
+                                                                })
+                                                            });
 
                                                             await setIsPickupDate1CalendarShown(false);
                                                             await setIsPickupDate2CalendarShown(false);
                                                             await setIsDeliveryDate1CalendarShown(false);
                                                             await setIsDeliveryDate2CalendarShown(false);
+
+                                                            // await validateOrderForSaving({ keyCode: 9 });
+
                                                         }
 
                                                         if (key >= 37 && key <= 40) {
@@ -5596,51 +6542,72 @@ function Dispatch(props) {
                                                                     setPreSelectedPickupDate2(preSelectedPickupDate2.clone().add(7, 'day'));
                                                                 }
 
-                                                                await props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data })
-
-                                                                let pickups = (props.selected_order?.pickups || []).map((pu, i) => {
-                                                                    if (pu.id === props.selectedShipperCompanyInfo.id) {
-                                                                        pu.extra_data = extra_data;
-                                                                    }
-                                                                    return pu;
+                                                                await props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: (props.selected_order?.pickups || []).map((pu, i) => {
+                                                                        if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                                                                            pu.pu_date2 = preSelectedPickupDate2.clone().format('MM/DD/YYYY');
+                                                                        }
+                                                                        return pu;
+                                                                    })
                                                                 });
-
-                                                                await props.setSelectedOrder({ ...props.selected_order, pickups: pickups });
-                                                                await validateOrderForSaving({ keyCode: 9 });
+                                                                // await validateOrderForSaving({ keyCode: 9 });
                                                             }
                                                         }
                                                     }}
                                                     onBlur={async (e) => {
                                                         if (puDate2KeyCode === 9) {
                                                             let formatted = getFormattedDates(e.target.value);
-                                                            
-                                                            let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
-                                                            extra_data.pu_date2 = formatted;
-                                                            await props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data })
+
+                                                            await props.setSelectedShipperCompanyInfo({
+                                                                ...props.selectedShipperCompanyInfo,
+                                                                pu_date2: formatted
+                                                            })
 
                                                             let pickups = (props.selected_order?.pickups || []).map((pu, i) => {
-                                                                if (pu.id === props.selectedShipperCompanyInfo.id) {
-                                                                    pu.extra_data = extra_data;
+                                                                if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                                                                    pu.pu_date2 = formatted;
+                                                                    setIsSavingPickupId(pu.id);
                                                                 }
                                                                 return pu;
                                                             });
 
                                                             await props.setSelectedOrder({ ...props.selected_order, pickups: pickups });
-
-                                                            await validateOrderForSaving({ keyCode: 9 });
                                                         }
                                                     }}
                                                     onInput={(e) => {
-                                                        let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
-                                                        extra_data.pu_date2 = e.target.value;
-                                                        props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data })
+                                                        props.setSelectedShipperCompanyInfo({
+                                                            ...props.selectedShipperCompanyInfo,
+                                                            pu_date2: e.target.value
+                                                        });
+
+                                                        props.setSelectedOrder({
+                                                            ...props.selected_order,
+                                                            pickups: (props.selected_order?.pickups || []).map((pu, i) => {
+                                                                if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                                                                    pu.pu_date2 = e.target.value;
+                                                                }
+                                                                return pu;
+                                                            })
+                                                        })
                                                     }}
                                                     onChange={(e) => {
-                                                        let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
-                                                        extra_data.pu_date2 = e.target.value;
-                                                        props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data })
+                                                        props.setSelectedShipperCompanyInfo({
+                                                            ...props.selectedShipperCompanyInfo,
+                                                            pu_date2: e.target.value
+                                                        });
+
+                                                        props.setSelectedOrder({
+                                                            ...props.selected_order,
+                                                            pickups: (props.selected_order?.pickups || []).map((pu, i) => {
+                                                                if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                                                                    pu.pu_date2 = e.target.value;
+                                                                }
+                                                                return pu;
+                                                            })
+                                                        })
                                                     }}
-                                                    value={props.selectedShipperCompanyInfo?.extra_data?.pu_date2 || ''}
+                                                    value={(props.selectedShipperCompanyInfo?.pu_date2 || '')}
                                                 />
 
                                                 <span className="fas fa-calendar-alt open-calendar-btn" onClick={(e) => {
@@ -5648,8 +6615,8 @@ function Dispatch(props) {
                                                     setIsDeliveryDate1CalendarShown(false);
                                                     setIsDeliveryDate2CalendarShown(false);
 
-                                                    if (moment((props.selectedShipperCompanyInfo?.extra_data?.pu_date2 || '').trim(), 'MM/DD/YYYY').format('MM/DD/YYYY') === (props.selectedShipperCompanyInfo?.extra_data?.pu_date2 || '').trim()) {
-                                                        setPreSelectedPickupDate2(moment(props.selectedShipperCompanyInfo?.extra_data?.pu_date2, 'MM/DD/YYYY'));
+                                                    if (moment((props.selectedShipperCompanyInfo?.pu_date2 || '').trim(), 'MM/DD/YYYY').format('MM/DD/YYYY') === (props.selectedShipperCompanyInfo?.pu_date2 || '').trim()) {
+                                                        setPreSelectedPickupDate2(moment(props.selectedShipperCompanyInfo?.pu_date2, 'MM/DD/YYYY'));
                                                     } else {
                                                         setPreSelectedPickupDate2(moment());
                                                     }
@@ -5717,34 +6684,56 @@ function Dispatch(props) {
                                                     onBlur={async (e) => {
                                                         if (puTime2KeyCode === 9) {
                                                             let formatted = getFormattedHours(e.target.value);
-                                                            
-                                                            let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
-                                                            extra_data.pu_time2 = formatted;
-                                                            await props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data })
+
+                                                            await props.setSelectedShipperCompanyInfo({
+                                                                ...props.selectedShipperCompanyInfo,
+                                                                pu_time2: formatted
+                                                            })
 
                                                             let pickups = (props.selected_order?.pickups || []).map((pu, i) => {
-                                                                if (pu.id === props.selectedShipperCompanyInfo.id) {
-                                                                    pu.extra_data = extra_data;
+                                                                if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                                                                    pu.pu_time2 = formatted;
+                                                                    setIsSavingPickupId(pu.id);
                                                                 }
                                                                 return pu;
                                                             });
 
                                                             await props.setSelectedOrder({ ...props.selected_order, pickups: pickups });
-
-                                                            await validateOrderForSaving({ keyCode: 9 });
                                                         }
                                                     }}
                                                     onInput={(e) => {
-                                                        let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
-                                                        extra_data.pu_time2 = e.target.value;
-                                                        props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data })
+                                                        props.setSelectedShipperCompanyInfo({
+                                                            ...props.selectedShipperCompanyInfo,
+                                                            pu_time2: e.target.value
+                                                        });
+
+                                                        props.setSelectedOrder({
+                                                            ...props.selected_order,
+                                                            pickups: (props.selected_order?.pickups || []).map((pu, i) => {
+                                                                if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                                                                    pu.pu_time2 = e.target.value;
+                                                                }
+                                                                return pu;
+                                                            })
+                                                        })
                                                     }}
                                                     onChange={(e) => {
-                                                        let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
-                                                        extra_data.pu_time2 = e.target.value;
-                                                        props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data })
+                                                        props.setSelectedShipperCompanyInfo({
+                                                            ...props.selectedShipperCompanyInfo,
+                                                            pu_time2: e.target.value
+                                                        });
+
+                                                        props.setSelectedOrder({
+                                                            ...props.selected_order,
+                                                            pickups: (props.selected_order?.pickups || []).map((pu, i) => {
+                                                                if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                                                                    pu.pu_time2 = e.target.value;
+                                                                }
+                                                                return pu;
+                                                            })
+                                                        })
                                                     }}
-                                                    value={props.selectedShipperCompanyInfo?.extra_data?.pu_time2 || ''}
+                                                    value={props.selectedShipperCompanyInfo?.pu_time2 || ''}
                                                 />
                                             </div>
                                         </div>
@@ -5752,7 +6741,7 @@ function Dispatch(props) {
                                         <div className="form-row" style={{ alignItems: 'center' }}>
                                             <div className="input-box-container grow" style={{ flexGrow: 1, flexBasis: '100%' }}>
                                                 {
-                                                    (props.selectedShipperCompanyInfo?.extra_data?.bol_numbers || '').split(' ').map((item, index) => {
+                                                    (props.selectedShipperCompanyInfo?.bol_numbers || '').split(' ').map((item, index) => {
                                                         if (item.trim() !== '') {
                                                             return (
                                                                 <div key={index} style={{
@@ -5767,9 +6756,22 @@ function Dispatch(props) {
                                                                 }} title={item}>
                                                                     <span className="fas fa-trash-alt" style={{ marginRight: '5px', cursor: 'pointer' }}
                                                                         onClick={() => {
-                                                                            let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
-                                                                            extra_data.bol_numbers = (props.selectedShipperCompanyInfo?.extra_data?.bol_numbers || '').replace(item, '').trim()
-                                                                            props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data })
+                                                                            props.setSelectedShipperCompanyInfo({
+                                                                                ...props.selectedShipperCompanyInfo,
+                                                                                bol_numbers: (props.selectedShipperCompanyInfo?.bol_numbers || '').replace(item, '').trim()
+                                                                            })
+
+                                                                            props.setSelectedOrder({
+                                                                                ...props.selected_order,
+                                                                                pickups: (props.selected_order?.pickups || []).map((pu, i) => {
+                                                                                    if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                                                                                        pu.bol_numbers = (props.selectedShipperCompanyInfo?.bol_numbers || '').replace(item, '').trim()
+                                                                                    }
+                                                                                    return pu;
+                                                                                })
+                                                                            })
+
+                                                                            setIsSavingPickupId(props.selectedShipperCompanyInfo?.pickup_id || 0);
                                                                         }}></span>
 
                                                                     <span className="automatic-email-inputted" style={{ whiteSpace: 'nowrap' }}>{item.toLowerCase()}</span>
@@ -5792,7 +6794,7 @@ function Dispatch(props) {
                                             <div style={{ minWidth: '1.8rem', fontSize: '1rem', textAlign: 'center' }}></div>
                                             <div className="input-box-container grow" style={{ flexGrow: 1, flexBasis: '100%' }}>
                                                 {
-                                                    (props.selectedShipperCompanyInfo?.extra_data?.po_numbers || '').split(' ').map((item, index) => {
+                                                    (props.selectedShipperCompanyInfo?.po_numbers || '').split(' ').map((item, index) => {
                                                         if (item.trim() !== '') {
                                                             return (
                                                                 <div key={index} style={{
@@ -5807,9 +6809,22 @@ function Dispatch(props) {
                                                                 }} title={item}>
                                                                     <span className="fas fa-trash-alt" style={{ marginRight: '5px', cursor: 'pointer' }}
                                                                         onClick={() => {
-                                                                            let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
-                                                                            extra_data.po_numbers = (props.selectedShipperCompanyInfo?.extra_data?.po_numbers || '').replace(item, '').trim()
-                                                                            props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data })
+                                                                            props.setSelectedShipperCompanyInfo({
+                                                                                ...props.selectedShipperCompanyInfo,
+                                                                                po_numbers: (props.selectedShipperCompanyInfo?.po_numbers || '').replace(item, '').trim()
+                                                                            })
+
+                                                                            props.setSelectedOrder({
+                                                                                ...props.selected_order,
+                                                                                pickups: (props.selected_order?.pickups || []).map((pu, i) => {
+                                                                                    if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                                                                                        pu.po_numbers = (props.selectedShipperCompanyInfo?.po_numbers || '').replace(item, '').trim()
+                                                                                    }
+                                                                                    return pu;
+                                                                                })
+                                                                            })
+
+                                                                            setIsSavingPickupId(props.selectedShipperCompanyInfo?.pickup_id || 0);
                                                                         }}></span>
 
                                                                     <span className="automatic-email-inputted" style={{ whiteSpace: 'nowrap' }}>{item.toLowerCase()}</span>
@@ -5833,7 +6848,7 @@ function Dispatch(props) {
                                         <div className="form-row" style={{ alignItems: 'center' }}>
                                             <div className="input-box-container grow" style={{ flexGrow: 1, flexBasis: '100%' }}>
                                                 {
-                                                    (props.selectedShipperCompanyInfo?.extra_data?.ref_numbers || '').split(' ').map((item, index) => {
+                                                    (props.selectedShipperCompanyInfo?.ref_numbers || '').split(' ').map((item, index) => {
                                                         if (item.trim() !== '') {
                                                             return (
                                                                 <div key={index} style={{
@@ -5848,9 +6863,22 @@ function Dispatch(props) {
                                                                 }} title={item}>
                                                                     <span className="fas fa-trash-alt" style={{ marginRight: '5px', cursor: 'pointer' }}
                                                                         onClick={() => {
-                                                                            let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
-                                                                            extra_data.ref_numbers = (props.selectedShipperCompanyInfo?.extra_data?.ref_numbers || '').replace(item, '').trim()
-                                                                            props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data })
+                                                                            props.setSelectedShipperCompanyInfo({
+                                                                                ...props.selectedShipperCompanyInfo,
+                                                                                ref_numbers: (props.selectedShipperCompanyInfo?.ref_numbers || '').replace(item, '').trim()
+                                                                            })
+
+                                                                            props.setSelectedOrder({
+                                                                                ...props.selected_order,
+                                                                                pickups: (props.selected_order?.pickups || []).map((pu, i) => {
+                                                                                    if (pu.id === props.selectedShipperCompanyInfo.pickup_id) {
+                                                                                        pu.ref_numbers = (props.selectedShipperCompanyInfo?.ref_numbers || '').replace(item, '').trim()
+                                                                                    }
+                                                                                    return pu;
+                                                                                })
+                                                                            })
+
+                                                                            setIsSavingPickupId(props.selectedShipperCompanyInfo?.pickup_id || 0);
                                                                         }}></span>
 
                                                                     <span className="automatic-email-inputted" style={{ whiteSpace: 'nowrap' }}>{item.toLowerCase()}</span>
@@ -5872,35 +6900,46 @@ function Dispatch(props) {
                                             <div style={{ minWidth: '1.8rem', fontSize: '1rem', textAlign: 'center' }}></div>
                                             <div className="input-box-container grow" style={{ flexGrow: 1, flexBasis: '100%' }}>
                                                 <input tabIndex={33 + props.tabTimes} type="text" placeholder="SEAL Number"
-                                                    onInput={async (e) => {
-                                                        let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
-                                                        extra_data.seal_number = e.target.value
+                                                    onKeyDown={(e) => {
+                                                        let key = e.keyCode || e.which;
 
-                                                        let pickups = (props.selected_order?.pickups || []).map((pu, i) => {
-                                                            if (pu.id === props.selectedShipperCompanyInfo.id) {
-                                                                pu.extra_data = extra_data;
-                                                            }
-                                                            return pu;
-                                                        })
-
-                                                        await props.setSelectedOrder({ ...props.selected_order, pickups: pickups });
-                                                        props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data })
+                                                        if (key === 9) {
+                                                            setIsSavingPickupId(props.selectedShipperCompanyInfo?.pickup_id || 0);
+                                                        }
                                                     }}
-                                                    onChange={async (e) => {
-                                                        let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
-                                                        extra_data.seal_number = e.target.value
+                                                    onInput={(e) => {
+                                                        props.setSelectedOrder({
+                                                            ...props.selected_order,
+                                                            pickups: (props.selected_order?.pickups || []).map((pu, i) => {
+                                                                if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                                                                    pu.seal_number = e.target.value;
+                                                                }
+                                                                return pu;
+                                                            })
+                                                        });
 
-                                                        let pickups = (props.selected_order?.pickups || []).map((pu, i) => {
-                                                            if (pu.id === props.selectedShipperCompanyInfo.id) {
-                                                                pu.extra_data = extra_data;
-                                                            }
-                                                            return pu;
+                                                        props.setSelectedShipperCompanyInfo({
+                                                            ...props.selectedShipperCompanyInfo,
+                                                            seal_number: e.target.value
                                                         })
-
-                                                        await props.setSelectedOrder({ ...props.selected_order, pickups: pickups });
-                                                        props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data })
                                                     }}
-                                                    value={props.selectedShipperCompanyInfo?.extra_data?.seal_number || ''}
+                                                    onChange={(e) => {
+                                                        props.setSelectedOrder({
+                                                            ...props.selected_order,
+                                                            pickups: (props.selected_order?.pickups || []).map((pu, i) => {
+                                                                if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                                                                    pu.seal_number = e.target.value;
+                                                                }
+                                                                return pu;
+                                                            })
+                                                        });
+
+                                                        props.setSelectedShipperCompanyInfo({
+                                                            ...props.selectedShipperCompanyInfo,
+                                                            seal_number: e.target.value
+                                                        })
+                                                    }}
+                                                    value={props.selectedShipperCompanyInfo?.seal_number || ''}
                                                 />
                                             </div>
                                         </div>
@@ -5913,40 +6952,44 @@ function Dispatch(props) {
 
                                                         if (key === 9) {
                                                             e.preventDefault();
-
+                                                            setIsSavingPickupId(props.selectedShipperCompanyInfo?.pickup_id || 0);
                                                             goToTabindex((35 + props.tabTimes).toString());
                                                             props.setIsShowingShipperSecondPage(false);
                                                         }
                                                     }}
-                                                    onInput={async (e) => {
-                                                        let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
-                                                        extra_data.special_instructions = e.target.value
+                                                    onInput={(e) => {
+                                                        props.setSelectedOrder({
+                                                            ...props.selected_order,
+                                                            pickups: (props.selected_order?.pickups || []).map((pu, i) => {
+                                                                if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                                                                    pu.special_instructions = e.target.value;
+                                                                }
+                                                                return pu;
+                                                            })
+                                                        });
 
-                                                        let pickups = (props.selected_order?.pickups || []).map((pu, i) => {
-                                                            if (pu.id === props.selectedShipperCompanyInfo.id) {
-                                                                pu.extra_data = extra_data;
-                                                            }
-                                                            return pu;
+                                                        props.setSelectedShipperCompanyInfo({
+                                                            ...props.selectedShipperCompanyInfo,
+                                                            special_instructions: e.target.value
                                                         })
-
-                                                        await props.setSelectedOrder({ ...props.selected_order, pickups: pickups });
-                                                        props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data })
                                                     }}
-                                                    onChange={async (e) => {
-                                                        let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
-                                                        extra_data.special_instructions = e.target.value
+                                                    onChange={(e) => {
+                                                        props.setSelectedOrder({
+                                                            ...props.selected_order,
+                                                            pickups: (props.selected_order?.pickups || []).map((pu, i) => {
+                                                                if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                                                                    pu.special_instructions = e.target.value;
+                                                                }
+                                                                return pu;
+                                                            })
+                                                        });
 
-                                                        let pickups = (props.selected_order?.pickups || []).map((pu, i) => {
-                                                            if (pu.id === props.selectedShipperCompanyInfo.id) {
-                                                                pu.extra_data = extra_data;
-                                                            }
-                                                            return pu;
+                                                        props.setSelectedShipperCompanyInfo({
+                                                            ...props.selectedShipperCompanyInfo,
+                                                            special_instructions: e.target.value
                                                         })
-
-                                                        await props.setSelectedOrder({ ...props.selected_order, pickups: pickups });
-                                                        props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data })
                                                     }}
-                                                    value={props.selectedShipperCompanyInfo?.extra_data?.special_instructions || ''}
+                                                    value={props.selectedShipperCompanyInfo?.special_instructions || ''}
                                                 />
                                             </div>
                                         </div>
@@ -5955,7 +6998,7 @@ function Dispatch(props) {
                             </div>
                         </div>
 
-                        <div className='form-bordered-box' style={{ minWidth: '38%', maxWidth: '38%', marginRight: 10, height: '9rem' }} onKeyDown={validateOrderForSaving}>
+                        <div className='form-bordered-box' style={{ minWidth: '38%', maxWidth: '38%', marginRight: 10, height: '9rem' }}>
                             <div className='form-header'>
                                 <div className='top-border top-border-left'></div>
                                 <div className='form-title'>Consignee</div>
@@ -6003,19 +7046,212 @@ function Dispatch(props) {
                             <div className="form-row">
                                 <div className="input-box-container input-code">
                                     <input tabIndex={35 + props.tabTimes} type="text" placeholder="Code" maxLength="8"
+                                        ref={refConsigneeCompanyCode}
                                         onKeyDown={getConsigneeCompanyByCode}
-                                        onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, code: e.target.value }) }}
-                                        onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, code: e.target.value }) }}
-                                        value={props.selectedConsigneeCompanyInfo.code || ''}
+                                        onInput={(e) => {
+                                            if (props.selectedConsigneeCompanyInfo?.id || 0 === 0) {
+                                                if ((props.selected_order?.deliveries || []).find(p => p.id === 0) === undefined) {
+                                                    props.setSelectedOrder({
+                                                        ...props.selected_order,
+                                                        deliveries: [
+                                                            ...props.selected_order?.deliveries || [],
+                                                            {
+                                                                id: 0,
+                                                                customer: {
+                                                                    id: 0,
+                                                                    code: e.target.value.toUpperCase()
+                                                                }
+                                                            }
+                                                        ]
+                                                    })
+                                                } else {
+                                                    props.setSelectedOrder({
+                                                        ...props.selected_order,
+                                                        deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                            if (p.id === 0) {
+                                                                p.customer = {
+                                                                    ...p.customer,
+                                                                    code: e.target.value.toUpperCase()
+                                                                }
+                                                            }
+                                                            return p;
+                                                        })
+                                                    })
+                                                }
+
+                                                props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, id: 0, code: e.target.value.toUpperCase() })
+                                            } else {
+                                                props.setSelectedOrder({
+                                                    ...props.selected_order,
+                                                    deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                        if (p.id === props.selectedConsigneeCompanyInfo?.id) {
+                                                            p.customer = {
+                                                                ...p.customer,
+                                                                code: e.target.value.toUpperCase()
+                                                            }
+                                                        }
+                                                        return p;
+                                                    })
+                                                })
+
+                                                props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, code: e.target.value.toUpperCase() })
+                                            }
+                                        }}
+                                        onChange={(e) => {
+                                            if (props.selectedConsigneeCompanyInfo?.id || 0 === 0) {
+                                                if ((props.selected_order?.deliveries || []).find(p => p.id === 0) === undefined) {
+                                                    props.setSelectedOrder({
+                                                        ...props.selected_order,
+                                                        deliveries: [
+                                                            ...props.selected_order?.deliveries || [],
+                                                            {
+                                                                id: 0,
+                                                                customer: {
+                                                                    id: 0,
+                                                                    code: e.target.value.toUpperCase()
+                                                                }
+                                                            }
+                                                        ]
+                                                    })
+                                                } else {
+                                                    props.setSelectedOrder({
+                                                        ...props.selected_order,
+                                                        deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                            if (p.id === 0) {
+                                                                p.customer = {
+                                                                    ...p.customer,
+                                                                    code: e.target.value.toUpperCase()
+                                                                }
+                                                            }
+                                                            return p;
+                                                        })
+                                                    })
+                                                }
+
+                                                props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, id: 0, code: e.target.value.toUpperCase() })
+                                            } else {
+                                                props.setSelectedOrder({
+                                                    ...props.selected_order,
+                                                    deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                        if (p.id === props.selectedConsigneeCompanyInfo?.id) {
+                                                            p.customer = {
+                                                                ...p.customer,
+                                                                code: e.target.value.toUpperCase()
+                                                            }
+                                                        }
+                                                        return p;
+                                                    })
+                                                })
+
+                                                props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, code: e.target.value.toUpperCase() })
+                                            }
+                                        }}
+                                        value={(props.selectedConsigneeCompanyInfo?.code || '') + ((props.selectedConsigneeCompanyInfo?.code_number || 0) === 0 ? '' : props.selectedConsigneeCompanyInfo?.code_number)}
                                     />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container grow">
                                     <input tabIndex={36 + props.tabTimes} type="text" placeholder="Name"
-                                        onKeyDown={validateConsigneeCompanyInfoForSaving}
-                                        onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, name: e.target.value }) }}
-                                        onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, name: e.target.value }) }}
-                                        value={props.selectedConsigneeCompanyInfo.name || ''}
+                                        // onKeyDown={validateConsigneeCompanyInfoForSaving}
+                                        onInput={(e) => {
+                                            if (props.selectedConsigneeCompanyInfo?.id || 0 === 0) {
+                                                if ((props.selected_order?.deliveries || []).find(p => p.id === 0) === undefined) {
+                                                    props.setSelectedOrder({
+                                                        ...props.selected_order,
+                                                        deliveries: [
+                                                            ...props.selected_order?.deliveries || [],
+                                                            {
+                                                                id: 0,
+                                                                customer: {
+                                                                    id: 0,
+                                                                    name: e.target.value
+                                                                }
+                                                            }
+                                                        ]
+                                                    })
+                                                } else {
+                                                    props.setSelectedOrder({
+                                                        ...props.selected_order,
+                                                        deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                            if (p.id === 0) {
+                                                                p.customer = {
+                                                                    ...p.customer,
+                                                                    name: e.target.value
+                                                                }
+                                                            }
+                                                            return p;
+                                                        })
+                                                    })
+                                                }
+
+                                                props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, id: 0, name: e.target.value })
+                                            } else {
+                                                props.setSelectedOrder({
+                                                    ...props.selected_order,
+                                                    deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                        if (p.id === props.selectedConsigneeCompanyInfo?.id) {
+                                                            p.customer = {
+                                                                ...p.customer,
+                                                                name: e.target.value
+                                                            }
+                                                        }
+                                                        return p;
+                                                    })
+                                                })
+
+                                                props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, name: e.target.value })
+                                            }
+                                        }}
+                                        onChange={(e) => {
+                                            if (props.selectedConsigneeCompanyInfo?.id || 0 === 0) {
+                                                if ((props.selected_order?.deliveries || []).find(p => p.id === 0) === undefined) {
+                                                    props.setSelectedOrder({
+                                                        ...props.selected_order,
+                                                        deliveries: [
+                                                            ...props.selected_order?.deliveries || [],
+                                                            {
+                                                                id: 0,
+                                                                customer: {
+                                                                    id: 0,
+                                                                    name: e.target.value
+                                                                }
+                                                            }
+                                                        ]
+                                                    })
+                                                } else {
+                                                    props.setSelectedOrder({
+                                                        ...props.selected_order,
+                                                        deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                            if (p.id === 0) {
+                                                                p.customer = {
+                                                                    ...p.customer,
+                                                                    name: e.target.value
+                                                                }
+                                                            }
+                                                            return p;
+                                                        })
+                                                    })
+                                                }
+
+                                                props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, id: 0, name: e.target.value })
+                                            } else {
+                                                props.setSelectedOrder({
+                                                    ...props.selected_order,
+                                                    deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                        if (p.id === props.selectedConsigneeCompanyInfo.id) {
+                                                            p.customer = {
+                                                                ...p.customer,
+                                                                name: e.target.value
+                                                            }
+                                                        }
+                                                        return p;
+                                                    })
+                                                })
+
+                                                props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, name: e.target.value })
+                                            }
+                                        }}
+                                        value={props.selectedConsigneeCompanyInfo?.name || ''}
                                     />
                                 </div>
                             </div>
@@ -6026,10 +7262,106 @@ function Dispatch(props) {
                                         <div className="form-row">
                                             <div className="input-box-container grow">
                                                 <input tabIndex={37 + props.tabTimes} type="text" placeholder="Address 1"
-                                                    onKeyDown={validateConsigneeCompanyInfoForSaving}
-                                                    onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, address1: e.target.value }) }}
-                                                    onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, address1: e.target.value }) }}
-                                                    value={props.selectedConsigneeCompanyInfo.address1 || ''}
+                                                    // onKeyDown={validateConsigneeCompanyInfoForSaving}
+                                                    onInput={(e) => {
+                                                        if (props.selectedConsigneeCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.deliveries || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: [
+                                                                        ...props.selected_order?.deliveries || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                id: 0,
+                                                                                address1: e.target.value
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                address1: e.target.value
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, id: 0, address1: e.target.value })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                    if (p.id === props.selectedConsigneeCompanyInfo?.id) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            address1: e.target.value
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, address1: e.target.value })
+                                                        }
+                                                    }}
+                                                    onChange={(e) => {
+                                                        if (props.selectedConsigneeCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.deliveries || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: [
+                                                                        ...props.selected_order?.deliveries || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                id: 0,
+                                                                                address1: e.target.value
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                address1: e.target.value
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, id: 0, address1: e.target.value })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            address1: e.target.value
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, address1: e.target.value })
+                                                        }
+                                                    }}
+                                                    value={props.selectedConsigneeCompanyInfo?.address1 || ''}
                                                 />
                                             </div>
                                         </div>
@@ -6037,10 +7369,106 @@ function Dispatch(props) {
                                         <div className="form-row">
                                             <div className="input-box-container grow">
                                                 <input tabIndex={38 + props.tabTimes} type="text" placeholder="Address 2"
-                                                    onKeyDown={validateConsigneeCompanyInfoForSaving}
-                                                    onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, address2: e.target.value }) }}
-                                                    onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, address2: e.target.value }) }}
-                                                    value={props.selectedConsigneeCompanyInfo.address2 || ''}
+                                                    // onKeyDown={validateConsigneeCompanyInfoForSaving}
+                                                    onInput={(e) => {
+                                                        if (props.selectedConsigneeCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.deliveries || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: [
+                                                                        ...props.selected_order?.deliveries || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                id: 0,
+                                                                                address2: e.target.value
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                address2: e.target.value
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, id: 0, address2: e.target.value })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                    if (p.id === props.selectedConsigneeCompanyInfo?.id) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            address2: e.target.value
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, address2: e.target.value })
+                                                        }
+                                                    }}
+                                                    onChange={(e) => {
+                                                        if (props.selectedConsigneeCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.deliveries || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: [
+                                                                        ...props.selected_order?.deliveries || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                id: 0,
+                                                                                address2: e.target.value
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                address2: e.target.value
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, id: 0, address2: e.target.value })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            address2: e.target.value
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, address2: e.target.value })
+                                                        }
+                                                    }}
+                                                    value={props.selectedConsigneeCompanyInfo?.address2 || ''}
                                                 />
                                             </div>
                                         </div>
@@ -6048,28 +7476,316 @@ function Dispatch(props) {
                                         <div className="form-row">
                                             <div className="input-box-container grow">
                                                 <input tabIndex={39 + props.tabTimes} type="text" placeholder="City"
-                                                    onKeyDown={validateConsigneeCompanyInfoForSaving}
-                                                    onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, city: e.target.value }) }}
-                                                    onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, city: e.target.value }) }}
-                                                    value={props.selectedConsigneeCompanyInfo.city || ''}
+                                                    // onKeyDown={validateConsigneeCompanyInfoForSaving}
+                                                    onInput={(e) => {
+                                                        if (props.selectedConsigneeCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.deliveries || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: [
+                                                                        ...props.selected_order?.deliveries || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                id: 0,
+                                                                                city: e.target.value
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                city: e.target.value
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, id: 0, city: e.target.value })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            city: e.target.value
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, city: e.target.value })
+                                                        }
+                                                    }}
+                                                    onChange={(e) => {
+                                                        if (props.selectedConsigneeCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.deliveries || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: [
+                                                                        ...props.selected_order?.deliveries || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                id: 0,
+                                                                                city: e.target.value
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                city: e.target.value
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, id: 0, city: e.target.value })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            city: e.target.value
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, city: e.target.value })
+                                                        }
+                                                    }}
+                                                    value={props.selectedConsigneeCompanyInfo?.city || ''}
                                                 />
                                             </div>
                                             <div className="form-h-sep"></div>
                                             <div className="input-box-container input-state">
                                                 <input tabIndex={40 + props.tabTimes} type="text" placeholder="State" maxLength="2"
-                                                    onKeyDown={validateConsigneeCompanyInfoForSaving}
-                                                    onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, state: e.target.value }) }}
-                                                    onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, state: e.target.value }) }}
-                                                    value={props.selectedConsigneeCompanyInfo.state || ''}
+                                                    // onKeyDown={validateConsigneeCompanyInfoForSaving}
+                                                    onInput={(e) => {
+                                                        if (props.selectedConsigneeCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.deliveries || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: [
+                                                                        ...props.selected_order?.deliveries || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                id: 0,
+                                                                                state: e.target.value.toUpperCase()
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                state: e.target.value.toUpperCase()
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, id: 0, state: e.target.value.toUpperCase() })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            state: e.target.value.toUpperCase()
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, state: e.target.value.toUpperCase() })
+                                                        }
+                                                    }}
+                                                    onChange={(e) => {
+                                                        if (props.selectedConsigneeCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.deliveries || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: [
+                                                                        ...props.selected_order?.deliveries || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                id: 0,
+                                                                                state: e.target.value.toUpperCase()
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                state: e.target.value.toUpperCase()
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, id: 0, state: e.target.value.toUpperCase() })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            state: e.target.value.toUpperCase()
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, state: e.target.value.toUpperCase() })
+                                                        }
+                                                    }}
+                                                    value={props.selectedConsigneeCompanyInfo?.state || ''}
                                                 />
                                             </div>
                                             <div className="form-h-sep"></div>
                                             <div className="input-box-container input-zip-code">
                                                 <input tabIndex={41 + props.tabTimes} type="text" placeholder="Postal Code"
                                                     onKeyDown={validateConsigneeCompanyInfoForSaving}
-                                                    onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, zip: e.target.value }) }}
-                                                    onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, zip: e.target.value }) }}
-                                                    value={props.selectedConsigneeCompanyInfo.zip || ''}
+                                                    onInput={(e) => {
+                                                        if (props.selectedConsigneeCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.deliveries || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: [
+                                                                        ...props.selected_order?.deliveries || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                id: 0,
+                                                                                zip: e.target.value
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                zip: e.target.value
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, id: 0, zip: e.target.value })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            zip: e.target.value
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, zip: e.target.value })
+                                                        }
+                                                    }}
+                                                    onChange={(e) => {
+                                                        if (props.selectedConsigneeCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.deliveries || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: [
+                                                                        ...props.selected_order?.deliveries || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                id: 0,
+                                                                                zip: e.target.value
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                zip: e.target.value
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, id: 0, zip: e.target.value })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            zip: e.target.value
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, zip: e.target.value })
+                                                        }
+                                                    }}
+                                                    value={props.selectedConsigneeCompanyInfo?.zip || ''}
                                                 />
                                             </div>
                                         </div>
@@ -6096,7 +7812,71 @@ function Dispatch(props) {
                                                             return true;
                                                         })
 
-                                                        props.setSelectedConsigneeCompanyContact({ ...props.selectedConsigneeCompanyContact, first_name: first_name, last_name: last_name });
+                                                        if (props.selectedConsigneeCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.deliveries || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: [
+                                                                        ...props.selected_order?.deliveries || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                contacts: [
+                                                                                    {
+                                                                                        id: 0,
+                                                                                        first_name: first_name,
+                                                                                        last_name: last_name,
+                                                                                        is_primary: 1
+                                                                                    }
+                                                                                ]
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                contacts: (p.customer.contacts || []).map((c, i) => {
+                                                                                    if (c.is_primary === 1) {
+                                                                                        c.first_name = first_name;
+                                                                                        c.last_name = last_name;
+                                                                                    }
+                                                                                    return c;
+                                                                                })
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedConsigneeCompanyContact({ ...props.selectedConsigneeCompanyContact, first_name: first_name, last_name: last_name })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            contacts: (p.customer.contacts || []).map((c, i) => {
+                                                                                if (c.is_primary === 1) {
+                                                                                    c.first_name = first_name;
+                                                                                    c.last_name = last_name;
+                                                                                }
+                                                                                return c;
+                                                                            })
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedConsigneeCompanyContact({ ...props.selectedConsigneeCompanyContact, first_name: first_name, last_name: last_name })
+                                                        }
                                                     }}
 
                                                     onInput={(e) => {
@@ -6107,6 +7887,7 @@ function Dispatch(props) {
                                                             first_name += ' ';
                                                         }
 
+
                                                         let last_name = '';
 
                                                         splitted.map((item, index) => {
@@ -6116,9 +7897,72 @@ function Dispatch(props) {
                                                             return true;
                                                         })
 
-                                                        props.setSelectedConsigneeCompanyContact({ ...props.selectedConsigneeCompanyContact, first_name: first_name, last_name: last_name });
-                                                    }}
+                                                        if (props.selectedConsigneeCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.deliveries || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: [
+                                                                        ...props.selected_order?.deliveries || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                contacts: [
+                                                                                    {
+                                                                                        id: 0,
+                                                                                        first_name: first_name,
+                                                                                        last_name: last_name,
+                                                                                        is_primary: 1
+                                                                                    }
+                                                                                ]
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                contacts: (p.customer.contacts || []).map((c, i) => {
+                                                                                    if (c.is_primary === 1) {
+                                                                                        c.first_name = first_name;
+                                                                                        c.last_name = last_name;
+                                                                                    }
+                                                                                    return c;
+                                                                                })
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
 
+                                                            props.setSelectedConsigneeCompanyContact({ ...props.selectedConsigneeCompanyContact, first_name: first_name, last_name: last_name })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            contacts: (p.customer.contacts || []).map((c, i) => {
+                                                                                if (c.is_primary === 1) {
+                                                                                    c.first_name = first_name;
+                                                                                    c.last_name = last_name;
+                                                                                }
+                                                                                return c;
+                                                                            })
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedConsigneeCompanyContact({ ...props.selectedConsigneeCompanyContact, first_name: first_name, last_name: last_name })
+                                                        }
+                                                    }}
                                                     value={(props.selectedConsigneeCompanyContact?.first_name || '') + ((props.selectedConsigneeCompanyContact?.last_name || '').trim() === '' ? '' : ' ' + props.selectedConsigneeCompanyContact?.last_name)}
                                                 />
                                             </div>
@@ -6129,18 +7973,318 @@ function Dispatch(props) {
                                                     guide={true}
                                                     type="text" placeholder="Contact Phone"
                                                     onKeyDown={validateConsigneeCompanyContactForSaving}
-                                                    onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, contact_phone: e.target.value }) }}
-                                                    onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, contact_phone: e.target.value }) }}
-                                                    value={props.selectedConsigneeCompanyInfo.contact_phone || ''}
+                                                    onInput={(e) => {
+                                                        if (props.selectedConsigneeCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.deliveries || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: [
+                                                                        ...props.selected_order?.deliveries || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                contacts: [
+                                                                                    {
+                                                                                        id: 0,
+                                                                                        phone_work: e.target.value,
+                                                                                        primary_phone: 'work'
+                                                                                    }
+                                                                                ]
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                contacts: (p.customer.contacts || []).map((c, i) => {
+                                                                                    if (c.is_primary === 1) {
+                                                                                        c.phone_work = e.target.value;
+                                                                                        c.primary_phone = 'work';
+                                                                                    }
+                                                                                    return c;
+                                                                                })
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedConsigneeCompanyContact({
+                                                                ...props.selectedConsigneeCompanyContact,
+                                                                phone_work: (props.selectedConsigneeCompanyContact?.primary_phone || 'work') === 'work' ? e.target.value : (props.selectedConsigneeCompanyContact?.phone_work || ''),
+                                                                phone_work_fax: (props.selectedConsigneeCompanyContact?.primary_phone || 'work') === 'fax' ? e.target.value : (props.selectedConsigneeCompanyContact?.phone_work_fax || ''),
+                                                                phone_mobile: (props.selectedConsigneeCompanyContact?.primary_phone || 'work') === 'mobile' ? e.target.value : (props.selectedConsigneeCompanyContact?.phone_mobile || ''),
+                                                                phone_direct: (props.selectedConsigneeCompanyContact?.primary_phone || 'work') === 'direct' ? e.target.value : (props.selectedConsigneeCompanyContact?.phone_direct || ''),
+                                                                phone_other: (props.selectedConsigneeCompanyContact?.primary_phone || 'work') === 'other' ? e.target.value : (props.selectedConsigneeCompanyContact?.phone_other || ''),
+                                                            })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            contacts: (p.customer.contacts || []).map((c, i) => {
+                                                                                if (c.is_primary === 1) {
+                                                                                    c.phone_work = (c.primary_phone || 'work') === 'work' ? e.target.value : (c.phone_work || '');
+                                                                                    c.phone_work_fax = (c.primary_phone || 'work') === 'fax' ? e.target.value : (c.phone_work_fax || '');
+                                                                                    c.phone_mobile = (c.primary_phone || 'work') === 'mobile' ? e.target.value : (c.phone_mobile || '');
+                                                                                    c.phone_direct = (c.primary_phone || 'work') === 'direct' ? e.target.value : (c.phone_direct || '');
+                                                                                    c.phone_other = (c.primary_phone || 'work') === 'other' ? e.target.value : (c.phone_other || '');
+                                                                                }
+                                                                                return c;
+                                                                            })
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedConsigneeCompanyContact({
+                                                                ...props.selectedConsigneeCompanyContact,
+                                                                phone_work: (props.selectedConsigneeCompanyContact?.primary_phone || 'work') === 'work' ? e.target.value : (props.selectedConsigneeCompanyContact?.phone_work || ''),
+                                                                phone_work_fax: (props.selectedConsigneeCompanyContact?.primary_phone || 'work') === 'fax' ? e.target.value : (props.selectedConsigneeCompanyContact?.phone_work_fax || ''),
+                                                                phone_mobile: (props.selectedConsigneeCompanyContact?.primary_phone || 'work') === 'mobile' ? e.target.value : (props.selectedConsigneeCompanyContact?.phone_mobile || ''),
+                                                                phone_direct: (props.selectedConsigneeCompanyContact?.primary_phone || 'work') === 'direct' ? e.target.value : (props.selectedConsigneeCompanyContact?.phone_direct || ''),
+                                                                phone_other: (props.selectedConsigneeCompanyContact?.primary_phone || 'work') === 'other' ? e.target.value : (props.selectedConsigneeCompanyContact?.phone_other || ''),
+                                                            })
+                                                        }
+                                                    }}
+                                                    onChange={(e) => {
+                                                        if (props.selectedConsigneeCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.deliveries || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: [
+                                                                        ...props.selected_order?.deliveries || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                contacts: [
+                                                                                    {
+                                                                                        id: 0,
+                                                                                        phone_work: e.target.value,
+                                                                                        primary_phone: 'work'
+                                                                                    }
+                                                                                ]
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                contacts: (p.customer.contacts || []).map((c, i) => {
+                                                                                    if (c.is_primary === 1) {
+                                                                                        c.phone_work = e.target.value;
+                                                                                        c.primary_phone = 'work';
+                                                                                    }
+                                                                                    return c;
+                                                                                })
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedConsigneeCompanyContact({
+                                                                ...props.selectedConsigneeCompanyContact,
+                                                                phone_work: (props.selectedConsigneeCompanyContact?.primary_phone || 'work') === 'work' ? e.target.value : (props.selectedConsigneeCompanyContact?.phone_work || ''),
+                                                                phone_work_fax: (props.selectedConsigneeCompanyContact?.primary_phone || 'work') === 'fax' ? e.target.value : (props.selectedConsigneeCompanyContact?.phone_work_fax || ''),
+                                                                phone_mobile: (props.selectedConsigneeCompanyContact?.primary_phone || 'work') === 'mobile' ? e.target.value : (props.selectedConsigneeCompanyContact?.phone_mobile || ''),
+                                                                phone_direct: (props.selectedConsigneeCompanyContact?.primary_phone || 'work') === 'direct' ? e.target.value : (props.selectedConsigneeCompanyContact?.phone_direct || ''),
+                                                                phone_other: (props.selectedConsigneeCompanyContact?.primary_phone || 'work') === 'other' ? e.target.value : (props.selectedConsigneeCompanyContact?.phone_other || ''),
+                                                            })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            contacts: (p.customer.contacts || []).map((c, i) => {
+                                                                                if (c.is_primary === 1) {
+                                                                                    c.phone_work = (c.primary_phone || 'work') === 'work' ? e.target.value : (c.phone_work || '');
+                                                                                    c.phone_work_fax = (c.primary_phone || 'work') === 'fax' ? e.target.value : (c.phone_work_fax || '');
+                                                                                    c.phone_mobile = (c.primary_phone || 'work') === 'mobile' ? e.target.value : (c.phone_mobile || '');
+                                                                                    c.phone_direct = (c.primary_phone || 'work') === 'direct' ? e.target.value : (c.phone_direct || '');
+                                                                                    c.phone_other = (c.primary_phone || 'work') === 'other' ? e.target.value : (c.phone_other || '');
+                                                                                }
+                                                                                return c;
+                                                                            })
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedConsigneeCompanyContact({
+                                                                ...props.selectedConsigneeCompanyContact,
+                                                                phone_work: (props.selectedConsigneeCompanyContact?.primary_phone || 'work') === 'work' ? e.target.value : (props.selectedConsigneeCompanyContact?.phone_work || ''),
+                                                                phone_work_fax: (props.selectedConsigneeCompanyContact?.primary_phone || 'work') === 'fax' ? e.target.value : (props.selectedConsigneeCompanyContact?.phone_work_fax || ''),
+                                                                phone_mobile: (props.selectedConsigneeCompanyContact?.primary_phone || 'work') === 'mobile' ? e.target.value : (props.selectedConsigneeCompanyContact?.phone_mobile || ''),
+                                                                phone_direct: (props.selectedConsigneeCompanyContact?.primary_phone || 'work') === 'direct' ? e.target.value : (props.selectedConsigneeCompanyContact?.phone_direct || ''),
+                                                                phone_other: (props.selectedConsigneeCompanyContact?.primary_phone || 'work') === 'other' ? e.target.value : (props.selectedConsigneeCompanyContact?.phone_other || ''),
+                                                            })
+                                                        }
+                                                    }}
+                                                    value={
+                                                        (props.selectedConsigneeCompanyContact?.primary_phone || 'work') === 'work'
+                                                            ? (props.selectedConsigneeCompanyContact?.phone_work || '')
+                                                            : (props.selectedConsigneeCompanyContact?.primary_phone || 'work') === 'fax'
+                                                                ? (props.selectedConsigneeCompanyContact?.phone_work_fax || '')
+                                                                : (props.selectedConsigneeCompanyContact?.primary_phone || 'work') === 'mobile'
+                                                                    ? (props.selectedConsigneeCompanyContact?.phone_mobile || '')
+                                                                    : (props.selectedConsigneeCompanyContact?.primary_phone || 'work') === 'direct'
+                                                                        ? (props.selectedConsigneeCompanyContact?.phone_direct || '')
+                                                                        : (props.selectedConsigneeCompanyContact?.primary_phone || 'work') === 'other'
+                                                                            ? (props.selectedConsigneeCompanyContact?.phone_other || '')
+                                                                            : ''
+                                                    }
                                                 />
                                             </div>
                                             <div className="form-h-sep"></div>
                                             <div className="input-box-container input-phone-ext">
                                                 <input tabIndex={44 + props.tabTimes} type="text" placeholder="Ext"
                                                     onKeyDown={validateConsigneeCompanyContactForSaving}
-                                                    onInput={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, ext: e.target.value }) }}
-                                                    onChange={(e) => { props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, ext: e.target.value }) }}
-                                                    value={props.selectedConsigneeCompanyInfo.ext || ''}
+                                                    onInput={(e) => {
+                                                        if (props.selectedConsigneeCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.deliveries || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: [
+                                                                        ...props.selected_order?.deliveries || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                contacts: [
+                                                                                    {
+                                                                                        id: 0,
+                                                                                        phone_ext: e.target.value
+                                                                                    }
+                                                                                ]
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                contacts: (p.customer.contacts || []).map((c, i) => {
+                                                                                    if (c.is_primary === 1) {
+                                                                                        c.phone_ext = e.target.value
+                                                                                    }
+                                                                                    return c;
+                                                                                })
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedConsigneeCompanyContact({ ...props.selectedConsigneeCompanyContact, phone_ext: e.target.value })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            contacts: (p.customer.contacts || []).map((c, i) => {
+                                                                                if (c.is_primary === 1) {
+                                                                                    c.phone_ext = e.target.value
+                                                                                }
+                                                                                return c;
+                                                                            })
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedConsigneeCompanyContact({ ...props.selectedConsigneeCompanyContact, phone_ext: e.target.value })
+                                                        }
+                                                    }}
+                                                    onChange={(e) => {
+                                                        if (props.selectedConsigneeCompanyInfo?.id || 0 === 0) {
+                                                            if ((props.selected_order?.deliveries || []).find(p => p.id === 0) === undefined) {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: [
+                                                                        ...props.selected_order?.deliveries || [],
+                                                                        {
+                                                                            id: 0,
+                                                                            customer: {
+                                                                                contacts: [
+                                                                                    {
+                                                                                        id: 0,
+                                                                                        phone_ext: e.target.value
+                                                                                    }
+                                                                                ]
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                })
+                                                            } else {
+                                                                props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                        if (p.id === 0) {
+                                                                            p.customer = {
+                                                                                ...p.customer,
+                                                                                contacts: (p.customer.contacts || []).map((c, i) => {
+                                                                                    if (c.is_primary === 1) {
+                                                                                        c.phone_ext = e.target.value
+                                                                                    }
+                                                                                    return c;
+                                                                                })
+                                                                            }
+                                                                        }
+                                                                        return p;
+                                                                    })
+                                                                })
+                                                            }
+
+                                                            props.setSelectedConsigneeCompanyContact({ ...props.selectedConsigneeCompanyContact, phone_ext: e.target.value })
+                                                        } else {
+                                                            props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                deliveries: (props.selected_order?.deliveries || []).map((p, i) => {
+                                                                    if (p.id === 0) {
+                                                                        p.customer = {
+                                                                            ...p.customer,
+                                                                            contacts: (p.customer.contacts || []).map((c, i) => {
+                                                                                if (c.is_primary === 1) {
+                                                                                    c.phone_ext = e.target.value
+                                                                                }
+                                                                                return c;
+                                                                            })
+                                                                        }
+                                                                    }
+                                                                    return p;
+                                                                })
+                                                            })
+
+                                                            props.setSelectedConsigneeCompanyContact({ ...props.selectedConsigneeCompanyContact, phone_ext: e.target.value })
+                                                        }
+                                                    }}
+                                                    value={props.selectedConsigneeCompanyContact?.phone_ext || ''}
                                                 />
                                             </div>
                                         </div>
@@ -6159,17 +8303,33 @@ function Dispatch(props) {
                                                         let key = e.keyCode || e.which;
                                                         await setDeliveryDate1KeyCode(key);
 
-                                                        let deliveryDate1 = e.target.value.trim() === '' ? moment() : moment(getFormattedDates(props.selectedConsigneeCompanyInfo?.extra_data?.delivery_date1 || ''), 'MM/DD/YYYY');
+                                                        let deliveryDate1 = e.target.value.trim() === '' ? moment() : moment(getFormattedDates(props.selectedConsigneeCompanyInfo?.delivery_date1 || ''), 'MM/DD/YYYY');
                                                         await setPreSelectedDeliveryDate1(deliveryDate1);
-                                                        let extra_data = props.selectedConsigneeCompanyInfo?.extra_data || {};
 
                                                         if (key === 13) {
-                                                            extra_data.delivery_date1 = preSelectedDeliveryDate1.clone().format('MM/DD/YYYY');
+                                                            await props.setSelectedConsigneeCompanyInfo({
+                                                                ...props.selectedConsigneeCompanyInfo,
+                                                                delivery_date1: preSelectedDeliveryDate1.clone().format('MM/DD/YYYY')
+                                                            });
+
+                                                            await props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                deliveries: (props.selected_order?.deliveries || []).map((delivery, i) => {
+                                                                    if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
+                                                                        delivery.delivery_date1 = preSelectedDeliveryDate1.clone().format('MM/DD/YYYY');
+                                                                        delivery.delivery_date2 = preSelectedDeliveryDate1.clone().format('MM/DD/YYYY');
+                                                                    }
+                                                                    return delivery;
+                                                                })
+                                                            });
 
                                                             await setIsDeliveryDate1CalendarShown(false);
                                                             await setIsDeliveryDate2CalendarShown(false);
                                                             await setIsDeliveryDate1CalendarShown(false);
                                                             await setIsDeliveryDate2CalendarShown(false);
+
+                                                            // await validateOrderForSaving({ keyCode: 9 });
+
                                                         }
 
                                                         if (key >= 37 && key <= 40) {
@@ -6192,52 +8352,74 @@ function Dispatch(props) {
                                                                     setPreSelectedDeliveryDate1(preSelectedDeliveryDate1.clone().add(7, 'day'));
                                                                 }
 
-                                                                await props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, extra_data: extra_data })
-
-                                                                let deliveries = (props.selected_order?.deliveries || []).map((delivery, i) => {
-                                                                    if (delivery.id === props.selectedConsigneeCompanyInfo.id) {
-                                                                        delivery.extra_data = extra_data;
-                                                                    }
-                                                                    return delivery;
+                                                                await props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: (props.selected_order?.deliveries || []).map((delivery, i) => {
+                                                                        if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
+                                                                            delivery.delivery_date1 = preSelectedDeliveryDate1.clone().format('MM/DD/YYYY');
+                                                                        }
+                                                                        return delivery;
+                                                                    })
                                                                 });
-
-                                                                await props.setSelectedOrder({ ...props.selected_order, deliveries: deliveries });
-                                                                await validateOrderForSaving({ keyCode: 9 });
+                                                                // await validateOrderForSaving({ keyCode: 9 });
                                                             }
                                                         }
                                                     }}
                                                     onBlur={async (e) => {
                                                         if (deliveryDate1KeyCode === 9) {
                                                             let formatted = getFormattedDates(e.target.value);
-                                                            
-                                                            let extra_data = props.selectedConsigneeCompanyInfo?.extra_data || {};
-                                                            extra_data.delivery_date1 = formatted;
-                                                            extra_data.delivery_date2 = formatted;
-                                                            await props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, extra_data: extra_data })
+
+                                                            await props.setSelectedConsigneeCompanyInfo({
+                                                                ...props.selectedConsigneeCompanyInfo,
+                                                                delivery_date1: formatted,
+                                                                delivery_date2: formatted
+                                                            })
 
                                                             let deliveries = (props.selected_order?.deliveries || []).map((delivery, i) => {
-                                                                if (delivery.id === props.selectedConsigneeCompanyInfo.id) {
-                                                                    delivery.extra_data = extra_data;
+                                                                if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
+                                                                    delivery.delivery_date1 = formatted;
+                                                                    delivery.delivery_date2 = formatted;
+                                                                    setIsSavingDeliveryId(delivery.id);
                                                                 }
                                                                 return delivery;
                                                             });
 
                                                             await props.setSelectedOrder({ ...props.selected_order, deliveries: deliveries });
-
-                                                            await validateOrderForSaving({ keyCode: 9 });
                                                         }
                                                     }}
                                                     onInput={(e) => {
-                                                        let extra_data = props.selectedConsigneeCompanyInfo?.extra_data || {};
-                                                        extra_data.delivery_date1 = e.target.value;
-                                                        props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, extra_data: extra_data })
+                                                        props.setSelectedConsigneeCompanyInfo({
+                                                            ...props.selectedConsigneeCompanyInfo,
+                                                            delivery_date1: e.target.value
+                                                        });
+
+                                                        props.setSelectedOrder({
+                                                            ...props.selected_order,
+                                                            deliveries: (props.selected_order?.deliveries || []).map((delivery, i) => {
+                                                                if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
+                                                                    delivery.delivery_date1 = e.target.value;
+                                                                }
+                                                                return delivery;
+                                                            })
+                                                        })
                                                     }}
                                                     onChange={(e) => {
-                                                        let extra_data = props.selectedConsigneeCompanyInfo?.extra_data || {};
-                                                        extra_data.delivery_date1 = e.target.value;
-                                                        props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, extra_data: extra_data })
+                                                        props.setSelectedConsigneeCompanyInfo({
+                                                            ...props.selectedConsigneeCompanyInfo,
+                                                            delivery_date1: e.target.value
+                                                        });
+
+                                                        props.setSelectedOrder({
+                                                            ...props.selected_order,
+                                                            deliveries: (props.selected_order?.deliveries || []).map((delivery, i) => {
+                                                                if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
+                                                                    delivery.delivery_date1 = e.target.value;
+                                                                }
+                                                                return delivery;
+                                                            })
+                                                        })
                                                     }}
-                                                    value={props.selectedConsigneeCompanyInfo?.extra_data?.delivery_date1 || ''}
+                                                    value={(props.selectedConsigneeCompanyInfo?.delivery_date1 || '')}
                                                 />
 
                                                 <span className="fas fa-calendar-alt open-calendar-btn" onClick={(e) => {
@@ -6245,8 +8427,8 @@ function Dispatch(props) {
                                                     setIsPickupDate2CalendarShown(false);
                                                     setIsDeliveryDate2CalendarShown(false);
 
-                                                    if (moment((props.selectedConsigneeCompanyInfo?.extra_data?.delivery_date1 || '').trim(), 'MM/DD/YYYY').format('MM/DD/YYYY') === (props.selectedConsigneeCompanyInfo?.extra_data?.delivery_date1 || '').trim()) {
-                                                        setPreSelectedDeliveryDate1(moment(props.selectedConsigneeCompanyInfo?.extra_data?.delivery_date1, 'MM/DD/YYYY'));
+                                                    if (moment((props.selectedConsigneeCompanyInfo?.delivery_date1 || '').trim(), 'MM/DD/YYYY').format('MM/DD/YYYY') === (props.selectedConsigneeCompanyInfo?.delivery_date1 || '').trim()) {
+                                                        setPreSelectedDeliveryDate1(moment(props.selectedConsigneeCompanyInfo?.delivery_date1, 'MM/DD/YYYY'));
                                                     } else {
                                                         setPreSelectedDeliveryDate1(moment());
                                                     }
@@ -6314,34 +8496,56 @@ function Dispatch(props) {
                                                     onBlur={async (e) => {
                                                         if (deliveryTime1KeyCode === 9) {
                                                             let formatted = getFormattedHours(e.target.value);
-                                                            
-                                                            let extra_data = props.selectedConsigneeCompanyInfo?.extra_data || {};
-                                                            extra_data.delivery_time1 = formatted;
-                                                            await props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, extra_data: extra_data })
+
+                                                            await props.setSelectedConsigneeCompanyInfo({
+                                                                ...props.selectedConsigneeCompanyInfo,
+                                                                delivery_time1: formatted
+                                                            })
 
                                                             let deliveries = (props.selected_order?.deliveries || []).map((delivery, i) => {
-                                                                if (delivery.id === props.selectedConsigneeCompanyInfo.id) {
-                                                                    delivery.extra_data = extra_data;
+                                                                if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
+                                                                    delivery.delivery_time1 = formatted;
+                                                                    setIsSavingDeliveryId(delivery.id);
                                                                 }
                                                                 return delivery;
                                                             });
 
                                                             await props.setSelectedOrder({ ...props.selected_order, deliveries: deliveries });
-
-                                                            await validateOrderForSaving({ keyCode: 9 });
                                                         }
                                                     }}
                                                     onInput={(e) => {
-                                                        let extra_data = props.selectedConsigneeCompanyInfo?.extra_data || {};
-                                                        extra_data.delivery_time1 = e.target.value;
-                                                        props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, extra_data: extra_data })
+                                                        props.setSelectedConsigneeCompanyInfo({
+                                                            ...props.selectedConsigneeCompanyInfo,
+                                                            delivery_time1: e.target.value
+                                                        });
+
+                                                        props.setSelectedOrder({
+                                                            ...props.selected_order,
+                                                            deliveries: (props.selected_order?.deliveries || []).map((delivery, i) => {
+                                                                if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
+                                                                    delivery.delivery_time1 = e.target.value;
+                                                                }
+                                                                return delivery;
+                                                            })
+                                                        })
                                                     }}
                                                     onChange={(e) => {
-                                                        let extra_data = props.selectedConsigneeCompanyInfo?.extra_data || {};
-                                                        extra_data.delivery_time1 = e.target.value;
-                                                        props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, extra_data: extra_data })
+                                                        props.setSelectedConsigneeCompanyInfo({
+                                                            ...props.selectedConsigneeCompanyInfo,
+                                                            delivery_time1: e.target.value
+                                                        });
+
+                                                        props.setSelectedOrder({
+                                                            ...props.selected_order,
+                                                            deliveries: (props.selected_order?.deliveries || []).map((delivery, i) => {
+                                                                if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
+                                                                    delivery.delivery_time1 = e.target.value;
+                                                                }
+                                                                return delivery;
+                                                            })
+                                                        })
                                                     }}
-                                                    value={props.selectedConsigneeCompanyInfo?.extra_data?.delivery_time1 || ''}
+                                                    value={props.selectedConsigneeCompanyInfo?.delivery_time1 || ''}
                                                 />
                                             </div>
                                             <div style={{ minWidth: '1.8rem', fontSize: '1rem', textAlign: 'center' }}>To</div>
@@ -6356,17 +8560,32 @@ function Dispatch(props) {
                                                         let key = e.keyCode || e.which;
                                                         await setDeliveryDate2KeyCode(key);
 
-                                                        let deliveryDate2 = e.target.value.trim() === '' ? moment() : moment(getFormattedDates(props.selectedConsigneeCompanyInfo?.extra_data?.delivery_date2 || ''), 'MM/DD/YYYY');
+                                                        let deliveryDate2 = e.target.value.trim() === '' ? moment() : moment(getFormattedDates(props.selectedConsigneeCompanyInfo?.delivery_date2 || ''), 'MM/DD/YYYY');
                                                         await setPreSelectedDeliveryDate2(deliveryDate2);
-                                                        let extra_data = props.selectedConsigneeCompanyInfo?.extra_data || {};
 
                                                         if (key === 13) {
-                                                            extra_data.delivery_date2 = preSelectedDeliveryDate2.clone().format('MM/DD/YYYY');
+                                                            await props.setSelectedConsigneeCompanyInfo({
+                                                                ...props.selectedConsigneeCompanyInfo,
+                                                                delivery_date2: preSelectedDeliveryDate2.clone().format('MM/DD/YYYY')
+                                                            });
+
+                                                            await props.setSelectedOrder({
+                                                                ...props.selected_order,
+                                                                deliveries: (props.selected_order?.deliveries || []).map((delivery, i) => {
+                                                                    if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
+                                                                        delivery.delivery_date2 = preSelectedDeliveryDate2.clone().format('MM/DD/YYYY')
+                                                                    }
+                                                                    return delivery;
+                                                                })
+                                                            });
 
                                                             await setIsDeliveryDate1CalendarShown(false);
                                                             await setIsDeliveryDate2CalendarShown(false);
                                                             await setIsDeliveryDate1CalendarShown(false);
                                                             await setIsDeliveryDate2CalendarShown(false);
+
+                                                            // await validateOrderForSaving({ keyCode: 9 });
+
                                                         }
 
                                                         if (key >= 37 && key <= 40) {
@@ -6389,51 +8608,72 @@ function Dispatch(props) {
                                                                     setPreSelectedDeliveryDate2(preSelectedDeliveryDate2.clone().add(7, 'day'));
                                                                 }
 
-                                                                await props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, extra_data: extra_data })
-
-                                                                let deliveries = (props.selected_order?.deliveries || []).map((delivery, i) => {
-                                                                    if (delivery.id === props.selectedConsigneeCompanyInfo.id) {
-                                                                        delivery.extra_data = extra_data;
-                                                                    }
-                                                                    return delivery;
+                                                                await props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: (props.selected_order?.deliveries || []).map((delivery, i) => {
+                                                                        if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
+                                                                            delivery.delivery_date2 = preSelectedDeliveryDate2.clone().format('MM/DD/YYYY');
+                                                                        }
+                                                                        return delivery;
+                                                                    })
                                                                 });
-
-                                                                await props.setSelectedOrder({ ...props.selected_order, deliveries: deliveries });
-                                                                await validateOrderForSaving({ keyCode: 9 });
+                                                                // await validateOrderForSaving({ keyCode: 9 });
                                                             }
                                                         }
                                                     }}
                                                     onBlur={async (e) => {
                                                         if (deliveryDate2KeyCode === 9) {
                                                             let formatted = getFormattedDates(e.target.value);
-                                                            
-                                                            let extra_data = props.selectedConsigneeCompanyInfo?.extra_data || {};
-                                                            extra_data.delivery_date2 = formatted;
-                                                            await props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, extra_data: extra_data })
+
+                                                            await props.setSelectedConsigneeCompanyInfo({
+                                                                ...props.selectedConsigneeCompanyInfo,
+                                                                delivery_date2: formatted
+                                                            })
 
                                                             let deliveries = (props.selected_order?.deliveries || []).map((delivery, i) => {
-                                                                if (delivery.id === props.selectedConsigneeCompanyInfo.id) {
-                                                                    delivery.extra_data = extra_data;
+                                                                if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
+                                                                    delivery.delivery_date2 = formatted;
+                                                                    setIsSavingDeliveryId(delivery.id);
                                                                 }
                                                                 return delivery;
                                                             });
 
                                                             await props.setSelectedOrder({ ...props.selected_order, deliveries: deliveries });
-
-                                                            await validateOrderForSaving({ keyCode: 9 });
                                                         }
                                                     }}
                                                     onInput={(e) => {
-                                                        let extra_data = props.selectedConsigneeCompanyInfo?.extra_data || {};
-                                                        extra_data.delivery_date2 = e.target.value;
-                                                        props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, extra_data: extra_data })
+                                                        props.setSelectedConsigneeCompanyInfo({
+                                                            ...props.selectedConsigneeCompanyInfo,
+                                                            delivery_date2: e.target.value
+                                                        });
+
+                                                        props.setSelectedOrder({
+                                                            ...props.selected_order,
+                                                            deliveries: (props.selected_order?.deliveries || []).map((delivery, i) => {
+                                                                if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
+                                                                    delivery.delivery_date2 = e.target.value;
+                                                                }
+                                                                return delivery;
+                                                            })
+                                                        })
                                                     }}
                                                     onChange={(e) => {
-                                                        let extra_data = props.selectedConsigneeCompanyInfo?.extra_data || {};
-                                                        extra_data.delivery_date2 = e.target.value;
-                                                        props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, extra_data: extra_data })
+                                                        props.setSelectedConsigneeCompanyInfo({
+                                                            ...props.selectedConsigneeCompanyInfo,
+                                                            delivery_date2: e.target.value
+                                                        });
+
+                                                        props.setSelectedOrder({
+                                                            ...props.selected_order,
+                                                            deliveries: (props.selected_order?.deliveries || []).map((delivery, i) => {
+                                                                if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
+                                                                    delivery.delivery_date2 = e.target.value;
+                                                                }
+                                                                return delivery;
+                                                            })
+                                                        })
                                                     }}
-                                                    value={props.selectedConsigneeCompanyInfo?.extra_data?.delivery_date2 || ''}
+                                                    value={(props.selectedConsigneeCompanyInfo?.delivery_date2 || '')}
                                                 />
 
                                                 <span className="fas fa-calendar-alt open-calendar-btn" onClick={(e) => {
@@ -6441,8 +8681,8 @@ function Dispatch(props) {
                                                     setIsPickupDate2CalendarShown(false);
                                                     setIsDeliveryDate1CalendarShown(false);
 
-                                                    if (moment((props.selectedConsigneeCompanyInfo?.extra_data?.delivery_date2 || '').trim(), 'MM/DD/YYYY').format('MM/DD/YYYY') === (props.selectedConsigneeCompanyInfo?.extra_data?.delivery_date2 || '').trim()) {
-                                                        setPreSelectedDeliveryDate2(moment(props.selectedConsigneeCompanyInfo?.extra_data?.delivery_date2, 'MM/DD/YYYY'));
+                                                    if (moment((props.selectedConsigneeCompanyInfo?.delivery_date2 || '').trim(), 'MM/DD/YYYY').format('MM/DD/YYYY') === (props.selectedConsigneeCompanyInfo?.delivery_date2 || '').trim()) {
+                                                        setPreSelectedDeliveryDate2(moment(props.selectedConsigneeCompanyInfo?.delivery_date2, 'MM/DD/YYYY'));
                                                     } else {
                                                         setPreSelectedDeliveryDate2(moment());
                                                     }
@@ -6510,34 +8750,56 @@ function Dispatch(props) {
                                                     onBlur={async (e) => {
                                                         if (deliveryTime2KeyCode === 9) {
                                                             let formatted = getFormattedHours(e.target.value);
-                                                            
-                                                            let extra_data = props.selectedConsigneeCompanyInfo?.extra_data || {};
-                                                            extra_data.delivery_time2 = formatted;
-                                                            await props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, extra_data: extra_data })
+
+                                                            await props.setSelectedConsigneeCompanyInfo({
+                                                                ...props.selectedConsigneeCompanyInfo,
+                                                                delivery_time2: formatted
+                                                            })
 
                                                             let deliveries = (props.selected_order?.deliveries || []).map((delivery, i) => {
-                                                                if (delivery.id === props.selectedConsigneeCompanyInfo.id) {
-                                                                    delivery.extra_data = extra_data;
+                                                                if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
+                                                                    delivery.delivery_time2 = formatted;
+                                                                    setIsSavingDeliveryId(delivery.id);
                                                                 }
                                                                 return delivery;
                                                             });
 
                                                             await props.setSelectedOrder({ ...props.selected_order, deliveries: deliveries });
-
-                                                            await validateOrderForSaving({ keyCode: 9 });
                                                         }
                                                     }}
                                                     onInput={(e) => {
-                                                        let extra_data = props.selectedConsigneeCompanyInfo?.extra_data || {};
-                                                        extra_data.delivery_time2 = e.target.value;
-                                                        props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, extra_data: extra_data })
+                                                        props.setSelectedConsigneeCompanyInfo({
+                                                            ...props.selectedConsigneeCompanyInfo,
+                                                            delivery_time2: e.target.value
+                                                        });
+
+                                                        props.setSelectedOrder({
+                                                            ...props.selected_order,
+                                                            deliveries: (props.selected_order?.deliveries || []).map((delivery, i) => {
+                                                                if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
+                                                                    delivery.delivery_time2 = e.target.value;
+                                                                }
+                                                                return delivery;
+                                                            })
+                                                        })
                                                     }}
                                                     onChange={(e) => {
-                                                        let extra_data = props.selectedConsigneeCompanyInfo?.extra_data || {};
-                                                        extra_data.delivery_time2 = e.target.value;
-                                                        props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, extra_data: extra_data })
+                                                        props.setSelectedConsigneeCompanyInfo({
+                                                            ...props.selectedConsigneeCompanyInfo,
+                                                            delivery_time2: e.target.value
+                                                        });
+
+                                                        props.setSelectedOrder({
+                                                            ...props.selected_order,
+                                                            deliveries: (props.selected_order?.deliveries || []).map((delivery, i) => {
+                                                                if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
+                                                                    delivery.delivery_time2 = e.target.value;
+                                                                }
+                                                                return delivery;
+                                                            })
+                                                        })
                                                     }}
-                                                    value={props.selectedConsigneeCompanyInfo?.extra_data?.delivery_time2 || ''}
+                                                    value={props.selectedConsigneeCompanyInfo?.delivery_time2 || ''}
                                                 />
                                             </div>
                                         </div>
@@ -6556,40 +8818,44 @@ function Dispatch(props) {
 
                                                         if (key === 9) {
                                                             e.preventDefault();
-
-                                                            goToTabindex((35 + props.tabTimes).toString());
+                                                            setIsSavingDeliveryId(props.selectedConsigneeCompanyInfo?.delivery_id || 0);
+                                                            goToTabindex((50 + props.tabTimes).toString());
                                                             props.setIsShowingConsigneeSecondPage(false);
                                                         }
                                                     }}
-                                                    onInput={async (e) => {
-                                                        let extra_data = props.selectedConsigneeCompanyInfo?.extra_data || {};
-                                                        extra_data.special_instructions = e.target.value
+                                                    onInput={(e) => {
+                                                        props.setSelectedOrder({
+                                                            ...props.selected_order,
+                                                            deliveries: (props.selected_order?.deliveries || []).map((delivery, i) => {
+                                                                if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
+                                                                    delivery.special_instructions = e.target.value;
+                                                                }
+                                                                return delivery;
+                                                            })
+                                                        });
 
-                                                        let deliveries = (props.selected_order?.deliveries || []).map((delivery, i) => {
-                                                            if (delivery.id === props.selectedConsigneeCompanyInfo.id) {
-                                                                delivery.extra_data = extra_data;
-                                                            }
-                                                            return delivery;
+                                                        props.setSelectedConsigneeCompanyInfo({
+                                                            ...props.selectedConsigneeCompanyInfo,
+                                                            special_instructions: e.target.value
                                                         })
-
-                                                        await props.setSelectedOrder({ ...props.selected_order, deliveries: deliveries });
-                                                        props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, extra_data: extra_data })
                                                     }}
-                                                    onChange={async (e) => {
-                                                        let extra_data = props.selectedConsigneeCompanyInfo?.extra_data || {};
-                                                        extra_data.special_instructions = e.target.value
+                                                    onChange={(e) => {
+                                                        props.setSelectedOrder({
+                                                            ...props.selected_order,
+                                                            deliveries: (props.selected_order?.deliveries || []).map((delivery, i) => {
+                                                                if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
+                                                                    delivery.special_instructions = e.target.value;
+                                                                }
+                                                                return delivery;
+                                                            })
+                                                        });
 
-                                                        let deliveries = (props.selected_order?.deliveries || []).map((delivery, i) => {
-                                                            if (delivery.id === props.selectedConsigneeCompanyInfo.id) {
-                                                                delivery.extra_data = extra_data;
-                                                            }
-                                                            return delivery;
+                                                        props.setSelectedConsigneeCompanyInfo({
+                                                            ...props.selectedConsigneeCompanyInfo,
+                                                            special_instructions: e.target.value
                                                         })
-
-                                                        await props.setSelectedOrder({ ...props.selected_order, deliveries: deliveries });
-                                                        props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, extra_data: extra_data })
                                                     }}
-                                                    value={props.selectedConsigneeCompanyInfo?.extra_data?.special_instructions || ''}
+                                                    value={props.selectedConsigneeCompanyInfo?.special_instructions || ''}
                                                 ></textarea>
                                             </div>
                                         </div>
@@ -7976,7 +10242,7 @@ function Dispatch(props) {
                         </Transition>
                     </div>
                     <div className="form-h-sep"></div>
-                    <div className="input-box-container" style={{width: '6rem'}}>
+                    <div className="input-box-container" style={{ width: '6rem' }}>
                         <input tabIndex={75 + props.tabTimes} type="text" placeholder="Event Time"
                             onKeyDown={(e) => {
                                 e.stopPropagation();
@@ -8256,7 +10522,7 @@ function Dispatch(props) {
                                 justifyContent: 'center',
                                 alignItems: 'center'
                             }}>
-                                <ChangeCarrier 
+                                <ChangeCarrier
                                     setOpenedPanels={props.setOpenedPanels}
                                     setShowingChangeCarrier={props.setShowingChangeCarrier}
                                     setSelectedOrder={props.setSelectedOrder}

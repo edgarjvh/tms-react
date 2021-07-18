@@ -76,9 +76,22 @@
   padding: 5px 0;
   cursor: pointer;
   transition: ease 0.3s;
+  display: flex;
+  align-items: center;
+}
+.factoring-company-container .factoring-company-list-container .factoring-company-list-wrapper .factoring-company-list-item .tcol.note-text {
+  flex-grow: 1;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
+}
+.factoring-company-container .factoring-company-list-container .factoring-company-list-wrapper .factoring-company-list-item .tcol.factoring-company-selected {
+  min-width: 1rem;
+  max-width: 1rem;
+  text-align: center;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
 }
 .factoring-company-container .factoring-company-list-container .factoring-company-list-wrapper .factoring-company-list-item:hover {
   background-color: rgba(0, 0, 0, 0.1);

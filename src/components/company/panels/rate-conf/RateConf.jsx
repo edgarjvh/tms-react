@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { connect } from "react-redux";
+import moment from 'moment';
 
 function RateConf(props) {
 
@@ -94,18 +95,30 @@ function RateConf(props) {
                         <div style={{
                             ...styleFlexRow
                         }}>
-                            <span style={{ ...styleFieldName, marginRight: 10 }}>DATE AND TIME SENT:</span> <span style={{ ...styleFieldDataBold }}>04/02/2019 @10:15</span>
+                            <span style={{ ...styleFieldName, marginRight: 10 }}>DATE AND TIME SENT:</span> <span style={{ ...styleFieldDataBold }}>{moment().format('MM/DD/YYYY')}@{moment().format('HHmm')}</span>
                         </div>
                         <div style={{
                             ...styleFlexRow
                         }}>
-                            <span style={{ ...styleFieldName, marginRight: 10 }}>ATTN:</span> <span style={{ ...styleFieldDataBold }}>DAVID HAWKINS</span>
+                            <span style={{ ...styleFieldName, marginRight: 10 }}>ATTN:</span> <span style={{ ...styleFieldDataBold }}>
+                                {props.selectedCarrierInfoContact?.first_name || ''} {props.selectedCarrierInfoContact?.last_name || ''}
+                            </span>
                         </div>
                         <div style={{
                             ...styleFlexRow,
                             marginBottom: '1.5rem'
                         }}>
-                            <span style={{ ...styleFieldName, marginRight: 10 }}>FAX:</span> <span style={{ ...styleFieldDataBold }}>901-794-0073</span>
+                            <span style={{ ...styleFieldName, marginRight: 10 }}>E-mail:</span> <span style={{ ...styleFieldDataBold }}>
+                                {
+                                    (props.selectedCarrierInfoContact?.primary_email || 'work') === 'work'
+                                        ? props.selectedCarrierInfoContact?.email_work || ''
+                                        : (props.selectedCarrierInfoContact?.primary_email || 'work') === 'personal'
+                                            ? props.selectedCarrierInfoContact?.email_personal || ''
+                                            : (props.selectedCarrierInfoContact?.primary_email || 'work') === 'other'
+                                                ? props.selectedCarrierInfoContact?.email_other || ''
+                                                : ''
+                                }
+                            </span>
                         </div>
 
                         <div style={{ ...styleFieldName, textAlign: 'center', fontSize: '1rem', marginBottom: '1.5rem' }}>
@@ -115,7 +128,9 @@ function RateConf(props) {
                         <div style={{
                             ...styleFlexRow
                         }}>
-                            <span style={{ ...styleFieldName, marginRight: 10 }}>Load Number:</span> <span style={{ ...styleFieldDataBold }}>123456</span>
+                            <span style={{ ...styleFieldName, marginRight: 10 }}>Order Number:</span> <span style={{ ...styleFieldDataBold }}>
+                                {props.selected_order?.order_number}
+                            </span>
                         </div>
                         <div style={{
                             ...styleFlexRow,
@@ -125,52 +140,89 @@ function RateConf(props) {
                         </div>
 
                         <div style={{ ...styleFieldName, fontWeight: 'normal', marginBottom: '1.5rem' }}>
-                            This rate confirmation sheet issued on <span style={{ ...styleFieldDataBold }}>04/02/2019</span> serves to supplement
-                            the Master Brokerage Agreement between <span style={{ ...styleFieldDataBold }}>COMPANY</span>, an ICC Property Broker
-                            (MC <span style={{ ...styleFieldData }}>780648</span>) and: <span style={{ ...styleFieldDataBold }}>Dan’s Transport</span> a permitted carrier
-                            (MC <span style={{ ...styleFieldData }}>780648</span>), do hereby agree to enter into a mutual agreement on the following load.
+                            This rate confirmation sheet issued on <span style={{ ...styleFieldDataBold }}>{moment().format('MM/DD/YYYY')}</span> serves to supplement
+                            the Master Brokerage Agreement between <span style={{ ...styleFieldDataBold }}>ET3 Logistics, LLC</span>, an ICC Property Broker
+                            (MC <span style={{ ...styleFieldData }}>780648</span>) and: <span style={{ ...styleFieldDataBold }}>{props.selectedCarrierInfo?.name}</span> a permitted carrier
+                            (MC <span style={{ ...styleFieldData }}>{props.selectedCarrierInfo?.mc_number}</span>), do hereby agree to enter into a mutual agreement on the following load.
                         </div>
 
 
-                        <div style={{
-                            ...styleFlexRow,
-                            justifyContent: 'space-evenly',
-                            marginBottom: '2.5rem'
-                        }}>
-                            <div style={{
-                                ...styleFlexCol
-                            }}>
-                                <div style={{ ...styleFieldName, textDecoration: 'underline' }}>Pick up Information</div>
-                                <div style={{ ...styleFieldData }}>
-                                    American Heart Association <br />
-                                    4808 Eastover Cir #101 <br />
-                                    Mesquite, TX 75149
-                                </div>
-                            </div>
+                        {
+                            (props.selected_order?.routing || []).map((route, index) => {
+                                let pickup = route.type === 'pickup' ? (props.selected_order?.pickups || []).find(p => p.id === route.pickup_id) : {};
+                                let delivery = route.type === 'delivery' ? (props.selected_order?.deliveries || []).find(d => d.id === route.delivery_id) : {};
+                                let customer = route.type === 'pickup' ? pickup.customer : delivery.customer;
 
-                            <div style={{
-                                ...styleFlexCol
-                            }}>
-                                <div style={{ ...styleFlexRow }}>
-                                    <div style={{ ...styleFieldName, width: '6rem' }}>Earliest Time:</div>
-                                    <div style={{ ...styleFieldData }}>02/09/2017@08:00</div>
-                                </div>
-                                <div style={{ ...styleFlexRow }}>
-                                    <div style={{ ...styleFieldName, width: '6rem' }}>Latest Time:</div>
-                                    <div style={{ ...styleFieldData }}>02/09/2017@08:00</div>
-                                </div>
-                                <div style={{ ...styleFlexRow }}>
-                                    <div style={{ ...styleFieldName, width: '6rem' }}>Phone:</div>
-                                    <div style={{ ...styleFieldData }}>214-275-3216</div>
-                                </div>
-                                <div style={{ ...styleFlexRow }}>
-                                    <div style={{ ...styleFieldName, width: '6rem' }}>Contact:</div>
-                                    <div style={{ ...styleFieldData }}>Wayne Duffy</div>
-                                </div>
+                                return (
+                                    <div style={{
+                                        ...styleFlexRow,
+                                        justifyContent: 'space-evenly',
+                                        marginBottom: '2.5rem'
+                                    }}>
+                                        <div style={{
+                                            ...styleFlexCol,
+                                            minWidth: '16rem'
+                                        }}>
+                                            <div style={{ ...styleFieldName, textDecoration: 'underline' }}>{route.type === 'pickup' ? 'Pick-Up' : 'Delivery'} Information</div>
+                                            <div style={{ ...styleFieldData }}>
+                                                {customer.name} <br />
+                                                {customer.address1} <br />
+                                                {customer.city}, {customer.state} {customer.zip}
+                                            </div>
+                                        </div>
 
-                            </div>
-                        </div>
+                                        <div style={{
+                                            ...styleFlexCol,
+                                            minWidth: '16rem'
+                                        }}>
+                                            <div style={{ ...styleFlexRow }}>
+                                                <div style={{ ...styleFieldName, width: '6rem' }}>Earliest Time:</div>
+                                                <div style={{ ...styleFieldData }}>
+                                                    {route.type === 'pickup' ? (pickup.pu_date1 || '') : (delivery.delivery_date1 || '')}@{route.type === 'pickup' ? (pickup.pu_time1 || '') : (delivery.delivery_time1 || '')}
+                                                </div>
+                                            </div>
+                                            <div style={{ ...styleFlexRow }}>
+                                                <div style={{ ...styleFieldName, width: '6rem' }}>Latest Time:</div>
+                                                <div style={{ ...styleFieldData }}>
+                                                    {route.type === 'pickup' ? (pickup.pu_date2 || '') : (delivery.delivery_date2 || '')}@{route.type === 'pickup' ? (pickup.pu_time2 || '') : (delivery.delivery_time2 || '')}
+                                                </div>
+                                            </div>
+                                            <div style={{ ...styleFlexRow }}>
+                                                <div style={{ ...styleFieldName, width: '6rem' }}>Phone:</div>
+                                                <div style={{ ...styleFieldData }}>
+                                                    {
+                                                        (customer?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                                            ? ''
+                                                            : (customer.contacts.find(c => c.is_primary === 1).primary_phone || 'work') === 'work'
+                                                                ? customer.contacts.find(c => c.is_primary === 1).phone_work
+                                                                : (customer.contacts.find(c => c.is_primary === 1).primary_phone || 'work') === 'fax'
+                                                                    ? customer.contacts.find(c => c.is_primary === 1).phone_work_fax
+                                                                    : (customer.contacts.find(c => c.is_primary === 1).primary_phone || 'work') === 'mobile'
+                                                                        ? customer.contacts.find(c => c.is_primary === 1).phone_mobile
+                                                                        : (customer.contacts.find(c => c.is_primary === 1).primary_phone || 'work') === 'direct'
+                                                                            ? customer.contacts.find(c => c.is_primary === 1).phone_direct
+                                                                            : (customer.contacts.find(c => c.is_primary === 1).primary_phone || 'work') === 'other'
+                                                                                ? customer.contacts.find(c => c.is_primary === 1).phone_other
+                                                                                : ''
+                                                    }
+                                                </div>
+                                            </div>
+                                            <div style={{ ...styleFlexRow }}>
+                                                <div style={{ ...styleFieldName, width: '6rem' }}>Contact:</div>
+                                                <div style={{ ...styleFieldData }}>
+                                                    {
+                                                        (customer?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                                            ? ''
+                                                            : customer?.contacts.find(c => c.is_primary === 1).first_name + ' ' + customer?.contacts.find(c => c.is_primary === 1).last_name
+                                                    }
+                                                </div>
+                                            </div>
 
+                                        </div>
+                                    </div>
+                                )
+                            })
+                        }
 
                         <div style={{
                             ...styleFlexCol,
@@ -191,62 +243,31 @@ function RateConf(props) {
 
                         </div>
 
-                        <div style={{
-                            ...styleFlexRow,
-                            justifyContent: 'space-evenly',
-                            marginBottom: '1.5rem'
-                        }}>
-                            <div style={{
-                                ...styleFlexCol
-                            }}>
-                                <div style={{ ...styleFieldName, textDecoration: 'underline' }}>Delivery Information</div>
-                                <div style={{ ...styleFieldData }}>
-                                    American Heart Association <br />
-                                    4808 Eastover Cir #101 <br />
-                                    Mesquite, TX 75149
-                                </div>
-                            </div>
-
-                            <div style={{
-                                ...styleFlexCol
-                            }}>
-                                <div style={{ ...styleFlexRow }}>
-                                    <div style={{ ...styleFieldName, width: '6rem' }}>Earliest Time:</div>
-                                    <div style={{ ...styleFieldData }}>02/09/2017@08:00</div>
-                                </div>
-                                <div style={{ ...styleFlexRow }}>
-                                    <div style={{ ...styleFieldName, width: '6rem' }}>Latest Time:</div>
-                                    <div style={{ ...styleFieldData }}>02/09/2017@08:00</div>
-                                </div>
-                                <div style={{ ...styleFlexRow }}>
-                                    <div style={{ ...styleFieldName, width: '6rem' }}>Phone:</div>
-                                    <div style={{ ...styleFieldData }}>214-275-3216</div>
-                                </div>
-                                <div style={{ ...styleFlexRow }}>
-                                    <div style={{ ...styleFieldName, width: '6rem' }}>Contact:</div>
-                                    <div style={{ ...styleFieldData }}>Wayne Duffy</div>
-                                </div>
-
-                            </div>
-                        </div>
-
-
                         <div style={{ ...styleFieldName, textAlign: 'center', marginBottom: '1.5rem', textDecoration: 'underline' }}>SPECIAL INSTRUCTIONS</div>
 
-                        <div style={{ ...styleFieldData, marginBottom: '1.5rem' }}>RATE FOR EXCLUSIVE USE!  MUST DELIVER BY 2/9!</div>
+                        {
+                            (props.selected_order?.notes_for_carrier || []).map((note, index) => {
+                                return (
+                                    <div key={index} style={{ ...styleFieldData, marginBottom: '1.5rem' }}>
+                                        {note.text.toUpperCase()}
+                                    </div>
+                                )
+                            })
+                        }
 
                         <div style={{ ...styleFieldName, fontWeight: 'normal', marginBottom: '1.5rem' }}>
                             Carrier agrees that this reflects the entire amount due for all services provided
-                            and that no other amount will be billed to <span style={{ ...styleFieldDataBold }}>COMPANY</span>. Will remit Payment with in 30 days
+                            and that no other amount will be billed to <span style={{ ...styleFieldDataBold }}>ET3 Logistics, LLC</span>. Will remit Payment with in 30 days
                             of receipt of original signed bills of lading and clear signed delivery receipts,
                             completed W-9 forms, signed Master Carrier Agreement, Rate confirmation, Contract Authority,
-                            and original certificates of Insurance naming <span style={{ ...styleFieldDataBold }}>COMPANY</span> as certificate holder.
+                            and original certificates of Insurance naming <span style={{ ...styleFieldDataBold }}>ET3 Logistics, LLC</span> as certificate holder.
                         </div>
 
                         <div style={{ ...styleFieldData, marginBottom: '1.5rem' }}>
-                            PERIMETER TRANSPORATION CO <br />
-                            5515 E HOLMES RD <br />
-                            MEMPHIS, TN 38118-7933
+                            <div><b>{(props.selectedCarrierInfo?.name || '').toUpperCase()}</b></div>
+                            <div>{(props.selectedCarrierInfo?.address1 || '').toUpperCase()} </div>
+                            <div>{(props.selectedCarrierInfo?.address2 || '').toUpperCase()}</div>
+                            <div>{(props.selectedCarrierInfo?.city || '').toUpperCase()}, {(props.selectedCarrierInfo?.state || '').toUpperCase()} {props.selectedCarrierInfo?.zip || ''}</div>
                         </div>
 
                         <div style={{
@@ -390,9 +411,9 @@ function RateConf(props) {
                             BEHIND DECORATIVE BRICKWALL. THERE ARE TWO BUILDINGS IN A "L" SHAPE. BUILDING TO THE
                             RIGHT IS SHIPPING DEPARTMENT.
 
-                            </div>
+                        </div>
 
-                            <div style={{ ...styleFieldName, textDecoration: 'underline' }}>DIRECTIONS TO CONSIGNEE</div>
+                        <div style={{ ...styleFieldName, textDecoration: 'underline' }}>DIRECTIONS TO CONSIGNEE</div>
                         <div style={{ ...styleFieldName, fontWeight: 'normal' }}>
                             FROM HWY. 30, EXIT 53A WHICH IS BUCKNER BLVD. (LOOP 12). GO SOUTH ON BUCKNER
                             BLVD. TO THE FIRST STOP LIGHT, WHICH IS SAMUELL BLVD. TURN LEFT ONTO SAMUELL
@@ -403,7 +424,7 @@ function RateConf(props) {
                             BEHIND DECORATIVE BRICKWALL. THERE ARE TWO BUILDINGS IN A "L" SHAPE. BUILDING TO THE
                             RIGHT IS SHIPPING DEPARTMENT.
 
-                            </div>
+                        </div>
 
                     </div>
                 </div>

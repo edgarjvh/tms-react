@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { connect } from 'react-redux';
 import classnames from 'classnames';
 import $ from 'jquery';
@@ -192,7 +192,7 @@ function RevenueInformation(props) {
 
                             const baseWidth = 0.95;
                             const panelGap = 70;
-                            const panelWidth = (window.innerWidth * baseWidth) - (panelGap * props.customerOpenedPanels.indexOf(props.panelName));
+                            const panelWidth = (window.innerWidth * baseWidth) - (panelGap * props.openedPanels.indexOf(props.panelName));
 
                             const input = refDateStart.current.inputElement.getBoundingClientRect();
 
@@ -242,7 +242,9 @@ function RevenueInformation(props) {
                                 }
                             }
 
-                            setIsDateStartCalendarShown(true)
+                            setIsDateEndCalendarShown(false);
+                            setIsDateStartCalendarShown(true);
+
 
                             refDateStart.current.inputElement.focus();
                         }}></span>
@@ -327,7 +329,7 @@ function RevenueInformation(props) {
 
                             const baseWidth = 0.95;
                             const panelGap = 70;
-                            const panelWidth = (window.innerWidth * baseWidth) - (panelGap * props.customerOpenedPanels.indexOf(props.panelName));
+                            const panelWidth = (window.innerWidth * baseWidth) - (panelGap * props.openedPanels.indexOf(props.panelName));
 
                             const input = refDateEnd.current.inputElement.getBoundingClientRect();
 
@@ -377,6 +379,7 @@ function RevenueInformation(props) {
                                 }
                             }
 
+                            setIsDateStartCalendarShown(false);
                             setIsDateEndCalendarShown(true)
 
                             refDateEnd.current.inputElement.focus();

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { connect } from 'react-redux';
 import classnames from 'classnames';
 import $ from 'jquery';
@@ -8,6 +8,8 @@ import moment from 'moment';
 import DocViewer from "react-doc-viewer";
 import { useSpring, animated } from 'react-spring';
 import CustomerModal from './../modal/Modal.jsx';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCaretDown, faCaretRight, faCalendarAlt, faPencilAlt, faCheck, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 
 function Documents(props) {
     const [isSavingDocument, setIsSavingDocument] = useState(false);
@@ -42,16 +44,19 @@ function Documents(props) {
     const validateDocumentToSave = (e) => {
         if ((props.selectedOwnerDocument.title || '').trim() === '') {
             window.alert('You must enter the title!');
+            setIsSavingDocument(false);
             return;
         }
 
         if ((props.selectedOwnerDocument.subject || '').trim() === '') {
             window.alert('You must enter the subject!');
+            setIsSavingDocument(false);
             return;
         }
 
         if ((props.selectedOwnerDocument.tags || '').trim() === '') {
             window.alert('You must enter the tags!');
+            setIsSavingDocument(false);
             return;
         }
 
@@ -169,105 +174,128 @@ function Documents(props) {
                             color: 'rgba(0,0,0,0.7)'
                         }}>Quick type links:</div>
 
-                        <div className={quickTypeLinkClasses} onClick={() => {
-                            props.setSelectedOwnerDocument({
-                                id: 0,
-                                user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                                date_entered: moment().format('MM/DD/YYYY'),
-                                title: 'Signed Rate Confirmation',
-                                subject: 'Signed Rate Confirmation',
-                                tags: 'Signed Rate Confirmation|Rate Confirmation'
-                            });
-                            refTagInput.current.focus();
-                        }}>Signed Rate Confirmation</div>
+                        {
+                            (props.origin === 'dispatch' || props.origin === 'carrier') &&
+                            <div className={quickTypeLinkClasses} onClick={() => {
+                                props.setSelectedOwnerDocument({
+                                    id: 0,
+                                    user_id: Math.floor(Math.random() * (15 - 1)) + 1,
+                                    date_entered: moment().format('MM/DD/YYYY'),
+                                    title: 'Signed Rate Confirmation',
+                                    subject: 'Signed Rate Confirmation',
+                                    tags: 'Signed Rate Confirmation|Rate Confirmation'
+                                });
+                                refTagInput.current.focus();
+                            }}>Signed Rate Confirmation</div>
+                        }
 
-                        <div className={quickTypeLinkClasses} onClick={() => {
-                            props.setSelectedOwnerDocument({
-                                id: 0,
-                                user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                                date_entered: moment().format('MM/DD/YYYY'),
-                                title: 'Signed Bill of Lading',
-                                subject: 'Signed BOL',
-                                tags: 'Signed BOL|BOL|Delivery Receipt'
-                            });
-                            refTagInput.current.focus();
-                        }}>Signed BOL</div>
+                        {
+                            (props.origin === 'dispatch' || props.origin === 'customer' || props.origin === 'carrier') &&
+                            <div className={quickTypeLinkClasses} onClick={() => {
+                                props.setSelectedOwnerDocument({
+                                    id: 0,
+                                    user_id: Math.floor(Math.random() * (15 - 1)) + 1,
+                                    date_entered: moment().format('MM/DD/YYYY'),
+                                    title: 'Signed Bill of Lading',
+                                    subject: 'Signed BOL',
+                                    tags: 'Signed BOL|BOL|Delivery Receipt'
+                                });
+                                refTagInput.current.focus();
+                            }}>Signed BOL</div>
+                        }
 
-                        <div className={quickTypeLinkClasses} onClick={() => {
-                            props.setSelectedOwnerDocument({
-                                id: 0,
-                                user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                                date_entered: moment().format('MM/DD/YYYY'),
-                                title: 'W9',
-                                subject: 'W9',
-                                tags: 'W9|Federal EIN'
-                            });
-                            refTagInput.current.focus();
-                        }}>W9</div>
+                        {
+                            (props.origin === 'carrier') &&
+                            <div className={quickTypeLinkClasses} onClick={() => {
+                                props.setSelectedOwnerDocument({
+                                    id: 0,
+                                    user_id: Math.floor(Math.random() * (15 - 1)) + 1,
+                                    date_entered: moment().format('MM/DD/YYYY'),
+                                    title: 'W9',
+                                    subject: 'W9',
+                                    tags: 'W9|Federal EIN'
+                                });
+                                refTagInput.current.focus();
+                            }}>W9</div>
+                        }
 
-                        <div className={quickTypeLinkClasses} onClick={() => {
-                            props.setSelectedOwnerDocument({
-                                id: 0,
-                                user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                                date_entered: moment().format('MM/DD/YYYY'),
-                                title: 'MC Authority',
-                                subject: 'Authority',
-                                tags: 'MC#|ICC#|Motor Carrier Number'
-                            });
-                            refTagInput.current.focus();
-                        }}>MC Authority</div>
+                        {
+                            (props.origin === 'carrier') &&
+                            <div className={quickTypeLinkClasses} onClick={() => {
+                                props.setSelectedOwnerDocument({
+                                    id: 0,
+                                    user_id: Math.floor(Math.random() * (15 - 1)) + 1,
+                                    date_entered: moment().format('MM/DD/YYYY'),
+                                    title: 'MC Authority',
+                                    subject: 'Authority',
+                                    tags: 'MC#|ICC#|Motor Carrier Number'
+                                });
+                                refTagInput.current.focus();
+                            }}>MC Authority</div>
+                        }
 
-                        <div className={quickTypeLinkClasses} onClick={() => {
-                            props.setSelectedOwnerDocument({
-                                id: 0,
-                                user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                                date_entered: moment().format('MM/DD/YYYY'),
-                                title: 'Insurance',
-                                subject: 'Insurance',
-                                tags: 'Insurance'
-                            });
-                            refTagInput.current.focus();
-                        }}>Insurance</div>
+                        {
+                            (props.origin === 'carrier') &&
+                            <div className={quickTypeLinkClasses} onClick={() => {
+                                props.setSelectedOwnerDocument({
+                                    id: 0,
+                                    user_id: Math.floor(Math.random() * (15 - 1)) + 1,
+                                    date_entered: moment().format('MM/DD/YYYY'),
+                                    title: 'Insurance',
+                                    subject: 'Insurance',
+                                    tags: 'Insurance'
+                                });
+                                refTagInput.current.focus();
+                            }}>Insurance</div>
+                        }
 
-                        <div className={quickTypeLinkClasses} onClick={() => {
-                            props.setSelectedOwnerDocument({
-                                id: 0,
-                                user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                                date_entered: moment().format('MM/DD/YYYY'),
-                                title: 'Signed Broker Contract',
-                                subject: 'Broker Contract',
-                                tags: 'Signed Contract|Signed Broker Contract'
-                            });
-                            refTagInput.current.focus();
-                        }}>Signed Contract</div>
+                        {
+                            (props.origin === 'carrier') &&
+                            <div className={quickTypeLinkClasses} onClick={() => {
+                                props.setSelectedOwnerDocument({
+                                    id: 0,
+                                    user_id: Math.floor(Math.random() * (15 - 1)) + 1,
+                                    date_entered: moment().format('MM/DD/YYYY'),
+                                    title: 'Signed Broker Contract',
+                                    subject: 'Broker Contract',
+                                    tags: 'Signed Contract|Signed Broker Contract'
+                                });
+                                refTagInput.current.focus();
+                            }}>Signed Contract</div>
+                        }
 
-                        <div className={quickTypeLinkClasses} onClick={() => {
-                            props.setSelectedOwnerDocument({
-                                id: 0,
-                                user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                                date_entered: moment().format('MM/DD/YYYY'),
-                                title: 'Carrier Information',
-                                subject: 'Carrier Information',
-                                tags: 'Carrier Packet|Carrier Information Packet'
-                            });
-                            refTagInput.current.focus();
-                        }}>Carrier Information</div>
+                        {
+                            (props.origin === 'carrier') &&
+                            <div className={quickTypeLinkClasses} onClick={() => {
+                                props.setSelectedOwnerDocument({
+                                    id: 0,
+                                    user_id: Math.floor(Math.random() * (15 - 1)) + 1,
+                                    date_entered: moment().format('MM/DD/YYYY'),
+                                    title: 'Carrier Information',
+                                    subject: 'Carrier Information',
+                                    tags: 'Carrier Packet|Carrier Information Packet'
+                                });
+                                refTagInput.current.focus();
+                            }}>Carrier Information</div>
+                        }
 
-                        <div className={quickTypeLinkClasses} onClick={() => {
-                            props.setSelectedOwnerDocument({
-                                id: 0,
-                                user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-                                date_entered: moment().format('MM/DD/YYYY'),
-                                title: 'Notice of Assignment',
-                                subject: 'NOA',
-                                tags: 'Notice of Assignment|NOA'
-                            });
-                            refTagInput.current.focus();
-                        }}>NOA</div>
+                        {
+                            (props.origin === 'carrier' || props.origin === 'factoring.company') &&
+                            <div className={quickTypeLinkClasses} onClick={() => {
+                                props.setSelectedOwnerDocument({
+                                    id: 0,
+                                    user_id: Math.floor(Math.random() * (15 - 1)) + 1,
+                                    date_entered: moment().format('MM/DD/YYYY'),
+                                    title: 'Notice of Assignment',
+                                    subject: 'NOA',
+                                    tags: 'Notice of Assignment|NOA'
+                                });
+                                refTagInput.current.focus();
+                            }}>NOA</div>
+                        }
                     </div>
 
                     <div className="documents-fields-row">
-
                         <div className="input-box-container">
                             <input
                                 ref={refTitleInput}
@@ -395,7 +423,6 @@ function Documents(props) {
                                     <div className={itemClasses} key={index} onClick={() => {
                                         props.setSelectedOwnerDocument(document);
 
-
                                     }}>
                                         <div className="item-info">
                                             <span className={docIconClasses}></span>
@@ -405,6 +432,12 @@ function Documents(props) {
                                             <span>{document.subject}</span>
                                         </div>
 
+                                        <div className="documents-list-col tcol documents-selected">
+                                            {
+                                                (document.id === (props.selectedOwnerDocument?.id || 0)) &&
+                                                <FontAwesomeIcon icon={faPencilAlt} />
+                                            }
+                                        </div>
                                         <div className="item-btn" onClick={(e) => {
                                             e.stopPropagation();
 
@@ -429,7 +462,9 @@ function Documents(props) {
                                                 })
                                             }
                                         }}>
-                                            <span className='fas fa-trash-alt'></span>
+
+                                            <FontAwesomeIcon icon={faTrashAlt} />
+
                                         </div>
                                     </div>
                                 )
@@ -471,7 +506,13 @@ function Documents(props) {
                                     <div className='documents-notes-list-item' key={index} onClick={() => {
                                         props.setSelectedOwnerDocumentNote(note);
                                     }}>
-                                        {note.text}
+                                        <div className="documents-notes-list-col tcol note-text">{note.text}</div>
+                                        <div className="documents-notes-list-col tcol documents-notes-selected">
+                                            {
+                                                (note.id === (props.selectedOwnerDocumentNote?.id || 0)) &&
+                                                <FontAwesomeIcon icon={faPencilAlt} />
+                                            }
+                                        </div>
                                     </div>
                                 )
                             })
@@ -570,7 +611,7 @@ function Documents(props) {
                 </animated.div>
             }
 
-        </div>
+        </div >
     )
 }
 

@@ -215,7 +215,7 @@ import {
     setLbMileageLoaderVisible,
 
     setNewCarrier,
-
+    setIsSavingOrder,
 
 } from '../../../../../actions';
 import { useSpring, config } from 'react-spring';
@@ -527,10 +527,15 @@ function PanelContainer(props) {
                                 openedPanels={props.openedPanels}
 
                                 setSelectedCustomer={props.setSelectedBillToCompanyInfo}
-                                setSelectedContact={props.setSelectedBillToCompanyContact}
-
+                                setSelectedContact={props.setSelectedBillToCompanyContact}                                
+                                
                                 customers={props.billToCompanies}
                                 customerSearch={props.billToCompanySearch}
+
+                                isSavingOrder={props.isSavingOrder}                                
+                                setIsSavingOrder={props.setIsSavingOrder}
+                                origin='customer'
+                                toSaveOrder={true}
                             />
                         </animated.div>
                     </Draggable>
@@ -761,6 +766,9 @@ function PanelContainer(props) {
                                 selectedOwnerDocument={props.selectedBillToCompanyDocument}
                                 selectedOwnerDocumentTags={props.selectedBillToCompanyDocumentTags}
                                 selectedOwnerDocumentNote={props.selectedBillToCompanyDocumentNote}
+
+                                origin='customer'
+
                                 savingDocumentUrl='/saveDocument'
                                 deletingDocumentUrl='/deleteCustomerDocument'
                                 savingDocumentNoteUrl='/saveCustomerDocumentNote'
@@ -1297,6 +1305,9 @@ function PanelContainer(props) {
                                 selectedOwnerDocument={props.selectedLbBillToCompanyDocument}
                                 selectedOwnerDocumentTags={props.selectedLbBillToCompanyDocumentTags}
                                 selectedOwnerDocumentNote={props.selectedLbBillToCompanyDocumentNote}
+
+                                origin='customer'
+
                                 savingDocumentUrl='/saveDocument'
                                 deletingDocumentUrl='/deleteCustomerDocument'
                                 savingDocumentNoteUrl='/saveCustomerDocumentNote'
@@ -1603,6 +1614,11 @@ function PanelContainer(props) {
 
                                 customers={props.shipperCompanies}
                                 customerSearch={props.shipperCompanySearch}
+
+                                isSavingOrder={props.isSavingOrder}                                
+                                setIsSavingOrder={props.setIsSavingOrder}
+                                origin='customer'
+                                toSaveOrder={true}
                             />
                         </animated.div>
                     </Draggable>
@@ -1833,6 +1849,9 @@ function PanelContainer(props) {
                                 selectedOwnerDocument={props.selectedShipperCompanyDocument}
                                 selectedOwnerDocumentTags={props.selectedShipperCompanyDocumentTags}
                                 selectedOwnerDocumentNote={props.selectedShipperCompanyDocumentNote}
+
+                                origin='customer'
+
                                 savingDocumentUrl='/saveDocument'
                                 deletingDocumentUrl='/deleteCustomerDocument'
                                 savingDocumentNoteUrl='/saveCustomerDocumentNote'
@@ -2369,6 +2388,9 @@ function PanelContainer(props) {
                                 selectedOwnerDocument={props.selectedLbShipperCompanyDocument}
                                 selectedOwnerDocumentTags={props.selectedLbShipperCompanyDocumentTags}
                                 selectedOwnerDocumentNote={props.selectedLbShipperCompanyDocumentNote}
+
+                                origin='customer'
+                                
                                 savingDocumentUrl='/saveDocument'
                                 deletingDocumentUrl='/deleteCustomerDocument'
                                 savingDocumentNoteUrl='/saveCustomerDocumentNote'
@@ -2664,7 +2686,7 @@ function PanelContainer(props) {
                             <ConsigneeCompanySearch
                                 title='Consignee Company Search'
                                 tabTimes={33000}
-                                panelName='-consignee-company-search'
+                                panelName='consignee-company-search'
 
                                 serverUrl={props.serverUrl}
                                 setOpenedPanels={props.setOpenedPanels}
@@ -2675,6 +2697,11 @@ function PanelContainer(props) {
 
                                 customers={props.consigneeCompanies}
                                 customerSearch={props.consigneeCompanySearch}
+
+                                isSavingOrder={props.isSavingOrder}                                
+                                setIsSavingOrder={props.setIsSavingOrder}
+                                origin='customer'
+                                toSaveOrder={true}
                             />
                         </animated.div>
                     </Draggable>
@@ -2905,6 +2932,9 @@ function PanelContainer(props) {
                                 selectedOwnerDocument={props.selectedConsigneeCompanyDocument}
                                 selectedOwnerDocumentTags={props.selectedConsigneeCompanyDocumentTags}
                                 selectedOwnerDocumentNote={props.selectedConsigneeCompanyDocumentNote}
+
+                                origin='customer'
+                                
                                 savingDocumentUrl='/saveDocument'
                                 deletingDocumentUrl='/deleteCustomerDocument'
                                 savingDocumentNoteUrl='/saveCustomerDocumentNote'
@@ -3441,6 +3471,9 @@ function PanelContainer(props) {
                                 selectedOwnerDocument={props.selectedLbConsigneeCompanyDocument}
                                 selectedOwnerDocumentTags={props.selectedLbConsigneeCompanyDocumentTags}
                                 selectedOwnerDocumentNote={props.selectedLbConsigneeCompanyDocumentNote}
+
+                                origin='customer'
+                                
                                 savingDocumentUrl='/saveDocument'
                                 deletingDocumentUrl='/deleteCustomerDocument'
                                 savingDocumentNoteUrl='/saveCustomerDocumentNote'
@@ -3774,9 +3807,15 @@ function PanelContainer(props) {
 
                                 setSelectedCustomer={props.setSelectedDispatchCarrierInfoCarrier}
                                 setSelectedContact={props.setSelectedDispatchCarrierInfoContact}
-
+                                
                                 customers={props.dispatchCarrierInfoCarriers}
                                 customerSearch={props.dispatchCarrierInfoCarrierSearch}
+                                
+                                setSelectedDriver={props.setSelectedDispatchCarrierInfoDriver}
+                                isSavingOrder={props.isSavingOrder}                                
+                                setIsSavingOrder={props.setIsSavingOrder}
+                                origin='carrier'
+                                toSaveOrder={true}
                             />
                         </animated.div>
                     </Draggable>
@@ -3980,6 +4019,9 @@ function PanelContainer(props) {
                                 selectedOwnerDocument={props.selectedDispatchCarrierInfoDocument}
                                 selectedOwnerDocumentTags={props.selectedDispatchCarrierInfoDocumentTags}
                                 selectedOwnerDocumentNote={props.selectedDispatchCarrierInfoDocumentNote}
+
+                                origin='carrier'
+                                
                                 savingDocumentUrl='/saveCarrierDocument'
                                 deletingDocumentUrl='/deleteCarrierDocument'
                                 savingDocumentNoteUrl='/saveCarrierDocumentNote'
@@ -4569,6 +4611,9 @@ function PanelContainer(props) {
                                 selectedOwnerDocument={props.selectedDispatchCarrierInfoFactoringCompanyDocument}
                                 selectedOwnerDocumentTags={props.selectedDispatchCarrierInfoFactoringCompanyDocumentTags}
                                 selectedOwnerDocumentNote={props.selectedDispatchCarrierInfoFactoringCompanyDocumentNote}
+
+                                origin='factoring-company'
+                                
                                 savingDocumentUrl='/saveFactoringCompanyDocument'
                                 deletingDocumentUrl='/deleteFactoringCompanyDocument'
                                 savingDocumentNoteUrl='/saveFactoringCompanyDocumentNote'
@@ -5093,6 +5138,9 @@ function PanelContainer(props) {
                                 selectedOwnerDocument={props.selectedLbCarrierInfoDocument}
                                 selectedOwnerDocumentTags={props.selectedLbCarrierInfoDocumentTags}
                                 selectedOwnerDocumentNote={props.selectedLbCarrierInfoDocumentNote}
+
+                                origin='carrier'
+                                
                                 savingDocumentUrl='/saveCarrierDocument'
                                 deletingDocumentUrl='/deleteCarrierDocument'
                                 savingDocumentNoteUrl='/saveCarrierDocumentNote'
@@ -5682,6 +5730,9 @@ function PanelContainer(props) {
                                 selectedOwnerDocument={props.selectedLbCarrierInfoFactoringCompanyDocument}
                                 selectedOwnerDocumentTags={props.selectedLbCarrierInfoFactoringCompanyDocumentTags}
                                 selectedOwnerDocumentNote={props.selectedLbCarrierInfoFactoringCompanyDocumentNote}
+
+                                origin='factoring-company'
+                                
                                 savingDocumentUrl='/saveFactoringCompanyDocument'
                                 deletingDocumentUrl='/deleteFactoringCompanyDocument'
                                 savingDocumentNoteUrl='/saveFactoringCompanyDocumentNote'
@@ -5976,6 +6027,9 @@ function PanelContainer(props) {
                                 selectedOwnerDocument={props.selectedOrderDocument}
                                 selectedOwnerDocumentTags={props.selectedOrderDocumentTags}
                                 selectedOwnerDocumentNote={props.selectedOrderDocumentNote}
+
+                                origin='dispatch'
+                                
                                 savingDocumentUrl='/saveOrderDocument'
                                 deletingDocumentUrl='/deleteOrderDocument'
                                 savingDocumentNoteUrl='/saveOrderDocumentNote'
@@ -6235,6 +6289,10 @@ function PanelContainer(props) {
                                 serverUrl={props.serverUrl}
                                 setOpenedPanels={props.setOpenedPanels}
                                 openedPanels={props.openedPanels}
+
+                                selected_order={props.selected_order}
+                                selectedCarrierInfoContact={props.selectedDispatchCarrierInfoContact}
+                                selectedCarrierInfo={props.selectedDispatchCarrierInfoCarrier}
                             />
                         </animated.div>
                     </Draggable>
@@ -6403,7 +6461,7 @@ function PanelContainer(props) {
 
                                 <LoadBoard
                                     title='Load Board'
-                                    panelNale='load-board'
+                                    panelName='load-board'
                                     tabTimes={38000}
                                     isOnPanel={true}
                                     scale={props.scale}
@@ -6475,6 +6533,7 @@ const mapStateToProps = state => {
         selectedOrderDocument: state.dispatchReducers.selectedOrderDocument,
         selectedOrderDocumentNote: state.dispatchReducers.selectedOrderDocumentNote,
         selectedOrderDocumentTags: state.dispatchReducers.orderDocumentTags,
+        isSavingOrder: state.dispatchReducers.isSavingOrder,
 
         //BILL TO COMPANY INFO
         billToCompanies: state.customerReducers.billToCompanies,
@@ -6884,4 +6943,5 @@ export default connect(mapStateToProps, {
     setLbSelectedOrder,
     setLbMileageLoaderVisible,
     setNewCarrier,
+    setIsSavingOrder,
 })(PanelContainer)

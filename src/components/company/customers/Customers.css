@@ -142,8 +142,6 @@
   flex-grow: 1;
 }
 .customers-main-container .fields-container .form-slider .form-slider-wrapper .contact-list-box .tcol.pri {
-  min-width: 0.65rem;
-  max-width: 0.65rem;
   text-align: center;
 }
 .customers-main-container .fields-container .form-slider .form-slider-wrapper .contact-list-box .contact-list-wrapper {
@@ -151,7 +149,7 @@
   width: 100%;
   height: calc(100% - 1rem);
   bottom: 0;
-  overflow-y: scroll;
+  overflow-y: auto;
   padding-top: 5px;
 }
 .customers-main-container .fields-container .form-slider .form-slider-wrapper .contact-list-box .contact-list-wrapper .contact-list-item {
@@ -196,9 +194,21 @@
   padding: 5px 0;
   cursor: pointer;
   transition: ease 0.3s;
+  display: flex;
+  align-items: center;
+}
+.customers-main-container .fields-container .notes-list-container .notes-list-wrapper .notes-list-item .tcol.note-text {
+  flex-grow: 1;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
+}
+.customers-main-container .fields-container .notes-list-container .notes-list-wrapper .notes-list-item .tcol.notes-selected {
+  margin-left: 0.5rem;
+  text-align: center;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
 }
 .customers-main-container .fields-container .notes-list-container .notes-list-wrapper .notes-list-item:hover {
   background-color: rgba(0, 0, 0, 0.1);
@@ -221,9 +231,21 @@
   padding: 5px 0;
   cursor: pointer;
   transition: ease 0.3s;
+  display: flex;
+  align-items: center;
+}
+.customers-main-container .fields-container .directions-list-container .directions-list-wrapper .directions-list-item .tcol.note-text {
+  flex-grow: 1;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
+}
+.customers-main-container .fields-container .directions-list-container .directions-list-wrapper .directions-list-item .tcol.directions-selected {
+  margin-left: 0.5rem;
+  text-align: center;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
 }
 .customers-main-container .fields-container .directions-list-container .directions-list-wrapper .directions-list-item:hover {
   background-color: rgba(0, 0, 0, 0.1);

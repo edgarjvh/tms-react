@@ -294,7 +294,7 @@ function ChangeCarrier(props) {
                         </div>
                         <div className="form-h-sep"></div>
                         <div className="input-box-container grow">
-                            <input tabIndex={11 + props.tabTimes} type="text" placeholder="Rate"
+                            <input tabIndex={11 + props.tabTimes * 5} type="text" placeholder="Rate"
                                 readOnly={true}
                                 value={(props.newCarrier?.id || 0) === 0 ? '' : '$1,234,00'}
                             />

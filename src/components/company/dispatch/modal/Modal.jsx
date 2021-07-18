@@ -27,7 +27,7 @@ function Modal(props) {
             customer_id: props.selectedCustomer.id,
             doc_id: props.selectedParent.id,
             factoring_company_id: props.selectedParent.id,
-            order_number: props.selectedParent.order_number,
+            order_id: props.selectedParent.id,
             text: props.selectedData.text,
             user: props.isAdding ? user : props.selectedData.user,
             date_time: props.isAdding ? date_time : props.selectedData.date_time

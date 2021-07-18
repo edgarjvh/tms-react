@@ -1,0 +1,85 @@
+.equipment-list-box {
+  width   : 100%;
+  height   : 100%;
+  position: relative;
+
+  .equipment-list-header {
+    display        : flex;
+    font-size      : 0.7rem;
+    font-weight    : bold;
+    text-decoration: underline;
+    color          : rgba(0, 0, 0, 0.7);
+    min-height     : 1rem;
+    max-height     : 1rem;
+  }
+
+  .tcol.equipment {
+    min-width: 8rem;
+    max-width: 8rem;
+  }
+
+  .tcol.units {
+    min-width: 6rem;
+    max-width: 6rem;
+  }
+
+  .tcol.equipment_length {
+    min-width: 4rem;
+    max-width: 4rem;
+  }
+
+  .tcol.equipment_width {
+    min-width: 4rem;
+    max-width: 4rem;
+  }
+
+  .tcol.equipment_height {
+    min-width: 4rem;
+    max-width: 4rem;
+  }
+
+  .tcol.equipment-selected {
+    flex-grow: 1;
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+
+  .equipment-list-wrapper {
+    position   : absolute;
+    width      : 100%;
+    height     : calc(100% - 1rem);
+    bottom     : 0;
+    overflow-y : auto;
+    padding-top: 5px;
+
+    .equipment-list-item {
+      font-size      : 0.7rem;
+      border-bottom  : 1px solid rgba(0, 0, 0, 0.1);
+      padding        : 5px 0;
+      cursor         : pointer;
+      transition     : ease 0.3s;
+      text-overflow  : ellipsis;
+      white-space    : nowrap;
+      overflow       : hidden;
+      display        : flex;
+      align-items    : center;
+      // justify-content: space-between;
+      padding-right  : 5px;
+
+      &.selected{
+        font-weight: bold;
+      }
+
+      >div {
+        white-space  : nowrap;
+        overflow     : hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    .equipment-list-item:hover {
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+  }
+}

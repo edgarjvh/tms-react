@@ -10,7 +10,7 @@ import MaskedInput from 'react-text-mask';
 import PanelContainer from './panels/panel-container/PanelContainer.jsx';
 import CustomerModal from './modal/Modal.jsx';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCaretDown, faCaretRight, faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
+import { faCaretDown, faCaretRight, faCalendarAlt, faCheck, faPencilAlt } from '@fortawesome/free-solid-svg-icons';
 import { useDetectClickOutside } from "react-detect-click-outside";
 import { Transition, Spring, animated as animated2, config } from 'react-spring/renderprops';
 import Highlighter from "react-highlight-words";
@@ -20,16 +20,11 @@ import 'swiper/swiper-bundle.css';
 
 function Customers(props) {
     const refCustomerCode = useRef(null);
-    const [popupItems, setPopupItems] = useState([]);
+    const refCustomerMailingCode = useRef();
+    const refCustomerContactFirstName = useRef();
     const [isSavingCustomer, setIsSavingCustomer] = useState(false);
     const [isSavingContact, setIsSavingContact] = useState(false);
-    const [automaticEmailsActiveInput, setAutomaticEmailsActiveInput] = useState('');
-    const popupItemsRef = useRef([]);
-    const refPopup = useRef();
-    const popupContainerClasses = classnames({
-        'mochi-contextual-container': true,
-        'shown': popupItems.length > 0
-    });
+    const [isSavingMailingAddress, setIsSavingMailingAddress] = useState(false);
 
     const refCustomerContactPhone = useRef();
 
@@ -80,91 +75,77 @@ function Customers(props) {
     var delayTimer;
     const modalTransitionProps = useSpring({ opacity: (props.selectedNote?.id !== undefined || props.selectedDirection?.id !== undefined) ? 1 : 0 });
 
-    
-
     useEffect(() => {
-        let selectedCustomer = { ...props.selectedCustomer };
+        if (isSavingCustomer) {
+            let selectedCustomer = { ...props.selectedCustomer };
 
-        if (selectedCustomer.id === undefined || selectedCustomer.id === -1) {
-            selectedCustomer.id = 0;
-            props.setSelectedCustomer({ ...props.selectedCustomer, id: 0 });
-        }
-
-        if (
-            (selectedCustomer.name || '').trim().replace(/\s/g, "").replace("&", "A") !== "" &&
-            (selectedCustomer.city || '').trim().replace(/\s/g, "") !== "" &&
-            (selectedCustomer.state || '').trim().replace(/\s/g, "") !== "" &&
-            (selectedCustomer.address1 || '').trim() !== "" &&
-            (selectedCustomer.zip || '').trim() !== ""
-        ) {
-            let parseCity = selectedCustomer.city.trim().replace(/\s/g, "").substring(0, 3);
-
-            if (parseCity.toLowerCase() === "ft.") {
-                parseCity = "FO";
-            }
-            if (parseCity.toLowerCase() === "mt.") {
-                parseCity = "MO";
-            }
-            if (parseCity.toLowerCase() === "st.") {
-                parseCity = "SA";
+            if (selectedCustomer.id === undefined || selectedCustomer.id === -1) {
+                selectedCustomer.id = 0;
+                props.setSelectedCustomer({ ...props.selectedCustomer, id: 0 });
             }
 
-            let mailingParseCity = (selectedCustomer.mailing_city || '').trim().replace(/\s/g, "").substring(0, 3);
+            if (
+                (selectedCustomer.name || '').trim().replace(/\s/g, "").replace("&", "A") !== "" &&
+                (selectedCustomer.city || '').trim().replace(/\s/g, "") !== "" &&
+                (selectedCustomer.state || '').trim().replace(/\s/g, "") !== "" &&
+                (selectedCustomer.address1 || '').trim() !== "" &&
+                (selectedCustomer.zip || '').trim() !== ""
+            ) {
+                let parseCity = selectedCustomer.city.trim().replace(/\s/g, "").substring(0, 3);
 
-            if (mailingParseCity.toLowerCase() === "ft.") {
-                mailingParseCity = "FO";
-            }
-            if (mailingParseCity.toLowerCase() === "mt.") {
-                mailingParseCity = "MO";
-            }
-            if (mailingParseCity.toLowerCase() === "st.") {
-                mailingParseCity = "SA";
-            }
-
-            let newCode = (selectedCustomer.name || '').trim().replace(/\s/g, "").replace("&", "A").substring(0, 3) + parseCity.substring(0, 2) + (selectedCustomer.state || '').trim().replace(/\s/g, "").substring(0, 2);
-            let mailingNewCode = (selectedCustomer.mailing_name || '').trim().replace(/\s/g, "").replace("&", "A").substring(0, 3) + mailingParseCity.substring(0, 2) + (selectedCustomer.mailing_state || '').trim().replace(/\s/g, "").substring(0, 2);
-
-            selectedCustomer.code = newCode.toUpperCase();
-            selectedCustomer.mailing_code = mailingNewCode.toUpperCase();
-
-            $.post(props.serverUrl + '/saveCustomer', selectedCustomer).then(async res => {
-                if (res.result === 'OK') {
-                    let customer = JSON.parse(JSON.stringify(res.customer));
-                    if (props.selectedCustomer?.id === undefined || (props.selectedCustomer?.id || 0) === 0) {
-                        await props.setSelectedCustomer({
-                            ...props.selectedCustomer,
-                            id: customer.id,
-                            code: customer.code,
-                            code_number: customer.code_number,
-                            contacts: customer.contacts || []
-                        });
-                    } else {
-                        await props.setSelectedCustomer({
-                            ...props.selectedCustomer,
-                            contacts: customer.contacts || []
-                        });
-                    }
-
-                    if ((props.selectedContact?.id || 0) === 0) {
-                        (res.customer.contacts || []).map(async (contact, index) => {
-
-                            if (contact.is_primary === 1) {
-                                await props.setSelectedContact(contact);
-                            }
-
-                            return true;
-                        });
-                    }
-
-                    if ((selectedCustomer.contacts || []).length === 0 && (res.customer.contacts || []).length === 1) {
-                        goToTabindex((17 + props.tabTimes).toString());
-                    }
+                if (parseCity.toLowerCase() === "ft.") {
+                    parseCity = "FO";
+                }
+                if (parseCity.toLowerCase() === "mt.") {
+                    parseCity = "MO";
+                }
+                if (parseCity.toLowerCase() === "st.") {
+                    parseCity = "SA";
                 }
 
-                await setIsSavingCustomer(false);
-            }).catch(e => {
+                let newCode = (selectedCustomer.name || '').trim().replace(/\s/g, "").replace("&", "A").substring(0, 3) + parseCity.substring(0, 2) + (selectedCustomer.state || '').trim().replace(/\s/g, "").substring(0, 2);
+
+                selectedCustomer.code = newCode.toUpperCase();
+
+                $.post(props.serverUrl + '/saveCustomer', selectedCustomer).then(async res => {
+                    if (res.result === 'OK') {
+                        let customer = JSON.parse(JSON.stringify(res.customer));
+                        if ((props.selectedCustomer?.id || 0) === 0) {
+                            await props.setSelectedCustomer({
+                                ...props.selectedCustomer,
+                                id: customer.id,
+                                code: customer.code,
+                                code_number: customer.code_number,
+                                contacts: customer.contacts || []
+                            });
+                        } else {
+                            await props.setSelectedCustomer({
+                                ...props.selectedCustomer,
+                                contacts: customer.contacts || []
+                            });
+                        }
+
+                        (res.customer.contacts || []).map(async (contact, index) => {
+                            if (contact.is_primary === 1) {
+                                if ((props.selectedContact?.id || 0) === 0 || props.selectedContact?.id === contact.id) {
+                                    await props.setSelectedContact(contact);
+                                }
+                            }
+                            return true;
+                        });
+
+                        // if ((selectedCustomer.contacts || []).length === 0 && (res.customer.contacts || []).length === 1) {
+                        //     goToTabindex((17 + props.tabTimes).toString());
+                        // }
+                    }
+
+                    await setIsSavingCustomer(false);
+                }).catch(e => {
+                    setIsSavingCustomer(false);
+                });
+            } else {
                 setIsSavingCustomer(false);
-            });
+            }
         }
     }, [isSavingCustomer])
 
@@ -177,10 +158,17 @@ function Customers(props) {
             let contact = props.selectedContact;
 
             if (contact.customer_id === undefined || contact.customer_id === 0) {
-                contact.customer_id = props.selectedCustomer?.id;
+                contact.customer_id = props.selectedCustomer.id;
             }
 
-            if ((contact.first_name || '').trim() === '' || (contact.last_name || '').trim() === '' || (contact.phone_work || '').trim() === '' || (contact.email_work || '').trim() === '') {
+            if ((contact.first_name || '').trim() === '' ||
+                (contact.last_name || '').trim() === '' ||
+                ((contact.phone_work || '').trim() === '' &&
+                    (contact.phone_work_fax || '').trim() === '' &&
+                    (contact.phone_mobile || '').trim() === '' &&
+                    (contact.phone_direct || '').trim() === '' &&
+                    (contact.phone_other || '').trim() === '')) {
+                setIsSavingContact(false);
                 return;
             }
 
@@ -207,6 +195,56 @@ function Customers(props) {
     }, [isSavingContact])
 
     useEffect(() => {
+        if (isSavingMailingAddress) {
+            if ((props.selectedCustomer.id || 0) > 0) {
+                let mailing_address = props.selectedCustomer.mailing_address || {};
+
+                if (mailing_address.id === undefined) {
+                    mailing_address.id = 0;
+                }
+                mailing_address.customer_id = props.selectedCustomer.id;
+
+                if (
+                    (mailing_address.name || '').trim().replace(/\s/g, "").replace("&", "A") !== "" &&
+                    (mailing_address.city || '').trim().replace(/\s/g, "") !== "" &&
+                    (mailing_address.state || '').trim().replace(/\s/g, "") !== "" &&
+                    (mailing_address.address1 || '').trim() !== "" &&
+                    (mailing_address.zip || '').trim() !== ""
+                ) {
+                    let parseCity = mailing_address.city.trim().replace(/\s/g, "").substring(0, 3);
+
+                    if (parseCity.toLowerCase() === "ft.") {
+                        parseCity = "FO";
+                    }
+                    if (parseCity.toLowerCase() === "mt.") {
+                        parseCity = "MO";
+                    }
+                    if (parseCity.toLowerCase() === "st.") {
+                        parseCity = "SA";
+                    }
+
+                    let newCode = (mailing_address.name || '').trim().replace(/\s/g, "").replace("&", "A").substring(0, 3) + parseCity.substring(0, 2) + (mailing_address.state || '').trim().replace(/\s/g, "").substring(0, 2);
+
+                    mailing_address.code = newCode.toUpperCase();
+
+                    $.post(props.serverUrl + '/saveCustomerMailingAddress', mailing_address).then(async res => {
+                        if (res.result === 'OK') {
+                            await props.setSelectedCustomer({ ...props.selectedCustomer, mailing_address: res.mailing_address });
+                        }
+
+                        await setIsSavingMailingAddress(false);
+                    }).catch(e => {
+                        console.log('error on saving customer mailing address', e);
+                        setIsSavingMailingAddress(false);
+                    });
+                } else {
+                    setIsSavingMailingAddress(false);
+                }
+            }
+        }
+    }, [isSavingMailingAddress]);
+
+    useEffect(() => {
         refCustomerCode.current.focus({
             preventScroll: true
         });
@@ -219,7 +257,7 @@ function Customers(props) {
             });
         }
     }, [props.screenFocused])
-   
+
     useEffect(async () => {
         let phones = [];
         (props.selectedContact?.phone_work || '') !== '' && phones.push({ id: 1, type: 'work', phone: props.selectedContact.phone_work });
@@ -254,41 +292,36 @@ function Customers(props) {
 
     useEffect(async () => {
         let phones = [];
-        (props.selectedCustomer?.mailing_contact?.phone_work || '') !== '' && phones.push({ id: 1, type: 'work', phone: props.selectedCustomer?.mailing_contact.phone_work });
-        (props.selectedCustomer?.mailing_contact?.phone_work_fax || '') !== '' && phones.push({ id: 2, type: 'fax', phone: props.selectedCustomer?.mailing_contact.phone_work_fax });
-        (props.selectedCustomer?.mailing_contact?.phone_mobile || '') !== '' && phones.push({ id: 3, type: 'mobile', phone: props.selectedCustomer?.mailing_contact.phone_mobile });
-        (props.selectedCustomer?.mailing_contact?.phone_direct || '') !== '' && phones.push({ id: 4, type: 'direct', phone: props.selectedCustomer?.mailing_contact.phone_direct });
-        (props.selectedCustomer?.mailing_contact?.phone_other || '') !== '' && phones.push({ id: 5, type: 'other', phone: props.selectedCustomer?.mailing_contact.phone_other });
+        (props.selectedCustomer?.mailing_address?.mailing_contact?.phone_work || '') !== '' && phones.push({ id: 1, type: 'work', phone: props.selectedCustomer?.mailing_address?.mailing_contact.phone_work });
+        (props.selectedCustomer?.mailing_address?.mailing_contact?.phone_work_fax || '') !== '' && phones.push({ id: 2, type: 'fax', phone: props.selectedCustomer?.mailing_address?.mailing_contact.phone_work_fax });
+        (props.selectedCustomer?.mailing_address?.mailing_contact?.phone_mobile || '') !== '' && phones.push({ id: 3, type: 'mobile', phone: props.selectedCustomer?.mailing_address?.mailing_contact.phone_mobile });
+        (props.selectedCustomer?.mailing_address?.mailing_contact?.phone_direct || '') !== '' && phones.push({ id: 4, type: 'direct', phone: props.selectedCustomer?.mailing_address?.mailing_contact.phone_direct });
+        (props.selectedCustomer?.mailing_address?.mailing_contact?.phone_other || '') !== '' && phones.push({ id: 5, type: 'other', phone: props.selectedCustomer?.mailing_address?.mailing_contact.phone_other });
 
         await setMailingContactPhoneItems(phones);
     }, [
-        props.selectedCustomer?.mailing_contact?.phone_work,
-        props.selectedCustomer?.mailing_contact?.phone_work_fax,
-        props.selectedCustomer?.mailing_contact?.phone_mobile,
-        props.selectedCustomer?.mailing_contact?.phone_direct,
-        props.selectedCustomer?.mailing_contact?.phone_other,
-        props.selectedCustomer?.mailing_contact?.primary_phone
-    ]);    
+        props.selectedCustomer?.mailing_address?.mailing_contact?.phone_work,
+        props.selectedCustomer?.mailing_address?.mailing_contact?.phone_work_fax,
+        props.selectedCustomer?.mailing_address?.mailing_contact?.phone_mobile,
+        props.selectedCustomer?.mailing_address?.mailing_contact?.phone_direct,
+        props.selectedCustomer?.mailing_address?.mailing_contact?.phone_other,
+        props.selectedCustomer?.mailing_address?.mailing_contact?.primary_phone
+    ]);
 
-    
-    
+    useEffect(async () => {
+        let emails = [];
+        (props.selectedCustomer?.mailing_address?.mailing_contact?.email_work || '') !== '' && emails.push({ id: 1, type: 'work', email: props.selectedCustomer?.mailing_address?.mailing_contact.email_work });
+        (props.selectedCustomer?.mailing_address?.mailing_contact?.email_personal || '') !== '' && emails.push({ id: 2, type: 'personal', email: props.selectedCustomer?.mailing_address?.mailing_contact.email_personal });
+        (props.selectedCustomer?.mailing_address?.mailing_contact?.email_other || '') !== '' && emails.push({ id: 3, type: 'other', email: props.selectedCustomer?.mailing_address?.mailing_contact.email_other });
 
-    
+        await setMailingContactEmailItems(emails);
+    }, [
+        props.selectedCustomer?.mailing_address?.mailing_contact?.email_work,
+        props.selectedCustomer?.mailing_address?.mailing_contact?.email_personal,
+        props.selectedCustomer?.mailing_address?.mailing_contact?.email_other,
+        props.selectedCustomer?.mailing_address?.mailing_contact?.primary_email
+    ]);
 
-    // useEffect(async () => {
-    //     let emails = [];
-    //     (props.selectedCustomer?.mailing_contact?.email_work || '') !== '' && emails.push({ id: 1, type: 'work', email: props.selectedCustomer?.mailing_contact.email_work });
-    //     (props.selectedCustomer?.mailing_contact?.email_personal || '') !== '' && emails.push({ id: 2, type: 'personal', email: props.selectedCustomer?.mailing_contact.email_personal });
-    //     (props.selectedCustomer?.mailing_contact?.email_other || '') !== '' && emails.push({ id: 3, type: 'other', email: props.selectedCustomer?.mailing_contact.email_other });
-
-    //     await setMailingContactEmailItems(emails);
-    // }, [
-    //     props.selectedCustomer?.mailing_contact?.email_work,
-    //     props.selectedCustomer?.mailing_contact?.email_personal,
-    //     props.selectedCustomer?.mailing_contact?.email_other,
-    //     props.selectedCustomer?.mailing_contact?.primary_email
-    // ]);
-    
 
     const setInitialValues = (clearCode = true) => {
         setIsSavingCustomer(false);
@@ -301,10 +334,9 @@ function Customers(props) {
         props.setAutomaticEmailsTo('');
         props.setAutomaticEmailsCc('');
         props.setAutomaticEmailsBcc('');
-        props.setSelectedCustomer({ id: -1, code: clearCode ? '' : props.selectedCustomer?.code });
-        setPopupItems([]);
+        props.setSelectedCustomer({ id: 0, code: clearCode ? '' : props.selectedCustomer?.code });
+        refCustomerCode.current.focus();
     }
-
 
     const searchCustomerByCode = (e) => {
         let keyCode = e.keyCode || e.which;
@@ -480,43 +512,44 @@ function Customers(props) {
         }
     }
 
-    const goToTabindex = (index) => {
-        let elems = document.getElementsByTagName('input');
+    const validateMailingAddressForSaving = (e) => {
+        let keyCode = e.keyCode || e.which;
 
-        for (var i = elems.length; i--;) {
-            if (elems[i].getAttribute('tabindex') && elems[i].getAttribute('tabindex') === index) {
-                elems[i].focus();
-                break;
+        if (keyCode === 9) {
+            if (!isSavingMailingAddress) {
+                setIsSavingMailingAddress(true);
             }
         }
     }
 
     const remitToAddressBtn = () => {
-        if (props.selectedCustomer?.id === undefined || props.selectedCustomer?.id <= 0) {
+        if ((props.selectedCustomer?.id || 0) === 0) {
             window.alert('You must select a customer first');
             return;
         }
 
-        let customer = props.selectedCustomer;
+        let mailing_address = {};
 
-        customer.mailing_code = customer.code;
-        customer.mailing_code_number = customer.code_number;
-        customer.mailing_name = customer.name;
-        customer.mailing_address1 = customer.address1;
-        customer.mailing_address2 = customer.address2;
-        customer.mailing_city = customer.city;
-        customer.mailing_state = customer.state;
-        customer.mailing_zip = customer.zip;
-        customer.mailing_contact_name = customer.contact_name;
-        customer.mailing_contact_phone = customer.contact_phone;
-        customer.mailing_ext = customer.ext;
-        customer.mailing_email = customer.email;
+        mailing_address.id = -1;
+        mailing_address.customer_id = props.selectedCustomer.id;
+        mailing_address.code = props.selectedCustomer.code;
+        mailing_address.code_number = props.selectedCustomer.code_number;
+        mailing_address.name = props.selectedCustomer.name;
+        mailing_address.address1 = props.selectedCustomer.address1;
+        mailing_address.address2 = props.selectedCustomer.address2;
+        mailing_address.city = props.selectedCustomer.city;
+        mailing_address.state = props.selectedCustomer.state;
+        mailing_address.zip = props.selectedCustomer.zip;
+        mailing_address.contact_name = props.selectedCustomer.contact_name;
+        mailing_address.contact_phone = props.selectedCustomer.contact_phone;
+        mailing_address.ext = props.selectedCustomer.ext;
+        mailing_address.email = props.selectedCustomer.email;
 
         if ((props.selectedContact?.id || 0) > 0) {
-            customer.mailing_contact_id = props.selectedContact.id;
-            customer.mailing_contact = props.selectedContact;
+            mailing_address.mailing_contact_id = props.selectedContact.id;
+            mailing_address.mailing_contact = props.selectedContact;
 
-            customer.mailing_contact_primary_phone = props.selectedContact.phone_work !== ''
+            mailing_address.mailing_contact_primary_phone = props.selectedContact.phone_work !== ''
                 ? 'work'
                 : props.selectedContact.phone_work_fax !== ''
                     ? 'fax'
@@ -527,153 +560,106 @@ function Customers(props) {
                             : props.selectedContact.phone_other !== ''
                                 ? 'other' : 'work';
 
-            customer.mailing_contact_primary_email = props.selectedContact.email_work !== ''
+            mailing_address.mailing_contact_primary_email = props.selectedContact.email_work !== ''
                 ? 'work'
                 : props.selectedContact.email_personal !== ''
                     ? 'personal'
                     : props.selectedContact.email_other !== ''
                         ? 'other' : 'work';
 
-        } else if (customer.contacts.findIndex(x => x.is_primary === 1) > -1) {
-            customer.mailing_contact_id = customer.contacts[customer.contacts.findIndex(x => x.is_primary === 1)].id;
-            customer.mailing_contact = customer.contacts[customer.contacts.findIndex(x => x.is_primary === 1)];
+        } else if (props.selectedCustomer.contacts.findIndex(x => x.is_primary === 1) > -1) {
+            mailing_address.mailing_contact_id = props.selectedCustomer.contacts[props.selectedCustomer.contacts.findIndex(x => x.is_primary === 1)].id;
+            mailing_address.mailing_contact = props.selectedCustomer.contacts[props.selectedCustomer.contacts.findIndex(x => x.is_primary === 1)];
 
-            customer.mailing_contact_primary_phone = customer.contacts[customer.contacts.findIndex(x => x.is_primary === 1)].phone_work !== ''
+            mailing_address.mailing_contact_primary_phone = props.selectedCustomer.contacts[props.selectedCustomer.contacts.findIndex(x => x.is_primary === 1)].phone_work !== ''
                 ? 'work'
-                : customer.contacts[customer.contacts.findIndex(x => x.is_primary === 1)].phone_work_fax !== ''
+                : props.selectedCustomer.contacts[props.selectedCustomer.contacts.findIndex(x => x.is_primary === 1)].phone_work_fax !== ''
                     ? 'fax'
-                    : customer.contacts[customer.contacts.findIndex(x => x.is_primary === 1)].phone_mobile !== ''
+                    : props.selectedCustomer.contacts[props.selectedCustomer.contacts.findIndex(x => x.is_primary === 1)].phone_mobile !== ''
                         ? 'mobile'
-                        : customer.contacts[customer.contacts.findIndex(x => x.is_primary === 1)].phone_direct !== ''
+                        : props.selectedCustomer.contacts[props.selectedCustomer.contacts.findIndex(x => x.is_primary === 1)].phone_direct !== ''
                             ? 'direct'
-                            : customer.contacts[customer.contacts.findIndex(x => x.is_primary === 1)].phone_other !== ''
+                            : props.selectedCustomer.contacts[props.selectedCustomer.contacts.findIndex(x => x.is_primary === 1)].phone_other !== ''
                                 ? 'other' : 'work';
 
-            customer.mailing_contact_primary_email = customer.contacts[customer.contacts.findIndex(x => x.is_primary === 1)].email_work !== ''
+            mailing_address.mailing_contact_primary_email = props.selectedCustomer.contacts[props.selectedCustomer.contacts.findIndex(x => x.is_primary === 1)].email_work !== ''
                 ? 'work'
-                : customer.contacts[customer.contacts.findIndex(x => x.is_primary === 1)].email_personal !== ''
+                : props.selectedCustomer.contacts[props.selectedCustomer.contacts.findIndex(x => x.is_primary === 1)].email_personal !== ''
                     ? 'personal'
-                    : customer.contacts[customer.contacts.findIndex(x => x.is_primary === 1)].email_other !== ''
+                    : props.selectedCustomer.contacts[props.selectedCustomer.contacts.findIndex(x => x.is_primary === 1)].email_other !== ''
                         ? 'other' : 'work';
 
-        } else if (customer.contacts.length > 0) {
-            customer.mailing_contact_id = customer.contacts[0].id;
-            customer.mailing_contact = customer.contacts[0];
+        } else if (props.selectedCustomer.contacts.length > 0) {
+            mailing_address.mailing_contact_id = props.selectedCustomer.contacts[0].id;
+            mailing_address.mailing_contact = props.selectedCustomer.contacts[0];
 
-            customer.mailing_contact_primary_phone = customer.contacts[0].phone_work !== ''
+            mailing_address.mailing_contact_primary_phone = props.selectedCustomer.contacts[0].phone_work !== ''
                 ? 'work'
-                : customer.contacts[0].phone_work_fax !== ''
+                : props.selectedCustomer.contacts[0].phone_work_fax !== ''
                     ? 'fax'
-                    : customer.contacts[0].phone_mobile !== ''
+                    : props.selectedCustomer.contacts[0].phone_mobile !== ''
                         ? 'mobile'
-                        : customer.contacts[0].phone_direct !== ''
+                        : props.selectedCustomer.contacts[0].phone_direct !== ''
                             ? 'direct'
-                            : customer.contacts[0].phone_other !== ''
+                            : props.selectedCustomer.contacts[0].phone_other !== ''
                                 ? 'other' : 'work';
 
-            customer.mailing_contact_primary_email = customer.contacts[0].email_work !== ''
+            mailing_address.mailing_contact_primary_email = props.selectedCustomer.contacts[0].email_work !== ''
                 ? 'work'
-                : customer.contacts[0].email_personal !== ''
+                : props.selectedCustomer.contacts[0].email_personal !== ''
                     ? 'personal'
-                    : customer.contacts[0].email_other !== ''
+                    : props.selectedCustomer.contacts[0].email_other !== ''
                         ? 'other' : 'work';
 
         } else {
-            customer.mailing_contact_id = 0;
-            customer.mailing_contact = {};
-            customer.mailing_contact_primary_phone = 'work';
-            customer.mailing_contact_primary_email = 'work';
+            mailing_address.mailing_contact_id = 0;
+            mailing_address.mailing_contact = {};
+            mailing_address.mailing_contact_primary_phone = 'work';
+            mailing_address.mailing_contact_primary_email = 'work';
         }
 
-        props.setSelectedCustomer(customer);
+        props.setSelectedCustomer({ ...props.selectedCustomer, mailing_address: mailing_address });
 
-        validateCustomerForSaving({ keyCode: 9 });
+        validateMailingAddressForSaving({ keyCode: 9 });
     }
 
     const mailingAddressClearBtn = () => {
-        if (props.selectedCustomer?.id === undefined || props.selectedCustomer?.id <= 0) {
-            // window.alert('You must select a customer first');
-            return;
-        }
-
-        let customer = props.selectedCustomer;
-
-        customer.mailing_code = '';
-        customer.mailing_code_number = '';
-        customer.mailing_name = '';
-        customer.mailing_address1 = '';
-        customer.mailing_address2 = '';
-        customer.mailing_city = '';
-        customer.mailing_state = '';
-        customer.mailing_zip = '';
-        customer.mailing_contact_id = 0;
-        customer.mailing_contact = {};
-        customer.mailing_contact_name = '';
-        customer.mailing_contact_phone = '';
-        customer.mailing_contact_primary_phone = 'work';
-        customer.mailing_contact_primary_email = 'work';
-        customer.mailing_ext = '';
-        customer.mailing_email = '';
-        customer.mailing_bill_to = '';
-
-        props.setSelectedCustomer(customer);
+        props.setSelectedCustomer({
+            ...props.selectedCustomer,
+            mailing_address: {}
+        });
 
         validateCustomerForSaving({ keyCode: 9 });
+        refCustomerMailingCode.current.focus();
     }
 
     const mailingAddressBillToBtn = () => {
-        if (props.selectedCustomer?.id === undefined || props.selectedCustomer?.id <= 0) {
+        if ((props.selectedCustomer?.id || 0) === 0) {
             window.alert('You must select a customer first');
             return;
         }
 
-        let customer = props.selectedCustomer;
+        let customer = props.selectedCustomer || {};
 
-        if ((customer.mailing_bill_to || '') !== '') {
-            customer.mailing_bill_to = '';
+        if ((customer.mailing_address?.bill_to_code || '') !== '') {
+            customer.mailing_address = {
+                ...customer.mailing_address,
+                bill_to_code: '',
+                bill_to_code_number: 0,
+            }
         } else {
-            if ((customer.mailing_code || '') !== '') {
-                customer.mailing_bill_to = customer.mailing_code + ((customer.mailing_code_number || 0) === 0 ? '' : customer.mailing_code_number);
+            if ((customer.mailing_address?.code || '') !== '') {
+                customer.mailing_address = {
+                    ...customer.mailing_address,
+                    bill_to_code: (customer.mailing_address?.code || ''),
+                    bill_to_code_number: (customer.mailing_address?.code_number || 0)
+                }
             }
         }
 
         props.setSelectedCustomer(customer);
 
-        validateCustomerForSaving({ keyCode: 9 });
-    }
-
-    const selectedContactIsPrimaryChange = async (e) => {
-        await props.setSelectedContact({ ...props.selectedContact, is_primary: e.target.checked ? 1 : 0 });
-
-        if (props.selectedCustomer?.id === undefined) {
-            return;
-        }
-
-        let contact = props.selectedContact;
-        contact = { ...contact, is_primary: e.target.checked ? 1 : 0 };
-
-        if (contact.customer_id === undefined || contact.customer_id === 0) {
-            contact.customer_id = props.selectedCustomer?.id;
-        }
-
-        if ((contact.first_name || '').trim() === '' || (contact.last_name || '').trim() === '' || (contact.phone_work || '').trim() === '' || (contact.email_work || '').trim() === '') {
-            return;
-        }
-
-        if ((contact.address1 || '').trim() === '' && (contact.address2 || '').trim() === '') {
-            contact.address1 = props.selectedCustomer?.address1;
-            contact.address2 = props.selectedCustomer?.address2;
-            contact.city = props.selectedCustomer?.city;
-            contact.state = props.selectedCustomer?.state;
-            contact.zip_code = props.selectedCustomer?.zip;
-        }
-
-        $.post(props.serverUrl + '/saveContact', contact).then(async res => {
-            if (res.result === 'OK') {
-                await props.setSelectedContact(res.contact);
-                await props.setSelectedCustomer({ ...props.selectedCustomer, contacts: res.contacts });
-            }
-        });
+        validateMailingAddressForSaving({ keyCode: 9 });
     }
 
     const validateContactForSaving = (e) => {
@@ -697,447 +683,6 @@ function Customers(props) {
                     console.log(res);
                 }
             });
-        }
-    }
-
-    const popupItemClick = async (item) => {
-        let automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
-
-        switch (automaticEmailsActiveInput) {
-            case 'to':
-                if (item.email !== '' && isEmailValid(item.email)) {
-                    automaticEmails = { ...automaticEmails, automatic_emails_to: ((automaticEmails.automatic_emails_to || '') + ' ' + item.email).trim() };
-                    await props.setAutomaticEmailsTo('');
-                }
-                break;
-            case 'cc':
-                if (item.email !== '' && isEmailValid(item.email)) {
-                    automaticEmails = { ...automaticEmails, automatic_emails_cc: ((automaticEmails.automatic_emails_cc || '') + ' ' + item.email).trim() };
-                    await props.setAutomaticEmailsCc('');
-                }
-                break;
-            case 'bcc':
-                if (item.email !== '' && isEmailValid(item.email)) {
-                    automaticEmails = { ...automaticEmails, automatic_emails_bcc: ((automaticEmails.automatic_emails_bcc || '') + ' ' + item.email).trim() };
-                    await props.setAutomaticEmailsBcc('');
-                }
-                break;
-            default:
-                break;
-        }
-
-        await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
-
-        $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-            if (res.result === 'OK') {
-                console.log(res);
-            }
-        });
-
-        await setPopupItems([]);
-    }
-
-    const popupItemKeydown = async (e) => {
-        let key = e.keyCode || e.which;
-        let selectedIndex = -1;
-        let items = popupItems.map((a, b) => {
-            if (a.selected) selectedIndex = b;
-            return a;
-        });
-
-        if (key === 37 || key === 38) {
-            e.preventDefault();
-            if (selectedIndex === -1) {
-                // items[0].selected = true;
-            } else {
-                items = items.map((a, b) => {
-                    if (selectedIndex === 0) {
-                        if (b === items.length - 1) {
-                            a.selected = true;
-                        } else {
-                            a.selected = false;
-                        }
-                    } else {
-                        if (b === selectedIndex - 1) {
-                            a.selected = true;
-                        } else {
-                            a.selected = false;
-                        }
-                    }
-                    return a;
-                });
-
-                await setPopupItems(items);
-
-                popupItemsRef.current.map((r, i) => {
-                    if (r && r.classList.contains('selected')) {
-                        r.scrollIntoView()
-                    }
-                    return true;
-                });
-            }
-        }
-
-        if (key === 39 || key === 40) {
-            e.preventDefault();
-            if (selectedIndex === -1) {
-                // items[0].selected = true;
-            } else {
-                items = items.map((a, b) => {
-                    if (selectedIndex === items.length - 1) {
-                        if (b === 0) {
-                            a.selected = true;
-                        } else {
-                            a.selected = false;
-                        }
-                    } else {
-                        if (b === selectedIndex + 1) {
-                            a.selected = true;
-                        } else {
-                            a.selected = false;
-                        }
-                    }
-                    return a;
-                });
-
-                await setPopupItems(items);
-
-                popupItemsRef.current.map((r, i) => {
-                    if (r && r.classList.contains('selected')) {
-                        r.scrollIntoView()
-                    }
-                    return true;
-                });
-            }
-        }
-
-        if (key === 13) {
-            let automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
-
-            await popupItems.map(async (item, index) => {
-                if (item.selected) {
-                    switch (automaticEmailsActiveInput) {
-                        case 'to':
-                            if (item.email !== '' && isEmailValid(item.email)) {
-                                automaticEmails = { ...automaticEmails, automatic_emails_to: ((automaticEmails.automatic_emails_to || '') + ' ' + item.email).trim() };
-                                await props.setAutomaticEmailsTo('');
-                            }
-                            break;
-                        case 'cc':
-                            if (item.email !== '' && isEmailValid(item.email)) {
-                                automaticEmails = { ...automaticEmails, automatic_emails_cc: ((automaticEmails.automatic_emails_cc || '') + ' ' + item.email).trim() };
-                                await props.setAutomaticEmailsCc('');
-                            }
-                            break;
-                        case 'bcc':
-                            if (item.email !== '' && isEmailValid(item.email)) {
-                                automaticEmails = { ...automaticEmails, automatic_emails_bcc: ((automaticEmails.automatic_emails_bcc || '') + ' ' + item.email).trim() };
-                                await props.setAutomaticEmailsBcc('');
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                }
-
-                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
-
-                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-                    if (res.result === 'OK') {
-                        console.log(res);
-                    }
-                });
-
-                return true;
-            });
-
-            await setPopupItems([]);
-        }
-    }
-
-    const automaticEmailsOnKeydown = async (e, name) => {
-        let key = e.keyCode || e.which;
-        let selectedIndex = -1;
-        let items = popupItems.map((a, b) => {
-            if (a.selected) selectedIndex = b;
-            return a;
-        });
-
-        if (key === 37 || key === 38) {
-            e.preventDefault();
-            if (selectedIndex === -1) {
-                // items[0].selected = true;
-            } else {
-                items = items.map((a, b) => {
-                    if (selectedIndex === 0) {
-                        if (b === items.length - 1) {
-                            a.selected = true;
-                        } else {
-                            a.selected = false;
-                        }
-                    } else {
-                        if (b === selectedIndex - 1) {
-                            a.selected = true;
-                        } else {
-                            a.selected = false;
-                        }
-                    }
-                    return a;
-                });
-
-                await setPopupItems(items);
-
-                popupItemsRef.current.map((r, i) => {
-                    if (r && r.classList.contains('selected')) {
-                        r.scrollIntoView()
-                    }
-                    return true;
-                });
-            }
-        }
-
-        if (key === 39 || key === 40) {
-            e.preventDefault();
-            if (selectedIndex === -1) {
-                // items[0].selected = true;
-            } else {
-                items = items.map((a, b) => {
-                    if (selectedIndex === items.length - 1) {
-                        if (b === 0) {
-                            a.selected = true;
-                        } else {
-                            a.selected = false;
-                        }
-                    } else {
-                        if (b === selectedIndex + 1) {
-                            a.selected = true;
-                        } else {
-                            a.selected = false;
-                        }
-                    }
-                    return a;
-                });
-
-                await setPopupItems(items);
-
-                popupItemsRef.current.map((r, i) => {
-                    if (r && r.classList.contains('selected')) {
-                        r.scrollIntoView()
-                    }
-                    return true;
-                });
-            }
-        }
-
-        if (key === 13) {
-            let automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
-
-            await popupItems.map(async (item, index) => {
-                if (item.selected) {
-                    switch (name) {
-                        case 'to':
-                            if (item.email !== '' && isEmailValid(item.email)) {
-                                automaticEmails = { ...automaticEmails, automatic_emails_to: ((automaticEmails.automatic_emails_to || '') + ' ' + item.email).trim() };
-                                await props.setAutomaticEmailsTo('');
-                            }
-                            break;
-                        case 'cc':
-                            if (item.email !== '' && isEmailValid(item.email)) {
-                                automaticEmails = { ...automaticEmails, automatic_emails_cc: ((automaticEmails.automatic_emails_cc || '') + ' ' + item.email).trim() };
-                                await props.setAutomaticEmailsCc('');
-                            }
-                            break;
-                        case 'bcc':
-                            if (item.email !== '' && isEmailValid(item.email)) {
-                                automaticEmails = { ...automaticEmails, automatic_emails_bcc: ((automaticEmails.automatic_emails_bcc || '') + ' ' + item.email).trim() };
-                                await props.setAutomaticEmailsBcc('');
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                }
-
-                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
-
-                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-                    if (res.result === 'OK') {
-                        console.log(res);
-                    }
-                });
-
-                return true;
-            });
-
-            await setPopupItems([]);
-        }
-
-        if (key === 9) {
-
-            if (props.selectedCustomer?.id !== undefined) {
-                let automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
-                let tabNext = false;
-
-                switch (name) {
-                    case 'to':
-                        if (props.automaticEmailsTo.trim() !== '' && isEmailValid(props.automaticEmailsTo.trim())) {
-                            automaticEmails = { ...automaticEmails, automatic_emails_to: ((automaticEmails.automatic_emails_to || '') + ' ' + props.automaticEmailsTo.trim()).trim() };
-                            await props.setAutomaticEmailsTo('');
-                        } else {
-                            tabNext = props.automaticEmailsTo.trim() === '';
-                        }
-                        break;
-                    case 'cc':
-                        if (props.automaticEmailsCc.trim() !== '' && isEmailValid(props.automaticEmailsCc.trim())) {
-                            automaticEmails = { ...automaticEmails, automatic_emails_cc: ((automaticEmails.automatic_emails_cc || '') + ' ' + props.automaticEmailsCc.trim()).trim() };
-                            await props.setAutomaticEmailsCc('');
-                        } else {
-                            tabNext = props.automaticEmailsCc.trim() === '';
-                        }
-                        break;
-                    case 'bcc':
-                        if (props.automaticEmailsBcc.trim() !== '' && isEmailValid(props.automaticEmailsBcc.trim())) {
-                            automaticEmails = { ...automaticEmails, automatic_emails_bcc: ((automaticEmails.automatic_emails_bcc || '') + ' ' + props.automaticEmailsBcc.trim()).trim() };
-                            await props.setAutomaticEmailsBcc('');
-                        } else {
-                            tabNext = props.automaticEmailsBcc.trim() === '';
-                        }
-                        break;
-                    default:
-                        break;
-                }
-
-                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
-
-                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-                    if (res.result === 'OK') {
-                        console.log(res);
-                    }
-                });
-
-                if (!tabNext) e.preventDefault();
-            } else {
-                await props.setAutomaticEmailsTo('');
-                await props.setAutomaticEmailsCc('');
-                await props.setAutomaticEmailsBcc('');
-            }
-
-        }
-
-        if (key === 27) {
-            await setPopupItems([]);
-        }
-
-    }
-
-    const automaticEmailsOnInput = async (e, name) => {
-        window.clearTimeout(delayTimer);
-        name === 'to' && props.setAutomaticEmailsTo(e.target.value);
-        name === 'cc' && props.setAutomaticEmailsCc(e.target.value);
-        name === 'bcc' && props.setAutomaticEmailsBcc(e.target.value);
-
-        setAutomaticEmailsActiveInput(name);
-
-        if (props.selectedCustomer?.id !== undefined) {
-
-            if (e.target.value.trim() === '') {
-                await setPopupItems([]);
-            } else {
-                delayTimer = window.setTimeout(() => {
-                    $.post(props.serverUrl + '/getContactsByEmailOrName', {
-                        email: e.target.value.trim(),
-                        customer_id: props.selectedCustomer?.id
-                    }).then(async res => {
-                        const boundsTo = refAutomaticEmailsTo.current.getBoundingClientRect();
-                        const boundsCc = refAutomaticEmailsCc.current.getBoundingClientRect();
-                        const boundsBcc = refAutomaticEmailsBcc.current.getBoundingClientRect();
-
-                        const input = name === 'to' ? boundsTo : name === 'cc' ? boundsCc : boundsBcc;
-
-                        let popup = refPopup.current;
-
-                        const { innerWidth, innerHeight } = window;
-
-                        let screenWSection = innerWidth / 3;
-
-                        popup && popup.childNodes[0].classList.add('vertical');
-
-                        if ((innerHeight - 170 - 30) <= input.top) {
-                            popup && popup.childNodes[0].classList.add('above');
-                        }
-
-                        if ((innerHeight - 170 - 30) > input.top) {
-                            popup && popup.childNodes[0].classList.add('below');
-                            popup && (popup.style.top = (input.top + 10) + 'px');
-                        }
-
-                        if (input.left <= (screenWSection * 1)) {
-                            popup && popup.childNodes[0].classList.add('right');
-                            popup && (popup.style.left = input.left + 'px');
-
-                            if (input.width < 70) {
-                                popup && (popup.style.left = (input.left - 60 + (input.width / 2)) + 'px');
-
-                                if (input.left < 30) {
-                                    popup && popup.childNodes[0].classList.add('corner');
-                                    popup && (popup.style.left = (input.left + (input.width / 2)) + 'px');
-                                }
-                            }
-                        }
-
-                        if (input.left <= (screenWSection * 2)) {
-                            popup && (popup.style.left = (input.left - 100) + 'px');
-                        }
-
-                        if (input.left > (screenWSection * 2)) {
-                            popup && popup.childNodes[0].classList.add('left');
-                            popup && (popup.style.left = (input.left - 200) + 'px');
-
-                            if ((innerWidth - input.left) < 100) {
-                                popup && popup.childNodes[0].classList.add('corner');
-                                popup && (popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px');
-                            }
-                        }
-
-                        if (res.result === 'OK') {
-                            if (res.contacts.length > 0) {
-                                let items = []
-                                res.contacts.map((c, i) => {
-                                    let emailWork = c.email_work;
-                                    let emailPersonal = c.email_personal;
-                                    let emailOther = c.email_other;
-                                    let firstName = c.first_name;
-                                    let lastName = c.last_name;
-
-                                    let name = firstName + ' ' + lastName;
-
-                                    let email = emailWork.indexOf(e.target.value.trim()) > -1 ? emailWork :
-                                        emailPersonal.indexOf(e.target.value.trim()) ? emailPersonal : emailOther
-
-                                    if (email === '') {
-                                        email = emailWork !== '' ? emailWork :
-                                            emailPersonal !== '' ? emailPersonal : emailOther;
-                                    }
-
-                                    if (emailWork.trim() !== '' || emailPersonal.trim() !== '' || emailOther !== '') {
-                                        items.push({
-                                            name: name,
-                                            email: email,
-                                            selected: i === 0
-                                        });
-                                    }
-
-                                    return true;
-                                });
-
-                                await setPopupItems(e.target.value.trim() === '' ? [] : items);
-                            } else {
-                                await setPopupItems([]);
-                            }
-                        }
-                    });
-                }, 300);
-            }
         }
     }
 
@@ -1310,12 +855,12 @@ function Customers(props) {
                                         ref={refCustomerCode}
                                         onKeyDown={searchCustomerByCode}
                                         onChange={e => { props.setSelectedCustomer({ ...props.selectedCustomer, code: e.target.value }) }}
-                                        value={props.selectedCustomer?.code || ''} />
+                                        value={(props.selectedCustomer?.code || '') + ((props.selectedCustomer?.code_number || 0) === 0 ? '' : props.selectedCustomer.code_number)} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container grow">
                                     <input tabIndex={2 + props.tabTimes} type="text" placeholder="Name"
-                                        onKeyDown={validateCustomerForSaving}
+                                        // onKeyDown={validateCustomerForSaving}
                                         onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, name: e.target.value })}
                                         value={props.selectedCustomer?.name || ''} />
                                 </div>
@@ -1324,7 +869,7 @@ function Customers(props) {
                             <div className="form-row">
                                 <div className="input-box-container grow">
                                     <input tabIndex={3 + props.tabTimes} type="text" placeholder="Address 1"
-                                        onKeyDown={validateCustomerForSaving}
+                                        // onKeyDown={validateCustomerForSaving}
                                         onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, address1: e.target.value })}
                                         value={props.selectedCustomer?.address1 || ''} />
                                 </div>
@@ -1333,7 +878,7 @@ function Customers(props) {
                             <div className="form-row">
                                 <div className="input-box-container grow">
                                     <input tabIndex={4 + props.tabTimes} type="text" placeholder="Address 2"
-                                        onKeyDown={validateCustomerForSaving}
+                                        // onKeyDown={validateCustomerForSaving}
                                         onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, address2: e.target.value })}
                                         value={props.selectedCustomer?.address2 || ''} />
                                 </div>
@@ -1342,14 +887,14 @@ function Customers(props) {
                             <div className="form-row">
                                 <div className="input-box-container grow">
                                     <input tabIndex={5 + props.tabTimes} type="text" placeholder="City"
-                                        onKeyDown={validateCustomerForSaving}
+                                        // onKeyDown={validateCustomerForSaving}
                                         onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, city: e.target.value })}
                                         value={props.selectedCustomer?.city || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-state">
                                     <input tabIndex={6 + props.tabTimes} type="text" placeholder="State" maxLength="2"
-                                        onKeyDown={validateCustomerForSaving}
+                                        // onKeyDown={validateCustomerForSaving}
                                         onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, state: e.target.value })}
                                         value={props.selectedCustomer?.state || ''} />
                                 </div>
@@ -1365,7 +910,7 @@ function Customers(props) {
                             <div className="form-row">
                                 <div className="input-box-container grow">
                                     <input tabIndex={8 + props.tabTimes} type="text" placeholder="Contact Name"
-                                        onKeyDown={validateCustomerForSaving}
+                                        // onKeyDown={validateCustomerForSaving}
                                         onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, contact_name: e.target.value })}
                                         value={props.selectedCustomer?.contact_name || ''} />
                                 </div>
@@ -1431,39 +976,172 @@ function Customers(props) {
                             <div className="form-row">
                                 <div className="input-box-container input-code">
                                     <input tabIndex={18 + props.tabTimes} type="text" placeholder="Code" maxLength="8"
-                                        onKeyDown={validateCustomerForSaving}
-                                        onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_code: e.target.value })}
-                                        value={(props.selectedCustomer?.mailing_code_number || 0) === 0 ? (props.selectedCustomer?.mailing_code || '') : props.selectedCustomer?.mailing_code + props.selectedCustomer?.mailing_code_number} />
+                                        ref={refCustomerMailingCode}
+                                        readOnly={true}
+                                        onInput={e => {
+                                            props.setSelectedCustomer({
+                                                ...props.selectedCustomer,
+                                                mailing_address: {
+                                                    ...props.selectedCustomer?.mailing_address,
+                                                    code: e.target.value
+                                                }
+                                            })
+                                        }}
+                                        onChange={e => {
+                                            props.setSelectedCustomer({
+                                                ...props.selectedCustomer,
+                                                mailing_address: {
+                                                    ...props.selectedCustomer?.mailing_address,
+                                                    code: e.target.value
+                                                }
+                                            })
+                                        }}
+                                        value={(props.selectedCustomer?.mailing_address?.code || '') + ((props.selectedCustomer?.mailing_address?.code_number || 0) === 0 ? '' : props.selectedCustomer?.mailing_address?.code_number)} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container grow">
-                                    <input tabIndex={19 + props.tabTimes} type="text" placeholder="Name" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_name: e.target.value })} value={props.selectedCustomer?.mailing_name || ''} />
+                                    <input tabIndex={19 + props.tabTimes} type="text" placeholder="Name"
+                                        onInput={e => {
+                                            props.setSelectedCustomer({
+                                                ...props.selectedCustomer,
+                                                mailing_address: {
+                                                    ...props.selectedCustomer?.mailing_address,
+                                                    name: e.target.value
+                                                }
+                                            })
+                                        }}
+                                        onChange={e => {
+                                            props.setSelectedCustomer({
+                                                ...props.selectedCustomer,
+                                                mailing_address: {
+                                                    ...props.selectedCustomer?.mailing_address,
+                                                    name: e.target.value
+                                                }
+                                            })
+                                        }}
+                                        value={props.selectedCustomer?.mailing_address?.name || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input tabIndex={20 + props.tabTimes} type="text" placeholder="Address 1" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_address1: e.target.value })} value={props.selectedCustomer?.mailing_address1 || ''} />
+                                    <input tabIndex={20 + props.tabTimes} type="text" placeholder="Address 1"
+                                        onInput={e => {
+                                            props.setSelectedCustomer({
+                                                ...props.selectedCustomer,
+                                                mailing_address: {
+                                                    ...props.selectedCustomer?.mailing_address,
+                                                    address1: e.target.value
+                                                }
+                                            })
+                                        }}
+                                        onChange={e => {
+                                            props.setSelectedCustomer({
+                                                ...props.selectedCustomer,
+                                                mailing_address: {
+                                                    ...props.selectedCustomer?.mailing_address,
+                                                    address1: e.target.value
+                                                }
+                                            })
+                                        }}
+                                        value={props.selectedCustomer?.mailing_address?.address1 || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input tabIndex={21 + props.tabTimes} type="text" placeholder="Address 2" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_address2: e.target.value })} value={props.selectedCustomer?.mailing_address2 || ''} />
+                                    <input tabIndex={21 + props.tabTimes} type="text" placeholder="Address 2"
+                                        onInput={e => {
+                                            props.setSelectedCustomer({
+                                                ...props.selectedCustomer,
+                                                mailing_address: {
+                                                    ...props.selectedCustomer?.mailing_address,
+                                                    address2: e.target.value
+                                                }
+                                            })
+                                        }}
+                                        onChange={e => {
+                                            props.setSelectedCustomer({
+                                                ...props.selectedCustomer,
+                                                mailing_address: {
+                                                    ...props.selectedCustomer?.mailing_address,
+                                                    address2: e.target.value
+                                                }
+                                            })
+                                        }}
+                                        value={props.selectedCustomer?.mailing_address?.address2 || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input tabIndex={22 + props.tabTimes} type="text" placeholder="City" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_city: e.target.value })} value={props.selectedCustomer?.mailing_city || ''} />
+                                    <input tabIndex={22 + props.tabTimes} type="text" placeholder="City"
+                                        onInput={e => {
+                                            props.setSelectedCustomer({
+                                                ...props.selectedCustomer,
+                                                mailing_address: {
+                                                    ...props.selectedCustomer?.mailing_address,
+                                                    city: e.target.value
+                                                }
+                                            })
+                                        }}
+                                        onChange={e => {
+                                            props.setSelectedCustomer({
+                                                ...props.selectedCustomer,
+                                                mailing_address: {
+                                                    ...props.selectedCustomer?.mailing_address,
+                                                    city: e.target.value
+                                                }
+                                            })
+                                        }}
+                                        value={props.selectedCustomer?.mailing_address?.city || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-state">
-                                    <input tabIndex={23 + props.tabTimes} type="text" placeholder="State" maxLength="2" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_state: e.target.value })} value={props.selectedCustomer?.mailing_state || ''} />
+                                    <input tabIndex={23 + props.tabTimes} type="text" placeholder="State" maxLength="2"
+                                        onInput={e => {
+                                            props.setSelectedCustomer({
+                                                ...props.selectedCustomer,
+                                                mailing_address: {
+                                                    ...props.selectedCustomer?.mailing_address,
+                                                    state: e.target.value
+                                                }
+                                            })
+                                        }}
+                                        onChange={e => {
+                                            props.setSelectedCustomer({
+                                                ...props.selectedCustomer,
+                                                mailing_address: {
+                                                    ...props.selectedCustomer?.mailing_address,
+                                                    state: e.target.value
+                                                }
+                                            })
+                                        }}
+                                        value={props.selectedCustomer?.mailing_address?.state || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-zip-code">
-                                    <input tabIndex={24 + props.tabTimes} type="text" placeholder="Postal Code" onKeyDown={validateCustomerForSaving} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_zip: e.target.value })} value={props.selectedCustomer?.mailing_zip || ''} />
+                                    <input tabIndex={24 + props.tabTimes} type="text" placeholder="Postal Code"
+                                        onKeyDown={validateMailingAddressForSaving}
+                                        onInput={e => {
+                                            props.setSelectedCustomer({
+                                                ...props.selectedCustomer,
+                                                mailing_address: {
+                                                    ...props.selectedCustomer?.mailing_address,
+                                                    zip: e.target.value
+                                                }
+                                            })
+                                        }}
+                                        onChange={e => {
+                                            props.setSelectedCustomer({
+                                                ...props.selectedCustomer,
+                                                mailing_address: {
+                                                    ...props.selectedCustomer?.mailing_address,
+                                                    zip: e.target.value
+                                                }
+                                            })
+                                        }}
+                                        value={props.selectedCustomer?.mailing_address?.zip || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
@@ -1595,22 +1273,25 @@ function Customers(props) {
                                                         if (showMailingContactNames && mailingContactNameItems.findIndex(item => item.selected) > -1) {
                                                             await props.setSelectedCustomer({
                                                                 ...props.selectedCustomer,
-                                                                mailing_contact: mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)],
-                                                                mailing_contact_id: mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].id,
-                                                                mailing_contact_primary_phone: (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_work || '') !== ''
-                                                                    ? 'work'
-                                                                    : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_work_fax || '') !== ''
-                                                                        ? 'fax'
-                                                                        : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_mobile || '') !== ''
-                                                                            ? 'mobile'
-                                                                            : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_direct || '') !== ''
-                                                                                ? 'direct'
-                                                                                : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_other || '') !== ''
-                                                                                    ? 'other' :
-                                                                                    ''
+                                                                mailing_address: {
+                                                                    ...props.selectedCustomer?.mailing_address,
+                                                                    mailing_contact: mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)],
+                                                                    mailing_contact_id: mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].id,
+                                                                    mailing_contact_primary_phone: (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_work || '') !== ''
+                                                                        ? 'work'
+                                                                        : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_work_fax || '') !== ''
+                                                                            ? 'fax'
+                                                                            : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_mobile || '') !== ''
+                                                                                ? 'mobile'
+                                                                                : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_direct || '') !== ''
+                                                                                    ? 'direct'
+                                                                                    : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_other || '') !== ''
+                                                                                        ? 'other' :
+                                                                                        ''
+                                                                }
                                                             });
 
-                                                            validateCustomerForSaving({ keyCode: 9 });
+                                                            validateMailingAddressForSaving({ keyCode: 9 });
                                                             setShowMailingContactNames(false);
                                                             refMailingContactName.current.focus();
                                                         }
@@ -1621,26 +1302,29 @@ function Customers(props) {
                                                             e.preventDefault();
                                                             await props.setSelectedCustomer({
                                                                 ...props.selectedCustomer,
-                                                                mailing_contact: mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)],
-                                                                mailing_contact_id: mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].id,
-                                                                mailing_contact_primary_phone: (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_work || '') !== ''
-                                                                    ? 'work'
-                                                                    : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_work_fax || '') !== ''
-                                                                        ? 'fax'
-                                                                        : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_mobile || '') !== ''
-                                                                            ? 'mobile'
-                                                                            : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_direct || '') !== ''
-                                                                                ? 'direct'
-                                                                                : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_other || '') !== ''
-                                                                                    ? 'other' :
-                                                                                    ''
+                                                                mailing_address: {
+                                                                    ...props.selectedCustomer?.mailing_address,
+                                                                    mailing_contact: mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)],
+                                                                    mailing_contact_id: mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].id,
+                                                                    mailing_contact_primary_phone: (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_work || '') !== ''
+                                                                        ? 'work'
+                                                                        : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_work_fax || '') !== ''
+                                                                            ? 'fax'
+                                                                            : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_mobile || '') !== ''
+                                                                                ? 'mobile'
+                                                                                : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_direct || '') !== ''
+                                                                                    ? 'direct'
+                                                                                    : (mailingContactNameItems[mailingContactNameItems.findIndex(item => item.selected)].phone_other || '') !== ''
+                                                                                        ? 'other' :
+                                                                                        ''
+                                                                }
                                                             });
 
-                                                            validateCustomerForSaving({ keyCode: 9 });
+                                                            validateMailingAddressForSaving({ keyCode: 9 });
                                                             setShowMailingContactNames(false);
                                                             refMailingContactName.current.focus();
                                                         } else {
-                                                            validateCustomerForSaving({ keyCode: 9 });
+                                                            validateMailingAddressForSaving({ keyCode: 9 });
                                                         }
                                                         break;
 
@@ -1661,15 +1345,15 @@ function Customers(props) {
                                                 // })
                                             }}
                                             value={
-                                                (props.selectedCustomer?.mailing_contact?.first_name || '') +
-                                                ((props.selectedCustomer?.mailing_contact?.last_name || '') === ''
+                                                (props.selectedCustomer?.mailing_address?.mailing_contact?.first_name || '') +
+                                                ((props.selectedCustomer?.mailing_address?.mailing_contact?.last_name || '') === ''
                                                     ? ''
-                                                    : ' ' + props.selectedCustomer?.mailing_contact?.last_name)
+                                                    : ' ' + props.selectedCustomer?.mailing_address?.mailing_contact?.last_name)
                                             }
                                         />
 
                                         {
-                                            ((props.selectedCustomer?.contacts || []).length > 1 && (props.selectedCustomer?.mailing_code || '') !== '') &&
+                                            ((props.selectedCustomer?.contacts || []).length > 1 && (props.selectedCustomer?.mailing_address?.code || '') !== '') &&
                                             <FontAwesomeIcon className="dropdown-button" icon={faCaretDown} onClick={async () => {
                                                 if (showMailingContactNames) {
                                                     setShowMailingContactNames(false);
@@ -1737,22 +1421,25 @@ function Customers(props) {
                                                                             onClick={async () => {
                                                                                 await props.setSelectedCustomer({
                                                                                     ...props.selectedCustomer,
-                                                                                    mailing_contact: item,
-                                                                                    mailing_contact_id: item.id,
-                                                                                    mailing_contact_primary_phone: (item.phone_work || '') !== ''
-                                                                                        ? 'work'
-                                                                                        : (item.phone_work_fax || '') !== ''
-                                                                                            ? 'fax'
-                                                                                            : (item.phone_mobile || '') !== ''
-                                                                                                ? 'mobile'
-                                                                                                : (item.phone_direct || '') !== ''
-                                                                                                    ? 'direct'
-                                                                                                    : (item.phone_other || '') !== ''
-                                                                                                        ? 'other' :
-                                                                                                        ''
+                                                                                    mailing_address: {
+                                                                                        ...props.selectedCustomer?.mailing_address,
+                                                                                        mailing_contact: item,
+                                                                                        mailing_contact_id: item.id,
+                                                                                        mailing_contact_primary_phone: (item.phone_work || '') !== ''
+                                                                                            ? 'work'
+                                                                                            : (item.phone_work_fax || '') !== ''
+                                                                                                ? 'fax'
+                                                                                                : (item.phone_mobile || '') !== ''
+                                                                                                    ? 'mobile'
+                                                                                                    : (item.phone_direct || '') !== ''
+                                                                                                        ? 'direct'
+                                                                                                        : (item.phone_other || '') !== ''
+                                                                                                            ? 'other' :
+                                                                                                            ''
+                                                                                    }
                                                                                 });
 
-                                                                                validateCustomerForSaving({ keyCode: 9 });
+                                                                                validateMailingAddressForSaving({ keyCode: 9 });
                                                                                 setShowMailingContactNames(false);
                                                                                 refMailingContactName.current.focus();
                                                                             }}
@@ -1910,10 +1597,13 @@ function Customers(props) {
                                                         if (showMailingContactPhones && mailingContactPhoneItems.findIndex(item => item.selected) > -1) {
                                                             await props.setSelectedCustomer({
                                                                 ...props.selectedCustomer,
-                                                                mailing_contact_primary_phone: mailingContactPhoneItems[mailingContactPhoneItems.findIndex(item => item.selected)].type
+                                                                mailing_address: {
+                                                                    ...props.selectedCustomer.mailing_address,
+                                                                    mailing_contact_primary_phone: mailingContactPhoneItems[mailingContactPhoneItems.findIndex(item => item.selected)].type
+                                                                }
                                                             });
 
-                                                            validateCustomerForSaving({ keyCode: 9 });
+                                                            validateMailingAddressForSaving({ keyCode: 9 });
                                                             setShowMailingContactPhones(false);
                                                             refMailingContactPhone.current.inputElement.focus();
                                                         }
@@ -1924,14 +1614,17 @@ function Customers(props) {
                                                             e.preventDefault();
                                                             await props.setSelectedCustomer({
                                                                 ...props.selectedCustomer,
-                                                                mailing_contact_primary_phone: mailingContactPhoneItems[mailingContactPhoneItems.findIndex(item => item.selected)].type
+                                                                mailing_address: {
+                                                                    ...props.selectedCustomer.mailing_address,
+                                                                    mailing_contact_primary_phone: mailingContactPhoneItems[mailingContactPhoneItems.findIndex(item => item.selected)].type
+                                                                }
                                                             });
 
-                                                            validateCustomerForSaving({ keyCode: 9 });
+                                                            validateMailingAddressForSaving({ keyCode: 9 });
                                                             setShowMailingContactPhones(false);
                                                             refMailingContactPhone.current.inputElement.focus();
                                                         } else {
-                                                            validateCustomerForSaving({ keyCode: 9 });
+                                                            validateMailingAddressForSaving({ keyCode: 9 });
                                                         }
                                                         break;
 
@@ -1952,28 +1645,28 @@ function Customers(props) {
                                                 // });
                                             }}
                                             value={
-                                                (props.selectedCustomer?.mailing_contact_primary_phone || '') === 'work'
-                                                    ? (props.selectedCustomer?.mailing_contact?.phone_work || '')
-                                                    : (props.selectedCustomer?.mailing_contact_primary_phone || '') === 'fax'
-                                                        ? (props.selectedCustomer?.mailing_contact?.phone_work_fax || '')
-                                                        : (props.selectedCustomer?.mailing_contact_primary_phone || '') === 'mobile'
-                                                            ? (props.selectedCustomer?.mailing_contact?.phone_mobile || '')
-                                                            : (props.selectedCustomer?.mailing_contact_primary_phone || '') === 'direct'
-                                                                ? (props.selectedCustomer?.mailing_contact?.phone_direct || '')
-                                                                : (props.selectedCustomer?.mailing_contact_primary_phone || '') === 'other'
-                                                                    ? (props.selectedCustomer?.mailing_contact?.phone_other || '')
+                                                (props.selectedCustomer?.mailing_address?.mailing_contact_primary_phone || '') === 'work'
+                                                    ? (props.selectedCustomer?.mailing_address?.mailing_contact?.phone_work || '')
+                                                    : (props.selectedCustomer?.mailing_address?.mailing_contact_primary_phone || '') === 'fax'
+                                                        ? (props.selectedCustomer?.mailing_address?.mailing_contact?.phone_work_fax || '')
+                                                        : (props.selectedCustomer?.mailing_address?.mailing_contact_primary_phone || '') === 'mobile'
+                                                            ? (props.selectedCustomer?.mailing_address?.mailing_contact?.phone_mobile || '')
+                                                            : (props.selectedCustomer?.mailing_address?.mailing_contact_primary_phone || '') === 'direct'
+                                                                ? (props.selectedCustomer?.mailing_address?.mailing_contact?.phone_direct || '')
+                                                                : (props.selectedCustomer?.mailing_address?.mailing_contact_primary_phone || '') === 'other'
+                                                                    ? (props.selectedCustomer?.mailing_address?.mailing_contact?.phone_other || '')
                                                                     : ''
                                             }
                                         />
 
                                         {
-                                            ((props.selectedCustomer?.id || 0) > 0 && (props.selectedCustomer?.mailing_code || '') !== '') &&
+                                            ((props.selectedCustomer?.id || 0) > 0 && (props.selectedCustomer?.mailing_address?.code || '') !== '') &&
                                             <div
                                                 className={classnames({
                                                     'selected-mailing-contact-primary-phone': true,
                                                     'pushed': (mailingContactPhoneItems.length > 1)
                                                 })}>
-                                                {props.selectedCustomer?.mailing_contact_primary_phone || ''}
+                                                {props.selectedCustomer?.mailing_address?.mailing_contact_primary_phone || ''}
                                             </div>
                                         }
 
@@ -2046,10 +1739,13 @@ function Customers(props) {
                                                                             onClick={async () => {
                                                                                 await props.setSelectedCustomer({
                                                                                     ...props.selectedCustomer,
-                                                                                    mailing_contact_primary_phone: item.type
+                                                                                    mailing_address: {
+                                                                                        ...props.selectedCustomer?.mailing_address,
+                                                                                        mailing_contact_primary_phone: item.type
+                                                                                    }
                                                                                 });
 
-                                                                                validateCustomerForSaving({ keyCode: 9 });
+                                                                                validateMailingAddressForSaving({ keyCode: 9 });
                                                                                 setShowMailingContactPhones(false);
                                                                                 refMailingContactPhone.current.inputElement.focus();
                                                                             }}
@@ -2098,11 +1794,11 @@ function Customers(props) {
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-phone-ext">
                                     <input tabIndex={27 + props.tabTimes} type="text" placeholder="Ext"
-                                        onKeyDown={validateCustomerForSaving}
+                                        onKeyDown={validateMailingAddressForSaving}
                                         onChange={e => {
                                             // props.setSelectedCustomer({ ...props.selectedCustomer, mailing_ext: e.target.value })
                                         }}
-                                        value={props.selectedCustomer?.mailing_contact?.phone_ext || ''} />
+                                        value={props.selectedCustomer?.mailing_address?.mailing_contact?.phone_ext || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
@@ -2231,10 +1927,13 @@ function Customers(props) {
                                                         if (showMailingContactEmails && mailingContactEmailItems.findIndex(item => item.selected) > -1) {
                                                             await props.setSelectedCustomer({
                                                                 ...props.selectedCustomer,
-                                                                mailing_contact_primary_email: mailingContactEmailItems[mailingContactEmailItems.findIndex(item => item.selected)].type
+                                                                mailing_address: {
+                                                                    ...props.selectedCustomer?.mailing_address,
+                                                                    mailing_contact_primary_email: mailingContactEmailItems[mailingContactEmailItems.findIndex(item => item.selected)].type
+                                                                }
                                                             });
 
-                                                            validateCustomerForSaving({ keyCode: 9 });
+                                                            validateMailingAddressForSaving({ keyCode: 9 });
                                                             setShowMailingContactEmails(false);
                                                             refMailingContactEmail.current.focus();
                                                         }
@@ -2245,14 +1944,17 @@ function Customers(props) {
                                                             e.preventDefault();
                                                             await props.setSelectedCustomer({
                                                                 ...props.selectedCustomer,
-                                                                mailing_contact_primary_email: mailingContactEmailItems[mailingContactEmailItems.findIndex(item => item.selected)].type
+                                                                mailing_address: {
+                                                                    ...props.selectedCustomer?.mailing_address,
+                                                                    mailing_contact_primary_email: mailingContactEmailItems[mailingContactEmailItems.findIndex(item => item.selected)].type
+                                                                }
                                                             });
 
-                                                            validateCustomerForSaving({ keyCode: 9 });
+                                                            validateMailingAddressForSaving({ keyCode: 9 });
                                                             setShowMailingContactEmails(false);
                                                             refMailingContactEmail.current.focus();
                                                         } else {
-                                                            validateCustomerForSaving({ keyCode: 9 });
+                                                            validateMailingAddressForSaving({ keyCode: 9 });
                                                         }
                                                         break;
 
@@ -2260,26 +1962,26 @@ function Customers(props) {
                                                         break;
                                                 }
                                             }}
-                                            onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_email: e.target.value })}
+                                            // onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_email: e.target.value })}
                                             value={
-                                                (props.selectedCustomer?.mailing_contact_primary_email || '') === 'work'
-                                                    ? (props.selectedCustomer?.mailing_contact?.email_work || '')
-                                                    : (props.selectedCustomer?.mailing_contact_primary_email || '') === 'personal'
-                                                        ? (props.selectedCustomer?.mailing_contact?.email_personal || '')
-                                                        : (props.selectedCustomer?.mailing_contact_primary_email || '') === 'other'
-                                                            ? (props.selectedCustomer?.mailing_contact?.email_other || '')
+                                                (props.selectedCustomer?.mailing_address?.mailing_contact_primary_email || '') === 'work'
+                                                    ? (props.selectedCustomer?.mailing_address?.mailing_contact?.email_work || '')
+                                                    : (props.selectedCustomer?.mailing_address?.mailing_contact_primary_email || '') === 'personal'
+                                                        ? (props.selectedCustomer?.mailing_address?.mailing_contact?.email_personal || '')
+                                                        : (props.selectedCustomer?.mailing_address?.mailing_contact_primary_email || '') === 'other'
+                                                            ? (props.selectedCustomer?.mailing_address?.mailing_contact?.email_other || '')
                                                             : ''
                                             }
                                         />
 
                                         {
-                                            ((props.selectedCustomer?.id || 0) > 0 && (props.selectedCustomer?.mailing_code || '') !== '') &&
+                                            ((props.selectedCustomer?.id || 0) > 0 && (props.selectedCustomer?.mailing_address?.code || '') !== '') &&
                                             <div
                                                 className={classnames({
                                                     'selected-mailing-contact-primary-email': true,
                                                     'pushed': (mailingContactEmailItems.length > 1)
                                                 })}>
-                                                {props.selectedCustomer?.mailing_contact_primary_email || ''}
+                                                {props.selectedCustomer?.mailing_address?.mailing_contact_primary_email || ''}
                                             </div>
                                         }
 
@@ -2352,10 +2054,13 @@ function Customers(props) {
                                                                             onClick={async () => {
                                                                                 await props.setSelectedCustomer({
                                                                                     ...props.selectedCustomer,
-                                                                                    mailing_contact_primary_email: item.type
+                                                                                    mailing_address: {
+                                                                                        ...props.selectedCustomer?.mailing_address,
+                                                                                        mailing_contact_primary_email: item.type
+                                                                                    }
                                                                                 });
 
-                                                                                validateCustomerForSaving({ keyCode: 9 });
+                                                                                validateMailingAddressForSaving({ keyCode: 9 });
                                                                                 setShowMailingContactEmails(false);
                                                                                 refMailingContactEmail.current.focus();
                                                                             }}
@@ -2396,7 +2101,27 @@ function Customers(props) {
                         <div className="form-borderless-box" style={{ width: '170px', marginLeft: '10px', }}>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input tabIndex={32 + props.tabTimes} type="text" style={{ textTransform: 'uppercase' }} placeholder="Bill To" readOnly={false} onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, mailing_bill_to: e.target.value })} value={props.selectedCustomer?.mailing_bill_to || ''} />
+                                    <input tabIndex={32 + props.tabTimes} type="text" style={{ textTransform: 'uppercase' }} placeholder="Bill To"
+                                        readOnly={false}
+                                        onInput={e => {
+                                            props.setSelectedCustomer({
+                                                ...props.selectedCustomer,
+                                                mailing_address: {
+                                                    ...props.selectedCustomer?.mailing_address,
+                                                    bill_to_code: e.target.value
+                                                }
+                                            })
+                                        }}
+                                        onChange={e => {
+                                            props.setSelectedCustomer({
+                                                ...props.selectedCustomer,
+                                                mailing_address: {
+                                                    ...props.selectedCustomer?.mailing_address,
+                                                    bill_to_code: e.target.value
+                                                }
+                                            })
+                                        }}
+                                        value={(props.selectedCustomer?.mailing_address?.bill_to_code || '') + ((props.selectedCustomer?.mailing_address?.bill_to_code_number || 0) === 0 ? '' : props.selectedCustomer?.mailing_address?.bill_to_code_number)} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
@@ -2513,7 +2238,10 @@ function Customers(props) {
                                         <div className="mochi-button-base">Add contact</div>
                                         <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
                                     </div>
-                                    <div className="mochi-button" onClick={() => props.setSelectedContact({})}>
+                                    <div className="mochi-button" onClick={() => {
+                                        props.setSelectedContact({});
+                                        refCustomerContactFirstName.current.focus();
+                                    }}>
                                         <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                         <div className="mochi-button-base">Clear</div>
                                         <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
@@ -2524,14 +2252,20 @@ function Customers(props) {
 
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input tabIndex={12 + props.tabTimes} type="text" placeholder="First Name" onKeyDown={validateContactForSaving} onChange={e => {
-
-                                        props.setSelectedContact({ ...props.selectedContact, first_name: e.target.value })
-                                    }} value={props.selectedContact.first_name || ''} />
+                                    <input tabIndex={12 + props.tabTimes} type="text" placeholder="First Name"
+                                        ref={refCustomerContactFirstName}
+                                        // onKeyDown={validateContactForSaving} 
+                                        onChange={e => {
+                                            props.setSelectedContact({ ...props.selectedContact, first_name: e.target.value })
+                                        }}
+                                        value={props.selectedContact.first_name || ''} />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container grow">
-                                    <input tabIndex={13 + props.tabTimes} type="text" placeholder="Last Name" onKeyDown={validateContactForSaving} onChange={e => props.setSelectedContact({ ...props.selectedContact, last_name: e.target.value })} value={props.selectedContact.last_name || ''} />
+                                    <input tabIndex={13 + props.tabTimes} type="text" placeholder="Last Name"
+                                        // onKeyDown={validateContactForSaving} 
+                                        onChange={e => props.setSelectedContact({ ...props.selectedContact, last_name: e.target.value })}
+                                        value={props.selectedContact.last_name || ''} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
@@ -2694,71 +2428,103 @@ function Customers(props) {
                                                 }
                                             }}
                                             onInput={(e) => {
-                                                switch (props.selectedContact?.primary_phone) {
-                                                    case 'work':
+                                                if ((props.selectedContact?.id || 0) === 0) {
+                                                    props.setSelectedContact({
+                                                        ...props.selectedContact,
+                                                        phone_work: e.target.value,
+                                                        primary_phone: 'work'
+                                                    });
+                                                } else {
+                                                    if ((props.selectedContact?.primary_phone || '') === '') {
                                                         props.setSelectedContact({
                                                             ...props.selectedContact,
-                                                            phone_work: e.target.value
+                                                            phone_work: e.target.value,
+                                                            primary_phone: 'work'
                                                         });
-                                                        break;
-                                                    case 'fax':
-                                                        props.setSelectedContact({
-                                                            ...props.selectedContact,
-                                                            phone_work_fax: e.target.value
-                                                        });
-                                                        break;
-                                                    case 'mobile':
-                                                        props.setSelectedContact({
-                                                            ...props.selectedContact,
-                                                            phone_mobile: e.target.value
-                                                        });
-                                                        break;
-                                                    case 'direct':
-                                                        props.setSelectedContact({
-                                                            ...props.selectedContact,
-                                                            phone_direct: e.target.value
-                                                        });
-                                                        break;
-                                                    case 'other':
-                                                        props.setSelectedContact({
-                                                            ...props.selectedContact,
-                                                            phone_other: e.target.value
-                                                        });
-                                                        break;
+                                                    } else {
+                                                        switch (props.selectedContact?.primary_phone) {
+                                                            case 'work':
+                                                                props.setSelectedContact({
+                                                                    ...props.selectedContact,
+                                                                    phone_work: e.target.value
+                                                                });
+                                                                break;
+                                                            case 'fax':
+                                                                props.setSelectedContact({
+                                                                    ...props.selectedContact,
+                                                                    phone_work_fax: e.target.value
+                                                                });
+                                                                break;
+                                                            case 'mobile':
+                                                                props.setSelectedContact({
+                                                                    ...props.selectedContact,
+                                                                    phone_mobile: e.target.value
+                                                                });
+                                                                break;
+                                                            case 'direct':
+                                                                props.setSelectedContact({
+                                                                    ...props.selectedContact,
+                                                                    phone_direct: e.target.value
+                                                                });
+                                                                break;
+                                                            case 'other':
+                                                                props.setSelectedContact({
+                                                                    ...props.selectedContact,
+                                                                    phone_other: e.target.value
+                                                                });
+                                                                break;
+                                                        }
+                                                    }
                                                 }
                                             }}
                                             onChange={(e) => {
-                                                switch (props.selectedContact?.primary_phone) {
-                                                    case 'work':
+                                                if ((props.selectedContact?.id || 0) === 0) {
+                                                    props.setSelectedContact({
+                                                        ...props.selectedContact,
+                                                        phone_work: e.target.value,
+                                                        primary_phone: 'work'
+                                                    });
+                                                } else {
+                                                    if ((props.selectedContact?.primary_phone || '') === '') {
                                                         props.setSelectedContact({
                                                             ...props.selectedContact,
-                                                            phone_work: e.target.value
+                                                            phone_work: e.target.value,
+                                                            primary_phone: 'work'
                                                         });
-                                                        break;
-                                                    case 'fax':
-                                                        props.setSelectedContact({
-                                                            ...props.selectedContact,
-                                                            phone_work_fax: e.target.value
-                                                        });
-                                                        break;
-                                                    case 'mobile':
-                                                        props.setSelectedContact({
-                                                            ...props.selectedContact,
-                                                            phone_mobile: e.target.value
-                                                        });
-                                                        break;
-                                                    case 'direct':
-                                                        props.setSelectedContact({
-                                                            ...props.selectedContact,
-                                                            phone_direct: e.target.value
-                                                        });
-                                                        break;
-                                                    case 'other':
-                                                        props.setSelectedContact({
-                                                            ...props.selectedContact,
-                                                            phone_other: e.target.value
-                                                        });
-                                                        break;
+                                                    } else {
+                                                        switch (props.selectedContact?.primary_phone) {
+                                                            case 'work':
+                                                                props.setSelectedContact({
+                                                                    ...props.selectedContact,
+                                                                    phone_work: e.target.value
+                                                                });
+                                                                break;
+                                                            case 'fax':
+                                                                props.setSelectedContact({
+                                                                    ...props.selectedContact,
+                                                                    phone_work_fax: e.target.value
+                                                                });
+                                                                break;
+                                                            case 'mobile':
+                                                                props.setSelectedContact({
+                                                                    ...props.selectedContact,
+                                                                    phone_mobile: e.target.value
+                                                                });
+                                                                break;
+                                                            case 'direct':
+                                                                props.setSelectedContact({
+                                                                    ...props.selectedContact,
+                                                                    phone_direct: e.target.value
+                                                                });
+                                                                break;
+                                                            case 'other':
+                                                                props.setSelectedContact({
+                                                                    ...props.selectedContact,
+                                                                    phone_other: e.target.value
+                                                                });
+                                                                break;
+                                                        }
+                                                    }
                                                 }
                                             }}
                                             value={
@@ -2901,10 +2667,18 @@ function Customers(props) {
                                 <div className="form-h-sep"></div>
                                 <div style={{ width: '50%', display: 'flex', justifyContent: 'space-between' }}>
                                     <div className="input-box-container input-phone-ext">
-                                        <input tabIndex={15 + props.tabTimes} type="text" placeholder="Ext" onKeyDown={validateContactForSaving} onChange={e => props.setSelectedContact({ ...props.selectedContact, phone_ext: e.target.value })} value={props.selectedContact.phone_ext || ''} />
+                                        <input tabIndex={15 + props.tabTimes} type="text" placeholder="Ext"
+                                            onKeyDown={validateContactForSaving}
+                                            onChange={e => props.setSelectedContact({ ...props.selectedContact, phone_ext: e.target.value })}
+                                            value={props.selectedContact.phone_ext || ''} />
                                     </div>
                                     <div className="input-toggle-container">
-                                        <input type="checkbox" id={props.panelName + '-cbox-customer-contacts-primary-btn'} onChange={selectedContactIsPrimaryChange} checked={(props.selectedContact.is_primary || 0) === 1} />
+                                        <input type="checkbox" id={props.panelName + '-cbox-customer-contacts-primary-btn'}
+                                            onChange={(e) => {
+                                                props.setSelectedContact({ ...props.selectedContact, is_primary: e.target.checked ? 1 : 0 });
+                                                validateContactForSaving({ keyCode: 9 });
+                                            }}
+                                            checked={(props.selectedContact.is_primary || 0) === 1} />
                                         <label htmlFor={props.panelName + '-cbox-customer-contacts-primary-btn'}>
                                             <div className="label-text">Primary</div>
                                             <div className="input-toggle-btn"></div>
@@ -4520,6 +4294,7 @@ function Customers(props) {
                                                 <div className="contact-list-col tcol last-name">Last Name</div>
                                                 <div className="contact-list-col tcol phone-work">Phone</div>
                                                 <div className="contact-list-col tcol email-work">E-Mail</div>
+                                                <div className="contact-list-col tcol contact-selected"></div>
                                                 <div className="contact-list-col tcol pri"></div>
                                             </div>
                                         }
@@ -4553,12 +4328,18 @@ function Customers(props) {
                                                                         : contact.primary_email === 'other' ? contact.email_other
                                                                             : ''
                                                             }</div>
-                                                            <div className="contact-list-col tcol pri">
-                                                                {
-                                                                    (contact.is_primary === 1) &&
-                                                                    <span className='fas fa-check'></span>
-                                                                }
-                                                            </div>
+                                                            {
+                                                                (contact.id === (props.selectedContact?.id || 0)) &&
+                                                                <div className="contact-list-col tcol contact-selected">
+                                                                    <FontAwesomeIcon icon={faPencilAlt} />
+                                                                </div>
+                                                            }
+                                                            {
+                                                                (contact.is_primary === 1) &&
+                                                                <div className="contact-list-col tcol pri">
+                                                                    <FontAwesomeIcon icon={faCheck} />
+                                                                </div>
+                                                            }
                                                         </div>
                                                     )
                                                 })
@@ -4775,7 +4556,13 @@ function Customers(props) {
                                         (props.selectedCustomer?.notes || []).map((note, index) => {
                                             return (
                                                 <div className="notes-list-item" key={index} onClick={() => props.setSelectedNote(note)}>
-                                                    {note.text}
+                                                    <div className="notes-list-col tcol note-text">{note.text}</div>
+                                                    {
+                                                        (note.id === (props.selectedNote?.id || 0)) &&
+                                                        <div className="notes-list-col tcol notes-selected">
+                                                            <FontAwesomeIcon icon={faPencilAlt} />
+                                                        </div>
+                                                    }
                                                 </div>
                                             )
                                         })
@@ -4827,7 +4614,13 @@ function Customers(props) {
                                         (props.selectedCustomer?.directions || []).map((direction, index) => {
                                             return (
                                                 <div className="directions-list-item" key={index} onClick={() => props.setSelectedDirection(direction)}>
-                                                    {direction.text}
+                                                    <div className="directions-list-col tcol note-text">{direction.text}</div>
+                                                    {
+                                                        (direction.id === (props.selectedDirection?.id || 0)) &&
+                                                        <div className="directions-list-col tcol directions-selected">
+                                                            <FontAwesomeIcon icon={faPencilAlt} />
+                                                        </div>
+                                                    }
                                                 </div>
                                             )
                                         })
@@ -4838,7 +4631,7 @@ function Customers(props) {
                     </div>
 
                     <div className="fields-container-col">
-                    <div className="form-bordered-box" >
+                        <div className="form-bordered-box" >
                             <div className="form-header">
                                 <div className="top-border top-border-left"></div>
                                 <div className="form-title">Past Orders</div>
@@ -4851,8 +4644,101 @@ function Customers(props) {
                                     {
                                         (props.selectedCustomer?.orders || []).map((order, index) => {
                                             return (
-                                                <div className="orders-list-item" key={index} onClick={() => {}}>
-                                                    {order.order_number} {order.pickups.length > 0 ? order.pickups[0].city + '/' + order.pickups[0].state  : ''}-{order.deliveries.length > 0 ? order.deliveries[order.deliveries.length - 1].city + '/' + order.deliveries[order.deliveries.length - 1].state  : ''}
+                                                <div className="orders-list-item" key={index} onClick={() => {
+
+                                                    $.post(props.serverUrl + '/getOrderByOrderNumber', { order_number: order.order_number }).then(async res => {
+                                                        if (res.result === 'OK') {
+                                                            await props.setCustomerSelectedOrder({});
+                                                            await props.setCustomerSelectedOrder(res.order);
+                                                            await props.setCustomerOrderNumber(res.order.order_number);
+                                                            await props.setCustomerTripNumber(res.order.trip_number === 0 ? '' : res.order.trip_number);
+                                                            await props.setCustomerSelectedBillToCompanyInfo(res.order.bill_to_company || {});
+
+                                                            if (res.order.bill_to_company) {
+                                                                (res.order.bill_to_company.contacts || []).map(async (contact, index) => {
+                                                                    if (contact.is_primary === 1) {
+                                                                        await props.setCustomerSelectedBillToCompanyContact(contact);
+                                                                    }
+                                                                    return true;
+                                                                })
+                                                            }
+
+                                                            await props.setCustomerSelectedShipperCompanyInfo(res.order.pickups.length > 0
+                                                                ? {
+                                                                    ...res.order.pickups[0].customer,
+                                                                    pickup_id: res.order.pickups[0].id,
+                                                                    pu_date1: res.order.pickups[0].pu_date1,
+                                                                    pu_date2: res.order.pickups[0].pu_date2,
+                                                                    pu_time1: res.order.pickups[0].pu_time1,
+                                                                    pu_time2: res.order.pickups[0].pu_time2,
+                                                                    bol_numbers: res.order.pickups[0].bol_numbers,
+                                                                    po_numbers: res.order.pickups[0].po_numbers,
+                                                                    ref_numbers: res.order.pickups[0].ref_numbers,
+                                                                    seal_number: res.order.pickups[0].seal_number,
+                                                                    special_instructions: res.order.pickups[0].special_instructions,
+                                                                    type: res.order.pickups[0].type,
+                                                                }
+                                                                : {});
+
+                                                            if (res.order.pickups.length > 0) {
+                                                                (res.order.pickups[0].customer?.contacts || []).map(async (contact, index) => {
+                                                                    if (contact.is_primary === 1) {
+                                                                        await props.setCustomerSelectedShipperCompanyContact(contact);
+                                                                    }
+                                                                    return true;
+                                                                })
+                                                            }
+
+                                                            await props.setCustomerSelectedConsigneeCompanyInfo(res.order.deliveries.length > 0
+                                                                ? {
+                                                                    ...res.order.deliveries[0].customer,
+                                                                    delivery_id: res.order.deliveries[0].id,
+                                                                    delivery_date1: res.order.deliveries[0].delivery_date1,
+                                                                    delivery_date2: res.order.deliveries[0].delivery_date2,
+                                                                    delivery_time1: res.order.deliveries[0].delivery_time1,
+                                                                    delivery_time2: res.order.deliveries[0].delivery_time2,
+                                                                    special_instructions: res.order.deliveries[0].special_instructions,
+                                                                    type: res.order.deliveries[0].type,
+                                                                }
+                                                                : {});
+
+                                                            if (res.order.deliveries.length > 0) {
+                                                                (res.order.deliveries[0].customer?.contacts || []).map(async (contact, index) => {
+                                                                    if (contact.is_primary === 1) {
+                                                                        await props.setCustomerSelectedConsigneeCompanyContact(contact);
+                                                                    }
+                                                                    return true;
+                                                                })
+                                                            }
+
+                                                            await props.setSelectedCustomerCarrierInfoCarrier(res.order.carrier || {});
+
+                                                            if (res.order.carrier) {
+                                                                (res.order.carrier?.contacts || []).map(async (contact, index) => {
+                                                                    if (contact.is_primary === 1) {
+                                                                        await props.setSelectedCustomerCarrierInfoContact(contact);
+                                                                    }
+                                                                    return true;
+                                                                })
+                                                            }
+
+                                                            await props.setSelectedCustomerCarrierInfoDriver(res.order.driver || {});
+
+                                                            await props.setCustomerDivision({ name: res.order.division });
+                                                            await props.setCustomerLoadType({ name: res.order.load_type });
+                                                            await props.setCustomerTemplate({ name: res.order.template });
+
+                                                            console.log(props.openedPanels);
+
+                                                            if (!props.openedPanels.includes(props.customerDispatchPanelName)) {
+                                                                props.setOpenedPanels([...props.openedPanels, props.customerDispatchPanelName]);
+                                                            }
+                                                        } else {
+                                                            props.setCustomerOrderNumber(props.selected_order?.order_number || '');
+                                                        }
+                                                    });
+                                                }}>
+                                                    {order.order_number} {order.pickups.length > 0 ? (order.pickups[0].customer?.city || '') + '/' + (order.pickups[0].customer?.state || '') : ''}-{order.deliveries.length > 0 ? (order.deliveries[order.deliveries.length - 1].customer?.city || '') + '/' + (order.deliveries[order.deliveries.length - 1].customer?.state || '') : ''}
                                                 </div>
                                             )
                                         })
@@ -4971,7 +4857,7 @@ function Customers(props) {
                 </animated.div>
             }
 
-            <CustomerPopup
+            {/* <CustomerPopup
                 popupRef={refPopup}
                 popupClasses={popupContainerClasses}
                 popupItems={popupItems}
@@ -4979,7 +4865,7 @@ function Customers(props) {
                 popupItemClick={popupItemClick}
                 popupItemKeydown={popupItemKeydown}
                 setPopupItems={setPopupItems}
-            />
+            /> */}
 
         </div>
     )

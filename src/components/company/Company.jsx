@@ -50,6 +50,16 @@ import {
     setSelectedOrderDocument,
 
     setNewCarrier,
+    setIsSavingOrder,
+
+    setMileageLoaderVisible,
+
+    setCustomerSelectedOrder,
+    setCustomerOrderNumber,
+    setCustomerTripNumber,
+    setCustomerDivision,
+    setCustomerLoadType,
+    setCustomerTemplate,
 } from '../../actions/dispatchActions';
 
 import {
@@ -101,6 +111,21 @@ import {
     setInvoiceSelectedBillToCompanyDocument,
     setInvoiceBillToCompanyDocumentTags as setInvoiceSelectedBillToCompanyDocumentTags,
     setInvoiceSelectedBillToCompanyDocumentNote,
+
+    setCustomerBillToCompanies,
+    setCustomerSelectedBillToCompanyInfo,
+    setCustomerBillToCompanySearch,
+    setCustomerSelectedBillToCompanyContact,
+
+    setCustomerShipperCompanies,
+    setCustomerSelectedShipperCompanyInfo,
+    setCustomerShipperCompanySearch,
+    setCustomerSelectedShipperCompanyContact,
+
+    setCustomerConsigneeCompanies,
+    setCustomerSelectedConsigneeCompanyInfo,
+    setCustomerConsigneeCompanySearch,
+    setCustomerSelectedConsigneeCompanyContact,
 } from '../../actions/customersActions';
 
 import {
@@ -151,6 +176,14 @@ import {
 
     setDispatchCarrierInfoCarriersChanging,
     setDispatchCarrierInfoCarrierSearchChanging,
+
+    setSelectedCustomerCarrierInfoCarrier,
+    setSelectedCustomerCarrierInfoContact,
+    setSelectedCustomerCarrierInfoDriver,
+    setSelectedCustomerCarrierInfoInsurance,
+    setSelectedCustomerCarrierInfoDocument,
+    setCustomerCarrierInfoDocumentTags as setSelectedCustomerCarrierInfoDocumentTags,
+    setSelectedCustomerCarrierInfoDocumentNote,
 
 } from '../../actions/carriersActions';
 
@@ -311,8 +344,7 @@ function Company(props) {
                                 setNewCarrier={props.setNewCarrier}
                                 setDispatchCarrierInfoCarriersChanging={props.setDispatchCarrierInfoCarriersChanging}
                                 setDispatchCarrierInfoCarrierSearchChanging={props.setDispatchCarrierInfoCarrierSearchChanging}
-                                newCarrier={props.newCarrier
-                                }
+                                newCarrier={props.newCarrier}
                                 setSelectedOrder={props.setSelectedOrder}
                                 setLbSelectedOrder={props.setLbSelectedOrder}
                                 setOrderNumber={props.setOrderNumber}
@@ -358,6 +390,8 @@ function Company(props) {
                                 setSelectedNoteForCarrier={props.setSelectedNoteForCarrier}
                                 setSelectedInternalNote={props.setSelectedInternalNote}
 
+                                setMileageLoaderVisible={props.setMileageLoaderVisible}
+
                                 selected_order={props.selected_order}
                                 order_number={props.order_number}
                                 trip_number={props.trip_number}
@@ -401,6 +435,9 @@ function Company(props) {
 
                                 mileageLoaderVisible={props.mileageLoaderVisible}
                                 showingChangeCarrier={props.showingChangeCarrier}
+
+                                setIsSavingOrder={props.setIsSavingOrder}
+                                isSavingOrder={props.isSavingOrder}
 
                                 billToCompanyInfoPanelName='bill-to-company-info'
                                 billToCompanySearchPanelName='bill-to-company-search'
@@ -455,6 +492,29 @@ function Company(props) {
                                 setSelectedDirection={props.setSelectedDirection}
                                 setSelectedDocument={props.setSelectedDocument}
 
+                                setCustomerSelectedOrder={props.setCustomerSelectedOrder}
+                                setCustomerOrderNumber={props.setCustomerOrderNumber}
+                                setCustomerTripNumber={props.setCustomerTripNumber}
+                                setCustomerDivision={props.setCustomerDivision}
+                                setCustomerLoadType={props.setCustomerLoadType}
+                                setCustomerTemplate={props.setCustomerTemplate}
+                                setCustomerBillToCompanies={props.setCustomerBillToCompanies}
+                                setCustomerSelectedBillToCompanyInfo={props.setCustomerSelectedBillToCompanyInfo}
+                                setCustomerBillToCompanySearch={props.setCustomerBillToCompanySearch}
+                                setCustomerSelectedBillToCompanyContact={props.setCustomerSelectedBillToCompanyContact}
+                                setCustomerShipperCompanies={props.setCustomerShipperCompanies}
+                                setCustomerSelectedShipperCompanyInfo={props.setCustomerSelectedShipperCompanyInfo}
+                                setCustomerShipperCompanySearch={props.setCustomerShipperCompanySearch}
+                                setCustomerSelectedShipperCompanyContact={props.setCustomerSelectedShipperCompanyContact}
+                                setCustomerConsigneeCompanies={props.setCustomerConsigneeCompanies}
+                                setCustomerSelectedConsigneeCompanyInfo={props.setCustomerSelectedConsigneeCompanyInfo}
+                                setCustomerConsigneeCompanySearch={props.setCustomerConsigneeCompanySearch}
+                                setCustomerSelectedConsigneeCompanyContact={props.setCustomerSelectedConsigneeCompanyContact}
+                                setSelectedCustomerCarrierInfoCarrier={props.setSelectedCustomerCarrierInfoCarrier}
+                                setSelectedCustomerCarrierInfoContact={props.setSelectedCustomerCarrierInfoContact}
+                                setSelectedCustomerCarrierInfoDriver={props.setSelectedCustomerCarrierInfoDriver}
+                                setSelectedCustomerCarrierInfoInsurance={props.setSelectedCustomerCarrierInfoInsurance}
+
                                 customers={props.customers}
                                 selectedCustomer={props.selectedCustomer}
                                 customerSearch={props.customerSearch}
@@ -474,6 +534,8 @@ function Company(props) {
                                 isEditingContact={props.isEditingContact}
                                 contactSearchCustomer={props.contactSearchCustomer}
 
+
+
                                 customerSearchPanelName='customer-search'
                                 customerContactsPanelName='customer-contacts'
                                 customerContactSearchPanelName='customer-contact-search'
@@ -481,6 +543,7 @@ function Company(props) {
                                 customerOrderHistoryPanelName='order-history'
                                 customerLaneHistoryPanelName='lane-history'
                                 customerDocumentsPanelName='documents'
+                                customerDispatchPanelName='customer-dispatch'
                             />
                         </div>
 
@@ -742,6 +805,7 @@ const mapStateToProps = state => {
         showingChangeCarrier: state.dispatchReducers.showingChangeCarrier,
 
         newCarrier: state.dispatchReducers.newCarrier,
+        isSavingOrder: state.dispatchReducers.isSavingOrder,
 
         //CUSTOMER
         customerOpenedPanels: state.customerReducers.customerOpenedPanels,
@@ -889,6 +953,16 @@ export default connect(mapStateToProps, {
     setSelectedOrderDocument,
 
     setNewCarrier,
+    setIsSavingOrder,
+
+    setMileageLoaderVisible,
+
+    setCustomerSelectedOrder,
+    setCustomerOrderNumber,
+    setCustomerTripNumber,
+    setCustomerDivision,
+    setCustomerLoadType,
+    setCustomerTemplate,
 
     // CUSTOMER
     setCustomerOpenedPanels,
@@ -909,6 +983,21 @@ export default connect(mapStateToProps, {
     setSelectedDocument,
     setSelectedDocumentTags,
     setSelectedDocumentNote,
+
+    setCustomerBillToCompanies,
+    setCustomerSelectedBillToCompanyInfo,
+    setCustomerBillToCompanySearch,
+    setCustomerSelectedBillToCompanyContact,
+
+    setCustomerShipperCompanies,
+    setCustomerSelectedShipperCompanyInfo,
+    setCustomerShipperCompanySearch,
+    setCustomerSelectedShipperCompanyContact,
+
+    setCustomerConsigneeCompanies,
+    setCustomerSelectedConsigneeCompanyInfo,
+    setCustomerConsigneeCompanySearch,
+    setCustomerSelectedConsigneeCompanyContact,
 
     //CARRIER
     setCarriers,
@@ -939,6 +1028,14 @@ export default connect(mapStateToProps, {
 
     setDispatchCarrierInfoCarriersChanging,
     setDispatchCarrierInfoCarrierSearchChanging,
+
+    setSelectedCustomerCarrierInfoCarrier,
+    setSelectedCustomerCarrierInfoContact,
+    setSelectedCustomerCarrierInfoDriver,
+    setSelectedCustomerCarrierInfoInsurance,
+    setSelectedCustomerCarrierInfoDocument,
+    setSelectedCustomerCarrierInfoDocumentTags,
+    setSelectedCustomerCarrierInfoDocumentNote,
 
     //LOAD BOARD
     setLoadBoardOpenedPanels,

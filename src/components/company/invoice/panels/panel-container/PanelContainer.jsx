@@ -538,6 +538,9 @@ function PanelContainer(props) {
                                 selectedOwnerDocument={props.selectedInvoiceBillToCompanyDocument}
                                 selectedOwnerDocumentTags={props.selectedInvoiceBillToCompanyDocumentTags}
                                 selectedOwnerDocumentNote={props.selectedInvoiceBillToCompanyDocumentNote}
+
+                                origin='customer'
+                                
                                 savingDocumentUrl='/saveDocument'
                                 deletingDocumentUrl='/deleteCustomerDocument'
                                 savingDocumentNoteUrl='/saveCustomerDocumentNote'
@@ -1249,6 +1252,9 @@ function PanelContainer(props) {
                             selectedOwnerDocument={props.selectedInvoiceCarrierInfoDocument}
                             selectedOwnerDocumentTags={props.selectedInvoiceCarrierInfoDocumentTags}
                             selectedOwnerDocumentNote={props.selectedInvoiceCarrierInfoDocumentNote}
+
+                            origin='dispatch'
+                            
                             savingDocumentUrl='/saveCarrierDocument'
                             deletingDocumentUrl='/deleteCarrierDocument'
                             savingDocumentNoteUrl='/saveCarrierDocumentNote'
@@ -1662,6 +1668,9 @@ function PanelContainer(props) {
                             selectedOwnerDocument={props.selectedInvoiceCarrierInfoFactoringCompanyDocument}
                             selectedOwnerDocumentTags={props.selectedInvoiceCarrierInfoFactoringCompanyDocumentTags}
                             selectedOwnerDocumentNote={props.selectedInvoiceCarrierInfoFactoringCompanyDocumentNote}
+
+                            origin='factoring-company'
+                            
                             savingDocumentUrl='/saveFactoringCompanyDocument'
                             deletingDocumentUrl='/deleteFactoringCompanyDocument'
                             savingDocumentNoteUrl='/saveFactoringCompanyDocumentNote'

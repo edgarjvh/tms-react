@@ -44,82 +44,29 @@ function Invoice(props) {
         }, 1000)
     }
 
-
-    const [rateTypesItems, setRateTypesItems] = useState([
-        {
-            id: 1,
-            name: 'Rate Type 1',
-            selected: false
-        },
-        {
-            id: 2,
-            name: 'Rate Type 2',
-            selected: false
-        },
-        {
-            id: 3,
-            name: 'Rate Type 3',
-            selected: false
-        }
-    ]);
-
-    const [equipmentsItems, setEquipmentsItems] = useState([
-        {
-            id: 1,
-            name: 'Equipment 1',
-            selected: false
-        },
-        {
-            id: 2,
-            name: 'Equipment 2',
-            selected: false
-        },
-        {
-            id: 3,
-            name: 'Equipment 3',
-            selected: false
-        }
-    ]);
-
     const [billingNotes, setBillingNotes] = useState([]);
     const [selectedBillingNote, setSelectedBillingNote] = useState({});
 
     const modalTransitionProps = useSpring({ opacity: (selectedBillingNote.id !== undefined || props.selectedInternalNote.id !== undefined) ? 1 : 0 });
 
-    const [termsItems, setTermsItems] = useState([
-        {
-            id: 1,
-            name: 'Term 1',
-            selected: false
-        },
-        {
-            id: 2,
-            name: 'Term 2',
-            selected: false
-        },
-        {
-            id: 3,
-            name: 'Term 3',
-            selected: false
-        }
-    ]);
-
     const [billToRateType, setBillToRateType] = useState({});
     const [carrierChargesRateType, setCarrierChargesRateType] = useState({});
-    const [equipment, setEquipment] = useState({});
     const [term, setTerm] = useState({});
-    const refPopup = useRef();
-    const [popupItems, setPopupItems] = useState([]);
-    const popupContainerClasses = classnames({
-        'mochi-contextual-container': true,
-        'shown': popupItems.length > 0
-    });
-    const popupItemsRef = useRef([]);
-    const [popupActiveInput, setPopupActiveInput] = useState('');
+
     const refBillToRateTypes = useRef();
+    const [billToRateTypeItems, setBillToRateTypeItems] = useState([]);
+    const refBillToRateTypeDropDown = useDetectClickOutside({ onTriggered: async () => { await setBillToRateTypeItems([]) } });
+    const refBillToRateTypePopupItems = useRef([]);
+
     const refCarrierChargesRateTypes = useRef();
-    const refEquipments = useRef();
+    const [carrierChargesRateTypeItems, setCarrierChargesRateTypeItems] = useState([]);
+    const refCarrierChargesRateTypeDropDown = useDetectClickOutside({ onTriggered: async () => { await setCarrierChargesRateTypeItems([]) } });
+    const refCarrierChargesRateTypePopupItems = useRef([]);
+
     const refTerms = useRef();
+    const [termsItems, setTermsItems] = useState([]);
+    const refTermsDropDown = useDetectClickOutside({ onTriggered: async () => { await setTermsItems([]) } });
+    const refTermsPopupItems = useRef([]);
 
 
     const [isSavingBillToCompanyInfo, setIsSavingBillToCompanyInfo] = useState(false);
@@ -154,594 +101,6 @@ function Invoice(props) {
         setTimeout(function () { mywindow.print(); }, 1000);
 
         return true;
-    }
-
-    const popupItemClick = async (item) => {
-        switch (popupActiveInput) {
-            case 'bill-to-rate-type':
-                setBillToRateType(item);
-                await setPopupItems([]);
-                break;
-            case 'carrier-charges-rate-type':
-                setCarrierChargesRateType(item);
-                await setPopupItems([]);
-                break;
-            case 'equipment':
-                setEquipment(item);
-                await setPopupItems([]);
-                break;
-            case 'term':
-                setTerm(item);
-                await setPopupItems([]);
-                break;
-            default:
-                break;
-        }
-    }
-
-    const onBillToRateTypeKeydown = (e) => {
-
-        let key = e.key.toLowerCase();
-
-        setPopupActiveInput('bill-to-rate-type');
-
-        const input = refBillToRateTypes.current.getBoundingClientRect();
-
-        let popup = refPopup.current;
-
-        const { innerWidth, innerHeight } = window;
-
-        let screenWSection = innerWidth / 3;
-
-        if (popup) {
-            popup.childNodes[0].className = 'mochi-contextual-popup';
-            popup.childNodes[0].classList.add('vertical');
-
-            if ((innerHeight - 170 - 30) <= input.top) {
-                popup.childNodes[0].classList.add('above');
-                popup.style.top = (input.top - 175 - input.height) + 'px';
-            }
-
-            if ((innerHeight - 170 - 30) > input.top) {
-                popup.childNodes[0].classList.add('below');
-                popup.style.top = (input.top + 10) + 'px';
-            }
-
-            if (input.left <= (screenWSection * 1)) {
-                popup.childNodes[0].classList.add('right');
-                popup.style.left = input.left + 'px';
-
-                if (input.width < 70) {
-                    popup.style.left = (input.left - 60 + (input.width / 2)) + 'px';
-
-                    if (input.left < 30) {
-                        popup.childNodes[0].classList.add('corner');
-                        popup.style.left = (input.left + (input.width / 2)) + 'px';
-                    }
-                }
-            } else if (input.left <= (screenWSection * 2)) {
-                popup.style.left = (input.left - 100) + 'px';
-            } else if (input.left > (screenWSection * 2)) {
-                popup.childNodes[0].classList.add('left');
-                popup.style.left = (input.left - 200) + 'px';
-
-                if ((innerWidth - input.left) < 100) {
-                    popup.childNodes[0].classList.add('corner');
-                    popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px';
-                }
-            }
-        }
-
-        let selectedIndex = -1;
-
-        if (popupItems.length === 0) {
-            if (key !== 'tab') {
-                rateTypesItems.map((item, index) => {
-                    if (item.name === (billToRateType.name || '')) {
-                        selectedIndex = index;
-                    }
-                    return true;
-                });
-
-                setPopupItems(rateTypesItems.map((item, index) => {
-                    if (selectedIndex === -1) {
-                        item.selected = index === 0;
-                    } else {
-                        item.selected = selectedIndex === index;
-                    }
-                    return item;
-                }));
-            }
-        } else {
-            if (key === 'arrowleft' || key === 'arrowup') {
-                popupItems.map((item, index) => {
-                    if (item.selected) {
-                        selectedIndex = index;
-                    }
-                    return true;
-                });
-
-                if (selectedIndex === -1) {
-                    selectedIndex = 0;
-                } else {
-                    if (selectedIndex === 0) {
-                        selectedIndex = popupItems.length - 1;
-                    } else {
-                        selectedIndex -= 1;
-                    }
-                }
-
-                setPopupItems(popupItems.map((item, index) => {
-                    item.selected = selectedIndex === index;
-                    return item;
-                }));
-            }
-
-            if (key === 'arrowright' || key === 'arrowdown') {
-                popupItems.map((item, index) => {
-                    if (item.selected) {
-                        selectedIndex = index;
-                    }
-                    return true;
-                });
-
-                if (selectedIndex === -1) {
-                    selectedIndex = 0;
-                } else {
-                    if (selectedIndex === popupItems.length - 1) {
-                        selectedIndex = 0;
-                    } else {
-                        selectedIndex += 1;
-                    }
-                }
-
-                setPopupItems(popupItems.map((item, index) => {
-                    item.selected = selectedIndex === index;
-                    return item;
-                }));
-            }
-        }
-
-        if (key === 'enter' || key === 'tab') {
-            if (popupItems.length > 0) {
-                popupItems.map((item, index) => {
-                    if (item.selected) {
-                        setBillToRateType(item);
-                    }
-
-                    return true;
-                });
-
-                setPopupItems([]);
-            }
-        }
-
-        if (key !== 'tab') {
-            e.preventDefault();
-        }
-    }
-
-    const onCarrierChargesRateTypeKeydown = (e) => {
-        let key = e.key.toLowerCase();
-
-        setPopupActiveInput('carrier-charges-rate-type');
-
-        const input = refCarrierChargesRateTypes.current.getBoundingClientRect();
-
-        let popup = refPopup.current;
-
-        const { innerWidth, innerHeight } = window;
-
-        let screenWSection = innerWidth / 3;
-
-        if (popup) {
-            popup.childNodes[0].className = 'mochi-contextual-popup';
-            popup.childNodes[0].classList.add('vertical');
-
-            if ((innerHeight - 170 - 30) <= input.top) {
-                popup.childNodes[0].classList.add('above');
-                popup.style.top = (input.top - 175 - input.height) + 'px';
-            }
-
-            if ((innerHeight - 170 - 30) > input.top) {
-                popup.childNodes[0].classList.add('below');
-                popup.style.top = (input.top + 10) + 'px';
-            }
-
-            if (input.left <= (screenWSection * 1)) {
-                popup.childNodes[0].classList.add('right');
-                popup.style.left = input.left + 'px';
-
-                if (input.width < 70) {
-                    popup.style.left = (input.left - 60 + (input.width / 2)) + 'px';
-
-                    if (input.left < 30) {
-                        popup.childNodes[0].classList.add('corner');
-                        popup.style.left = (input.left + (input.width / 2)) + 'px';
-                    }
-                }
-            } else if (input.left <= (screenWSection * 2)) {
-                popup.style.left = (input.left - 100) + 'px';
-            } else if (input.left > (screenWSection * 2)) {
-                popup.childNodes[0].classList.add('left');
-                popup.style.left = (input.left - 200) + 'px';
-
-                if ((innerWidth - input.left) < 100) {
-                    popup.childNodes[0].classList.add('corner');
-                    popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px';
-                }
-            }
-        }
-
-        let selectedIndex = -1;
-
-        if (popupItems.length === 0) {
-            if (key !== 'tab') {
-                rateTypesItems.map((item, index) => {
-                    if (item.name === (carrierChargesRateType.name || '')) {
-                        selectedIndex = index;
-                    }
-                    return true;
-                });
-
-                setPopupItems(rateTypesItems.map((item, index) => {
-                    if (selectedIndex === -1) {
-                        item.selected = index === 0;
-                    } else {
-                        item.selected = selectedIndex === index;
-                    }
-                    return item;
-                }));
-            }
-        } else {
-            if (key === 'arrowleft' || key === 'arrowup') {
-                popupItems.map((item, index) => {
-                    if (item.selected) {
-                        selectedIndex = index;
-                    }
-                    return true;
-                });
-
-                if (selectedIndex === -1) {
-                    selectedIndex = 0;
-                } else {
-                    if (selectedIndex === 0) {
-                        selectedIndex = popupItems.length - 1;
-                    } else {
-                        selectedIndex -= 1;
-                    }
-                }
-
-                setPopupItems(popupItems.map((item, index) => {
-                    item.selected = selectedIndex === index;
-                    return item;
-                }));
-            }
-
-            if (key === 'arrowright' || key === 'arrowdown') {
-                popupItems.map((item, index) => {
-                    if (item.selected) {
-                        selectedIndex = index;
-                    }
-                    return true;
-                });
-
-                if (selectedIndex === -1) {
-                    selectedIndex = 0;
-                } else {
-                    if (selectedIndex === popupItems.length - 1) {
-                        selectedIndex = 0;
-                    } else {
-                        selectedIndex += 1;
-                    }
-                }
-
-                setPopupItems(popupItems.map((item, index) => {
-                    item.selected = selectedIndex === index;
-                    return item;
-                }));
-            }
-        }
-
-        if (key === 'enter' || key === 'tab') {
-            if (popupItems.length > 0) {
-                popupItems.map((item, index) => {
-                    if (item.selected) {
-                        setCarrierChargesRateType(item);
-                    }
-
-                    return true;
-                });
-
-                setPopupItems([]);
-            }
-        }
-
-        if (key !== 'tab') {
-            e.preventDefault();
-        }
-    }
-
-    const onEquipmentKeydown = (e) => {
-        let key = e.key.toLowerCase();
-
-        setPopupActiveInput('equipment');
-
-        const input = refEquipments.current.getBoundingClientRect();
-
-        let popup = refPopup.current;
-
-        const { innerWidth, innerHeight } = window;
-
-        let screenWSection = innerWidth / 3;
-
-        if (popup) {
-            popup.childNodes[0].className = 'mochi-contextual-popup';
-            popup.childNodes[0].classList.add('vertical');
-
-            if ((innerHeight - 170 - 30) <= input.top) {
-                popup.childNodes[0].classList.add('above');
-                popup.style.top = (input.top - 175 - input.height) + 'px';
-            }
-
-            if ((innerHeight - 170 - 30) > input.top) {
-                popup.childNodes[0].classList.add('below');
-                popup.style.top = (input.top + 10) + 'px';
-            }
-
-            if (input.left <= (screenWSection * 1)) {
-                popup.childNodes[0].classList.add('right');
-                popup.style.left = input.left + 'px';
-
-                if (input.width < 70) {
-                    popup.style.left = (input.left - 60 + (input.width / 2)) + 'px';
-
-                    if (input.left < 30) {
-                        popup.childNodes[0].classList.add('corner');
-                        popup.style.left = (input.left + (input.width / 2)) + 'px';
-                    }
-                }
-            } else if (input.left <= (screenWSection * 2)) {
-                popup.style.left = (input.left - 100) + 'px';
-            } else if (input.left > (screenWSection * 2)) {
-                popup.childNodes[0].classList.add('left');
-                popup.style.left = (input.left - 200) + 'px';
-
-                if ((innerWidth - input.left) < 100) {
-                    popup.childNodes[0].classList.add('corner');
-                    popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px';
-                }
-            }
-        }
-
-        let selectedIndex = -1;
-
-        if (popupItems.length === 0) {
-            if (key !== 'tab') {
-                equipmentsItems.map((item, index) => {
-                    if (item.name === (equipment.name || '')) {
-                        selectedIndex = index;
-                    }
-                    return true;
-                });
-
-                setPopupItems(equipmentsItems.map((item, index) => {
-                    if (selectedIndex === -1) {
-                        item.selected = index === 0;
-                    } else {
-                        item.selected = selectedIndex === index;
-                    }
-                    return item;
-                }));
-            }
-        } else {
-            if (key === 'arrowleft' || key === 'arrowup') {
-                popupItems.map((item, index) => {
-                    if (item.selected) {
-                        selectedIndex = index;
-                    }
-                    return true;
-                });
-
-                if (selectedIndex === -1) {
-                    selectedIndex = 0;
-                } else {
-                    if (selectedIndex === 0) {
-                        selectedIndex = popupItems.length - 1;
-                    } else {
-                        selectedIndex -= 1;
-                    }
-                }
-
-                setPopupItems(popupItems.map((item, index) => {
-                    item.selected = selectedIndex === index;
-                    return item;
-                }));
-            }
-
-            if (key === 'arrowright' || key === 'arrowdown') {
-                popupItems.map((item, index) => {
-                    if (item.selected) {
-                        selectedIndex = index;
-                    }
-                    return true;
-                });
-
-                if (selectedIndex === -1) {
-                    selectedIndex = 0;
-                } else {
-                    if (selectedIndex === popupItems.length - 1) {
-                        selectedIndex = 0;
-                    } else {
-                        selectedIndex += 1;
-                    }
-                }
-
-                setPopupItems(popupItems.map((item, index) => {
-                    item.selected = selectedIndex === index;
-                    return item;
-                }));
-            }
-        }
-
-        if (key === 'enter' || key === 'tab') {
-            if (popupItems.length > 0) {
-                popupItems.map((item, index) => {
-                    if (item.selected) {
-                        setEquipment(item);
-                    }
-
-                    return true;
-                });
-
-                setPopupItems([]);
-            }
-        }
-
-        if (key !== 'tab') {
-            e.preventDefault();
-        }
-    }
-
-    const onTermsKeydown = (e) => {
-        let key = e.key.toLowerCase();
-
-        setPopupActiveInput('term');
-
-        const input = refTerms.current.getBoundingClientRect();
-
-        let popup = refPopup.current;
-
-        const { innerWidth, innerHeight } = window;
-
-        let screenWSection = innerWidth / 3;
-
-        if (popup) {
-            popup.childNodes[0].className = 'mochi-contextual-popup';
-            popup.childNodes[0].classList.add('vertical');
-
-            if ((innerHeight - 170 - 30) <= input.top) {
-                popup.childNodes[0].classList.add('above');
-                popup.style.top = (input.top - 175 - input.height) + 'px';
-            }
-
-            if ((innerHeight - 170 - 30) > input.top) {
-                popup.childNodes[0].classList.add('below');
-                popup.style.top = (input.top + 10) + 'px';
-            }
-
-            if (input.left <= (screenWSection * 1)) {
-                popup.childNodes[0].classList.add('right');
-                popup.style.left = input.left + 'px';
-
-                if (input.width < 70) {
-                    popup.style.left = (input.left - 60 + (input.width / 2)) + 'px';
-
-                    if (input.left < 30) {
-                        popup.childNodes[0].classList.add('corner');
-                        popup.style.left = (input.left + (input.width / 2)) + 'px';
-                    }
-                }
-            } else if (input.left <= (screenWSection * 2)) {
-                popup.style.left = (input.left - 100) + 'px';
-            } else if (input.left > (screenWSection * 2)) {
-                popup.childNodes[0].classList.add('left');
-                popup.style.left = (input.left - 200) + 'px';
-
-                if ((innerWidth - input.left) < 100) {
-                    popup.childNodes[0].classList.add('corner');
-                    popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px';
-                }
-            }
-        }
-
-        let selectedIndex = -1;
-
-        if (popupItems.length === 0) {
-            if (key !== 'tab') {
-                termsItems.map((item, index) => {
-                    if (item.name === (term.name || '')) {
-                        selectedIndex = index;
-                    }
-                    return true;
-                });
-
-                setPopupItems(termsItems.map((item, index) => {
-                    if (selectedIndex === -1) {
-                        item.selected = index === 0;
-                    } else {
-                        item.selected = selectedIndex === index;
-                    }
-                    return item;
-                }));
-            }
-        } else {
-            if (key === 'arrowleft' || key === 'arrowup') {
-                popupItems.map((item, index) => {
-                    if (item.selected) {
-                        selectedIndex = index;
-                    }
-                    return true;
-                });
-
-                if (selectedIndex === -1) {
-                    selectedIndex = 0;
-                } else {
-                    if (selectedIndex === 0) {
-                        selectedIndex = popupItems.length - 1;
-                    } else {
-                        selectedIndex -= 1;
-                    }
-                }
-
-                setPopupItems(popupItems.map((item, index) => {
-                    item.selected = selectedIndex === index;
-                    return item;
-                }));
-            }
-
-            if (key === 'arrowright' || key === 'arrowdown') {
-                popupItems.map((item, index) => {
-                    if (item.selected) {
-                        selectedIndex = index;
-                    }
-                    return true;
-                });
-
-                if (selectedIndex === -1) {
-                    selectedIndex = 0;
-                } else {
-                    if (selectedIndex === popupItems.length - 1) {
-                        selectedIndex = 0;
-                    } else {
-                        selectedIndex += 1;
-                    }
-                }
-
-                setPopupItems(popupItems.map((item, index) => {
-                    item.selected = selectedIndex === index;
-                    return item;
-                }));
-            }
-        }
-
-        if (key === 'enter' || key === 'tab') {
-            if (popupItems.length > 0) {
-                popupItems.map((item, index) => {
-                    if (item.selected) {
-                        setTerm(item);
-                    }
-
-                    return true;
-                });
-
-                setPopupItems([]);
-            }
-        }
-
-        if (key !== 'tab') {
-            e.preventDefault();
-        }
     }
 
     const getOrderByOrderNumber = (e) => {
@@ -1156,8 +515,6 @@ function Invoice(props) {
         }
     }
 
-
-
     return (
         <div className="invoice-main-container" style={{
             borderRadius: props.scale === 1 ? 0 : '20px',
@@ -1241,25 +598,341 @@ function Invoice(props) {
                         </div>
 
                         <div className="form-row" style={{ position: 'relative' }}>
-                            <div className="input-box-container grow" style={{ position: 'relative' }}>
-                                <input type="text" placeholder="Rate Type"
-                                    ref={refBillToRateTypes}
-                                    onKeyDown={onBillToRateTypeKeydown}
-                                    onChange={() => { }}
-                                    value={billToRateType.name || ''}
-                                />
+                            <div className="select-box-container" style={{ flexGrow: 1 }}>
+                                <div className="select-box-wrapper">
+                                    <input type="text" placeholder="Rate Type"
+                                        ref={refBillToRateTypes}
+                                        onKeyDown={async (e) => {
+                                            let key = e.keyCode || e.which;
 
-                                <span className="fas fa-caret-down" style={{
-                                    position: 'absolute',
-                                    right: 5,
-                                    top: 'calc(50% + 2px)',
-                                    transform: `translateY(-50%)`,
-                                    fontSize: '1.1rem',
-                                    cursor: 'pointer'
-                                }} onClick={() => {
+                                            switch (key) {
+                                                case 37: case 38: // arrow left | arrow up
+                                                    e.preventDefault();
+                                                    if (billToRateTypeItems.length > 0) {
+                                                        let selectedIndex = billToRateTypeItems.findIndex(item => item.selected);
 
-                                }}></span>
+                                                        if (selectedIndex === -1) {
+                                                            await setBillToRateTypeItems(billToRateTypeItems.map((item, index) => {
+                                                                item.selected = index === 0;
+                                                                return item;
+                                                            }))
+                                                        } else {
+                                                            await setBillToRateTypeItems(billToRateTypeItems.map((item, index) => {
+                                                                if (selectedIndex === 0) {
+                                                                    item.selected = index === (billToRateTypeItems.length - 1);
+                                                                } else {
+                                                                    item.selected = index === (selectedIndex - 1)
+                                                                }
+                                                                return item;
+                                                            }))
+                                                        }
+
+                                                        refBillToRateTypePopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    } else {
+                                                        $.post(props.serverUrl + '/getRateTypes').then(async res => {
+                                                            if (res.result === 'OK') {
+                                                                await setBillToRateTypeItems(res.rate_types.map((item, index) => {
+                                                                    item.selected = (billToRateType.id || 0) === 0
+                                                                        ? index === 0
+                                                                        : item.id === billToRateType.id
+                                                                    return item;
+                                                                }))
+
+                                                                refBillToRateTypePopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
+                                                                });
+                                                            }
+                                                        }).catch(async e => {
+                                                            console.log('error getting rate types', e);
+                                                        })
+                                                    }
+                                                    break;
+
+                                                case 39: case 40: // arrow right | arrow down
+                                                    e.preventDefault();
+                                                    if (billToRateTypeItems.length > 0) {
+                                                        let selectedIndex = billToRateTypeItems.findIndex(item => item.selected);
+
+                                                        if (selectedIndex === -1) {
+                                                            await setBillToRateTypeItems(billToRateTypeItems.map((item, index) => {
+                                                                item.selected = index === 0;
+                                                                return item;
+                                                            }))
+                                                        } else {
+                                                            await setBillToRateTypeItems(billToRateTypeItems.map((item, index) => {
+                                                                if (selectedIndex === (billToRateTypeItems.length - 1)) {
+                                                                    item.selected = index === 0;
+                                                                } else {
+                                                                    item.selected = index === (selectedIndex + 1)
+                                                                }
+                                                                return item;
+                                                            }))
+                                                        }
+
+                                                        refBillToRateTypePopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    } else {
+                                                        $.post(props.serverUrl + '/getRateTypes').then(async res => {
+                                                            if (res.result === 'OK') {
+                                                                await setBillToRateTypeItems(res.rate_types.map((item, index) => {
+                                                                    item.selected = (billToRateType.id || 0) === 0
+                                                                        ? index === 0
+                                                                        : item.id === billToRateType.id
+                                                                    return item;
+                                                                }))
+
+                                                                refBillToRateTypePopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
+                                                                });
+                                                            }
+                                                        }).catch(async e => {
+                                                            console.log('error getting rate types', e);
+                                                        })
+                                                    }
+                                                    break;
+
+                                                case 27: // escape
+                                                    setBillToRateTypeItems([]);
+                                                    break;
+
+                                                case 13: // enter
+                                                    if (billToRateTypeItems.length > 0 && billToRateTypeItems.findIndex(item => item.selected) > -1) {
+                                                        setBillToRateType(billToRateTypeItems[billToRateTypeItems.findIndex(item => item.selected)]);
+                                                        setBillToRateTypeItems([]);
+                                                        refBillToRateTypes.current.focus();
+                                                    }
+                                                    break;
+
+                                                case 9: // tab
+                                                    if (billToRateTypeItems.length > 0) {
+                                                        e.preventDefault();
+                                                        setBillToRateType(billToRateTypeItems[billToRateTypeItems.findIndex(item => item.selected)]);
+                                                        setBillToRateTypeItems([]);
+                                                        refBillToRateTypes.current.focus();
+                                                    }
+                                                    break;
+
+                                                default:
+                                                    break;
+                                            }
+                                        }}
+                                        onBlur={async () => {
+                                            if ((billToRateType.id || 0) === 0) {
+                                                await setBillToRateType({});
+                                            }
+                                        }}
+                                        onInput={async (e) => {
+                                            await setBillToRateType({
+                                                id: 0,
+                                                name: e.target.value
+                                            });
+
+                                            if (e.target.value.trim() === '') {
+                                                setBillToRateTypeItems([]);
+                                            } else {
+                                                $.post(props.serverUrl + '/getRateTypes', {
+                                                    name: e.target.value.trim()
+                                                }).then(async res => {
+                                                    if (res.result === 'OK') {
+                                                        await setBillToRateTypeItems(res.rate_types.map((item, index) => {
+                                                            item.selected = (billToRateType.id || 0) === 0
+                                                                ? index === 0
+                                                                : item.id === billToRateType.id
+                                                            return item;
+                                                        }))
+                                                    }
+                                                }).catch(async e => {
+                                                    console.log('error getting rate types', e);
+                                                })
+                                            }
+                                        }}
+                                        onChange={async (e) => {
+                                            await setBillToRateType({
+                                                id: 0,
+                                                name: e.target.value
+                                            });
+
+                                            if (e.target.value.trim() === '') {
+                                                setBillToRateTypeItems([]);
+                                            } else {
+                                                $.post(props.serverUrl + '/getRateTypes', {
+                                                    name: e.target.value.trim()
+                                                }).then(async res => {
+                                                    if (res.result === 'OK') {
+                                                        await setBillToRateTypeItems(res.rate_types.map((item, index) => {
+                                                            item.selected = (billToRateType.id || 0) === 0
+                                                                ? index === 0
+                                                                : item.id === billToRateType.id
+                                                            return item;
+                                                        }))
+                                                    }
+                                                }).catch(async e => {
+                                                    console.log('error getting rate types', e);
+                                                })
+                                            }
+                                        }}
+                                        value={billToRateType.name || ''}
+                                    />
+                                    <FontAwesomeIcon className="dropdown-button" icon={faCaretDown} onClick={() => {
+                                        if (billToRateTypeItems.length > 0) {
+                                            setBillToRateTypeItems([]);
+                                        } else {
+                                            if ((billToRateType.id || 0) === 0 && (billToRateType.name || '') !== '') {
+                                                $.post(props.serverUrl + '/getRateTypes', {
+                                                    name: billToRateType.name
+                                                }).then(async res => {
+                                                    if (res.result === 'OK') {
+                                                        await setBillToRateTypeItems(res.rate_types.map((item, index) => {
+                                                            item.selected = (billToRateType.id || 0) === 0
+                                                                ? index === 0
+                                                                : item.id === billToRateType.id
+                                                            return item;
+                                                        }))
+
+                                                        refBillToRateTypePopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    }
+                                                }).catch(async e => {
+                                                    console.log('error getting rate types', e);
+                                                })
+                                            } else {
+                                                $.post(props.serverUrl + '/getRateTypes').then(async res => {
+                                                    if (res.result === 'OK') {
+                                                        await setBillToRateTypeItems(res.rate_types.map((item, index) => {
+                                                            item.selected = (billToRateType.id || 0) === 0
+                                                                ? index === 0
+                                                                : item.id === billToRateType.id
+                                                            return item;
+                                                        }))
+
+                                                        refBillToRateTypePopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    }
+                                                }).catch(async e => {
+                                                    console.log('error getting rate types', e);
+                                                })
+                                            }
+                                        }
+
+                                        refBillToRateTypes.current.focus();
+                                    }} />
+                                </div>
+                                <Transition
+                                    from={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                    enter={{ opacity: 1, top: 'calc(100% + 15px)' }}
+                                    leave={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                    items={billToRateTypeItems.length > 0}
+                                    config={{ duration: 100 }}
+                                >
+                                    {show => show && (styles => (
+                                        <div
+                                            className="mochi-contextual-container"
+                                            id="mochi-contextual-container-load-type"
+                                            style={{
+                                                ...styles,
+                                                left: '0',
+                                                display: 'block'
+                                            }}
+                                            ref={refBillToRateTypeDropDown}
+                                        >
+                                            <div className="mochi-contextual-popup vertical below right" style={{ height: 150 }}>
+                                                <div className="mochi-contextual-popup-content" >
+                                                    <div className="mochi-contextual-popup-wrapper">
+                                                        {
+                                                            billToRateTypeItems.map((item, index) => {
+                                                                const mochiItemClasses = classnames({
+                                                                    'mochi-item': true,
+                                                                    'selected': item.selected
+                                                                });
+
+                                                                const searchValue = (billToRateType.id || 0) === 0 && (billToRateType.name || '') !== ''
+                                                                    ? billToRateType.name : undefined;
+
+                                                                return (
+                                                                    <div
+                                                                        key={index}
+                                                                        className={mochiItemClasses}
+                                                                        id={item.id}
+                                                                        onClick={async () => {
+                                                                            await setBillToRateType(item);
+                                                                            setBillToRateTypeItems([]);
+                                                                            refBillToRateTypes.current.focus();
+                                                                        }}
+                                                                        ref={ref => refBillToRateTypePopupItems.current.push(ref)}
+                                                                    >
+                                                                        {
+                                                                            searchValue === undefined
+                                                                                ? item.name
+                                                                                : <Highlighter
+                                                                                    highlightClassName="mochi-item-highlight-text"
+                                                                                    searchWords={[searchValue]}
+                                                                                    autoEscape={true}
+                                                                                    textToHighlight={item.name}
+                                                                                />
+                                                                        }
+                                                                        {
+                                                                            item.selected &&
+                                                                            <FontAwesomeIcon className="dropdown-selected" icon={faCaretRight} />
+                                                                        }
+                                                                    </div>
+                                                                )
+                                                            })
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </Transition>
                             </div>
+
                             <div className="form-h-sep"></div>
                             <div className="input-box-container grow">
                                 <input type="text" placeholder="Rate Description" />
@@ -1517,23 +1190,340 @@ function Invoice(props) {
                         </div>
 
                         <div className="form-row">
-                            <div className="input-box-container grow" style={{ position: 'relative' }}>
-                                <input type="text" placeholder="Rate Type"
-                                    ref={refCarrierChargesRateTypes}
-                                    onKeyDown={onCarrierChargesRateTypeKeydown}
-                                    onChange={() => { }}
-                                    value={carrierChargesRateType.name || ''}
-                                />
-                                <span className="fas fa-caret-down" style={{
-                                    position: 'absolute',
-                                    right: 5,
-                                    top: 'calc(50% + 2px)',
-                                    transform: `translateY(-50%)`,
-                                    fontSize: '1.1rem',
-                                    cursor: 'pointer'
-                                }} onClick={() => {
+                            <div className="select-box-container" style={{ flexGrow: 1 }}>
+                                <div className="select-box-wrapper">
+                                    <input type="text" placeholder="Rate Type"
+                                        ref={refCarrierChargesRateTypes}
+                                        onKeyDown={async (e) => {
+                                            let key = e.keyCode || e.which;
 
-                                }}></span>
+                                            switch (key) {
+                                                case 37: case 38: // arrow left | arrow up
+                                                    e.preventDefault();
+                                                    if (carrierChargesRateTypeItems.length > 0) {
+                                                        let selectedIndex = carrierChargesRateTypeItems.findIndex(item => item.selected);
+
+                                                        if (selectedIndex === -1) {
+                                                            await setCarrierChargesRateTypeItems(carrierChargesRateTypeItems.map((item, index) => {
+                                                                item.selected = index === 0;
+                                                                return item;
+                                                            }))
+                                                        } else {
+                                                            await setCarrierChargesRateTypeItems(carrierChargesRateTypeItems.map((item, index) => {
+                                                                if (selectedIndex === 0) {
+                                                                    item.selected = index === (carrierChargesRateTypeItems.length - 1);
+                                                                } else {
+                                                                    item.selected = index === (selectedIndex - 1)
+                                                                }
+                                                                return item;
+                                                            }))
+                                                        }
+
+                                                        refCarrierChargesRateTypePopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    } else {
+                                                        $.post(props.serverUrl + '/getRateTypes').then(async res => {
+                                                            if (res.result === 'OK') {
+                                                                await setCarrierChargesRateTypeItems(res.rate_types.map((item, index) => {
+                                                                    item.selected = (carrierChargesRateType.id || 0) === 0
+                                                                        ? index === 0
+                                                                        : item.id === carrierChargesRateType.id
+                                                                    return item;
+                                                                }))
+
+                                                                refCarrierChargesRateTypePopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
+                                                                });
+                                                            }
+                                                        }).catch(async e => {
+                                                            console.log('error getting rate types', e);
+                                                        })
+                                                    }
+                                                    break;
+
+                                                case 39: case 40: // arrow right | arrow down
+                                                    e.preventDefault();
+                                                    if (carrierChargesRateTypeItems.length > 0) {
+                                                        let selectedIndex = carrierChargesRateTypeItems.findIndex(item => item.selected);
+
+                                                        if (selectedIndex === -1) {
+                                                            await setCarrierChargesRateTypeItems(carrierChargesRateTypeItems.map((item, index) => {
+                                                                item.selected = index === 0;
+                                                                return item;
+                                                            }))
+                                                        } else {
+                                                            await setCarrierChargesRateTypeItems(carrierChargesRateTypeItems.map((item, index) => {
+                                                                if (selectedIndex === (carrierChargesRateTypeItems.length - 1)) {
+                                                                    item.selected = index === 0;
+                                                                } else {
+                                                                    item.selected = index === (selectedIndex + 1)
+                                                                }
+                                                                return item;
+                                                            }))
+                                                        }
+
+                                                        refCarrierChargesRateTypePopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    } else {
+                                                        $.post(props.serverUrl + '/getRateTypes').then(async res => {
+                                                            if (res.result === 'OK') {
+                                                                await setCarrierChargesRateTypeItems(res.rate_types.map((item, index) => {
+                                                                    item.selected = (carrierChargesRateType.id || 0) === 0
+                                                                        ? index === 0
+                                                                        : item.id === carrierChargesRateType.id
+                                                                    return item;
+                                                                }))
+
+                                                                refCarrierChargesRateTypePopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
+                                                                });
+                                                            }
+                                                        }).catch(async e => {
+                                                            console.log('error getting rate types', e);
+                                                        })
+                                                    }
+                                                    break;
+
+                                                case 27: // escape
+                                                    setCarrierChargesRateTypeItems([]);
+                                                    break;
+
+                                                case 13: // enter
+                                                    if (carrierChargesRateTypeItems.length > 0 && carrierChargesRateTypeItems.findIndex(item => item.selected) > -1) {
+                                                        setCarrierChargesRateType(carrierChargesRateTypeItems[carrierChargesRateTypeItems.findIndex(item => item.selected)]);
+                                                        setCarrierChargesRateTypeItems([]);
+                                                        refCarrierChargesRateTypes.current.focus();
+                                                    }
+                                                    break;
+
+                                                case 9: // tab
+                                                    if (carrierChargesRateTypeItems.length > 0) {
+                                                        e.preventDefault();
+                                                        setCarrierChargesRateType(carrierChargesRateTypeItems[carrierChargesRateTypeItems.findIndex(item => item.selected)]);
+                                                        setCarrierChargesRateTypeItems([]);
+                                                        refCarrierChargesRateTypes.current.focus();
+                                                    }
+                                                    break;
+
+                                                default:
+                                                    break;
+                                            }
+                                        }}
+                                        onBlur={async () => {
+                                            if ((carrierChargesRateType.id || 0) === 0) {
+                                                await setCarrierChargesRateType({});
+                                            }
+                                        }}
+                                        onInput={async (e) => {
+                                            await setCarrierChargesRateType({
+                                                id: 0,
+                                                name: e.target.value
+                                            });
+
+                                            if (e.target.value.trim() === '') {
+                                                setCarrierChargesRateTypeItems([]);
+                                            } else {
+                                                $.post(props.serverUrl + '/getRateTypes', {
+                                                    name: e.target.value.trim()
+                                                }).then(async res => {
+                                                    if (res.result === 'OK') {
+                                                        await setCarrierChargesRateTypeItems(res.rate_types.map((item, index) => {
+                                                            item.selected = (carrierChargesRateType.id || 0) === 0
+                                                                ? index === 0
+                                                                : item.id === carrierChargesRateType.id
+                                                            return item;
+                                                        }))
+                                                    }
+                                                }).catch(async e => {
+                                                    console.log('error getting rate types', e);
+                                                })
+                                            }
+                                        }}
+                                        onChange={async (e) => {
+                                            await setCarrierChargesRateType({
+                                                id: 0,
+                                                name: e.target.value
+                                            });
+
+                                            if (e.target.value.trim() === '') {
+                                                setCarrierChargesRateTypeItems([]);
+                                            } else {
+                                                $.post(props.serverUrl + '/getRateTypes', {
+                                                    name: e.target.value.trim()
+                                                }).then(async res => {
+                                                    if (res.result === 'OK') {
+                                                        await setCarrierChargesRateTypeItems(res.rate_types.map((item, index) => {
+                                                            item.selected = (carrierChargesRateType.id || 0) === 0
+                                                                ? index === 0
+                                                                : item.id === carrierChargesRateType.id
+                                                            return item;
+                                                        }))
+                                                    }
+                                                }).catch(async e => {
+                                                    console.log('error getting rate types', e);
+                                                })
+                                            }
+                                        }}
+                                        value={carrierChargesRateType.name || ''}
+                                    />
+                                    <FontAwesomeIcon className="dropdown-button" icon={faCaretDown} onClick={() => {
+                                        if (carrierChargesRateTypeItems.length > 0) {
+                                            setCarrierChargesRateTypeItems([]);
+                                        } else {
+                                            if ((carrierChargesRateType.id || 0) === 0 && (carrierChargesRateType.name || '') !== '') {
+                                                $.post(props.serverUrl + '/getRateTypes', {
+                                                    name: carrierChargesRateType.name
+                                                }).then(async res => {
+                                                    if (res.result === 'OK') {
+                                                        await setCarrierChargesRateTypeItems(res.rate_types.map((item, index) => {
+                                                            item.selected = (carrierChargesRateType.id || 0) === 0
+                                                                ? index === 0
+                                                                : item.id === carrierChargesRateType.id
+                                                            return item;
+                                                        }))
+
+                                                        refCarrierChargesRateTypePopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    }
+                                                }).catch(async e => {
+                                                    console.log('error getting rate types', e);
+                                                })
+                                            } else {
+                                                $.post(props.serverUrl + '/getRateTypes').then(async res => {
+                                                    if (res.result === 'OK') {
+                                                        await setCarrierChargesRateTypeItems(res.rate_types.map((item, index) => {
+                                                            item.selected = (carrierChargesRateType.id || 0) === 0
+                                                                ? index === 0
+                                                                : item.id === carrierChargesRateType.id
+                                                            return item;
+                                                        }))
+
+                                                        refCarrierChargesRateTypePopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    }
+                                                }).catch(async e => {
+                                                    console.log('error getting rate types', e);
+                                                })
+                                            }
+                                        }
+
+                                        refCarrierChargesRateTypes.current.focus();
+                                    }} />
+
+                                </div>
+                                <Transition
+                                    from={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                    enter={{ opacity: 1, top: 'calc(100% + 15px)' }}
+                                    leave={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                    items={carrierChargesRateTypeItems.length > 0}
+                                    config={{ duration: 100 }}
+                                >
+                                    {show => show && (styles => (
+                                        <div
+                                            className="mochi-contextual-container"
+                                            id="mochi-contextual-container-load-type"
+                                            style={{
+                                                ...styles,
+                                                left: '0',
+                                                display: 'block'
+                                            }}
+                                            ref={refCarrierChargesRateTypeDropDown}
+                                        >
+                                            <div className="mochi-contextual-popup vertical below right" style={{ height: 150 }}>
+                                                <div className="mochi-contextual-popup-content" >
+                                                    <div className="mochi-contextual-popup-wrapper">
+                                                        {
+                                                            carrierChargesRateTypeItems.map((item, index) => {
+                                                                const mochiItemClasses = classnames({
+                                                                    'mochi-item': true,
+                                                                    'selected': item.selected
+                                                                });
+
+                                                                const searchValue = (carrierChargesRateType.id || 0) === 0 && (carrierChargesRateType.name || '') !== ''
+                                                                    ? carrierChargesRateType.name : undefined;
+
+                                                                return (
+                                                                    <div
+                                                                        key={index}
+                                                                        className={mochiItemClasses}
+                                                                        id={item.id}
+                                                                        onClick={async () => {
+                                                                            await setCarrierChargesRateType(item);
+                                                                            setCarrierChargesRateTypeItems([]);
+                                                                            refCarrierChargesRateTypes.current.focus();
+                                                                        }}
+                                                                        ref={ref => refCarrierChargesRateTypePopupItems.current.push(ref)}
+                                                                    >
+                                                                        {
+                                                                            searchValue === undefined
+                                                                                ? item.name
+                                                                                : <Highlighter
+                                                                                    highlightClassName="mochi-item-highlight-text"
+                                                                                    searchWords={[searchValue]}
+                                                                                    autoEscape={true}
+                                                                                    textToHighlight={item.name}
+                                                                                />
+                                                                        }
+                                                                        {
+                                                                            item.selected &&
+                                                                            <FontAwesomeIcon className="dropdown-selected" icon={faCaretRight} />
+                                                                        }
+                                                                    </div>
+                                                                )
+                                                            })
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </Transition>
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container grow">
@@ -2909,23 +2899,339 @@ function Invoice(props) {
                         <div className="input-box-container grow" style={{ marginBottom: 2 }}>
                             <input type="text" placeholder="Invoice Number" />
                         </div>
-                        <div className="input-box-container grow" style={{ marginBottom: 2, position: 'relative' }}>
-                            <input type="text" placeholder="Terms"
-                                ref={refTerms}
-                                onKeyDown={onTermsKeydown}
-                                onChange={() => { }}
-                                value={term.name || ''}
-                            />
-                            <span className="fas fa-caret-down" style={{
-                                position: 'absolute',
-                                right: 5,
-                                top: 'calc(50% + 2px)',
-                                transform: `translateY(-50%)`,
-                                fontSize: '1.1rem',
-                                cursor: 'pointer'
-                            }} onClick={() => {
+                        <div className="select-box-container" style={{ flexGrow: 1 }}>
+                            <div className="select-box-wrapper">
+                                <input type="text" placeholder="Terms"
+                                    ref={refTerms}
+                                    onKeyDown={async (e) => {
+                                        let key = e.keyCode || e.which;
 
-                            }}></span>
+                                        switch (key) {
+                                            case 37: case 38: // arrow left | arrow up
+                                                e.preventDefault();
+                                                if (termsItems.length > 0) {
+                                                    let selectedIndex = termsItems.findIndex(item => item.selected);
+
+                                                    if (selectedIndex === -1) {
+                                                        await setTermsItems(termsItems.map((item, index) => {
+                                                            item.selected = index === 0;
+                                                            return item;
+                                                        }))
+                                                    } else {
+                                                        await setTermsItems(termsItems.map((item, index) => {
+                                                            if (selectedIndex === 0) {
+                                                                item.selected = index === (termsItems.length - 1);
+                                                            } else {
+                                                                item.selected = index === (selectedIndex - 1)
+                                                            }
+                                                            return item;
+                                                        }))
+                                                    }
+
+                                                    refTermsPopupItems.current.map((r, i) => {
+                                                        if (r && r.classList.contains('selected')) {
+                                                            r.scrollIntoView({
+                                                                behavior: 'auto',
+                                                                block: 'center',
+                                                                inline: 'nearest'
+                                                            })
+                                                        }
+                                                        return true;
+                                                    });
+                                                } else {
+                                                    $.post(props.serverUrl + '/getTerms').then(async res => {
+                                                        if (res.result === 'OK') {
+                                                            await setTermsItems(res.terms.map((item, index) => {
+                                                                item.selected = (term.id || 0) === 0
+                                                                    ? index === 0
+                                                                    : item.id === term.id
+                                                                return item;
+                                                            }))
+
+                                                            refTermsPopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
+                                                            });
+                                                        }
+                                                    }).catch(async e => {
+                                                        console.log('error getting terms', e);
+                                                    })
+                                                }
+                                                break;
+
+                                            case 39: case 40: // arrow right | arrow down
+                                                e.preventDefault();
+                                                if (termsItems.length > 0) {
+                                                    let selectedIndex = termsItems.findIndex(item => item.selected);
+
+                                                    if (selectedIndex === -1) {
+                                                        await setTermsItems(termsItems.map((item, index) => {
+                                                            item.selected = index === 0;
+                                                            return item;
+                                                        }))
+                                                    } else {
+                                                        await setTermsItems(termsItems.map((item, index) => {
+                                                            if (selectedIndex === (termsItems.length - 1)) {
+                                                                item.selected = index === 0;
+                                                            } else {
+                                                                item.selected = index === (selectedIndex + 1)
+                                                            }
+                                                            return item;
+                                                        }))
+                                                    }
+
+                                                    refTermsPopupItems.current.map((r, i) => {
+                                                        if (r && r.classList.contains('selected')) {
+                                                            r.scrollIntoView({
+                                                                behavior: 'auto',
+                                                                block: 'center',
+                                                                inline: 'nearest'
+                                                            })
+                                                        }
+                                                        return true;
+                                                    });
+                                                } else {
+                                                    $.post(props.serverUrl + '/getTerms').then(async res => {
+                                                        if (res.result === 'OK') {
+                                                            await setTermsItems(res.terms.map((item, index) => {
+                                                                item.selected = (term.id || 0) === 0
+                                                                    ? index === 0
+                                                                    : item.id === term.id
+                                                                return item;
+                                                            }))
+
+                                                            refTermsPopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
+                                                            });
+                                                        }
+                                                    }).catch(async e => {
+                                                        console.log('error getting terms', e);
+                                                    })
+                                                }
+                                                break;
+
+                                            case 27: // escape
+                                                setTermsItems([]);
+                                                break;
+
+                                            case 13: // enter
+                                                if (termsItems.length > 0 && termsItems.findIndex(item => item.selected) > -1) {
+                                                    setTerm(termsItems[termsItems.findIndex(item => item.selected)]);
+                                                    setTermsItems([]);
+                                                    refTerms.current.focus();
+                                                }
+                                                break;
+
+                                            case 9: // tab
+                                                if (termsItems.length > 0) {
+                                                    e.preventDefault();
+                                                    setTerm(termsItems[termsItems.findIndex(item => item.selected)]);
+                                                    setTermsItems([]);
+                                                    refTerms.current.focus();
+                                                }
+                                                break;
+
+                                            default:
+                                                break;
+                                        }
+                                    }}
+                                    onBlur={async () => {
+                                        if ((term.id || 0) === 0) {
+                                            await setTerm({});
+                                        }
+                                    }}
+                                    onInput={async (e) => {
+                                        await setTerm({
+                                            id: 0,
+                                            name: e.target.value
+                                        });
+
+                                        if (e.target.value.trim() === '') {
+                                            setTermsItems([]);
+                                        } else {
+                                            $.post(props.serverUrl + '/getTerms', {
+                                                name: e.target.value.trim()
+                                            }).then(async res => {
+                                                if (res.result === 'OK') {
+                                                    await setTermsItems(res.terms.map((item, index) => {
+                                                        item.selected = (term.id || 0) === 0
+                                                            ? index === 0
+                                                            : item.id === term.id
+                                                        return item;
+                                                    }))
+                                                }
+                                            }).catch(async e => {
+                                                console.log('error getting terms', e);
+                                            })
+                                        }
+                                    }}
+                                    onChange={async (e) => {
+                                        await setTerm({
+                                            id: 0,
+                                            name: e.target.value
+                                        });
+
+                                        if (e.target.value.trim() === '') {
+                                            setTermsItems([]);
+                                        } else {
+                                            $.post(props.serverUrl + '/getTerms', {
+                                                name: e.target.value.trim()
+                                            }).then(async res => {
+                                                if (res.result === 'OK') {
+                                                    await setTermsItems(res.terms.map((item, index) => {
+                                                        item.selected = (term.id || 0) === 0
+                                                            ? index === 0
+                                                            : item.id === term.id
+                                                        return item;
+                                                    }))
+                                                }
+                                            }).catch(async e => {
+                                                console.log('error getting terms', e);
+                                            })
+                                        }
+                                    }}
+                                    value={term.name || ''}
+                                />
+                                <FontAwesomeIcon className="dropdown-button" icon={faCaretDown} onClick={() => {
+                                    if (termsItems.length > 0) {
+                                        setTermsItems([]);
+                                    } else {
+                                        if ((term.id || 0) === 0 && (term.name || '') !== '') {
+                                            $.post(props.serverUrl + '/getTerms', {
+                                                name: term.name
+                                            }).then(async res => {
+                                                if (res.result === 'OK') {
+                                                    await setTermsItems(res.terms.map((item, index) => {
+                                                        item.selected = (term.id || 0) === 0
+                                                            ? index === 0
+                                                            : item.id === term.id
+                                                        return item;
+                                                    }))
+
+                                                    refTermsPopupItems.current.map((r, i) => {
+                                                        if (r && r.classList.contains('selected')) {
+                                                            r.scrollIntoView({
+                                                                behavior: 'auto',
+                                                                block: 'center',
+                                                                inline: 'nearest'
+                                                            })
+                                                        }
+                                                        return true;
+                                                    });
+                                                }
+                                            }).catch(async e => {
+                                                console.log('error getting terms', e);
+                                            })
+                                        } else {
+                                            $.post(props.serverUrl + '/getTerms').then(async res => {
+                                                if (res.result === 'OK') {
+                                                    await setTermsItems(res.terms.map((item, index) => {
+                                                        item.selected = (term.id || 0) === 0
+                                                            ? index === 0
+                                                            : item.id === term.id
+                                                        return item;
+                                                    }))
+
+                                                    refTermsPopupItems.current.map((r, i) => {
+                                                        if (r && r.classList.contains('selected')) {
+                                                            r.scrollIntoView({
+                                                                behavior: 'auto',
+                                                                block: 'center',
+                                                                inline: 'nearest'
+                                                            })
+                                                        }
+                                                        return true;
+                                                    });
+                                                }
+                                            }).catch(async e => {
+                                                console.log('error getting terms', e);
+                                            })
+                                        }
+                                    }
+
+                                    refTerms.current.focus();
+                                }} />
+                            </div>
+                            <Transition
+                                from={{ opacity: 0, top: -150 }}
+                                enter={{ opacity: 1, top: -155 }}
+                                leave={{ opacity: 0, top: -150 }}
+                                items={termsItems.length > 0}
+                                config={{ duration: 100 }}
+                            >
+                                {show => show && (styles => (
+                                    <div
+                                        className="mochi-contextual-container"
+                                        id="mochi-contextual-container-load-type"
+                                        style={{
+                                            ...styles,
+                                            left: '-100%',
+                                            display: 'block'
+                                        }}
+                                        ref={refTermsDropDown}
+                                    >
+                                        <div className="mochi-contextual-popup vertical above left" style={{ height: 150 }}>
+                                            <div className="mochi-contextual-popup-content" >
+                                                <div className="mochi-contextual-popup-wrapper">
+                                                    {
+                                                        termsItems.map((item, index) => {
+                                                            const mochiItemClasses = classnames({
+                                                                'mochi-item': true,
+                                                                'selected': item.selected
+                                                            });
+
+                                                            const searchValue = (term.id || 0) === 0 && (term.name || '') !== ''
+                                                                ? term.name : undefined;
+
+                                                            return (
+                                                                <div
+                                                                    key={index}
+                                                                    className={mochiItemClasses}
+                                                                    id={item.id}
+                                                                    onClick={async () => {
+                                                                        await setTerm(item);
+                                                                        setTermsItems([]);
+                                                                        refTerms.current.focus();
+                                                                    }}
+                                                                    ref={ref => refTermsPopupItems.current.push(ref)}
+                                                                >
+                                                                    {
+                                                                        searchValue === undefined
+                                                                            ? item.name
+                                                                            : <Highlighter
+                                                                                highlightClassName="mochi-item-highlight-text"
+                                                                                searchWords={[searchValue]}
+                                                                                autoEscape={true}
+                                                                                textToHighlight={item.name}
+                                                                            />
+                                                                    }
+                                                                    {
+                                                                        item.selected &&
+                                                                        <FontAwesomeIcon className="dropdown-selected" icon={faCaretRight} />
+                                                                    }
+                                                                </div>
+                                                            )
+                                                        })
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </Transition>
                         </div>
                         <div className="input-box-container grow">
                             <input type="text" placeholder="Pay By Date" />
@@ -2979,17 +3285,6 @@ function Invoice(props) {
                     />
                 </animated.div>
             }
-
-            <InvoicePopup
-                popupRef={refPopup}
-                popupClasses={popupContainerClasses}
-                popupItems={popupItems}
-                popupItemsRef={popupItemsRef}
-                popupItemClick={popupItemClick}
-                popupItemKeydown={() => { }}
-                setPopupItems={setPopupItems}
-            />
-
         </div>
     )
 }

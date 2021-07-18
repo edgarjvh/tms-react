@@ -25,13 +25,13 @@ function CarrierInfoSearchChanging(props) {
         //     await props.setSelectedDispatchCarrierInfoDriver(c.drivers[0]);
         // }
 
-        closePanelBtnClick(null, props.carrierInfoSearchChangingPanelName);
+        closePanelBtnClick(null, props.panelName);
     }
 
     return (
         <div className="panel-content">
             <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
-            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, props.carrierInfoSearchChangingPanelName)}><span className="fas fa-times"></span></div>
+            <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, props.panelName)}><span className="fas fa-times"></span></div>
             <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
             <div className="input-box-container" style={{ marginTop: 20, display: 'flex', alignItems: 'center' }}>

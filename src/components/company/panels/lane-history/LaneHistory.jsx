@@ -243,6 +243,7 @@ function LaneHistory(props) {
                                 }
                             }
 
+                            setIsDateEndCalendarShown(false);
                             setIsDateStartCalendarShown(true)
 
                             refDateStart.current.inputElement.focus();
@@ -378,7 +379,8 @@ function LaneHistory(props) {
                                 }
                             }
 
-                            setIsDateEndCalendarShown(true)
+                            setIsDateStartCalendarShown(false);
+                            setIsDateEndCalendarShown(true);
 
                             refDateEnd.current.inputElement.focus();
                         }}></span>
