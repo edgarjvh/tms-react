@@ -151,7 +151,8 @@ function Customers(props) {
 
     useEffect(() => {
         if (isSavingContact) {
-            if (props.selectedCustomer?.id === undefined) {
+            if ((props.selectedCustomer?.id || 0) === 0) {
+                setIsSavingContact(false);
                 return;
             }
 
@@ -825,7 +826,8 @@ function Customers(props) {
             background: props.isOnPanel ? 'transparent' : 'radial-gradient(ellipse at center, rgba(250, 250, 250, 1) 0%, rgba(200, 200, 200, 1) 100%)',
             padding: props.isOnPanel ? '10px 0' : 10
         }}>
-            <PanelContainer />
+             {!props.isOnPanel && <PanelContainer setOpenedPanels={props.setOpenedPanels} openedPanels={props.openedPanels} />}
+
             <div className="fields-container">
                 <div className="fields-container-row">
                     <div className="fields-container-col">
@@ -910,39 +912,129 @@ function Customers(props) {
                             <div className="form-row">
                                 <div className="input-box-container grow">
                                     <input tabIndex={8 + props.tabTimes} type="text" placeholder="Contact Name"
-                                        // onKeyDown={validateCustomerForSaving}
-                                        onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, contact_name: e.target.value })}
-                                        value={props.selectedCustomer?.contact_name || ''} />
+                                        onInput={(e) => {
+                                            if ((props.selectedCustomer?.contacts || []).length === 0) {
+                                                props.setSelectedCustomer({ ...props.selectedCustomer, contact_name: e.target.value })
+                                            }
+                                        }}
+                                        onChange={(e) => {
+                                            if ((props.selectedCustomer?.contacts || []).length === 0) {
+                                                props.setSelectedCustomer({ ...props.selectedCustomer, contact_name: e.target.value })
+                                            }
+                                        }}
+                                        value={
+                                            (props.selectedCustomer?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                                ? (props.selectedCustomer?.contact_name || '')
+                                                : props.selectedCustomer?.contacts.find(c => c.is_primary === 1).first_name + ' ' + props.selectedCustomer?.contacts.find(c => c.is_primary === 1).last_name
+                                        }
+                                    />
                                 </div>
                                 <div className="form-h-sep"></div>
-                                <div className="input-box-container input-phone">
+                                <div className="input-box-container input-phone" style={{ position: 'relative' }}>
                                     <MaskedInput
                                         tabIndex={9 + props.tabTimes}
                                         mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                         guide={true}
                                         type="text" placeholder="Contact Phone"
-                                        onKeyDown={validateCustomerForSaving}
-                                        onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, contact_phone: e.target.value })}
-                                        value={props.selectedCustomer?.contact_phone || ''} />
+                                        onInput={(e) => {
+                                            if ((props.selectedCustomer?.contacts || []).length === 0) {
+                                                props.setSelectedCustomer({ ...props.selectedCustomer, contact_phone: e.target.value })
+                                            }
+                                        }}
+                                        onChange={(e) => {
+                                            if ((props.selectedCustomer?.contacts || []).length === 0) {
+                                                props.setSelectedCustomer({ ...props.selectedCustomer, contact_phone: e.target.value })
+                                            }
+                                        }}
+                                        value={
+                                            (props.selectedCustomer?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                                ? (props.selectedCustomer?.contact_phone || '')
+                                                : props.selectedCustomer?.contacts.find(c => c.is_primary === 1).primary_phone === 'work'
+                                                    ? props.selectedCustomer?.contacts.find(c => c.is_primary === 1).phone_work
+                                                    : props.selectedCustomer?.contacts.find(c => c.is_primary === 1).primary_phone === 'fax'
+                                                        ? props.selectedCustomer?.contacts.find(c => c.is_primary === 1).phone_work_fax
+                                                        : props.selectedCustomer?.contacts.find(c => c.is_primary === 1).primary_phone === 'mobile'
+                                                            ? props.selectedCustomer?.contacts.find(c => c.is_primary === 1).phone_mobile
+                                                            : props.selectedCustomer?.contacts.find(c => c.is_primary === 1).primary_phone === 'direct'
+                                                                ? props.selectedCustomer?.contacts.find(c => c.is_primary === 1).phone_direct
+                                                                : props.selectedCustomer?.contacts.find(c => c.is_primary === 1).primary_phone === 'other'
+                                                                    ? props.selectedCustomer?.contacts.find(c => c.is_primary === 1).phone_other
+                                                                    : ''
+                                        }
+                                    />
+
+                                    {
+                                        ((props.selectedCustomer?.contacts || []).find(c => c.is_primary === 1) !== undefined) &&
+                                        <div
+                                            className={classnames({
+                                                'selected-customer-contact-primary-phone': true,
+                                                'pushed': false
+                                            })}>
+                                            {props.selectedCustomer?.contacts.find(c => c.is_primary === 1).primary_phone}
+                                        </div>
+                                    }
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container input-phone-ext">
                                     <input tabIndex={10 + props.tabTimes} type="text" placeholder="Ext"
-                                        onKeyDown={validateCustomerForSaving}
-                                        onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, ext: e.target.value })}
-                                        value={props.selectedCustomer?.ext || ''} />
+                                        onInput={(e) => {
+                                            if ((props.selectedCustomer?.contacts || []).length === 0) {
+                                                props.setSelectedCustomer({ ...props.selectedCustomer, ext: e.target.value })
+                                            }
+                                        }}
+                                        onChange={(e) => {
+                                            if ((props.selectedCustomer?.contacts || []).length === 0) {
+                                                props.setSelectedCustomer({ ...props.selectedCustomer, ext: e.target.value })
+                                            }
+                                        }}
+                                        value={
+                                            (props.selectedCustomer?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                                ? (props.selectedCustomer?.ext || '')
+                                                : props.selectedCustomer?.contacts.find(c => c.is_primary === 1).phone_ext
+                                        }
+                                    />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
-                                <div className="input-box-container grow">
+                                <div className="input-box-container" style={{position: 'relative', flexGrow: 1}}>
                                     <input tabIndex={11 + props.tabTimes}
                                         type="text"
                                         placeholder="E-Mail"
                                         style={{ textTransform: 'lowercase' }}
                                         onKeyDown={validateCustomerForSaving}
-                                        onChange={e => props.setSelectedCustomer({ ...props.selectedCustomer, email: e.target.value })}
-                                        value={props.selectedCustomer?.email || ''} />
+                                        onInput={(e) => {
+                                            if ((props.selectedCustomer?.contacts || []).length === 0) {
+                                                props.setSelectedCustomer({ ...props.selectedCustomer, email: e.target.value })
+                                            }
+                                        }}
+                                        onChange={(e) => {
+                                            if ((props.selectedCustomer?.contacts || []).length === 0) {
+                                                props.setSelectedCustomer({ ...props.selectedCustomer, email: e.target.value })
+                                            }
+                                        }}
+                                        value={
+                                            (props.selectedCustomer?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                                ? (props.selectedCustomer?.email || '')
+                                                : props.selectedCustomer?.contacts.find(c => c.is_primary === 1).primary_email === 'work'
+                                                    ? props.selectedCustomer?.contacts.find(c => c.is_primary === 1).email_work
+                                                    : props.selectedCustomer?.contacts.find(c => c.is_primary === 1).primary_email === 'personal'
+                                                        ? props.selectedCustomer?.contacts.find(c => c.is_primary === 1).email_personal
+                                                        : props.selectedCustomer?.contacts.find(c => c.is_primary === 1).primary_email === 'other'
+                                                            ? props.selectedCustomer?.contacts.find(c => c.is_primary === 1).email_other
+                                                            : ''
+                                        }
+                                    />
+                                    {
+                                        ((props.selectedCustomer?.contacts || []).find(c => c.is_primary === 1) !== undefined) &&
+                                        <div
+                                            className={classnames({
+                                                'selected-customer-contact-primary-email': true,
+                                                'pushed': false
+                                            })}>
+                                            {props.selectedCustomer?.contacts.find(c => c.is_primary === 1).primary_email}
+                                        </div>
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -2127,25 +2219,25 @@ function Customers(props) {
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input tabIndex={33 + props.tabTimes} type="text" placeholder="Division" readOnly={true} />
+                                    <input tabIndex={33 + props.tabTimes} type="text" placeholder="Division" readOnly={!props.isAdmin} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input tabIndex={34 + props.tabTimes} type="text" placeholder="Agent Code" readOnly={true} />
+                                    <input tabIndex={34 + props.tabTimes} type="text" placeholder="Agent Code" readOnly={!props.isAdmin} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input tabIndex={35 + props.tabTimes} type="text" placeholder="Salesman" readOnly={true} />
+                                    <input tabIndex={35 + props.tabTimes} type="text" placeholder="Salesman" readOnly={!props.isAdmin} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input tabIndex={36 + props.tabTimes} type="text" placeholder="FID" readOnly={true} />
+                                    <input tabIndex={36 + props.tabTimes} type="text" placeholder="FID" readOnly={!props.isAdmin} />
                                 </div>
                             </div>
                         </div>
@@ -3041,7 +3133,7 @@ function Customers(props) {
                                 <div className="top-border top-border-right"></div>
                             </div>
 
-                            <div className="form-row">
+                            <div className="form-row" style={{width: '100%'}}>
                                 <div className="select-box-container" style={{ flexGrow: 1 }}>
                                     <div className="select-box-wrapper">
                                         {
