@@ -111,6 +111,119 @@ export const setSelectedDocumentNote = note => {
     }
 }
 
+// ====================================== ADMIN =========================================
+
+export const setAdminCustomers = customers => {
+    return {
+        type: customersConstants.SET_ADMIN_CUSTOMERS,
+        payload: customers
+    }
+}
+export const setAdminSelectedCustomer = customer => {
+    return {
+        type: customersConstants.SET_ADMIN_SELECTED_CUSTOMER,
+        payload: customer
+    }
+}
+export const setAdminCustomerPanels = panels => {
+    return {
+        type: customersConstants.SET_ADMIN_CUSTOMER_PANELS,
+        payload: panels
+    }
+}
+export const setAdminSelectedContact = contact => {
+    return {
+        type: customersConstants.SET_ADMIN_SELECTED_CONTACT,
+        payload: contact
+    }
+}
+export const setAdminSelectedNote = note => {
+    return {
+        type: customersConstants.SET_ADMIN_SELECTED_NOTE,
+        payload: note
+    }
+}
+export const setAdminSelectedDirection = direction => {
+    return {
+        type: customersConstants.SET_ADMIN_SELECTED_DIRECTION,
+        payload: direction
+    }
+}
+export const setAdminContactSearch = contactSearch => {
+    return {
+        type: customersConstants.SET_ADMIN_CONTACT_SEARCH,
+        payload: contactSearch
+    }
+}
+export const setAdminAutomaticEmailsTo = to => {
+    return {
+        type: customersConstants.SET_ADMIN_AUTOMATIC_EMAILS_TO,
+        payload: to
+    }
+}
+export const setAdminAutomaticEmailsCc = cc => {
+    return {
+        type: customersConstants.SET_ADMIN_AUTOMATIC_EMAILS_CC,
+        payload: cc
+    }
+}
+export const setAdminAutomaticEmailsBcc = bcc => {
+    return {
+        type: customersConstants.SET_ADMIN_AUTOMATIC_EMAILS_BCC,
+        payload: bcc
+    }
+}
+export const setAdminShowingContactList = show => {
+    return {
+        type: customersConstants.SET_ADMIN_SHOWING_CONTACT_LIST,
+        payload: show
+    }
+}
+export const setAdminCustomerSearch = customerSearch => {
+    return {
+        type: customersConstants.SET_ADMIN_CUSTOMER_SEARCH,
+        payload: customerSearch
+    }
+}
+export const setAdminCustomerContacts = contacts => {
+    return {
+        type: customersConstants.SET_ADMIN_CUSTOMER_CONTACTS,
+        payload: contacts
+    }
+}
+export const setAdminContactSearchCustomer = customer => {
+    return {
+        type: customersConstants.SET_ADMIN_CONTACT_SEARCH_CUSTOMER,
+        payload: customer
+    }
+}
+export const setAdminIsEditingContact = isEditing => {
+    return {
+        type: customersConstants.SET_ADMIN_IS_EDITING_CONTACT,
+        payload: isEditing
+    }
+}
+export const setAdminSelectedDocument = document => {
+    return {
+        type: customersConstants.SET_ADMIN_SELECTED_DOCUMENT,
+        payload: document
+    }
+}
+export const setAdminDocumentTags = tags => {
+    return {
+        type: customersConstants.SET_ADMIN_DOCUMENT_TAGS,
+        payload: tags
+    }
+}
+export const setAdminSelectedDocumentNote = note => {
+    return {
+        type: customersConstants.SET_ADMIN_SELECTED_DOCUMENT_NOTE,
+        payload: note
+    }
+}
+
+// ====================================== ADMIN =========================================
+
 
 // ===================================== BILL TO COMPANY ============================================
 export const setBillToCompanies = customers => {
@@ -1159,6 +1272,12 @@ export const setCustomerSelectedConsigneeCompanyDocumentNote = note => {
 export const setCustomerOpenedPanels = panels => {
     return {
         type: customersConstants.SET_CUSTOMER_OPENED_PANELS,
+        payload: panels
+    }
+}
+export const setAdminCustomerOpenedPanels = panels => {
+    return {
+        type: customersConstants.SET_ADMIN_CUSTOMER_OPENED_PANELS,
         payload: panels
     }
 }

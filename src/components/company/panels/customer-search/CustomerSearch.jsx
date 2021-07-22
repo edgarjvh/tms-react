@@ -16,14 +16,14 @@ function CustomerSearch(props) {
         console.log(c);
         await props.setSelectedCustomer(c);
         await c.contacts.map(async contact => {
-            if (contact.is_primary === 1){
+            if (contact.is_primary === 1) {
                 await props.setSelectedContact(contact);
             }
             return true;
         });
 
-        if (props.toSaveOrder || false){
-            if ((props.origin || '') === 'carrier'){
+        if (props.toSaveOrder || false) {
+            if ((props.origin || '') === 'carrier') {
                 props.setSelectedDriver((c.drivers || []).length > 0 ? c.drivers[0] : {});
             }
             props.setIsSavingOrder(true)
@@ -94,8 +94,26 @@ function CustomerSearch(props) {
                                             <div className="tcol city">{c.city}</div>
                                             <div className="tcol state">{c.state}</div>
                                             <div className="tcol zip">{c.zip}</div>
-                                            <div className="tcol contact-name">{c.contact_name}</div>
-                                            <div className="tcol contact-phone">{c.contact_phone}</div>
+                                            <div className="tcol contact-name">{
+                                                (c.contacts || []).find(con => con.is_primary === 1) === undefined
+                                                    ? c.contact_name
+                                                    : c.contacts.find(con => con.is_primary === 1).first_name + ' ' + c.contacts.find(con => con.is_primary === 1).last_name
+                                            }</div>
+                                            <div className="tcol contact-phone">{
+                                                (c.contacts || []).find(con => con.is_primary === 1) === undefined
+                                                    ? c.contact_phone
+                                                    : c.contacts.find(con => con.is_primary === 1).primary_phone === 'work'
+                                                        ? c.contacts.find(con => con.is_primary === 1).phone_work
+                                                        : c.contacts.find(con => con.is_primary === 1).primary_phone === 'fax'
+                                                            ? c.contacts.find(con => con.is_primary === 1).phone_work_fax
+                                                            : c.contacts.find(con => con.is_primary === 1).primary_phone === 'mobile'
+                                                                ? c.contacts.find(con => con.is_primary === 1).phone_mobile
+                                                                : c.contacts.find(con => con.is_primary === 1).primary_phone === 'direct'
+                                                                    ? c.contacts.find(con => con.is_primary === 1).phone_direct
+                                                                    : c.contacts.find(con => con.is_primary === 1).primary_phone === 'other'
+                                                                        ? c.contacts.find(con => con.is_primary === 1).phone_other
+                                                                        : ''
+                                            }</div>
                                             {/* <div className="tcol contact-phone-ext">{c.ext}</div> */}
                                         </div>
                                     )

@@ -165,6 +165,16 @@ function FactoringCompany(props) {
                 if (res.result === 'OK') {
                     await props.setSelectedFactoringCompany({ ...props.selectedFactoringCompany, contacts: res.contacts });
                     await props.setSelectedFactoringCompanyContact(res.contact);
+
+                    if ((props.selectedFactoringCompany?.id || 0) > 0 && (props.selectedFactoringCompany.id === (props.selectedCarrier?.factoring_company?.id || 0))) {
+                        props.setSelectedCarrier({
+                            ...props.selectedCarrier,
+                            factoring_company: {
+                                ...props.selectedCarrier.factoring_company,
+                                contacts: res.contacts
+                            }
+                        })
+                    }
                 }
                 setIsSavingFactoringCompanyContact(false);
             }).catch(e => {
@@ -689,34 +699,125 @@ function FactoringCompany(props) {
                         <div className="form-row">
                             <div className="input-box-container grow">
                                 <input type="text" placeholder="Contact Name"
-                                    // onKeyDown={validateFactoringCompanyToSave}
-                                    onChange={e => props.setSelectedFactoringCompany({ ...props.selectedFactoringCompany, contact_name: e.target.value })}
-                                    value={props.selectedFactoringCompany.contact_name || ''} />
+                                    onInput={(e) => {
+                                        if ((props.selectedFactoringCompany?.contacts || []).length === 0) {
+                                            props.setSelectedFactoringCompany({ ...props.selectedFactoringCompany, contact_name: e.target.value })
+                                        }
+                                    }}
+                                    onChange={(e) => {
+                                        if ((props.selectedFactoringCompany?.contacts || []).length === 0) {
+                                            props.setSelectedFactoringCompany({ ...props.selectedFactoringCompany, contact_name: e.target.value })
+                                        }
+                                    }}
+                                    value={
+                                        (props.selectedFactoringCompany?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                            ? (props.selectedFactoringCompany?.contact_name || '')
+                                            : props.selectedFactoringCompany?.contacts.find(c => c.is_primary === 1).first_name + ' ' + props.selectedFactoringCompany?.contacts.find(c => c.is_primary === 1).last_name
+                                    }
+                                />
                             </div>
                             <div className="form-h-sep"></div>
-                            <div className="input-box-container input-phone">
+                            <div className="input-box-container input-phone" style={{ position: 'relative' }}>
                                 <MaskedInput
                                     mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                     guide={true}
                                     type="text" placeholder="Contact Phone"
-                                    onKeyDown={validateFactoringCompanyToSave}
-                                    onChange={e => props.setSelectedFactoringCompany({ ...props.selectedFactoringCompany, contact_phone: e.target.value })}
-                                    value={props.selectedFactoringCompany.contact_phone || ''} />
+                                    onInput={(e) => {
+                                        if ((props.selectedFactoringCompany?.contacts || []).length === 0) {
+                                            props.setSelectedFactoringCompany({ ...props.selectedFactoringCompany, contact_phone: e.target.value })
+                                        }
+                                    }}
+                                    onChange={(e) => {
+                                        if ((props.selectedFactoringCompany?.contacts || []).length === 0) {
+                                            props.setSelectedFactoringCompany({ ...props.selectedFactoringCompany, contact_phone: e.target.value })
+                                        }
+                                    }}
+                                    value={
+                                        (props.selectedFactoringCompany?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                            ? (props.selectedFactoringCompany?.contact_phone || '')
+                                            : props.selectedFactoringCompany?.contacts.find(c => c.is_primary === 1).primary_phone === 'work'
+                                                ? props.selectedFactoringCompany?.contacts.find(c => c.is_primary === 1).phone_work
+                                                : props.selectedFactoringCompany?.contacts.find(c => c.is_primary === 1).primary_phone === 'fax'
+                                                    ? props.selectedFactoringCompany?.contacts.find(c => c.is_primary === 1).phone_work_fax
+                                                    : props.selectedFactoringCompany?.contacts.find(c => c.is_primary === 1).primary_phone === 'mobile'
+                                                        ? props.selectedFactoringCompany?.contacts.find(c => c.is_primary === 1).phone_mobile
+                                                        : props.selectedFactoringCompany?.contacts.find(c => c.is_primary === 1).primary_phone === 'direct'
+                                                            ? props.selectedFactoringCompany?.contacts.find(c => c.is_primary === 1).phone_direct
+                                                            : props.selectedFactoringCompany?.contacts.find(c => c.is_primary === 1).primary_phone === 'other'
+                                                                ? props.selectedFactoringCompany?.contacts.find(c => c.is_primary === 1).phone_other
+                                                                : ''
+                                    }
+                                />
+
+                                {
+                                    ((props.selectedFactoringCompany?.contacts || []).find(c => c.is_primary === 1) !== undefined) &&
+                                    <div
+                                        className={classnames({
+                                            'selected-factoring-company-contact-primary-phone': true,
+                                            'pushed': false
+                                        })}>
+                                        {props.selectedFactoringCompany?.contacts.find(c => c.is_primary === 1).primary_phone}
+                                    </div>
+                                }
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container input-phone-ext">
                                 <input type="text" placeholder="Ext"
-                                    // onKeyDown={validateFactoringCompanyToSave}
-                                    onChange={e => props.setSelectedFactoringCompany({ ...props.selectedFactoringCompany, ext: e.target.value })} value={props.selectedFactoringCompany.ext || ''} />
+                                    onInput={(e) => {
+                                        if ((props.selectedFactoringCompany?.contacts || []).length === 0) {
+                                            props.setSelectedFactoringCompany({ ...props.selectedFactoringCompany, ext: e.target.value })
+                                        }
+                                    }}
+                                    onChange={(e) => {
+                                        if ((props.selectedFactoringCompany?.contacts || []).length === 0) {
+                                            props.setSelectedFactoringCompany({ ...props.selectedFactoringCompany, ext: e.target.value })
+                                        }
+                                    }}
+                                    value={
+                                        (props.selectedFactoringCompany?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                            ? (props.selectedFactoringCompany?.ext || '')
+                                            : props.selectedFactoringCompany?.contacts.find(c => c.is_primary === 1).phone_ext
+                                    }
+                                />
                             </div>
                         </div>
                         <div className="form-v-sep"></div>
                         <div className="form-row">
-                            <div className="input-box-container grow">
+                            <div className="input-box-container" style={{ position: 'relative', flexGrow: 1 }}>
                                 <input type="text" placeholder="E-Mail" style={{ textTransform: 'lowercase' }}
                                     onKeyDown={validateFactoringCompanyToSave}
-                                    onChange={e => props.setSelectedFactoringCompany({ ...props.selectedFactoringCompany, email: e.target.value })}
-                                    value={props.selectedFactoringCompany.email || ''} />
+                                    onInput={(e) => {
+                                        if ((props.selectedFactoringCompany?.contacts || []).length === 0) {
+                                            props.setSelectedFactoringCompany({ ...props.selectedFactoringCompany, email: e.target.value })
+                                        }
+                                    }}
+                                    onChange={(e) => {
+                                        if ((props.selectedFactoringCompany?.contacts || []).length === 0) {
+                                            props.setSelectedFactoringCompany({ ...props.selectedFactoringCompany, email: e.target.value })
+                                        }
+                                    }}
+                                    value={
+                                        (props.selectedFactoringCompany?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                            ? (props.selectedFactoringCompany?.email || '')
+                                            : props.selectedFactoringCompany?.contacts.find(c => c.is_primary === 1).primary_email === 'work'
+                                                ? props.selectedFactoringCompany?.contacts.find(c => c.is_primary === 1).email_work
+                                                : props.selectedFactoringCompany?.contacts.find(c => c.is_primary === 1).primary_email === 'personal'
+                                                    ? props.selectedFactoringCompany?.contacts.find(c => c.is_primary === 1).email_personal
+                                                    : props.selectedFactoringCompany?.contacts.find(c => c.is_primary === 1).primary_email === 'other'
+                                                        ? props.selectedFactoringCompany?.contacts.find(c => c.is_primary === 1).email_other
+                                                        : ''
+                                    }
+                                />
+                                {
+                                    ((props.selectedFactoringCompany?.contacts || []).find(c => c.is_primary === 1) !== undefined) &&
+                                    <div
+                                        className={classnames({
+                                            'selected-factoring-company-contact-primary-email': true,
+                                            'pushed': false
+                                        })}>
+                                        {props.selectedFactoringCompany?.contacts.find(c => c.is_primary === 1).primary_email}
+                                    </div>
+                                }
                             </div>
                         </div>
                     </div>
@@ -2344,7 +2445,11 @@ function FactoringCompany(props) {
                                 </div>
                                 <div className="input-toggle-container">
                                     <input type="checkbox" id={props.panelName + 'cbox-factoring-company-contacts-primary-btn'}
-                                        onChange={selectedContactIsPrimaryChange}
+                                        onChange={async (e) => {
+                                            await props.setSelectedFactoringCompanyContact({ ...props.selectedFactoringCompanyContact, is_primary: e.target.checked ? 1 : 0 });
+
+                                            validateContactForSaving({ keyCode: 9 });
+                                        }}
                                         checked={(props.selectedFactoringCompanyContact.is_primary || 0) === 1} />
                                     <label htmlFor={props.panelName + 'cbox-factoring-company-contacts-primary-btn'}>
                                         <div className="label-text">Primary</div>

@@ -1115,7 +1115,7 @@ function Carriers(props) {
             padding: props.isOnPanel ? '10px 0' : 10
         }}>
 
-            {!props.isOnPanel && <PanelContainer />}
+            {!props.isOnPanel && <PanelContainer setOpenedPanels={props.setOpenedPanels} openedPanels={props.openedPanels} />}
 
             <div className="fields-container-row">
                 <div className="fields-container-col">
@@ -1205,35 +1205,125 @@ function Carriers(props) {
                         <div className="form-row">
                             <div className="input-box-container grow">
                                 <input tabIndex={50 + props.tabTimes} type="text" placeholder="Contact Name"
-                                    // onKeyDown={validateCarrierForSaving} 
-                                    onChange={e => props.setSelectedCarrier({ ...props.selectedCarrier, contact_name: e.target.value })}
-                                    value={props.selectedCarrier.contact_name || ''} />
+                                    onInput={(e) => {
+                                        if ((props.selectedCarrier?.contacts || []).length === 0) {
+                                            props.setSelectedCarrier({ ...props.selectedCarrier, contact_name: e.target.value })
+                                        }
+                                    }}
+                                    onChange={(e) => {
+                                        if ((props.selectedCarrier?.contacts || []).length === 0) {
+                                            props.setSelectedCarrier({ ...props.selectedCarrier, contact_name: e.target.value })
+                                        }
+                                    }}
+                                    value={
+                                        (props.selectedCarrier?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                            ? (props.selectedCarrier?.contact_name || '')
+                                            : props.selectedCarrier?.contacts.find(c => c.is_primary === 1).first_name + ' ' + props.selectedCarrier?.contacts.find(c => c.is_primary === 1).last_name
+                                    }
+                                />
                             </div>
                             <div className="form-h-sep"></div>
-                            <div className="input-box-container input-phone">
+                            <div className="input-box-container input-phone" style={{ position: 'relative' }}>
                                 <MaskedInput tabIndex={51 + props.tabTimes}
                                     mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                     guide={true}
                                     type="text" placeholder="Contact Phone"
-                                    onKeyDown={validateCarrierForSaving}
-                                    onChange={e => props.setSelectedCarrier({ ...props.selectedCarrier, contact_phone: e.target.value })}
-                                    value={props.selectedCarrier.contact_phone || ''} />
+                                    onInput={(e) => {
+                                        if ((props.selectedCarrier?.contacts || []).length === 0) {
+                                            props.setSelectedCarrier({ ...props.selectedCarrier, contact_phone: e.target.value })
+                                        }
+                                    }}
+                                    onChange={(e) => {
+                                        if ((props.selectedCarrier?.contacts || []).length === 0) {
+                                            props.setSelectedCarrier({ ...props.selectedCarrier, contact_phone: e.target.value })
+                                        }
+                                    }}
+                                    value={
+                                        (props.selectedCarrier?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                            ? (props.selectedCarrier?.contact_phone || '')
+                                            : props.selectedCarrier?.contacts.find(c => c.is_primary === 1).primary_phone === 'work'
+                                                ? props.selectedCarrier?.contacts.find(c => c.is_primary === 1).phone_work
+                                                : props.selectedCarrier?.contacts.find(c => c.is_primary === 1).primary_phone === 'fax'
+                                                    ? props.selectedCarrier?.contacts.find(c => c.is_primary === 1).phone_work_fax
+                                                    : props.selectedCarrier?.contacts.find(c => c.is_primary === 1).primary_phone === 'mobile'
+                                                        ? props.selectedCarrier?.contacts.find(c => c.is_primary === 1).phone_mobile
+                                                        : props.selectedCarrier?.contacts.find(c => c.is_primary === 1).primary_phone === 'direct'
+                                                            ? props.selectedCarrier?.contacts.find(c => c.is_primary === 1).phone_direct
+                                                            : props.selectedCarrier?.contacts.find(c => c.is_primary === 1).primary_phone === 'other'
+                                                                ? props.selectedCarrier?.contacts.find(c => c.is_primary === 1).phone_other
+                                                                : ''
+                                    }
+                                />
+
+                                {
+                                    ((props.selectedCarrier?.contacts || []).find(c => c.is_primary === 1) !== undefined) &&
+                                    <div
+                                        className={classnames({
+                                            'selected-carrier-contact-primary-phone': true,
+                                            'pushed': false
+                                        })}>
+                                        {props.selectedCarrier?.contacts.find(c => c.is_primary === 1).primary_phone}
+                                    </div>
+                                }
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container input-phone-ext">
                                 <input tabIndex={52 + props.tabTimes} type="text" placeholder="Ext"
-                                    onKeyDown={validateCarrierForSaving}
-                                    onChange={e => props.setSelectedCarrier({ ...props.selectedCarrier, ext: e.target.value })}
-                                    value={props.selectedCarrier.ext || ''} />
+                                    onInput={(e) => {
+                                        if ((props.selectedCarrier?.contacts || []).length === 0) {
+                                            props.setSelectedCarrier({ ...props.selectedCarrier, ext: e.target.value })
+                                        }
+                                    }}
+                                    onChange={(e) => {
+                                        if ((props.selectedCarrier?.contacts || []).length === 0) {
+                                            props.setSelectedCarrier({ ...props.selectedCarrier, ext: e.target.value })
+                                        }
+                                    }}
+                                    value={
+                                        (props.selectedCarrier?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                            ? (props.selectedCarrier?.ext || '')
+                                            : props.selectedCarrier?.contacts.find(c => c.is_primary === 1).phone_ext
+                                    }
+                                />
                             </div>
                         </div>
                         <div className="form-v-sep"></div>
                         <div className="form-row">
-                            <div className="input-box-container grow">
+                            <div className="input-box-container" style={{position: 'relative', flexGrow: 1}}>
                                 <input tabIndex={53 + props.tabTimes} type="text" placeholder="E-Mail" style={{ textTransform: 'lowercase' }}
                                     onKeyDown={validateCarrierForSaving}
-                                    onChange={e => props.setSelectedCarrier({ ...props.selectedCarrier, email: e.target.value })}
-                                    value={props.selectedCarrier.email || ''} />
+                                    onInput={(e) => {
+                                        if ((props.selectedCarrier?.contacts || []).length === 0) {
+                                            props.setSelectedCarrier({ ...props.selectedCarrier, email: e.target.value })
+                                        }
+                                    }}
+                                    onChange={(e) => {
+                                        if ((props.selectedCarrier?.contacts || []).length === 0) {
+                                            props.setSelectedCarrier({ ...props.selectedCarrier, email: e.target.value })
+                                        }
+                                    }}
+                                    value={
+                                        (props.selectedCarrier?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                            ? (props.selectedCarrier?.email || '')
+                                            : props.selectedCarrier?.contacts.find(c => c.is_primary === 1).primary_email === 'work'
+                                                ? props.selectedCarrier?.contacts.find(c => c.is_primary === 1).email_work
+                                                : props.selectedCarrier?.contacts.find(c => c.is_primary === 1).primary_email === 'personal'
+                                                    ? props.selectedCarrier?.contacts.find(c => c.is_primary === 1).email_personal
+                                                    : props.selectedCarrier?.contacts.find(c => c.is_primary === 1).primary_email === 'other'
+                                                        ? props.selectedCarrier?.contacts.find(c => c.is_primary === 1).email_other
+                                                        : ''
+                                    }
+                                />
+                                {
+                                    ((props.selectedCarrier?.contacts || []).find(c => c.is_primary === 1) !== undefined) &&
+                                    <div
+                                        className={classnames({
+                                            'selected-carrier-contact-primary-email': true,
+                                            'pushed': false
+                                        })}>
+                                        {props.selectedCarrier?.contacts.find(c => c.is_primary === 1).primary_email}
+                                    </div>
+                                }
                             </div>
                         </div>
                     </div>
@@ -4941,47 +5031,174 @@ function Carriers(props) {
                         <div className="form-row">
                             <div className="input-box-container grow">
                                 <input tabIndex={72 + props.tabTimes} type="text" placeholder="Contact Name"
-                                    // onKeyDown={validateFactoringCompanyToSave} 
-                                    onChange={e => {
-                                        let factoring_company = props.selectedCarrier.factoring_company || {};
-                                        factoring_company.contact_name = e.target.value;
-                                        props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: factoring_company });
-                                    }} value={props.selectedCarrier.factoring_company?.contact_name || ''} />
+                                    onInput={(e) => {
+                                        if ((props.selectedCarrier?.factoring_company?.contacts || []).length === 0) {
+                                            props.setSelectedCarrier({
+                                                ...props.selectedCarrier,
+                                                factoring_company: {
+                                                    ...props.selectedCarrier?.factoring_company || {},
+                                                    contact_name: e.target.value
+                                                }
+                                            })
+                                        }
+                                    }}
+                                    onChange={(e) => {
+                                        if ((props.selectedCarrier?.factoring_company?.contacts || []).length === 0) {
+                                            props.setSelectedCarrier({
+                                                ...props.selectedCarrier,
+                                                factoring_company: {
+                                                    ...props.selectedCarrier?.factoring_company || {},
+                                                    contact_name: e.target.value
+                                                }
+                                            })
+                                        }
+                                    }}
+                                    value={
+                                        (props.selectedCarrier?.factoring_company?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                            ? (props.selectedCarrier?.factoring_company?.contact_name || '')
+                                            : props.selectedCarrier?.factoring_company.contacts.find(c => c.is_primary === 1).first_name + ' ' + props.selectedCarrier?.factoring_company.contacts.find(c => c.is_primary === 1).last_name
+                                    }
+                                />
                             </div>
                             <div className="form-h-sep"></div>
-                            <div className="input-box-container input-phone">
+                            <div className="input-box-container input-phone" style={{ position: 'relative' }}>
                                 <MaskedInput tabIndex={73 + props.tabTimes}
                                     mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                     guide={true}
                                     type="text" placeholder="Contact Phone"
-                                    onKeyDown={validateFactoringCompanyToSave}
-                                    onChange={e => {
-                                        let factoring_company = props.selectedCarrier.factoring_company || {};
-                                        factoring_company.contact_phone = e.target.value;
-                                        props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: factoring_company });
-                                    }} value={props.selectedCarrier.factoring_company?.contact_phone || ''} />
+                                    onInput={(e) => {
+                                        if ((props.selectedCarrier?.factoring_company?.contacts || []).length === 0) {
+                                            props.setSelectedCarrier({
+                                                ...props.selectedCarrier,
+                                                factoring_company: {
+                                                    ...props.selectedCarrier?.factoring_company || {},
+                                                    contact_phone: e.target.value
+                                                }
+                                            })
+                                        }
+                                    }}
+                                    onChange={(e) => {
+                                        if ((props.selectedCarrier?.factoring_company?.contacts || []).length === 0) {
+                                            props.setSelectedCarrier({
+                                                ...props.selectedCarrier,
+                                                factoring_company: {
+                                                    ...props.selectedCarrier?.factoring_company || {},
+                                                    contact_phone: e.target.value
+                                                }
+                                            })
+                                        }
+                                    }}
+                                    value={
+                                        (props.selectedCarrier?.factoring_company?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                            ? (props.selectedCarrier?.factoring_company?.contact_phone || '')
+                                            : props.selectedCarrier?.factoring_company?.contacts.find(c => c.is_primary === 1).primary_phone === 'work'
+                                                ? props.selectedCarrier?.factoring_company?.contacts.find(c => c.is_primary === 1).phone_work
+                                                : props.selectedCarrier?.factoring_company?.contacts.find(c => c.is_primary === 1).primary_phone === 'fax'
+                                                    ? props.selectedCarrier?.factoring_company?.contacts.find(c => c.is_primary === 1).phone_work_fax
+                                                    : props.selectedCarrier?.factoring_company?.contacts.find(c => c.is_primary === 1).primary_phone === 'mobile'
+                                                        ? props.selectedCarrier?.factoring_company?.contacts.find(c => c.is_primary === 1).phone_mobile
+                                                        : props.selectedCarrier?.factoring_company?.contacts.find(c => c.is_primary === 1).primary_phone === 'direct'
+                                                            ? props.selectedCarrier?.factoring_company?.contacts.find(c => c.is_primary === 1).phone_direct
+                                                            : props.selectedCarrier?.factoring_company?.contacts.find(c => c.is_primary === 1).primary_phone === 'other'
+                                                                ? props.selectedCarrier?.factoring_company?.contacts.find(c => c.is_primary === 1).phone_other
+                                                                : ''
+                                    }
+                                />
+
+                                {
+                                    ((props.selectedCarrier?.factoring_company?.contacts || []).find(c => c.is_primary === 1) !== undefined) &&
+                                    <div
+                                        className={classnames({
+                                            'selected-factoring-company-contact-primary-phone': true,
+                                            'pushed': false
+                                        })}>
+                                        {props.selectedCarrier?.factoring_company?.contacts.find(c => c.is_primary === 1).primary_phone}
+                                    </div>
+                                }
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container input-phone-ext">
                                 <input tabIndex={74 + props.tabTimes} type="text" placeholder="Ext"
-                                    // onKeyDown={validateFactoringCompanyToSave} 
-                                    onChange={e => {
-                                        let factoring_company = props.selectedCarrier.factoring_company || {};
-                                        factoring_company.ext = e.target.value;
-                                        props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: factoring_company });
-                                    }} value={props.selectedCarrier.factoring_company?.ext || ''} />
+                                    onInput={(e) => {
+                                        if ((props.selectedCarrier?.factoring_company?.contacts || []).length === 0) {
+                                            props.setSelectedCarrier({
+                                                ...props.selectedCarrier,
+                                                factoring_company: {
+                                                    ...props.selectedCarrier?.factoring_company || {},
+                                                    ext: e.target.value
+                                                }
+                                            })
+                                        }
+                                    }}
+                                    onChange={(e) => {
+                                        if ((props.selectedCarrier?.factoring_company?.contacts || []).length === 0) {
+                                            props.setSelectedCarrier({
+                                                ...props.selectedCarrier,
+                                                factoring_company: {
+                                                    ...props.selectedCarrier?.factoring_company || {},
+                                                    ext: e.target.value
+                                                }
+                                            })
+                                        }
+                                    }}
+                                    value={
+                                        (props.selectedCarrier?.factoring_company?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                            ? (props.selectedCarrier?.factoring_company?.ext || '')
+                                            : props.selectedCarrier?.factoring_company.contacts.find(c => c.is_primary === 1).phone_ext
+                                    }
+                                />
                             </div>
                         </div>
                         <div className="form-v-sep"></div>
                         <div className="form-row">
-                            <div className="input-box-container grow">
+                            <div className="input-box-container" style={{position: 'relative', flexGrow: 1}}>
                                 <input tabIndex={75 + props.tabTimes} type="text" placeholder="E-Mail" style={{ textTransform: 'lowercase' }}
                                     onKeyDown={validateFactoringCompanyToSave}
-                                    onChange={e => {
-                                        let factoring_company = props.selectedCarrier.factoring_company || {};
-                                        factoring_company.email = e.target.value;
-                                        props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: factoring_company });
-                                    }} value={props.selectedCarrier.factoring_company?.email || ''} />
+                                    onInput={(e) => {
+                                        if ((props.selectedCarrier?.factoring_company?.contacts || []).length === 0) {
+                                            props.setSelectedCarrier({
+                                                ...props.selectedCarrier,
+                                                factoring_company: {
+                                                    ...props.selectedCarrier?.factoring_company || {},
+                                                    email: e.target.value
+                                                }
+                                            })
+                                        }
+                                    }}
+                                    onChange={(e) => {
+                                        if ((props.selectedCarrier?.factoring_company?.contacts || []).length === 0) {
+                                            props.setSelectedCarrier({
+                                                ...props.selectedCarrier,
+                                                factoring_company: {
+                                                    ...props.selectedCarrier?.factoring_company || {},
+                                                    email: e.target.value
+                                                }
+                                            })
+                                        }
+                                    }}
+                                    value={
+                                        (props.selectedCarrier?.factoring_company?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                            ? (props.selectedCarrier?.factoring_company?.email || '')
+                                            : props.selectedCarrier?.factoring_company?.contacts.find(c => c.is_primary === 1).primary_email === 'work'
+                                                ? props.selectedCarrier?.factoring_company?.contacts.find(c => c.is_primary === 1).email_work
+                                                : props.selectedCarrier?.factoring_company?.contacts.find(c => c.is_primary === 1).primary_email === 'personal'
+                                                    ? props.selectedCarrier?.factoring_company?.contacts.find(c => c.is_primary === 1).email_personal
+                                                    : props.selectedCarrier?.factoring_company?.contacts.find(c => c.is_primary === 1).primary_email === 'other'
+                                                        ? props.selectedCarrier?.factoring_company?.contacts.find(c => c.is_primary === 1).email_other
+                                                        : ''
+                                    }
+                                />
+
+                                {
+                                    ((props.selectedCarrier?.factoring_company?.contacts || []).find(c => c.is_primary === 1) !== undefined) &&
+                                    <div
+                                        className={classnames({
+                                            'selected-factoring-company-contact-primary-email': true,
+                                            'pushed': false
+                                        })}>
+                                        {props.selectedCarrier?.factoring_company?.contacts.find(c => c.is_primary === 1).primary_email}
+                                    </div>
+                                }
                             </div>
                         </div>
                     </div>

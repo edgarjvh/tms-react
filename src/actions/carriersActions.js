@@ -242,6 +242,252 @@ export const setEquipmentInformation = info => {
 }
 
 
+// ================================= ADMIN ====================================
+
+export const setAdminCarrierPanels = panels => {
+    return {
+        type: carriersConstants.SET_ADMIN_CARRIER_PANELS,
+        payload: panels
+    }
+}
+export const setAdminCarriers = carriers => {
+    return {
+        type: carriersConstants.SET_ADMIN_CARRIERS,
+        payload: carriers
+    }
+}
+export const setAdminSelectedCarrier = carrier => {
+    return {
+        type: carriersConstants.SET_ADMIN_SELECTED_CARRIER,
+        payload: carrier
+    }
+}
+export const setAdminSelectedCarrierContact = contact => {
+    return {
+        type: carriersConstants.SET_ADMIN_SELECTED_CARRIER_CONTACT,
+        payload: contact
+    }
+}
+export const setAdminSelectedCarrierNote = note => {
+    return {
+        type: carriersConstants.SET_ADMIN_SELECTED_CARRIER_NOTE,
+        payload: note
+    }
+}
+export const setAdminSelectedCarrierDirection = direction => {
+    return {
+        type: carriersConstants.SET_ADMIN_SELECTED_CARRIER_DIRECTION,
+        payload: direction
+    }
+}
+export const setAdminContactSearch = contactSearch => {
+    return {
+        type: carriersConstants.SET_ADMIN_CONTACT_SEARCH,
+        payload: contactSearch
+    }
+}
+export const setAdminShowingCarrierContactList = show => {
+    return {
+        type: carriersConstants.SET_ADMIN_SHOWING_CARRIER_CONTACT_LIST,
+        payload: show
+    }
+}
+export const setAdminCarrierSearch = carrierSearch => {
+    return {
+        type: carriersConstants.SET_ADMIN_CARRIER_SEARCH,
+        payload: carrierSearch
+    }
+}
+export const setAdminCarrierContacts = contacts => {
+    return {
+        type: carriersConstants.SET_ADMIN_CARRIER_CONTACTS,
+        payload: contacts
+    }
+}
+export const setAdminContactSearchCarrier = carrier => {
+    return {
+        type: carriersConstants.SET_ADMIN_CONTACT_SEARCH_CARRIER,
+        payload: carrier
+    }
+}
+export const setAdminIsEditingContact = isEditing => {
+    return {
+        type: carriersConstants.SET_ADMIN_IS_EDITING_CONTACT,
+        payload: isEditing
+    }
+}
+export const setAdminSelectedCarrierDocument = document => {
+    return {
+        type: carriersConstants.SET_ADMIN_SELECTED_CARRIER_DOCUMENT,
+        payload: document
+    }
+}
+export const setAdminCarrierDocumentTags = tags => {
+    return {
+        type: carriersConstants.SET_ADMIN_CARRIER_DOCUMENT_TAGS,
+        payload: tags
+    }
+}
+export const setAdminSelectedCarrierDocumentNote = note => {
+    return {
+        type: carriersConstants.SET_ADMIN_SELECTED_CARRIER_DOCUMENT_NOTE,
+        payload: note
+    }
+}
+export const setAdminSelectedFactoringCompanyDocument = document => {
+    return {
+        type: carriersConstants.SET_ADMIN_SELECTED_FACTORING_COMPANY_DOCUMENT,
+        payload: document
+    }
+}
+export const setAdminFactoringCompanyDocumentTags = tags => {
+    return {
+        type: carriersConstants.SET_ADMIN_FACTORING_COMPANY_DOCUMENT_TAGS,
+        payload: tags
+    }
+}
+export const setAdminSelectedFactoringCompanyDocumentNote = note => {
+    return {
+        type: carriersConstants.SET_ADMIN_SELECTED_FACTORING_COMPANY_DOCUMENT_NOTE,
+        payload: note
+    }
+}
+export const setAdminDrivers = drivers => {
+    return {
+        type: carriersConstants.SET_ADMIN_DRIVERS,
+        payload: drivers
+    }
+}
+export const setAdminSelectedDriver = driver => {
+    return {
+        type: carriersConstants.SET_ADMIN_SELECTED_DRIVER,
+        payload: driver
+    }
+}
+export const setAdminEquipments = equipments => {
+    return {
+        type: carriersConstants.SET_ADMIN_EQUIPMENTS,
+        payload: equipments
+    }
+}
+export const setAdminInsuranceTypes = insuranceTypes => {
+    return {
+        type: carriersConstants.SET_ADMIN_INSURANCE_TYPES,
+        payload: insuranceTypes
+    }
+}
+export const setAdminSelectedEquipment = equipment => {
+    return {
+        type: carriersConstants.SET_ADMIN_SELECTED_EQUIPMENT,
+        payload: equipment
+    }
+}
+export const setAdminSelectedInsuranceType = insuranceType => {
+    return {
+        type: carriersConstants.SET_ADMIN_SELECTED_INSURANCE_TYPE,
+        payload: insuranceType
+    }
+}
+export const setAdminFactoringCompanySearch = factoringCompanySearch => {
+    return {
+        type: carriersConstants.SET_ADMIN_FACTORING_COMPANY_SEARCH,
+        payload: factoringCompanySearch
+    }
+}
+export const setAdminFactoringCompanies = factoringCompanies => {
+    return {
+        type: carriersConstants.SET_ADMIN_FACTORING_COMPANIES,
+        payload: factoringCompanies
+    }
+}
+export const setAdminSelectedFactoringCompany = factoringCompany => {
+    return {
+        type: carriersConstants.SET_ADMIN_SELECTED_FACTORING_COMPANY,
+        payload: factoringCompany
+    }
+}
+export const setAdminSelectedFactoringCompanyContact = contact => {
+    return {
+        type: carriersConstants.SET_ADMIN_SELECTED_FACTORING_COMPANY_CONTACT,
+        payload: contact
+    }
+}
+export const setAdminSelectedFactoringCompanyContactSearch = search => {
+    return {
+        type: carriersConstants.SET_ADMIN_SELECTED_FACTORING_COMPANY_CONTACT_SEARCH,
+        payload: search
+    }
+}
+export const setAdminSelectedFactoringCompanyIsShowingContactList = bool => {
+    return {
+        type: carriersConstants.SET_ADMIN_SELECTED_FACTORING_COMPANY_IS_SHOWING_CONTACT_LIST,
+        payload: bool
+    }
+}
+export const setAdminFactoringCompanyContacts = contacts => {
+    return {
+        type: carriersConstants.SET_ADMIN_FACTORING_COMPANY_CONTACTS,
+        payload: contacts
+    }
+}
+export const setAdminFactoringCompanyIsEditingContact = bool => {
+    return {
+        type: carriersConstants.SET_ADMIN_FACTORING_COMPANY_IS_EDITING_CONTACT,
+        payload: bool
+    }
+}
+export const setAdminSelectedFactoringCompanyNote = note => {
+    return {
+        type: carriersConstants.SET_ADMIN_SELECTED_FACTORING_COMPANY_NOTE,
+        payload: note
+    }
+}
+export const setAdminSelectedFactoringCompanyInvoiceSearch = search => {
+    return {
+        type: carriersConstants.SET_ADMIN_SELECTED_FACTORING_COMPANY_INVOICE_SEARCH,
+        payload: search
+    }
+}
+export const setAdminSelectedFactoringCompanyInvoices = invoices => {
+    return {
+        type: carriersConstants.SET_ADMIN_SELECTED_FACTORING_COMPANY_INVOICES,
+        payload: invoices
+    }
+}
+export const setAdminSelectedFactoringCompanyInvoice = invoice => {
+    return {
+        type: carriersConstants.SET_ADMIN_SELECTED_FACTORING_COMPANY_INVOICE,
+        payload: invoice
+    }
+}
+export const setAdminSelectedFactoringCompanyIsShowingInvoiceList = bool => {
+    return {
+        type: carriersConstants.SET_ADMIN_SELECTED_FACTORING_COMPANY_IS_SHOWING_INVOICE_LIST,
+        payload: bool
+    }
+}
+export const setAdminCarrierInsurances = insurances => {
+    return {
+        type: carriersConstants.SET_ADMIN_CARRIER_INSURANCES,
+        payload: insurances
+    }
+}
+export const setAdminSelectedInsurance = insurance => {
+    return {
+        type: carriersConstants.SET_ADMIN_SELECTED_INSURANCE,
+        payload: insurance
+    }
+}
+export const setAdminEquipmentInformation = info => {
+    return {
+        type: carriersConstants.SET_ADMIN_EQUIPMENT_INFORMATION,
+        payload: info
+    }
+}
+
+// ================================= ADMIN ====================================
+
+
 // ============================== DISPATCH CARRIER INFO =================================
 export const setDispatchCarrierInfoCarriersChanging = carriers => {
     return {
@@ -1206,6 +1452,12 @@ export const setLbCarrierInfoEquipmentInformation = info => {
 export const setCarrierOpenedPanels = panels => {
     return {
         type: carriersConstants.SET_CARRIER_OPENED_PANELS,
+        payload: panels
+    }
+}
+export const setAdminCarrierOpenedPanels = panels => {
+    return {
+        type: carriersConstants.SET_ADMIN_CARRIER_OPENED_PANELS,
         payload: panels
     }
 }

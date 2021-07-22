@@ -520,6 +520,7 @@ select:focus {
   cursor: pointer;
   transition: all ease 0.3s;
   color: #000000;
+  z-index: 2;
 }
 .main-panel-container .panel .panel-content .close-btn:hover {
   color: rgba(0, 0, 0, 0.5);

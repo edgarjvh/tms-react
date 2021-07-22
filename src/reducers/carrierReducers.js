@@ -47,6 +47,56 @@ export const carrierReducers = (state = {
 
     carrierOpenedPanels: [],
 
+    // ================================ admin ==================================
+
+    adminCarriers: [],
+    adminSelectedCarrier: {},
+    adminSelectedContact: {},
+    adminSelectedNote: {},
+    adminSelectedDirection: {},
+    adminContactSearch: {},
+    adminFactoringCompanySearch: [],
+    adminFactoringCompanies: [],
+    adminFactoringCompanyContacts: [],
+    adminSelectedFactoringCompany: {},
+    adminSelectedFactoringCompanyContact: {},
+    adminSelectedFactoringCompanyContactSearch: { selectedContact: {} },
+    adminSelectedFactoringCompanyIsShowingContactList: true,
+    adminSelectedFactoringCompanyNote: {},
+    adminFactoringCompanyIsEditingContact: false,
+    adminCarrierSearch: [],
+    adminShowingContactList: true,
+    adminContacts: [],
+    adminIsEditingContact: false,
+    adminContactSearchCarrier: { selectedContact: {} },
+    adminSelectedDocument: {},
+    adminSelectedDocumentNote: {},
+    adminDocumentTags: '',
+
+    adminSelectedFactoringCompanyInvoices: [],
+    adminSelectedFactoringCompanyInvoice: {},
+    adminSelectedFactoringCompanyIsShowingInvoiceList: true,
+    adminSelectedFactoringCompanyInvoiceSearch: { selectedInvoice: {} },
+
+    adminSelectedFactoringCompanyDocument: {},
+    adminSelectedFactoringCompanyDocumentNote: {},
+    adminFactoringCompanyDocumentTags: '',
+
+    adminDrivers: [],
+    adminSelectedDriver: {},
+    adminEquipments: [],
+    adminSelectedEquipment: {},
+    adminInsuranceTypes: [],
+    adminSelectedInsuranceType: {},
+    adminCarrierInsurances: [],
+    adminSelectedInsurance: {},
+    adminEquipmentInformation: {},
+    adminRating: 0,
+
+    adminCarrierOpenedPanels: [],
+
+    // ================================ admin ==================================
+
     // =============================== dispatch carrier info ===================================
 
     dispatchCarrierInfoCarriersChanging: [],
@@ -498,6 +548,271 @@ export const carrierReducers = (state = {
             }
             break;
 
+        // =============================== ADMIN ================================
+
+        case carriersConstants.SET_ADMIN_CARRIERS:
+            state = {
+                ...state,
+                adminCarriers: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_SELECTED_CARRIER:
+            state = {
+                ...state,
+                adminSelectedCarrier: action.payload,
+                selectedCarrier: (state.selectedCarrier.id || 0) > 0 && state.selectedCarrier.id === action.payload.id ? action.payload : state.selectedCarrier,
+                selectedDispatchCarrierInfoCarrier: (state.selectedDispatchCarrierInfoCarrier.id || 0) > 0 && state.selectedDispatchCarrierInfoCarrier.id === action.payload.id ? action.payload : state.selectedDispatchCarrierInfoCarrier,
+                selectedLbCarrierInfoCarrier: (state.selectedLbCarrierInfoCarrier.id || 0) > 0 && state.selectedLbCarrierInfoCarrier.id === action.payload.id ? action.payload : state.selectedLbCarrierInfoCarrier,
+                selectedInvoiceCarrierInfoCarrier: (state.selectedInvoiceCarrierInfoCarrier.id || 0) > 0 && state.selectedInvoiceCarrierInfoCarrier.id === action.payload.id ? action.payload : state.selectedInvoiceCarrierInfoCarrier,
+            }
+            break;
+        case carriersConstants.SET_ADMIN_SELECTED_CARRIER_CONTACT:
+            state = {
+                ...state,
+                adminSelectedContact: action.payload,
+                selectedContact: (state.selectedContact.id || 0) > 0 && state.selectedContact.id === action.payload.id ? action.payload : state.selectedContact,
+                selectedDispatchCarrierInfoContact: (state.selectedDispatchCarrierInfoContact.id || 0) > 0 && state.selectedDispatchCarrierInfoContact.id === action.payload.id ? action.payload : state.selectedDispatchCarrierInfoContact,
+                selectedLbCarrierInfoContact: (state.selectedLbCarrierInfoContact.id || 0) > 0 && state.selectedLbCarrierInfoContact.id === action.payload.id ? action.payload : state.selectedLbCarrierInfoContact,
+                selectedInvoiceCarrierInfoContact: (state.selectedInvoiceCarrierInfoContact.id || 0) > 0 && state.selectedInvoiceCarrierInfoContact.id === action.payload.id ? action.payload : state.selectedInvoiceCarrierInfoContact,
+            }
+            break;
+        case carriersConstants.SET_ADMIN_SELECTED_CARRIER_NOTE:
+            state = {
+                ...state,
+                adminSelectedNote: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_SELECTED_CARRIER_DIRECTION:
+            state = {
+                ...state,
+                adminSelectedDirection: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_CONTACT_SEARCH:
+            state = {
+                ...state,
+                adminContactSearch: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_CARRIER_SEARCH:
+            state = {
+                ...state,
+                adminCarrierSearch: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_SHOWING_CARRIER_CONTACT_LIST:
+            state = {
+                ...state,
+                adminShowingContactList: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_CARRIER_CONTACTS:
+            state = {
+                ...state,
+                adminContacts: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_IS_EDITING_CONTACT:
+            state = {
+                ...state,
+                adminIsEditingContact: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_CONTACT_SEARCH_CARRIER:
+            state = {
+                ...state,
+                adminContactSearchCarrier: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_SELECTED_CARRIER_DOCUMENT:
+            state = {
+                ...state,
+                adminSelectedDocument: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_CARRIER_DOCUMENT_TAGS:
+            state = {
+                ...state,
+                adminDocumentTags: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_SELECTED_CARRIER_DOCUMENT_NOTE:
+            state = {
+                ...state,
+                adminSelectedDocumentNote: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_SELECTED_FACTORING_COMPANY_DOCUMENT:
+            state = {
+                ...state,
+                adminSelectedFactoringCompanyDocument: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_FACTORING_COMPANY_DOCUMENT_TAGS:
+            state = {
+                ...state,
+                adminFactoringCompanyDocumentTags: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_SELECTED_FACTORING_COMPANY_DOCUMENT_NOTE:
+            state = {
+                ...state,
+                adminSelectedFactoringCompanyDocumentNote: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_DRIVERS:
+            state = {
+                ...state,
+                adminDrivers: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_SELECTED_DRIVER:
+            state = {
+                ...state,
+                adminSelectedDriver: action.payload,
+                selectedDriver: (state.selectedDriver.id || 0) > 0 && state.selectedDriver.id === action.payload.id ? action.payload : state.selectedDriver,
+                selectedDispatchCarrierInfoDriver: (state.selectedDispatchCarrierInfoDriver.id || 0) > 0 && state.selectedDispatchCarrierInfoDriver.id === action.payload.id ? action.payload : state.selectedDispatchCarrierInfoDriver,
+                selectedLbCarrierInfoDriver: (state.selectedLbCarrierInfoDriver.id || 0) > 0 && state.selectedLbCarrierInfoDriver.id === action.payload.id ? action.payload : state.selectedLbCarrierInfoDriver,
+                selectedInvoiceCarrierInfoDriver: (state.selectedInvoiceCarrierInfoDriver.id || 0) > 0 && state.selectedInvoiceCarrierInfoDriver.id === action.payload.id ? action.payload : state.selectedInvoiceCarrierInfoDriver,
+            }
+            break;
+        case carriersConstants.SET_ADMIN_EQUIPMENTS:
+            state = {
+                ...state,
+                adminEquipments: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_INSURANCE_TYPES:
+            state = {
+                ...state,
+                adminInsuranceTypes: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_SELECTED_EQUIPMENT:
+            state = {
+                ...state,
+                adminSelectedEquipment: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_SELECTED_INSURANCE_TYPE:
+            state = {
+                ...state,
+                adminSelectedInsuranceType: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_FACTORING_COMPANY_SEARCH:
+            state = {
+                ...state,
+                adminFactoringCompanySearch: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_FACTORING_COMPANIES:
+            state = {
+                ...state,
+                adminFactoringCompanies: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_SELECTED_FACTORING_COMPANY:
+            state = {
+                ...state,
+                adminSelectedFactoringCompany: action.payload,
+                selectedFactoringCompany: (state.selectedFactoringCompany.id || 0) > 0 && state.selectedFactoringCompany.id === action.payload.id ? action.payload : state.selectedFactoringCompany,
+                selectedDispatchCarrierInfoFactoringCompany: (state.selectedDispatchCarrierInfoFactoringCompany.id || 0) > 0 && state.selectedDispatchCarrierInfoFactoringCompany.id === action.payload.id ? action.payload : state.selectedDispatchCarrierInfoFactoringCompany,
+                selectedLbCarrierInfoFactoringCompany: (state.selectedLbCarrierInfoFactoringCompany.id || 0) > 0 && state.selectedLbCarrierInfoFactoringCompany.id === action.payload.id ? action.payload : state.selectedLbCarrierInfoFactoringCompany,
+                selectedInvoiceCarrierInfoFactoringCompany: (state.selectedInvoiceCarrierInfoFactoringCompany.id || 0) > 0 && state.selectedInvoiceCarrierInfoFactoringCompany.id === action.payload.id ? action.payload : state.selectedInvoiceCarrierInfoFactoringCompany,
+            }
+            break;
+        case carriersConstants.SET_ADMIN_FACTORING_COMPANY_CONTACTS:
+            state = {
+                ...state,
+                adminFactoringCompanyContacts: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_SELECTED_FACTORING_COMPANY_CONTACT:
+            state = {
+                ...state,
+                adminSelectedFactoringCompanyContact: action.payload,
+                selectedFactoringCompanyContact: (state.selectedFactoringCompanyContact.id || 0) > 0 && state.selectedFactoringCompanyContact.id === action.payload.id ? action.payload : state.selectedFactoringCompanyContact,
+                selectedDispatchCarrierInfoFactoringCompanyContact: (state.selectedDispatchCarrierInfoFactoringCompanyContact.id || 0) > 0 && state.selectedDispatchCarrierInfoFactoringCompanyContact.id === action.payload.id ? action.payload : state.selectedDispatchCarrierInfoFactoringCompanyContact,
+                selectedLbCarrierInfoFactoringCompanyContact: (state.selectedLbCarrierInfoFactoringCompanyContact.id || 0) > 0 && state.selectedLbCarrierInfoFactoringCompanyContact.id === action.payload.id ? action.payload : state.selectedLbCarrierInfoFactoringCompanyContact,
+                selectedInvoiceCarrierInfoFactoringCompanyContact: (state.selectedInvoiceCarrierInfoFactoringCompanyContact.id || 0) > 0 && state.selectedInvoiceCarrierInfoFactoringCompanyContact.id === action.payload.id ? action.payload : state.selectedInvoiceCarrierInfoFactoringCompanyContact,
+            }
+            break;
+        case carriersConstants.SET_ADMIN_SELECTED_FACTORING_COMPANY_CONTACT_SEARCH:
+            state = {
+                ...state,
+                adminSelectedFactoringCompanyContactSearch: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_SELECTED_FACTORING_COMPANY_IS_SHOWING_CONTACT_LIST:
+            state = {
+                ...state,
+                adminSelectedFactoringCompanyIsShowingContactList: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_FACTORING_COMPANY_IS_EDITING_CONTACT:
+            state = {
+                ...state,
+                adminFactoringCompanyIsEditingContact: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_SELECTED_FACTORING_COMPANY_NOTE:
+            state = {
+                ...state,
+                adminSelectedFactoringCompanyNote: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_SELECTED_FACTORING_COMPANY_INVOICE_SEARCH:
+
+            state = {
+                ...state,
+                adminSelectedFactoringCompanyInvoiceSearch: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_SELECTED_FACTORING_COMPANY_INVOICES:
+            state = {
+                ...state,
+                adminSelectedFactoringCompanyInvoices: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_SELECTED_FACTORING_COMPANY_INVOICE:
+            state = {
+                ...state,
+                adminSelectedFactoringCompanyInvoice: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_SELECTED_FACTORING_COMPANY_IS_SHOWING_INVOICE_LIST:
+            state = {
+                ...state,
+                adminSelectedFactoringCompanyIsShowingInvoiceList: action.payload,
+                adminSelectedFactoringCompanyInvoiceSearch: action.payload ? { selectedInvoice: {} } : state.adminSelectedFactoringCompanyInvoiceSearch,
+            }
+            break;
+        case carriersConstants.SET_ADMIN_CARRIER_INSURANCES:
+            state = {
+                ...state,
+                adminCarrierInsurances: action.payload
+            }
+            break;
+        case carriersConstants.SET_ADMIN_SELECTED_INSURANCE:
+            state = {
+                ...state,
+                adminSelectedInsurance: action.payload,
+                selectedInsurance: (state.selectedInsurance.id || 0) > 0 && state.selectedInsurance.id === action.payload.id ? action.payload : state.selectedInsurance,
+                selectedDispatchCarrierInfoInsurance: (state.selectedDispatchCarrierInfoInsurance.id || 0) > 0 && state.selectedDispatchCarrierInfoInsurance.id === action.payload.id ? action.payload : state.selectedDispatchCarrierInfoInsurance,
+                selectedLbCarrierInfoInsurance: (state.selectedLbCarrierInfoInsurance.id || 0) > 0 && state.selectedLbCarrierInfoInsurance.id === action.payload.id ? action.payload : state.selectedLbCarrierInfoInsurance,
+                selectedInvoiceCarrierInfoInsurance: (state.selectedInvoiceCarrierInfoInsurance.id || 0) > 0 && state.selectedInvoiceCarrierInfoInsurance.id === action.payload.id ? action.payload : state.selectedInvoiceCarrierInfoInsurance,
+            }
+            break;
+
+        case carriersConstants.SET_ADMIN_EQUIPMENT_INFORMATION:
+            state = {
+                ...state,
+                adminEquipmentInformation: action.payload
+            }
+            break;
+
+        // =============================== ADMIN ================================
 
 
         // ======================= DISPATCH CARRIER INFO =========================
@@ -772,6 +1087,13 @@ export const carrierReducers = (state = {
             }
             break;
 
+        case carriersConstants.SET_ADMIN_CARRIER_OPENED_PANELS:
+            state = {
+                ...state,
+                adminCarrierOpenedPanels: action.payload
+            }
+            break;
+
         case carriersConstants.SET_DISPATCH_CARRIER_INFO_EQUIPMENT_INFORMATION:
             state = {
                 ...state,
@@ -779,7 +1101,7 @@ export const carrierReducers = (state = {
             }
             break;
 
-            // ======================= CUSTOMER CARRIER INFO =========================
+        // ======================= CUSTOMER CARRIER INFO =========================
         case carriersConstants.SET_CUSTOMER_CARRIER_INFO_CARRIERS:
             state = {
                 ...state,

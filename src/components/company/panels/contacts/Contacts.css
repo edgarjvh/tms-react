@@ -10,6 +10,16 @@
   margin-right: 15px;
   display: flex;
   flex-direction: column;
+  background: #ffffff;
+  /* Old browsers */
+  background: -moz-radial-gradient(center, ellipse cover, #ffffff 18%, #ffffff 18%, #d3d3d3 100%);
+  /* FF3.6-15 */
+  background: -webkit-radial-gradient(center, ellipse cover, #ffffff 18%, #ffffff 18%, #d3d3d3 100%);
+  /* Chrome10-25,Safari5.1-6 */
+  background: radial-gradient(ellipse at center, #ffffff 18%, #ffffff 18%, #d3d3d3 100%);
+  /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#d3d3d3', GradientType=1);
+  /* IE6-9 fallback on horizontal gradient */
 }
 .contact-container .contact-list-container .contact-list {
   flex-grow: 1;
@@ -39,6 +49,10 @@
 }
 .contact-container .contact-list-container .contact-list .contact-list-wrapper .row-contact:hover .contact-data .contact-name {
   color: #000000;
+}
+.contact-container .contact-list-container .contact-list .contact-list-wrapper .row-contact:hover .contact-data .online-status {
+  display: flex;
+  align-items: center;
 }
 .contact-container .contact-list-container .contact-list .contact-list-wrapper .row-contact {
   border-left: 0 solid transparent;
@@ -85,6 +99,7 @@
   border-radius: 50%;
   background-color: transparent;
   box-shadow: 0 0 3px 1px #000000;
+  margin-right: 5px;
 }
 .contact-container .contact-list-container .contact-list .contact-list-wrapper .row-contact .contact-data .is-online.is-online-on {
   background-color: darkgreen;
@@ -92,20 +107,55 @@
 .contact-container .contact-list-container .contact-list .contact-list-wrapper .row-contact .contact-data .is-online.is-online-off {
   background-color: darkred;
 }
-.contact-container .contact-form {
+.contact-container .contact-list-container .contact-list .contact-list-wrapper .row-contact .contact-data .online-status {
+  display: flex;
+  align-items: center;
+}
+.contact-container .contact-form-bg {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  padding-top: 30px;
-  padding-left: 25px;
-  margin-right: 10px;
   position: relative;
 }
-.contact-container .contact-form .contact-form-header {
-  display: flex;
-  margin-bottom: 15px;
+.contact-container .contact-form-bg::before {
+  content: '';
+  position: absolute;
+  height: 100%;
+  width: 10px;
+  box-shadow: 0 0 7px 1px #000000;
+  z-index: 1;
+  top: 0;
+  left: -15px;
+  border-radius: 100%;
 }
-.contact-container .contact-form .contact-form-header .contact-avatar-container {
+.contact-container .contact-form-bg .contact-form {
+  position: absolute;
+  z-index: 2;
+  width: calc(100% + 5px);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  top: 0;
+  right: 0;
+  padding-top: 30px;
+  padding-left: 15px;
+  margin-right: 10px;
+  background: #ffffff;
+  /* Old browsers */
+  background: -moz-radial-gradient(center, ellipse cover, #ffffff 18%, #ffffff 18%, #d3d3d3 100%);
+  /* FF3.6-15 */
+  background: -webkit-radial-gradient(center, ellipse cover, #ffffff 18%, #ffffff 18%, #d3d3d3 100%);
+  /* Chrome10-25,Safari5.1-6 */
+  background: radial-gradient(ellipse at center, #ffffff 18%, #ffffff 18%, #d3d3d3 100%);
+  /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#d3d3d3', GradientType=1);
+  /* IE6-9 fallback on horizontal gradient */
+}
+.contact-container .contact-form-bg .contact-form .contact-form-header {
+  display: flex;
+  margin-bottom: 5px;
+}
+.contact-container .contact-form-bg .contact-form .contact-form-header .contact-avatar-container {
   width: 200px;
   height: 200px;
   border-radius: 50% 0 50% 50%;
@@ -114,7 +164,7 @@
   box-shadow: 0 0 3px 1px rgba(0, 0, 0, 0.5);
   margin-right: 20px;
 }
-.contact-container .contact-form .contact-form-header .contact-avatar-container .contact-avatar-wrapper {
+.contact-container .contact-form-bg .contact-form .contact-form-header .contact-avatar-container .contact-avatar-wrapper {
   overflow: hidden;
   position: absolute;
   width: 100%;
@@ -123,12 +173,12 @@
   left: 0;
   border-radius: 50% 0 50% 50%;
 }
-.contact-container .contact-form .contact-form-header .contact-avatar-container .contact-avatar-wrapper img {
+.contact-container .contact-form-bg .contact-form .contact-form-header .contact-avatar-container .contact-avatar-wrapper img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-.contact-container .contact-form .contact-form-header .contact-avatar-container span {
+.contact-container .contact-form-bg .contact-form .contact-form-header .contact-avatar-container span {
   position: absolute;
   z-index: 1;
   font-size: 1rem;
@@ -144,64 +194,79 @@
   cursor: pointer;
   top: -15px;
 }
-.contact-container .contact-form .contact-form-header .contact-avatar-container span.change-contact-avatar-btn {
+.contact-container .contact-form-bg .contact-form .contact-form-header .contact-avatar-container span.change-contact-avatar-btn {
   right: 3px;
 }
-.contact-container .contact-form .contact-form-header .contact-avatar-container span.remove-contact-avatar-btn {
+.contact-container .contact-form-bg .contact-form .contact-form-header .contact-avatar-container span.remove-contact-avatar-btn {
   right: 40px;
 }
-.contact-container .contact-form .contact-form-header .contact-avatar-container span:hover {
+.contact-container .contact-form-bg .contact-form .contact-form-header .contact-avatar-container span:hover {
   background-color: rgba(0, 0, 0, 0.5);
 }
-.contact-container .contact-form .contact-form-header .contact-avatar-container .avatar-buttons {
+.contact-container .contact-form-bg .contact-form .contact-form-header .contact-avatar-container .avatar-buttons {
   position: absolute;
   top: -20px;
   right: 0;
   z-index: 1;
 }
-.contact-container .contact-form .contact-form-header .contact-avatar-container .avatar-buttons span {
+.contact-container .contact-form-bg .contact-form .contact-form-header .contact-avatar-container .avatar-buttons span {
   font-size: 1rem;
   margin: 0 5px;
   cursor: pointer;
   transition: ease 0.3s;
 }
-.contact-container .contact-form .contact-form-header .contact-avatar-container .avatar-buttons span:hover {
+.contact-container .contact-form-bg .contact-form .contact-form-header .contact-avatar-container .avatar-buttons span:hover {
   color: rgba(0, 0, 0, 0.7);
 }
-.contact-container .contact-form .contact-form-header .contact-info {
+.contact-container .contact-form-bg .contact-form .contact-form-header .contact-info {
   display: flex;
   flex-direction: column;
 }
-.contact-container .contact-form .contact-form-header .contact-info .contact-name {
+.contact-container .contact-form-bg .contact-form .contact-form-header .contact-info .contact-name {
   text-transform: uppercase;
   font-family: 'Mochi Light';
   font-size: 2.5rem;
   margin-bottom: 10px;
 }
-.contact-container .contact-form .contact-form-header .contact-info .contact-company {
+.contact-container .contact-form-bg .contact-form .contact-form-header .contact-info .contact-company {
   font-size: 0.9rem;
   padding-left: 3px;
 }
-.contact-container .contact-form .contact-form-header .contact-info .contact-company span:not(:last-child) {
+.contact-container .contact-form-bg .contact-form .contact-form-header .contact-info .contact-company span:not(:last-child) {
   margin-right: 1rem;
 }
-.contact-container .contact-form .contact-form-header .contact-buttons {
+.contact-container .contact-form-bg .contact-form .contact-form-header .contact-info .contact-username-info {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-bottom: 15px;
+}
+.contact-container .contact-form-bg .contact-form .contact-form-header .contact-info .contact-username-info .contact-username {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: darkgreen;
+  margin-bottom: 5px;
+}
+.contact-container .contact-form-bg .contact-form .contact-form-header .contact-buttons {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   flex-grow: 1;
 }
-.contact-container .contact-form .contact-form-header .contact-buttons .input-toggle-container {
+.contact-container .contact-form-bg .contact-form .contact-form-header .contact-buttons .input-toggle-container {
   margin-bottom: 10px;
 }
-.contact-container .contact-form .contact-form-fields {
-  display: flex;
-  flex-direction: column;
+.contact-container .contact-form-bg .contact-form .contact-form-fields {
+  display: grid;
+  grid-template-columns: 1fr 3px 1fr;
   flex-grow: 1;
   position: relative;
-  margin-bottom: 60px;
 }
-.contact-container .contact-form .contact-form-fields .contact-form-wrapper {
+.contact-container .contact-form-bg .contact-form .contact-form-fields .col-contact-form {
+  position: relative;
+}
+.contact-container .contact-form-bg .contact-form .contact-form-fields .col-contact-form .contact-form-wrapper {
   position: absolute;
   width: 100%;
   height: 100%;
@@ -209,22 +274,22 @@
   left: 0;
   overflow-y: auto;
 }
-.contact-container .contact-form .contact-form-fields .contact-form-wrapper .field-container {
+.contact-container .contact-form-bg .contact-form .contact-form-fields .col-contact-form .contact-form-wrapper .field-container {
   display: flex;
   flex-direction: column;
   margin-bottom: 15px;
 }
-.contact-container .contact-form .contact-form-fields .contact-form-wrapper .field-container .field-title {
+.contact-container .contact-form-bg .contact-form .contact-form-fields .col-contact-form .contact-form-wrapper .field-container .field-title {
   font-size: 1rem;
 }
-.contact-container .contact-form .contact-form-fields .contact-form-wrapper .field-container input {
+.contact-container .contact-form-bg .contact-form .contact-form-fields .col-contact-form .contact-form-wrapper .field-container input {
   border: 0;
   background-color: transparent;
   padding: 5px 0;
   font-family: 'Mochi Light';
   font-size: 1rem;
 }
-.contact-container .contact-form .contact-form-fields .contact-form-wrapper .field-container .field-border-bottom {
+.contact-container .contact-form-bg .contact-form .contact-form-fields .col-contact-form .contact-form-wrapper .field-container .field-border-bottom {
   height: 1px;
   /* Permalink - use to edit and share this gradient: https://colorzilla.com/gradient-editor/#999999+0,000000+100&0.65+0,0+100 */
   background: -moz-linear-gradient(left, rgba(153, 153, 153, 0.65) 0%, rgba(0, 0, 0, 0) 100%);
@@ -236,32 +301,36 @@
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#a6999999', endColorstr='#00000000', GradientType=1);
   /* IE6-9 */
 }
-.contact-container .contact-form .contact-form-fields .contact-form-wrapper .field-container .field-border-bottom.disabled {
+.contact-container .contact-form-bg .contact-form .contact-form-fields .col-contact-form .contact-form-wrapper .field-container .field-border-bottom.disabled {
   background: transparent;
 }
-.contact-container .contact-form::before {
-  content: '';
-  position: absolute;
-  height: 100%;
-  width: 10px;
-  box-shadow: 0 0 7px 1px #000000;
-  z-index: -1;
-  top: 5px;
-  left: -1px;
-  border-radius: 100%;
+.contact-container .contact-form-bg .contact-form .contact-form-fields .col-contact-splitter {
+  /* Permalink - use to edit and share this gradient: https://colorzilla.com/gradient-editor/#eeeeee+0,afafaf+50,eeeeee+100&0+0,1+50,0+100 */
+  background: -moz-linear-gradient(top, rgba(238, 238, 238, 0) 0%, #afafaf 50%, rgba(238, 238, 238, 0) 100%);
+  /* FF3.6-15 */
+  background: -webkit-linear-gradient(top, rgba(238, 238, 238, 0) 0%, #afafaf 50%, rgba(238, 238, 238, 0) 100%);
+  /* Chrome10-25,Safari5.1-6 */
+  background: linear-gradient(to bottom, rgba(238, 238, 238, 0) 0%, #afafaf 50%, rgba(238, 238, 238, 0) 100%);
+  /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#00eeeeee', endColorstr='#00eeeeee', GradientType=0);
+  /* IE6-9 */
 }
-.contact-container .contact-form::after {
-  content: '';
+.contact-container .contact-form-bg .contact-form .contact-form-fields .col-contact-emails {
+  position: relative;
+}
+.contact-container .contact-form-bg .contact-form .contact-form-fields .col-contact-emails .col-title {
   position: absolute;
-  height: 100%;
-  width: 20px;
-  top: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  top: -25px;
   left: 0;
-  background-color: #ededed;
+  font-size: 1rem;
+  font-weight: bold;
 }
 .contact-container .footer {
   position: absolute;
-  width: 100%;
+  width: 360px;
   height: 60px;
   background-color: transparent;
   bottom: 0;

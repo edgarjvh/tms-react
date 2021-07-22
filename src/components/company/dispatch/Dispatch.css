@@ -21,6 +21,54 @@
   transition: all ease 0.7s;
   padding: 10px;
 }
+.dispatch-main-container .selected-customer-contact-primary-phone {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.7rem;
+  text-transform: capitalize;
+  font-weight: bold;
+}
+.dispatch-main-container .selected-customer-contact-primary-phone.pushed {
+  right: 20px;
+}
+.dispatch-main-container .selected-customer-contact-primary-email {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.7rem;
+  text-transform: capitalize;
+  font-weight: bold;
+}
+.dispatch-main-container .selected-customer-contact-primary-email.pushed {
+  right: 20px;
+}
+.dispatch-main-container .selected-carrier-contact-primary-phone {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.7rem;
+  text-transform: capitalize;
+  font-weight: bold;
+}
+.dispatch-main-container .selected-carrier-contact-primary-phone.pushed {
+  right: 20px;
+}
+.dispatch-main-container .selected-carrier-contact-primary-email {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.7rem;
+  text-transform: capitalize;
+  font-weight: bold;
+}
+.dispatch-main-container .selected-carrier-contact-primary-email.pushed {
+  right: 20px;
+}
 .dispatch-main-container .loading-container {
   width: 20px;
   height: 20px;

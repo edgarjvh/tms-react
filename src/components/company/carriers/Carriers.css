@@ -68,6 +68,30 @@
 .carriers-main-container .selected-mailing-contact-primary-email.pushed {
   right: 20px;
 }
+.carriers-main-container .selected-factoring-company-contact-primary-phone {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.7rem;
+  text-transform: capitalize;
+  font-weight: bold;
+}
+.carriers-main-container .selected-factoring-company-contact-primary-phone.pushed {
+  right: 20px;
+}
+.carriers-main-container .selected-factoring-company-contact-primary-email {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.7rem;
+  text-transform: capitalize;
+  font-weight: bold;
+}
+.carriers-main-container .selected-factoring-company-contact-primary-email.pushed {
+  right: 20px;
+}
 .carriers-main-container .input-box-container {
   position: relative;
 }

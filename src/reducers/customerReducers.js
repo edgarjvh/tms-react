@@ -19,6 +19,24 @@ export const customerReducers = (state = {
     documentTags: '',
     selectedDocumentNote: {},
 
+    adminCustomers: [],
+    adminSelectedCustomer: {},
+    adminSelectedContact: {},
+    adminSelectedNote: {},
+    adminSelectedDirection: {},
+    adminContactSearch: {},
+    adminCustomerSearch: [],
+    adminAutomaticEmailsTo: '',
+    adminAutomaticEmailsCc: '',
+    adminAutomaticEmailsBcc: '',
+    adminShowingContactList: true,
+    adminContacts: [],
+    adminIsEditingContact: false,
+    adminContactSearchCustomer: { selectedContact: {} },
+    adminSelectedDocument: {},
+    adminDocumentTags: '',
+    adminSelectedDocumentNote: {},
+
     billToCompanies: [],
     selectedBillToCompanyInfo: {},
     selectedBillToCompanyContact: {},
@@ -199,7 +217,8 @@ export const customerReducers = (state = {
     lbConsigneeCompanyDocumentTags: '',
     selectedLbConsigneeCompanyDocumentNote: {},
 
-    customerOpenedPanels: [],    
+    customerOpenedPanels: [],
+    adminCustomerOpenedPanels: [],
 
 
     panels: []
@@ -328,6 +347,138 @@ export const customerReducers = (state = {
                 selectedDocumentNote: action.payload
             }
             break;
+
+
+        // ============================== ADMIN ==================================
+
+        case customersConstants.SET_ADMIN_CUSTOMERS:
+            state = {
+                ...state,
+                adminCustomers: action.payload
+            }
+            break;
+        case customersConstants.SET_ADMIN_SELECTED_CUSTOMER:
+            state = {
+                ...state,
+                adminSelectedCustomer: action.payload,
+                selectedCustomer: ((state.selectedCustomer.id || 0) > 0 && state.selectedCustomer.id === action.payload.id) ? action.payload : state.selectedCustomer,
+                selectedBillToCompanyInfo: ((state.selectedBillToCompanyInfo.id || 0) > 0 && state.selectedBillToCompanyInfo.id === action.payload.id) ? action.payload : state.selectedBillToCompanyInfo,
+                selectedLbBillToCompanyInfo: ((state.selectedLbBillToCompanyInfo.id || 0) > 0 && state.selectedLbBillToCompanyInfo.id === action.payload.id) ? action.payload : state.selectedLbBillToCompanyInfo,
+                selectedInvoiceBillToCompanyInfo: ((state.selectedInvoiceBillToCompanyInfo.id || 0) > 0 && state.selectedInvoiceBillToCompanyInfo.id === action.payload.id) ? action.payload : state.selectedInvoiceBillToCompanyInfo,
+                selectedShipperCompanyInfo: ((state.selectedShipperCompanyInfo.id || 0) > 0 && state.selectedShipperCompanyInfo.id === action.payload.id) ? action.payload : state.selectedShipperCompanyInfo,
+                selectedLbShipperCompanyInfo: ((state.selectedLbShipperCompanyInfo.id || 0) > 0 && state.selectedLbShipperCompanyInfo.id === action.payload.id) ? action.payload : state.selectedLbShipperCompanyInfo,
+                selectedConsigneeCompanyInfo: ((state.selectedConsigneeCompanyInfo.id || 0) > 0 && state.selectedConsigneeCompanyInfo.id === action.payload.id) ? action.payload : state.selectedConsigneeCompanyInfo,
+                selectedLbConsigneeCompanyInfo: ((state.selectedLbConsigneeCompanyInfo.id || 0) > 0 && state.selectedLbConsigneeCompanyInfo.id === action.payload.id) ? action.payload : state.selectedLbConsigneeCompanyInfo,
+            }
+            break;
+        case customersConstants.SET_ADMIN_SELECTED_CONTACT:
+            state = {
+                ...state,
+                adminSelectedContact: action.payload,
+                selectedContact: ((state.selectedContact.id || 0) > 0 && state.selectedContact.id === action.payload.id) ? action.payload : state.selectedContact,
+                selectedBillToCompanyContact: ((state.selectedBillToCompanyContact.id || 0) > 0 && state.selectedBillToCompanyContact.id === action.payload.id) ? action.payload : state.selectedBillToCompanyContact,
+                selectedLbBillToCompanyContact: ((state.selectedLbBillToCompanyContact.id || 0) > 0 && state.selectedLbBillToCompanyContact.id === action.payload.id) ? action.payload : state.selectedLbBillToCompanyContact,
+                selectedInvoiceBillToCompanyContact: ((state.selectedInvoiceBillToCompanyContact.id || 0) > 0 && state.selectedInvoiceBillToCompanyContact.id === action.payload.id) ? action.payload : state.selectedInvoiceBillToCompanyContact,
+                selectedShipperCompanyContact: ((state.selectedShipperCompanyContact.id || 0) > 0 && state.selectedShipperCompanyContact.id === action.payload.id) ? action.payload : state.selectedShipperCompanyContact,
+                selectedLbShipperCompanyContact: ((state.selectedLbShipperCompanyContact.id || 0) > 0 && state.selectedLbShipperCompanyContact.id === action.payload.id) ? action.payload : state.selectedLbShipperCompanyContact,
+                selectedConsigneeCompanyContact: ((state.selectedConsigneeCompanyContact.id || 0) > 0 && state.selectedConsigneeCompanyContact.id === action.payload.id) ? action.payload : state.selectedConsigneeCompanyContact,
+                selectedLbConsigneeCompanyContact: ((state.selectedLbConsigneeCompanyContact.id || 0) > 0 && state.selectedLbConsigneeCompanyContact.id === action.payload.id) ? action.payload : state.selectedLbConsigneeCompanyContact,
+            }
+            break;
+        case customersConstants.SET_ADMIN_SELECTED_NOTE:
+            state = {
+                ...state,
+                adminSelectedNote: action.payload
+            }
+            break;
+        case customersConstants.SET_ADMIN_SELECTED_DIRECTION:
+            state = {
+                ...state,
+                adminSelectedDirection: action.payload
+            }
+            break;
+        case customersConstants.SET_ADMIN_CONTACT_SEARCH:
+            state = {
+                ...state,
+                adminContactSearch: action.payload
+            }
+            break;
+        case customersConstants.SET_ADMIN_CUSTOMER_SEARCH:
+            state = {
+                ...state,
+                adminCustomerSearch: action.payload
+            }
+            break;
+        case customersConstants.SET_ADMIN_AUTOMATIC_EMAILS_TO:
+            state = {
+                ...state,
+                adminAutomaticEmailsTo: action.payload
+            }
+            break;
+        case customersConstants.SET_ADMIN_AUTOMATIC_EMAILS_CC:
+            state = {
+                ...state,
+                adminAutomaticEmailsCc: action.payload
+            }
+            break;
+        case customersConstants.SET_ADMIN_AUTOMATIC_EMAILS_BCC:
+            state = {
+                ...state,
+                adminAutomaticEmailsBcc: action.payload
+            }
+            break;
+        case customersConstants.SET_ADMIN_SHOWING_CONTACT_LIST:
+            state = {
+                ...state,
+                adminShowingContactList: action.payload
+            }
+            break;
+        case customersConstants.SET_ADMIN_CUSTOMER_CONTACTS:
+            state = {
+                ...state,
+                adminContacts: action.payload
+            }
+            break;
+        case customersConstants.SET_ADMIN_IS_EDITING_CONTACT:
+            state = {
+                ...state,
+                adminIsEditingContact: action.payload
+            }
+            break;
+        case customersConstants.SET_ADMIN_CONTACT_SEARCH_CUSTOMER:
+            state = {
+                ...state,
+                adminContactSearchCustomer: action.payload
+            }
+            break;
+        case customersConstants.SET_ADMIN_SELECTED_DOCUMENT:
+            state = {
+                ...state,
+                adminSelectedDocument: action.payload,
+                selectedDocument: ((state.selectedDocument.id || 0) > 0 && state.selectedDocument.id === action.payload.id) ? action.payload : state.selectedDocument,
+                selectedBillToCompanyDocument: ((state.selectedBillToCompanyDocument.id || 0) > 0 && state.selectedBillToCompanyDocument.id === action.payload.id) ? action.payload : state.selectedBillToCompanyDocument,
+                selectedLbBillToCompanyDocument: ((state.selectedLbBillToCompanyDocument.id || 0) > 0 && state.selectedLbBillToCompanyDocument.id === action.payload.id) ? action.payload : state.selectedLbBillToCompanyDocument,
+                selectedInvoiceBillToCompanyDocument: ((state.selectedInvoiceBillToCompanyDocument.id || 0) > 0 && state.selectedInvoiceBillToCompanyDocument.id === action.payload.id) ? action.payload : state.selectedInvoiceBillToCompanyDocument,
+                selectedShipperCompanyDocument: ((state.selectedShipperCompanyDocument.id || 0) > 0 && state.selectedShipperCompanyDocument.id === action.payload.id) ? action.payload : state.selectedShipperCompanyDocument,
+                selectedLbShipperCompanyDocument: ((state.selectedLbShipperCompanyDocument.id || 0) > 0 && state.selectedLbShipperCompanyDocument.id === action.payload.id) ? action.payload : state.selectedLbShipperCompanyDocument,
+                selectedConsigneeCompanyDocument: ((state.selectedConsigneeCompanyDocument.id || 0) > 0 && state.selectedConsigneeCompanyDocument.id === action.payload.id) ? action.payload : state.selectedConsigneeCompanyDocument,
+                selectedLbConsigneeCompanyDocument: ((state.selectedLbConsigneeCompanyDocument.id || 0) > 0 && state.selectedLbConsigneeCompanyDocument.id === action.payload.id) ? action.payload : state.selectedLbConsigneeCompanyDocument,
+            }
+            break;
+        case customersConstants.SET_ADMIN_DOCUMENT_TAGS:
+            state = {
+                ...state,
+                adminDocumentTags: action.payload
+            }
+            break;
+        case customersConstants.SET_ADMIN_SELECTED_DOCUMENT_NOTE:
+            state = {
+                ...state,
+                adminSelectedDocumentNote: action.payload
+            }
+            break;
+
+        // ============================== ADMIN ==================================
 
 
         // ==================================== BILL TO COMPANY ===================================
@@ -584,7 +735,7 @@ export const customerReducers = (state = {
             break;
 
 
-            // ==================================== CUSTOMER BILL TO COMPANY ===================================
+        // ==================================== CUSTOMER BILL TO COMPANY ===================================
 
         case customersConstants.SET_CUSTOMER_BILL_TO_COMPANIES:
             state = {
@@ -1070,7 +1221,7 @@ export const customerReducers = (state = {
             }
             break;
 
-            // ==================================== CUSTOMER SHIPPER COMPANY ===================================
+        // ==================================== CUSTOMER SHIPPER COMPANY ===================================
 
         case customersConstants.SET_CUSTOMER_SHIPPER_COMPANIES:
             state = {
@@ -1302,9 +1453,17 @@ export const customerReducers = (state = {
             }
             break;
         case customersConstants.SET_CUSTOMER_OPENED_PANELS:
+            console.log('customer company');
             state = {
                 ...state,
                 customerOpenedPanels: action.payload
+            }
+            break;
+        case customersConstants.SET_ADMIN_CUSTOMER_OPENED_PANELS:
+            console.log('customer admin');
+            state = {
+                ...state,
+                adminCustomerOpenedPanels: action.payload
             }
             break;
 
@@ -1441,7 +1600,7 @@ export const customerReducers = (state = {
             }
             break;
 
-            // ==================================== CUSTOMER CONSIGNEE COMPANY ===================================
+        // ==================================== CUSTOMER CONSIGNEE COMPANY ===================================
 
         case customersConstants.SET_CUSTOMER_CONSIGNEE_COMPANIES:
             state = {

@@ -1,7 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './Company.css';
 import classnames from 'classnames';
 import { connect } from 'react-redux';
+import { Transition, Spring, animated as animated2, config } from 'react-spring/renderprops';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCaretDown, faCaretRight, faCalendarAlt, faPencilAlt, faPen, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { useDetectClickOutside } from "react-detect-click-outside";
 
 import {
     setMainScreen,
@@ -210,11 +214,26 @@ import LoadBoardPage from './load-board/LoadBoard.jsx';
 import InvoicePage from './invoice/Invoice.jsx';
 
 function Company(props) {
+
+    const [chatOptionItems, setChatOptionItems] = useState([
+        {
+            id: 0,
+            name:'Open in a new tab'
+        },
+        {
+            id: 1,
+            name:'Open in a panel'
+        }
+    ]);
+    const [showChatOptions, setShowChatOptions] = useState(false);
+    const refShowChatOptionsDropDown = useDetectClickOutside({ onTriggered: async () => { await setShowChatOptions(false) } });
+    const refChatOptionPopupItems = useRef([]);
+
     const containerCls = classnames({
         'main-company-container': true,
         'is-showing': props.mainScreen === 'company'
     })
-
+    
     const userClick = () => {
         props.setMainScreen('admin');
     }
@@ -299,6 +318,90 @@ function Company(props) {
                 <div className="menu-bar">
                     <div className="section">
                         <div className="menu-btn" id="switch-company-screen-btn" onClick={userClick}>Admin</div>
+                    </div>
+                    <div className="section chat-video-buttons">
+                        <div className="mochi-button" onClick={(e) => {
+                            e.stopPropagation();
+                            setShowChatOptions(true);
+                        }}>
+                            <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
+                            <div className="mochi-button-base">Chat</div>
+
+                            <Transition
+                                from={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                enter={{ opacity: 1, top: 'calc(100% + 15px)' }}
+                                leave={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                items={showChatOptions}
+                                config={{ duration: 100 }}
+                            >
+                                {show => show && (styles => (
+                                    <div
+                                        className="mochi-contextual-container"
+                                        id="mochi-contextual-container-chat"
+                                        style={{
+                                            ...styles,
+                                            left: 'calc(-50% - 20px)',
+                                            display: 'block'
+                                        }}
+                                        ref={refShowChatOptionsDropDown}
+                                    >
+                                        <div className="mochi-contextual-popup vertical below right">
+                                            <div className="mochi-contextual-popup-content">
+                                                <div className="mochi-contextual-popup-wrapper">
+                                                    {
+                                                        chatOptionItems.map((item, index) => {
+                                                            const mochiItemClasses = classnames({
+                                                                'mochi-item': true,
+                                                                'selected': item.selected
+                                                            });                                                            
+
+                                                            return (
+                                                                <div
+                                                                    key={index}
+                                                                    className={mochiItemClasses}
+                                                                    id={item.id}
+                                                                    onClick={async (e) => {
+                                                                        e.stopPropagation();
+
+                                                                        if (item.id === 0){
+                                                                            window.open('', '_blank').focus();
+                                                                        }
+                                                                    }}
+                                                                    onMouseOver={() => {
+                                                                        setChatOptionItems(chatOptionItems.map((x) => {
+                                                                            x.selected = x.id === item.id;
+                                                                            return x;
+                                                                        }))
+                                                                    }}
+                                                                    ref={ref => refChatOptionPopupItems.current.push(ref)}
+                                                                >
+                                                                    {
+                                                                        item.name
+                                                                    }
+                                                                    {
+                                                                        item.selected &&
+                                                                        <FontAwesomeIcon className="dropdown-selected" icon={faCaretRight} />
+                                                                    }
+                                                                </div>
+                                                            )
+                                                        })
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </Transition>
+                            <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
+                        </div>
+
+                        <div className="mochi-button" onClick={() => {
+                            window.open('', '_blank').focus();
+                        }}>
+                            <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
+                            <div className="mochi-button-base">Video</div>
+                            <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
+                        </div>
                     </div>
                     <div className="section">
                         <div className="mochi-input-decorator">

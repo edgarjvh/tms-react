@@ -5,8 +5,7 @@ import $ from 'jquery';
 import { Resizable, ResizableBox } from 'react-resizable';
 import './PanelContainer.css';
 import Draggable from 'react-draggable';
-import {
-    setCustomerOpenedPanels as setOpenedPanels,
+import {    
     setSelectedCustomer,
     setCustomerContacts,
     setSelectedContact,
@@ -17,6 +16,17 @@ import {
     setSelectedDocument,
     setDocumentTags,
     setSelectedDocumentNote,
+
+    setAdminSelectedCustomer,
+    setAdminCustomerContacts,
+    setAdminSelectedContact,
+    setAdminContactSearch,
+    setAdminIsEditingContact,
+    setAdminShowingContactList,
+    setAdminContactSearchCustomer,
+    setAdminSelectedDocument,
+    setAdminDocumentTags as setAdminSelectedDocumentTags,
+    setAdminSelectedDocumentNote,
 
     setCustomerBillToCompanies,
     setCustomerSelectedBillToCompanyInfo,
@@ -683,7 +693,7 @@ function PanelContainer(props) {
 
                                     selectedShipperCompanyInfo={props.selectedCustomerShipperCompanyInfo}
                                     selectedShipperCompanyContact={props.selectedCustomerShipperCompanyContact}
-                                    shipperCompanySearch={props.customerShipperCompanySearch}                                    
+                                    shipperCompanySearch={props.customerShipperCompanySearch}
 
                                     selectedConsigneeCompanyInfo={props.selectedCustomerConsigneeCompanyInfo}
                                     selectedConsigneeCompanyContact={props.selectedCustomerConsigneeCompanyContact}
@@ -736,13 +746,446 @@ function PanelContainer(props) {
                 ))}
             </Transition>
             {/* ================================== DISPATCH =============================== */}
+
+
+            {/* ================================== ADMIN CUSTOMER SEARCH =============================== */}
+            <Transition
+                from={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: props.openedPanels.indexOf('admin-customer-search')
+                }}
+                enter={{
+                    opacity: 1,
+                    right: window.innerWidth,
+                    zIndex: props.openedPanels.indexOf('admin-customer-search')
+                }}
+                leave={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: 0
+                }}
+                items={props.openedPanels.includes('admin-customer-search')}
+                config={{
+                    delay: 0,
+                    duration: 200,
+                    mass: 1, tension: 120, friction: 14
+                }}
+            >
+                {show => show && (styles => (
+                    <Draggable
+                        axis="x"
+                        handle=".drag-handler"
+                        onStart={(e, i) => eventControl(e, i, 'admin-customer-search')}
+                        onStop={(e, i) => eventControl(e, i, 'admin-customer-search')}
+                        onMouseDown={(e, i) => eventControl(e, i, 'admin-customer-search')}
+                        onMouseUp={(e, i) => eventControl(e, i, 'admin-customer-search')}
+                        onTouchStart={(e, i) => eventControl(e, i, 'admin-customer-search')}
+                        onTouchEnd={(e, i) => eventControl(e, i, 'admin-customer-search')}
+                        position={{ x: 0, y: 0 }}
+                    >
+                        <animated.div className="panel panel-admin-customer-search" ref={ref => openedPanelsRefs.current.push(ref)} onClick={e => onPanelClick(e, 'admin-customer-search')} style={{
+                            ...styles,
+                            width: (window.innerWidth * baseWidth) - (panelGap * props.openedPanels.indexOf('admin-customer-search'))
+                        }}>
+                            <CustomerSearch
+                                title='Customer Search Results'
+                                tabTimes={20000}
+                                panelName='admin-customer-search'
+
+                                setOpenedPanels={props.setOpenedPanels}
+                                setSelectedCustomer={props.setAdminSelectedCustomer}
+                                setSelectedContact={props.setAdminSelectedContact}
+
+                                serverUrl={props.serverUrl}
+                                openedPanels={props.openedPanels}
+                                customers={props.adminCustomers}
+                                customerSearch={props.adminCustomerSearch}
+                            />
+                        </animated.div>
+                    </Draggable>
+                ))}
+            </Transition>
+            {/* ================================== ADMIN CUSTOMER SEARCH =============================== */}
+
+            {/* ================================== ADMIN CUSTOMER CONTACTS =============================== */}
+            <Transition
+                from={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: props.openedPanels.indexOf('admin-customer-contacts')
+                }}
+                enter={{
+                    opacity: 1,
+                    right: window.innerWidth,
+                    zIndex: props.openedPanels.indexOf('admin-customer-contacts')
+                }}
+                leave={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: 0
+                }}
+                items={props.openedPanels.includes('admin-customer-contacts')}
+                config={{
+                    delay: 0,
+                    duration: 200,
+                    mass: 1, tension: 120, friction: 14
+                }}
+            >
+                {show => show && (styles => (
+                    <Draggable
+                        axis="x"
+                        handle=".drag-handler"
+                        onStart={(e, i) => eventControl(e, i, 'admin-customer-contacts')}
+                        onStop={(e, i) => eventControl(e, i, 'admin-customer-contacts')}
+                        onMouseDown={(e, i) => eventControl(e, i, 'admin-customer-contacts')}
+                        onMouseUp={(e, i) => eventControl(e, i, 'admin-customer-contacts')}
+                        onTouchStart={(e, i) => eventControl(e, i, 'admin-customer-contacts')}
+                        onTouchEnd={(e, i) => eventControl(e, i, 'admin-customer-contacts')}
+                        position={{ x: 0, y: 0 }}
+                    >
+                        <animated.div className="panel panel-admin-customer-contacts" ref={ref => openedPanelsRefs.current.push(ref)} onClick={e => onPanelClick(e, 'admin-customer-contacts')} style={{
+                            ...styles,
+                            width: (window.innerWidth * baseWidth) - (panelGap * props.openedPanels.indexOf('admin-customer-contacts'))
+                        }}>
+                            <Contacts
+                                title='Contacts'
+                                tabTimes={21000}
+                                panelName='admin-customer-contacts'
+
+                                setOpenedPanels={props.setOpenedPanels}
+                                setSelectedCustomer={props.setAdminSelectedCustomer}
+                                setSelectedContact={props.setAdminSelectedContact}
+                                setIsEditingContact={props.setAdminIsEditingContact}
+                                setContactSearchCustomer={props.setAdminContactSearchCustomer}
+
+                                serverUrl={props.serverUrl}
+                                openedPanels={props.openedPanels}
+                                contactSearchCustomer={props.adminContactSearchCustomer}
+                                selectedCustomer={props.adminSelectedCustomer}
+                                selectedContact={props.adminSelectedContact}
+                                isEditingContact={props.adminIsEditingContact}
+                                contacts={props.adminContacts}
+                                savingContactUrl='/saveContact'
+                                deletingContactUrl='/deleteContact'
+                                uploadAvatarUrl='/uploadAvatar'
+                                removeAvatarUrl='/removeAvatar'
+                            />
+                        </animated.div>
+                    </Draggable>
+                ))}
+            </Transition>
+            {/* ================================== ADMIN CUSTOMER CONTACTS =============================== */}
+
+            {/* ================================== ADMIN CONTACT SEARCH =============================== */}
+            <Transition
+                from={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: props.openedPanels.indexOf('admin-customer-contact-search')
+                }}
+                enter={{
+                    opacity: 1,
+                    right: window.innerWidth,
+                    zIndex: props.openedPanels.indexOf('admin-customer-contact-search')
+                }}
+                leave={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: 0
+                }}
+                items={props.openedPanels.includes('admin-customer-contact-search')}
+                config={{
+                    delay: 0,
+                    duration: 200,
+                    mass: 1, tension: 120, friction: 14
+                }}
+            >
+                {show => show && (styles => (
+                    <Draggable
+                        axis="x"
+                        handle=".drag-handler"
+                        onStart={(e, i) => eventControl(e, i, 'admin-customer-contact-search')}
+                        onStop={(e, i) => eventControl(e, i, 'admin-customer-contact-search')}
+                        onMouseDown={(e, i) => eventControl(e, i, 'admin-customer-contact-search')}
+                        onMouseUp={(e, i) => eventControl(e, i, 'admin-customer-contact-search')}
+                        onTouchStart={(e, i) => eventControl(e, i, 'admin-customer-contact-search')}
+                        onTouchEnd={(e, i) => eventControl(e, i, 'admin-customer-contact-search')}
+                        position={{ x: 0, y: 0 }}
+                    >
+                        <animated.div className="panel panel-admin-customer-contact-search" ref={ref => openedPanelsRefs.current.push(ref)} onClick={e => onPanelClick(e, 'admin-customer-contact-search')} style={{
+                            ...styles,
+                            width: (window.innerWidth * baseWidth) - (panelGap * props.openedPanels.indexOf('admin-customer-contact-search'))
+                        }}>
+                            <ContactSearch
+                                title='Contact Search Results'
+                                tabTimes={22000}
+                                parentPanelName='customer-contacts'
+                                panelName='admin-customer-contact-search'
+
+                                setOpenedPanels={props.setOpenedPanels}
+                                setSelectedCustomer={props.setAdminSelectedCustomer}
+                                setSelectedContact={props.setAdminSelectedContact}
+                                setCustomerContacts={props.setAdminCustomerContacts}
+                                setContactSearch={props.setAdminContactSearch}
+                                setShowingContactList={props.setAdminShowingContactList}
+                                setContactSearchCustomer={props.setAdminContactSearchCustomer}
+
+                                serverUrl={props.serverUrl}
+                                openedPanels={props.openedPanels}
+                                customers={props.adminCustomers}
+                                contactSearch={props.adminContactSearch}
+                                contacts={props.adminContacts}
+                            />
+                        </animated.div>
+                    </Draggable>
+                ))}
+            </Transition>
+            {/* ================================== ADMIN CONTACT SEARCH =============================== */}
+
+            {/* ================================== ADMIN REVENUE INFORMATION =============================== */}
+            <Transition
+                from={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: props.openedPanels.indexOf('admin-revenue-information')
+                }}
+                enter={{
+                    opacity: 1,
+                    right: window.innerWidth,
+                    zIndex: props.openedPanels.indexOf('admin-revenue-information')
+                }}
+                leave={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: 0
+                }}
+                items={props.openedPanels.includes('admin-revenue-information')}
+                config={{
+                    delay: 0,
+                    duration: 200,
+                    mass: 1, tension: 120, friction: 14
+                }}
+            >
+                {show => show && (styles => (
+                    <Draggable
+                        axis="x"
+                        handle=".drag-handler"
+                        onStart={(e, i) => eventControl(e, i, 'admin-revenue-information')}
+                        onStop={(e, i) => eventControl(e, i, 'admin-revenue-information')}
+                        onMouseDown={(e, i) => eventControl(e, i, 'admin-revenue-information')}
+                        onMouseUp={(e, i) => eventControl(e, i, 'admin-revenue-information')}
+                        onTouchStart={(e, i) => eventControl(e, i, 'admin-revenue-information')}
+                        onTouchEnd={(e, i) => eventControl(e, i, 'admin-revenue-information')}
+                        position={{ x: 0, y: 0 }}
+                    >
+                        <animated.div className="panel panel-admin-revenue-information" ref={ref => openedPanelsRefs.current.push(ref)} onClick={e => onPanelClick(e, 'admin-revenue-information')} style={{
+                            ...styles,
+                            width: (window.innerWidth * baseWidth) - (panelGap * props.openedPanels.indexOf('admin-revenue-information'))
+                        }}>
+                            <RevenueInformation
+                                title='Revenue Information'
+                                tabTimes={23000}
+                                panelName='admin-revenue-information'
+
+                                setOpenedPanels={props.setOpenedPanels}
+                                serverUrl={props.serverUrl}
+                                openedPanels={props.openedPanels}
+                            />
+                        </animated.div>
+                    </Draggable>
+                ))}
+            </Transition>
+            {/* ================================== ADMIN REVENUE INFORMATION =============================== */}
+
+            {/* ================================== ADMIN ORDER HISTORY =============================== */}
+            <Transition
+                from={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: props.openedPanels.indexOf('admin-order-history')
+                }}
+                enter={{
+                    opacity: 1,
+                    right: window.innerWidth,
+                    zIndex: props.openedPanels.indexOf('admin-order-history')
+                }}
+                leave={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: 0
+                }}
+                items={props.openedPanels.includes('admin-order-history')}
+                config={{
+                    delay: 0,
+                    duration: 200,
+                    mass: 1, tension: 120, friction: 14
+                }}
+            >
+                {show => show && (styles => (
+                    <Draggable
+                        axis="x"
+                        handle=".drag-handler"
+                        onStart={(e, i) => eventControl(e, i, 'admin-order-history')}
+                        onStop={(e, i) => eventControl(e, i, 'admin-order-history')}
+                        onMouseDown={(e, i) => eventControl(e, i, 'admin-order-history')}
+                        onMouseUp={(e, i) => eventControl(e, i, 'admin-order-history')}
+                        onTouchStart={(e, i) => eventControl(e, i, 'admin-order-history')}
+                        onTouchEnd={(e, i) => eventControl(e, i, 'admin-order-history')}
+                        position={{ x: 0, y: 0 }}
+                    >
+                        <animated.div className="panel panel-admin-order-history" ref={ref => openedPanelsRefs.current.push(ref)} onClick={e => onPanelClick(e, 'admin-order-history')} style={{
+                            ...styles,
+                            width: (window.innerWidth * baseWidth) - (panelGap * props.openedPanels.indexOf('admin-order-history'))
+                        }}>
+                            <OrderHistory
+                                title='Order History'
+                                tabTimes={24000}
+                                panelName='admin-order-history'
+
+                                setOpenedPanels={props.setOpenedPanels}
+                                serverUrl={props.serverUrl}
+                                openedPanels={props.openedPanels}
+                            />
+                        </animated.div>
+                    </Draggable>
+                ))}
+            </Transition>
+            {/* ================================== ADMIN ORDER HISTORY =============================== */}
+
+            {/* ================================== ADMIN LANE HISTORY =============================== */}
+            <Transition
+                from={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: props.openedPanels.indexOf('admin-lane-history')
+                }}
+                enter={{
+                    opacity: 1,
+                    right: window.innerWidth,
+                    zIndex: props.openedPanels.indexOf('admin-lane-history')
+                }}
+                leave={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: 0
+                }}
+                items={props.openedPanels.includes('admin-lane-history')}
+                config={{
+                    delay: 0,
+                    duration: 200,
+                    mass: 1, tension: 120, friction: 14
+                }}
+            >
+                {show => show && (styles => (
+                    <Draggable
+                        axis="x"
+                        handle=".drag-handler"
+                        onStart={(e, i) => eventControl(e, i, 'admin-lane-history')}
+                        onStop={(e, i) => eventControl(e, i, 'admin-lane-history')}
+                        onMouseDown={(e, i) => eventControl(e, i, 'admin-lane-history')}
+                        onMouseUp={(e, i) => eventControl(e, i, 'admin-lane-history')}
+                        onTouchStart={(e, i) => eventControl(e, i, 'admin-lane-history')}
+                        onTouchEnd={(e, i) => eventControl(e, i, 'admin-lane-history')}
+                        position={{ x: 0, y: 0 }}
+                    >
+                        <animated.div className="panel panel-admin-lane-history" ref={ref => openedPanelsRefs.current.push(ref)} onClick={e => onPanelClick(e, 'admin-lane-history')} style={{
+                            ...styles,
+                            width: (window.innerWidth * baseWidth) - (panelGap * props.openedPanels.indexOf('admin-lane-history'))
+                        }}>
+                            <LaneHistory
+                                title='Lane History'
+                                tabTimes={25000}
+                                panelName='admin-lane-history'
+
+                                setOpenedPanels={props.setOpenedPanels}
+                                serverUrl={props.serverUrl}
+                                openedPanels={props.openedPanels}
+                            />
+                        </animated.div>
+                    </Draggable>
+                ))}
+            </Transition>
+            {/* ================================== ADMIN LANE HISTORY =============================== */}
+
+            {/* ================================== ADMIN DOCUMENTS =============================== */}
+            <Transition
+                from={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: props.openedPanels.indexOf('admin-documents')
+                }}
+                enter={{
+                    opacity: 1,
+                    right: window.innerWidth,
+                    zIndex: props.openedPanels.indexOf('admin-documents')
+                }}
+                leave={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: 0
+                }}
+                items={props.openedPanels.includes('admin-documents')}
+                config={{
+                    delay: 0,
+                    duration: 200,
+                    mass: 1, tension: 120, friction: 14
+                }}
+            >
+                {show => show && (styles => (
+                    <Draggable
+                        axis="x"
+                        handle=".drag-handler"
+                        onStart={(e, i) => eventControl(e, i, 'admin-documents')}
+                        onStop={(e, i) => eventControl(e, i, 'admin-documents')}
+                        onMouseDown={(e, i) => eventControl(e, i, 'admin-documents')}
+                        onMouseUp={(e, i) => eventControl(e, i, 'admin-documents')}
+                        onTouchStart={(e, i) => eventControl(e, i, 'admin-documents')}
+                        onTouchEnd={(e, i) => eventControl(e, i, 'admin-documents')}
+                        position={{ x: 0, y: 0 }}
+                    >
+                        <animated.div className="panel panel-admin-documents" ref={ref => openedPanelsRefs.current.push(ref)} onClick={e => onPanelClick(e, 'admin-documents')} style={{
+                            ...styles,
+                            width: (window.innerWidth * baseWidth) - (panelGap * props.openedPanels.indexOf('admin-documents'))
+                        }}>
+                            <Documents
+                                title='Documents'
+                                tabTimes={26000}
+                                panelName='admin-documents'
+
+                                setOpenedPanels={props.setOpenedPanels}
+                                setSelectedOwnerDocument={props.setAdminSelectedDocument}
+                                setSelectedOwner={props.setAdminSelectedCustomer}
+                                setSelectedOwnerDocumentTags={props.setAdminDocumentTags}
+                                setSelectedOwnerDocumentNote={props.setAdminSelectedDocumentNote}
+
+                                serverUrl={props.serverUrl}
+                                openedPanels={props.openedPanels}
+                                selectedOwner={props.adminSelectedCustomer}
+                                selectedOwnerDocument={props.adminSelectedDocument}
+                                selectedOwnerDocumentTags={props.adminSelectedDocumentTags}
+                                selectedOwnerDocumentNote={props.adminSelectedDocumentNote}
+
+                                origin='customer'
+
+                                savingDocumentUrl='/saveDocument'
+                                deletingDocumentUrl='/deleteCustomerDocument'
+                                savingDocumentNoteUrl='/saveCustomerDocumentNote'
+                                serverDocumentsFolder='/customer-documents/'
+                            />
+                        </animated.div>
+                    </Draggable>
+                ))}
+            </Transition>
+            {/* ================================== ADMIN DOCUMENTS =============================== */}
         </div>
     )
 }
 
 const mapStateToProps = state => {
     return {
-        openedPanels: state.customerReducers.customerOpenedPanels,
+        // openedPanels: state.customerReducers.customerOpenedPanels,
+        // openedPanels: state.customerReducers.adminCustomerOpenedPanels,
         serverUrl: state.systemReducers.serverUrl,
         scale: state.systemReducers.scale,
 
@@ -757,6 +1200,18 @@ const mapStateToProps = state => {
         selectedDocument: state.customerReducers.selectedDocument,
         selectedDocumentTags: state.customerReducers.selectedDocumentTags,
         selectedDocumentNote: state.customerReducers.selectedDocumentNote,
+
+        adminCustomers: state.customerReducers.adminCustomers,
+        adminSelectedCustomer: state.customerReducers.adminSelectedCustomer,
+        adminCustomerSearch: state.customerReducers.adminCustomerSearch,
+        adminSelectedContact: state.customerReducers.adminSelectedContact,
+        adminContacts: state.customerReducers.adminContacts,
+        adminIsEditingContact: state.customerReducers.adminIsEditingContact,
+        adminContactSearch: state.customerReducers.adminContactSearch,
+        adminContactSearchCustomer: state.customerReducers.adminContactSearchCustomer,
+        adminSelectedDocument: state.customerReducers.adminSelectedDocument,
+        adminSelectedDocumentTags: state.customerReducers.adminSelectedDocumentTags,
+        adminSelectedDocumentNote: state.customerReducers.adminSelectedDocumentNote,
 
         //DISPATCH
         customer_selected_order: state.dispatchReducers.customer_selected_order,
@@ -888,8 +1343,6 @@ const mapStateToProps = state => {
 }
 
 export default connect(mapStateToProps, {
-    setOpenedPanels,
-
     // CUSTOMER    
     setSelectedCustomer,
     setCustomerContacts,
@@ -901,6 +1354,18 @@ export default connect(mapStateToProps, {
     setSelectedDocument,
     setDocumentTags,
     setSelectedDocumentNote,
+
+    setAdminSelectedCustomer,
+    setAdminCustomerContacts,
+    setAdminSelectedContact,
+    setAdminContactSearch,
+    setAdminIsEditingContact,
+    setAdminShowingContactList,
+    setAdminContactSearchCustomer,
+    setAdminSelectedDocument,
+    setAdminSelectedDocumentTags,
+    setAdminSelectedDocumentNote,
+
     setCustomerBillToCompanies,
     setCustomerSelectedBillToCompanyInfo,
     setCustomerBillToCompanySearch,

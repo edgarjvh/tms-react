@@ -28,6 +28,56 @@
         flex-grow      : 1;
         justify-content: center;
 
+        &.chat-video-buttons{
+          .mochi-button{
+            color: white;
+            margin-right: 5px;
+
+            .mochi-button-decorator{
+              color: white;
+              font-size: 0.85rem;
+            }
+
+            .mochi-button-base{
+              color: white;
+              font-size: 0.7rem;
+            }
+          }
+
+          .mochi-item {
+            padding-top   : 1px;
+            padding-bottom: 1px;
+            padding-left  : 5px;
+            border-left   : 0 solid transparent;
+            transition    : ease 0.2s;
+            position: relative;
+            cursor: default;
+        
+            &:hover {
+              background-color: rgba(0, 0, 0, 0.05);
+            }
+        
+            .dropdown-selected{
+              position: absolute;
+              left: -5px;
+              color    : #2bc1ff;
+              top      : 50%;
+              transform: translateY(-50%);
+            }
+        
+            .mochi-item-highlight-text{
+              background-color: transparent;
+              color: inherit;
+              border-bottom: 1px solid #2bc1ff;
+            }
+        
+            // &:not(:last-child){
+            //   margin-bottom: 3px;
+            // }
+        
+          }
+        }
+
         .mochi-input-decorator {
           width      : 100%;
           display    : flex;
