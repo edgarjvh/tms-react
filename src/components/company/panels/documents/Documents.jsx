@@ -2,22 +2,63 @@ import React, { useRef, useState, useEffect } from 'react';
 import { connect } from 'react-redux';
 import classnames from 'classnames';
 import $ from 'jquery';
+import jqueryForm from 'jquery-form';
 import Draggable from 'react-draggable';
 import './Documents.css';
 import moment from 'moment';
 import DocViewer from "react-doc-viewer";
-import { useSpring, animated } from 'react-spring';
+import { useSpring } from 'react-spring';
 import CustomerModal from './../modal/Modal.jsx';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Transition, Spring, animated, config } from 'react-spring/renderprops';
 import { faCaretDown, faCaretRight, faCalendarAlt, faPencilAlt, faCheck, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import Loader from 'react-loader-spinner';
+import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
+import axios from 'axios';
+import VideoJS from './../videojs/VideoJS.jsx';
 
 function Documents(props) {
     const [isSavingDocument, setIsSavingDocument] = useState(false);
+    const [progressUploaded, setProgressUploaded] = useState(0);
+    const [progressTotal, setProgressTotal] = useState(0);
+
     const refTitleInput = useRef();
     const refTagInput = useRef();
     const refDocumentInput = useRef();
     const refIframeImg = useRef(null);
     const modalTransitionProps = useSpring({ opacity: (props.selectedOwnerDocumentNote.id !== undefined) ? 1 : 0 });
+
+    const getSizeUnit = (size) => {
+        let unit = 'B';
+
+        if (size > (1024 ** 4)) {
+            unit = 'TB'
+        } else if (size > (1024 ** 3)) {
+            unit = 'GB'
+        } else if (size > (1024 ** 2)) {
+            unit = 'MB'
+        } else if (size > (1024 * 1)) {
+            unit = 'KB'
+        }
+
+        return unit;
+    }
+
+    const getFileSize = (size) => {
+        let newSize = size;
+
+        if (size > (1024 ** 4)) {
+            newSize = (size / (1024 ** 4)).toFixed(2)
+        } else if (size > (1024 ** 3)) {
+            newSize = (size / (1024 ** 3)).toFixed(2)
+        } else if (size > (1024 ** 2)) {
+            newSize = (size / (1024 ** 2)).toFixed(2)
+        } else if (size > (1024 * 1)) {
+            newSize = (size / (1024 * 1)).toFixed(2)
+        }
+
+        return isNaN(newSize) ? 0 : newSize;
+    }
 
     const closePanelBtnClick = (e, name) => {
         props.setOpenedPanels(props.openedPanels.filter((item, index) => {
@@ -83,17 +124,19 @@ function Documents(props) {
         if (!isSavingDocument) {
             setIsSavingDocument(true);
 
-            $.ajax({
-                method: "post",
-                url: props.serverUrl + props.savingDocumentUrl,
-                data: formData,
-                contentType: false,
-                processData: false,
-                cache: false,
-                success: (res) => {
-                    console.log(res);
-                    if (res.result === "OK") {
-                        props.setSelectedOwner({ ...props.selectedOwner, documents: res.documents });
+            const options = {
+                onUploadProgress: (progressEvent) => {
+                    const { loaded, total } = progressEvent;
+
+                    setProgressUploaded(isNaN(loaded) ? 0 : loaded);
+                    setProgressTotal(isNaN(total) ? 0 : total);
+                }
+            }
+
+            axios.post(props.serverUrl + props.savingDocumentUrl, formData, options)
+                .then(res => {
+                    if (res.data.result === "OK") {
+                        props.setSelectedOwner({ ...props.selectedOwner, documents: res.data.documents });
                         props.setSelectedOwnerDocument({
                             id: 0,
                             user_id: Math.floor(Math.random() * (15 - 1)) + 1,
@@ -102,14 +145,58 @@ function Documents(props) {
 
                         refTitleInput.current && refTitleInput.current.focus();
                     }
-
+                    refDocumentInput.current.value = "";
                     setIsSavingDocument(false);
-                },
-                error: (err) => {
+                })
+                .catch((err) => {
                     console.log("error saving document", err);
                     setIsSavingDocument(false);
-                },
-            });
+                    refDocumentInput.current.value = "";
+                })
+                .then(() => {
+                    setProgressUploaded(0);
+                    setProgressTotal(0);
+                });
+
+            // $.ajax({
+            //     method: "post",
+            //     url: props.serverUrl + props.savingDocumentUrl,
+            //     data: formData,
+            //     contentType: false,
+            //     processData: false,
+            //     cache: false,
+            //     xhr: function () {
+            //         var xhr = new window.XMLHttpRequest();
+            //         xhr.upload.addEventListener("progress", function (evt) {
+            //             if (evt.lengthComputable) {
+            //                 var percentComplete = (evt.loaded / evt.total) * 100;
+            //                 console.log(percentComplete);
+            //             }
+            //         }, false);
+            //         return xhr;
+            //     },
+            //     success: (res) => {
+            //         console.log(res);
+            //         if (res.result === "OK") {
+            //             props.setSelectedOwner({ ...props.selectedOwner, documents: res.documents });
+            //             props.setSelectedOwnerDocument({
+            //                 id: 0,
+            //                 user_id: Math.floor(Math.random() * (15 - 1)) + 1,
+            //                 date_entered: moment().format('MM/DD/YYYY')
+            //             });
+
+            //             refTitleInput.current && refTitleInput.current.focus();
+            //         }
+            //         refDocumentInput.current.value = "";
+
+            //         setIsSavingDocument(false);
+            //     },
+            //     error: (err) => {
+            //         console.log("error saving document", err);
+            //         setIsSavingDocument(false);
+            //         refDocumentInput.current.value = "";
+            //     },
+            // });
         }
     }
 
@@ -143,6 +230,18 @@ function Documents(props) {
             <div className="close-btn" title="Close" onClick={e => closePanelBtnClick(e, props.panelName)}><span className="fas fa-times"></span></div>
             <div className="title">{props.title}</div><div className="side-title"><div>{props.title}</div></div>
 
+            <Transition
+                from={{ opacity: 0 }}
+                enter={{ opacity: 1 }}
+                leave={{ opacity: 0 }}
+                items={isSavingDocument}
+                config={{ duration: 100 }}
+            >
+                {show => show && (styles => (
+                    <div className="documents-loader-background" style={{ ...styles }}></div>
+                ))}
+            </Transition>
+
             <div className="documents-fields">
                 <div className="documents-left-side">
                     <div className="documents-fields-row">
@@ -160,6 +259,8 @@ function Documents(props) {
                                 user_id: Math.floor(Math.random() * (15 - 1)) + 1,
                                 date_entered: moment().format('MM/DD/YYYY')
                             });
+
+                            refDocumentInput.current.value = "";
 
                             refTitleInput.current.focus();
                         }}>
@@ -388,6 +489,23 @@ function Documents(props) {
                 </div>
             </div>
 
+            <div className="progress-bar-container">
+                <Transition
+                    from={{ opacity: 0 }}
+                    enter={{ opacity: 1 }}
+                    leave={{ opacity: 0 }}
+                    items={isSavingDocument}
+                    config={{ duration: 100 }}
+                >
+                    {show => show && (styles => (
+                        <animated.div style={{ ...styles }}>
+                            <div className="progress-bar-title">{getFileSize(progressUploaded)}{getSizeUnit(progressUploaded)} of {getFileSize(progressTotal)}{getSizeUnit(progressTotal)} | {isNaN(Math.floor((progressUploaded * 100) / progressTotal)) ? 0 : Math.floor((progressUploaded * 100) / progressTotal)}%</div>
+                            <div className="progress-bar-wrapper" style={{ width: (isNaN(Math.floor((progressUploaded * 100) / progressTotal)) ? 0 : Math.floor((progressUploaded * 100) / progressTotal)) + '%' }}></div>
+                        </animated.div>
+
+                    ))}
+                </Transition>
+            </div>
             <div className="documents-list">
                 <div className="form-bordered-box">
                     <div className="form-header">
@@ -556,7 +674,17 @@ function Documents(props) {
                     {
                         ((props.selectedOwnerDocument.id || 0) > 0 &&
                             (['webm', 'mpg', 'mp2', 'mpeg', 'mpe', 'mpv', 'ogg', 'mp4', 'm4p', 'm4v', 'avi', 'wmv', 'mov', 'qt', 'flv', 'swf', 'avchd'].includes(props.selectedOwnerDocument.doc_extension.toLowerCase()))) &&
-                        <iframe id="frame-preview" src={(props.serverUrl + props.serverDocumentsFolder + props.selectedOwnerDocument.doc_id) + '#toolbar=1&navpanes=0&scrollbar=0'} frameBorder={0} allowFullScreen={true} width="100%" height="100%"></iframe>
+                        <VideoJS options={{
+                            autoplay: true,
+                            controls: true,
+                            responsive: true,
+                            fluid: true,
+                            sources: [{
+                                src: (props.serverUrl + props.serverDocumentsFolder + props.selectedOwnerDocument.doc_id),
+                                type: 'video/' + props.selectedOwnerDocument.doc_extension.toLowerCase()
+                            }]
+                        }} />
+                        // <iframe id="frame-preview" src={(props.serverUrl + props.serverDocumentsFolder + props.selectedOwnerDocument.doc_id) + '#toolbar=1&navpanes=0&scrollbar=0'} frameBorder={0} allowFullScreen={true} width="100%" height="100%"></iframe>
                     }
 
                     {

@@ -10,7 +10,7 @@ import MaskedInput from 'react-text-mask';
 import PanelContainer from './panels/panel-container/PanelContainer.jsx';
 import CustomerModal from './modal/Modal.jsx';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCaretDown, faCaretRight, faCalendarAlt, faCheck, faPencilAlt } from '@fortawesome/free-solid-svg-icons';
+import { faCaretDown, faCaretRight, faCalendarAlt, faCheck, faPencilAlt, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { useDetectClickOutside } from "react-detect-click-outside";
 import { Transition, Spring, animated as animated2, config } from 'react-spring/renderprops';
 import Highlighter from "react-highlight-words";
@@ -74,6 +74,14 @@ function Customers(props) {
     const refAutomaticEmailsBcc = useRef();
     var delayTimer;
     const modalTransitionProps = useSpring({ opacity: (props.selectedNote?.id !== undefined || props.selectedDirection?.id !== undefined) ? 1 : 0 });
+
+    const [tempAutomaticEmails, setTempAutomaticEmails] = useState([]);
+    const [tempBookedLoad, setTempBookedLoad] = useState(false);
+    const [tempCheckCalls, setTempCheckCalls] = useState(false);
+    const [tempCarrierArrivalShipper, setTempCarrierArrivalShipper] = useState(false);
+    const [tempCarrierArrivalConsignee, setTempCarrierArrivalConsignee] = useState(false);
+    const [tempLoaded, setTempLoaded] = useState(false);
+    const [tempEmpty, setTempEmpty] = useState(false);
 
     useEffect(() => {
         if (isSavingCustomer) {
@@ -326,6 +334,13 @@ function Customers(props) {
 
     const setInitialValues = (clearCode = true) => {
         setIsSavingCustomer(false);
+        setTempAutomaticEmails([]);
+        setTempBookedLoad(false);
+        setTempCheckCalls(false);
+        setTempCarrierArrivalShipper(false);
+        setTempCarrierArrivalConsignee(false);
+        setTempLoaded(false);
+        setTempEmpty(false);
         props.setSelectedContact({});
         props.setSelectedNote({});
         props.setSelectedDirection({});
@@ -826,7 +841,7 @@ function Customers(props) {
             background: props.isOnPanel ? 'transparent' : 'radial-gradient(ellipse at center, rgba(250, 250, 250, 1) 0%, rgba(200, 200, 200, 1) 100%)',
             padding: props.isOnPanel ? '10px 0' : 10
         }}>
-             {!props.isOnPanel && <PanelContainer setOpenedPanels={props.setOpenedPanels} openedPanels={props.openedPanels} />}
+            {!props.isOnPanel && <PanelContainer setOpenedPanels={props.setOpenedPanels} openedPanels={props.openedPanels} />}
 
             <div className="fields-container">
                 <div className="fields-container-row">
@@ -997,7 +1012,7 @@ function Customers(props) {
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
-                                <div className="input-box-container" style={{position: 'relative', flexGrow: 1}}>
+                                <div className="input-box-container" style={{ position: 'relative', flexGrow: 1 }}>
                                     <input tabIndex={11 + props.tabTimes}
                                         type="text"
                                         placeholder="E-Mail"
@@ -3125,297 +3140,365 @@ function Customers(props) {
 
                     </div>
                     <div className="fields-container-col">
-                        <div className="form-bordered-box">
+                        <div className="form-bordered-box" style={{ width: '100%' }}>
                             <div className="form-header">
                                 <div className="top-border top-border-left"></div>
                                 <div className="form-title">Automatic E-Mails</div>
                                 <div className="top-border top-border-middle"></div>
+                                <div className="form-buttons">
+                                    <div className="mochi-button" onClick={() => {
+                                        if ((props.selectedCustomer?.id || 0) === 0) {
+                                            window.alert('You must select a customer first!');
+                                            return;
+                                        }
+
+                                        if (tempAutomaticEmails.length === 0) {
+                                            window.alert('Nothing to save!');
+                                            return;
+                                        }
+
+                                        let temp = [...tempAutomaticEmails];
+                                        let automatic_emails = [...props.selectedCustomer?.automatic_emails];
+
+                                        temp.map(item => {
+                                            let tempIndex = automatic_emails.findIndex(t => t.email === item.email && t.type === item.type);
+
+                                            if (tempIndex > -1) {
+                                                automatic_emails[tempIndex].email = item.email;
+                                                automatic_emails[tempIndex].name = item.name;
+                                                automatic_emails[tempIndex].type = item.type;
+                                                automatic_emails[tempIndex].booked_load = tempBookedLoad ? 1 : 0;
+                                                automatic_emails[tempIndex].check_calls = tempCheckCalls ? 1 : 0;
+                                                automatic_emails[tempIndex].carrier_arrival_shipper = tempCarrierArrivalShipper ? 1 : 0;
+                                                automatic_emails[tempIndex].carrier_arrival_consignee = tempCarrierArrivalConsignee ? 1 : 0;
+                                                automatic_emails[tempIndex].loaded = tempLoaded ? 1 : 0;
+                                                automatic_emails[tempIndex].empty = tempEmpty ? 1 : 0;
+                                            } else {
+                                                item.booked_load = tempBookedLoad ? 1 : 0;
+                                                item.check_calls = tempCheckCalls ? 1 : 0;
+                                                item.carrier_arrival_shipper = tempCarrierArrivalShipper ? 1 : 0;
+                                                item.carrier_arrival_consignee = tempCarrierArrivalConsignee ? 1 : 0;
+                                                item.loaded = tempLoaded ? 1 : 0;
+                                                item.empty = tempEmpty ? 1 : 0;
+
+                                                automatic_emails.push(item);
+                                            }
+
+                                            return false;
+                                        })
+
+                                        $.post(props.serverUrl + '/saveAutomaticEmails', {
+                                            customer_id: props.selectedCustomer.id,
+                                            automatic_emails: automatic_emails
+                                        }).then(res => {
+                                            if (res.result === 'OK') {
+                                                props.setSelectedCustomer({
+                                                    ...props.selectedCustomer,
+                                                    automatic_emails: res.automatic_emails
+                                                });
+                                            }
+
+                                            setTempAutomaticEmails([]);
+                                            setTempBookedLoad(false);
+                                            setTempCheckCalls(false);
+                                            setTempCarrierArrivalShipper(false);
+                                            setTempCarrierArrivalConsignee(false);
+                                            setTempLoaded(false);
+                                            setTempEmpty(false);
+
+                                            refAutomaticEmailsTo.current.focus();
+                                        }).catch(e => {
+                                            console.log('error saving automatic emails', e);
+                                        })
+
+                                    }}>
+                                        <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
+                                        <div className="mochi-button-base">Save</div>
+                                        <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
+                                    </div>
+
+                                    <div className="mochi-button" onClick={() => {
+                                        setTempAutomaticEmails([]);
+                                        setTempBookedLoad(false);
+                                        setTempCheckCalls(false);
+                                        setTempCarrierArrivalShipper(false);
+                                        setTempCarrierArrivalConsignee(false);
+                                        setTempLoaded(false);
+                                        setTempEmpty(false);
+                                    }}>
+                                        <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
+                                        <div className="mochi-button-base">Clear</div>
+                                        <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
+                                    </div>
+                                </div>
                                 <div className="top-border top-border-right"></div>
                             </div>
 
-                            <div className="form-row" style={{width: '100%'}}>
-                                <div className="select-box-container" style={{ flexGrow: 1 }}>
+                            <div className="form-row" style={{ width: '100%' }}>
+                                <div className="select-box-container" style={{ width: 'calc(100% - 11.6rem - 5px)' }}>
                                     <div className="select-box-wrapper">
-                                        {
-                                            (props.selectedCustomer?.automatic_emails?.automatic_emails_to || '').split(';').map((item, index) => {
-                                                if (item.trim() !== '') {
-                                                    let textToShow = item.split('|');
-
-                                                    return (
-                                                        <div key={index} style={{
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            fontSize: '0.7rem',
-                                                            backgroundColor: 'rgba(0,0,0,0.2)',
-                                                            padding: '2px 10px',
-                                                            borderRadius: '10px',
-                                                            marginRight: '2px',
-                                                            cursor: 'default',
-                                                            width: 'auto'
-                                                        }} title={item}>
-                                                            <span className="fas fa-trash-alt" style={{ marginRight: '5px', cursor: 'pointer' }}
-                                                                onClick={() => {
-                                                                    let automatic_emails = props.selectedCustomer?.automatic_emails || {};
-                                                                    automatic_emails.automatic_emails_to = automatic_emails.automatic_emails_to.replace(item.toString(), '').trim();
-                                                                    automatic_emails.automatic_emails_to = automatic_emails.automatic_emails_to.replace(';;', ';').trim();
-
-                                                                    let checkingStart = true;
-                                                                    let checkingEnd = true;
-
-                                                                    while (checkingStart) {
-                                                                        if (automatic_emails.automatic_emails_to.substr(0, 1) === ';') {
-                                                                            automatic_emails.automatic_emails_to = automatic_emails.automatic_emails_to.slice(1);
-                                                                        } else {
-                                                                            checkingStart = false;
-                                                                        }
-                                                                    }
-
-                                                                    while (checkingEnd) {
-                                                                        if (automatic_emails.automatic_emails_to.substr(-1) === ';') {
-                                                                            automatic_emails.automatic_emails_to = automatic_emails.automatic_emails_to.slice(0, -1);
-                                                                        } else {
-                                                                            checkingEnd = false;
-                                                                        }
-                                                                    }
-
-                                                                    props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automatic_emails });
-                                                                    validateAutomaticEmailsForSaving();
-                                                                }}></span>
-                                                            <span className="automatic-email-inputted" style={{ whiteSpace: 'nowrap' }}>{
-                                                                textToShow.length > 0
-                                                                    ? textToShow[1] !== ''
-                                                                        ? textToShow[1] // name
-                                                                        : textToShow[0] // email
-                                                                    : textToShow[0] // email or blank
-                                                            }</span>
-                                                        </div>
-                                                    )
-                                                } else {
-                                                    return false;
-                                                }
-                                            })
-                                        }
-                                        <input type="text"
-                                            tabIndex={29 + props.tabTimes}
-                                            placeholder="E-mail To"
-                                            ref={refAutomaticEmailsTo}
-                                            onKeyDown={async (e) => {
-                                                let key = e.keyCode || e.which;
-                                                let automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
-                                                switch (key) {
-                                                    case 37: case 38: // arrow left | arrow up
-                                                        e.preventDefault();
-                                                        if (emailToDropdownItems.length > 0) {
-                                                            let selectedIndex = emailToDropdownItems.findIndex(item => item.selected);
-
-                                                            if (selectedIndex === -1) {
-                                                                await setEmailToDropdownItems(emailToDropdownItems.map((item, index) => {
-                                                                    item.selected = index === 0;
-                                                                    return item;
-                                                                }))
-                                                            } else {
-                                                                await setEmailToDropdownItems(emailToDropdownItems.map((item, index) => {
-                                                                    if (selectedIndex === 0) {
-                                                                        item.selected = index === (emailToDropdownItems.length - 1);
-                                                                    } else {
-                                                                        item.selected = index === (selectedIndex - 1)
-                                                                    }
-                                                                    return item;
-                                                                }))
-                                                            }
-
-                                                            refEmailToPopupItems.current.map((r, i) => {
-                                                                if (r && r.classList.contains('selected')) {
-                                                                    r.scrollIntoView({
-                                                                        behavior: 'auto',
-                                                                        block: 'center',
-                                                                        inline: 'nearest'
-                                                                    })
-                                                                }
-                                                                return true;
-                                                            });
-                                                        }
-                                                        break;
-
-                                                    case 39: case 40: // arrow right | arrow down
-                                                        e.preventDefault();
-                                                        if (emailToDropdownItems.length > 0) {
-                                                            let selectedIndex = emailToDropdownItems.findIndex(item => item.selected);
-
-                                                            if (selectedIndex === -1) {
-                                                                await setEmailToDropdownItems(emailToDropdownItems.map((item, index) => {
-                                                                    item.selected = index === 0;
-                                                                    return item;
-                                                                }))
-                                                            } else {
-                                                                await setEmailToDropdownItems(emailToDropdownItems.map((item, index) => {
-                                                                    if (selectedIndex === (emailToDropdownItems.length - 1)) {
-                                                                        item.selected = index === 0;
-                                                                    } else {
-                                                                        item.selected = index === (selectedIndex + 1)
-                                                                    }
-                                                                    return item;
-                                                                }))
-                                                            }
-
-                                                            refEmailToPopupItems.current.map((r, i) => {
-                                                                if (r && r.classList.contains('selected')) {
-                                                                    r.scrollIntoView({
-                                                                        behavior: 'auto',
-                                                                        block: 'center',
-                                                                        inline: 'nearest'
-                                                                    })
-                                                                }
-                                                                return true;
-                                                            });
-                                                        }
-                                                        break;
-
-                                                    case 27: // escape
-                                                        setEmailToDropdownItems([]);
-                                                        break;
-
-                                                    case 13: // enter
-                                                        automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
-
-                                                        if (emailToDropdownItems.length > 0 && emailToDropdownItems.findIndex(item => item.selected) > -1) {
-                                                            let item = emailToDropdownItems.find(el => el.selected);
-
-                                                            if (item.email !== '' && isEmailValid(item.email)) {
-                                                                automaticEmails = { ...automaticEmails, automatic_emails_to: ((automaticEmails.automatic_emails_to || '') + ';' + (item.email + '|' + item.name)).trim() };
-                                                                await props.setAutomaticEmailsTo('');
-
-                                                                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
-
-                                                                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-                                                                    if (res.result === 'OK') {
-                                                                        console.log(res);
-                                                                    }
-                                                                });
-
-                                                                setEmailToDropdownItems([]);
-                                                                refAutomaticEmailsTo.current.focus();
-                                                            }
-                                                        } else if (emailToDropdownItems.length === 0) {
-                                                            if (isEmailValid((props.automaticEmailsTo || ''))) {
-                                                                automaticEmails = { ...automaticEmails, automatic_emails_to: ((automaticEmails.automatic_emails_to || '') + ';' + (props.automaticEmailsTo + '|')).trim() };
-                                                                await props.setAutomaticEmailsTo('');
-
-                                                                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
-
-                                                                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-                                                                    if (res.result === 'OK') {
-                                                                        console.log(res);
-                                                                    }
-                                                                });
-
-                                                                setEmailToDropdownItems([]);
-                                                                refAutomaticEmailsTo.current.focus();
-                                                            }
-                                                        }
-                                                        break;
-
-                                                    case 9: // tab
-                                                        automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
-
-                                                        if (emailToDropdownItems.length > 0) {
-                                                            let item = emailToDropdownItems.find(el => el.selected);
-
-                                                            if (item.email !== '' && isEmailValid(item.email)) {
-                                                                e.preventDefault();
-
-                                                                automaticEmails = { ...automaticEmails, automatic_emails_to: ((automaticEmails.automatic_emails_to || '') + ';' + (item.email + '|' + item.name)).trim() };
-                                                                await props.setAutomaticEmailsTo('');
-
-                                                                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
-
-                                                                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-                                                                    if (res.result === 'OK') {
-                                                                        console.log(res);
-                                                                    }
-                                                                });
-
-                                                                setEmailToDropdownItems([]);
-                                                                refAutomaticEmailsTo.current.focus();
-                                                            }
-                                                        } else if (emailToDropdownItems.length === 0) {
-                                                            if (isEmailValid((props.automaticEmailsTo || ''))) {
-                                                                e.preventDefault();
-
-                                                                automaticEmails = { ...automaticEmails, automatic_emails_to: ((automaticEmails.automatic_emails_to || '') + ';' + (props.automaticEmailsTo + '|')).trim() };
-                                                                await props.setAutomaticEmailsTo('');
-
-                                                                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
-
-                                                                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-                                                                    if (res.result === 'OK') {
-                                                                        console.log(res);
-                                                                    }
-                                                                });
-
-                                                                setEmailToDropdownItems([]);
-                                                                refAutomaticEmailsTo.current.focus();
-                                                            }
-                                                        }
-                                                        break;
-
-                                                    default:
-                                                        break;
-                                                }
-                                            }}
-                                            onInput={async (e) => {
-                                                await props.setAutomaticEmailsTo(e.target.value);
-
-                                                if ((props.selectedCustomer?.id || 0) > 0) {
-                                                    if (e.target.value.trim() === '') {
-                                                        setEmailToDropdownItems([]);
+                                        <Swiper slidesPerView={1}>
+                                            {
+                                                tempAutomaticEmails.map((item, index) => {
+                                                    if (item.type === 'to') {
+                                                        return (
+                                                            <SwiperSlide>
+                                                                <div key={index} style={{
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    fontSize: '0.7rem',
+                                                                    backgroundColor: 'rgba(0,0,0,0.2)',
+                                                                    padding: '2px 10px',
+                                                                    borderRadius: '10px',
+                                                                    marginRight: '2px',
+                                                                    cursor: 'default',
+                                                                    width: 'auto'
+                                                                }} title={item}>
+                                                                    <span className="fas fa-trash-alt" style={{ marginRight: '5px', cursor: 'pointer' }}
+                                                                        onClick={() => {
+                                                                            setTempAutomaticEmails(tempAutomaticEmails.filter((x, i) => i !== index));
+                                                                            refAutomaticEmailsTo.current.focus();
+                                                                        }}></span>
+                                                                    <span className="automatic-email-inputted" style={{ whiteSpace: 'nowrap' }}>{
+                                                                        item.name !== ''
+                                                                            ? item.name
+                                                                            : item.email
+                                                                    }</span>
+                                                                </div>
+                                                            </SwiperSlide>
+                                                        )
                                                     } else {
-                                                        $.post(props.serverUrl + '/getContactsByEmailOrName', {
-                                                            email: e.target.value.trim(),
-                                                            customer_id: props.selectedCustomer?.id
-                                                        }).then(async res => {
-                                                            if (res.result === 'OK') {
-                                                                let items = []
-                                                                res.contacts.map((c, i) => {
-                                                                    let emailWork = c.email_work;
-                                                                    let emailPersonal = c.email_personal;
-                                                                    let emailOther = c.email_other;
-                                                                    let firstName = c.first_name;
-                                                                    let lastName = c.last_name;
-
-                                                                    let name = firstName + ' ' + lastName;
-
-                                                                    let email = emailWork.indexOf(e.target.value.trim()) > -1 ? emailWork :
-                                                                        emailPersonal.indexOf(e.target.value.trim()) ? emailPersonal : emailOther
-
-                                                                    if (email === '') {
-                                                                        email = emailWork !== '' ? emailWork :
-                                                                            emailPersonal !== '' ? emailPersonal : emailOther;
-                                                                    }
-
-                                                                    if (emailWork.trim() !== '' || emailPersonal.trim() !== '' || emailOther !== '') {
-                                                                        items.push({
-                                                                            name: name,
-                                                                            email: email,
-                                                                            selected: i === 0
-                                                                        });
-                                                                    }
-
-                                                                    return true;
-                                                                });
-
-
-                                                                await setEmailToDropdownItems(e.target.value.trim() === '' ? [] : items);
-                                                            }
-                                                        }).catch(async e => {
-                                                            console.log('error getting emails', e);
-                                                        })
+                                                        return false;
                                                     }
-                                                }
-                                            }}
-                                            onChange={async (e) => { await props.setAutomaticEmailsTo(e.target.value) }}
-                                            value={props.automaticEmailsTo || ''}
-                                        />
+                                                })
+                                            }
+                                            <SwiperSlide>
+                                                <input type="text"
+                                                    tabIndex={29 + props.tabTimes}
+                                                    placeholder="E-mail To"
+                                                    ref={refAutomaticEmailsTo}
+                                                    onKeyDown={async (e) => {
+                                                        let key = e.keyCode || e.which;
+
+                                                        switch (key) {
+                                                            case 37: case 38: // arrow left | arrow up
+                                                                e.preventDefault();
+                                                                if (emailToDropdownItems.length > 0) {
+                                                                    let selectedIndex = emailToDropdownItems.findIndex(item => item.selected);
+
+                                                                    if (selectedIndex === -1) {
+                                                                        await setEmailToDropdownItems(emailToDropdownItems.map((item, index) => {
+                                                                            item.selected = index === 0;
+                                                                            return item;
+                                                                        }))
+                                                                    } else {
+                                                                        await setEmailToDropdownItems(emailToDropdownItems.map((item, index) => {
+                                                                            if (selectedIndex === 0) {
+                                                                                item.selected = index === (emailToDropdownItems.length - 1);
+                                                                            } else {
+                                                                                item.selected = index === (selectedIndex - 1)
+                                                                            }
+                                                                            return item;
+                                                                        }))
+                                                                    }
+
+                                                                    refEmailToPopupItems.current.map((r, i) => {
+                                                                        if (r && r.classList.contains('selected')) {
+                                                                            r.scrollIntoView({
+                                                                                behavior: 'auto',
+                                                                                block: 'center',
+                                                                                inline: 'nearest'
+                                                                            })
+                                                                        }
+                                                                        return true;
+                                                                    });
+                                                                }
+                                                                break;
+
+                                                            case 39: case 40: // arrow right | arrow down
+                                                                e.preventDefault();
+                                                                if (emailToDropdownItems.length > 0) {
+                                                                    let selectedIndex = emailToDropdownItems.findIndex(item => item.selected);
+
+                                                                    if (selectedIndex === -1) {
+                                                                        await setEmailToDropdownItems(emailToDropdownItems.map((item, index) => {
+                                                                            item.selected = index === 0;
+                                                                            return item;
+                                                                        }))
+                                                                    } else {
+                                                                        await setEmailToDropdownItems(emailToDropdownItems.map((item, index) => {
+                                                                            if (selectedIndex === (emailToDropdownItems.length - 1)) {
+                                                                                item.selected = index === 0;
+                                                                            } else {
+                                                                                item.selected = index === (selectedIndex + 1)
+                                                                            }
+                                                                            return item;
+                                                                        }))
+                                                                    }
+
+                                                                    refEmailToPopupItems.current.map((r, i) => {
+                                                                        if (r && r.classList.contains('selected')) {
+                                                                            r.scrollIntoView({
+                                                                                behavior: 'auto',
+                                                                                block: 'center',
+                                                                                inline: 'nearest'
+                                                                            })
+                                                                        }
+                                                                        return true;
+                                                                    });
+                                                                }
+                                                                break;
+
+                                                            case 27: // escape
+                                                                setEmailToDropdownItems([]);
+                                                                break;
+
+                                                            case 13: // enter
+                                                                if (emailToDropdownItems.length > 0 && emailToDropdownItems.findIndex(item => item.selected) > -1) {
+                                                                    let item = emailToDropdownItems.find(el => el.selected);
+
+                                                                    if (item.email !== '' && isEmailValid(item.email)) {
+                                                                        if (tempAutomaticEmails.find(t => t.email === item.email && t.type === 'to') === undefined) {
+                                                                            setTempAutomaticEmails([
+                                                                                ...tempAutomaticEmails,
+                                                                                {
+                                                                                    id: 0,
+                                                                                    name: item.name,
+                                                                                    email: item.email,
+                                                                                    type: 'to'
+                                                                                }
+                                                                            ])
+                                                                        }
+
+                                                                        await props.setAutomaticEmailsTo('');
+
+                                                                        setEmailToDropdownItems([]);
+                                                                        refAutomaticEmailsTo.current.focus();
+                                                                    }
+                                                                } else if (emailToDropdownItems.length === 0) {
+                                                                    if (isEmailValid((props.automaticEmailsTo || ''))) {
+                                                                        if (tempAutomaticEmails.find(t => t.email === props.automaticEmailsTo && t.type === 'to') === undefined) {
+                                                                            setTempAutomaticEmails([
+                                                                                ...tempAutomaticEmails,
+                                                                                {
+                                                                                    id: 0,
+                                                                                    name: '',
+                                                                                    email: props.automaticEmailsTo,
+                                                                                    type: 'to'
+                                                                                }
+                                                                            ])
+                                                                        }
+                                                                        await props.setAutomaticEmailsTo('');
+                                                                        setEmailToDropdownItems([]);
+                                                                        refAutomaticEmailsTo.current.focus();
+                                                                    }
+                                                                }
+                                                                break;
+
+                                                            case 9: // tab
+                                                                if (emailToDropdownItems.length > 0) {
+                                                                    let item = emailToDropdownItems.find(el => el.selected);
+
+                                                                    if (item.email !== '' && isEmailValid(item.email)) {
+                                                                        e.preventDefault();
+
+                                                                        if (tempAutomaticEmails.find(t => t.email === item.email && t.type === 'to') === undefined) {
+                                                                            setTempAutomaticEmails([
+                                                                                ...tempAutomaticEmails,
+                                                                                {
+                                                                                    id: 0,
+                                                                                    name: item.name,
+                                                                                    email: item.email,
+                                                                                    type: 'to'
+                                                                                }
+                                                                            ])
+                                                                        }
+                                                                        await props.setAutomaticEmailsTo('');
+
+                                                                        setEmailToDropdownItems([]);
+                                                                        refAutomaticEmailsTo.current.focus();
+                                                                    }
+                                                                } else if (emailToDropdownItems.length === 0) {
+                                                                    if (isEmailValid((props.automaticEmailsTo || ''))) {
+                                                                        e.preventDefault();
+
+                                                                        if (tempAutomaticEmails.find(t => t.email === props.automaticEmailsTo && t.type === 'to') === undefined) {
+                                                                            setTempAutomaticEmails([
+                                                                                ...tempAutomaticEmails,
+                                                                                {
+                                                                                    id: 0,
+                                                                                    name: '',
+                                                                                    email: props.automaticEmailsTo,
+                                                                                    type: 'to'
+                                                                                }
+                                                                            ])
+                                                                        }
+                                                                        await props.setAutomaticEmailsTo('');
+                                                                        setEmailToDropdownItems([]);
+                                                                        refAutomaticEmailsTo.current.focus();
+                                                                    }
+                                                                }
+                                                                break;
+
+                                                            default:
+                                                                break;
+                                                        }
+                                                    }}
+                                                    onInput={async (e) => {
+                                                        await props.setAutomaticEmailsTo(e.target.value);
+
+                                                        if ((props.selectedCustomer?.id || 0) > 0) {
+                                                            if (e.target.value.trim() === '') {
+                                                                setEmailToDropdownItems([]);
+                                                            } else {
+                                                                $.post(props.serverUrl + '/getContactsByEmailOrName', {
+                                                                    email: e.target.value.trim(),
+                                                                    customer_id: props.selectedCustomer?.id
+                                                                }).then(async res => {
+                                                                    if (res.result === 'OK') {
+                                                                        let items = []
+                                                                        res.contacts.map((c, i) => {
+                                                                            let emailWork = c.email_work;
+                                                                            let emailPersonal = c.email_personal;
+                                                                            let emailOther = c.email_other;
+                                                                            let firstName = c.first_name;
+                                                                            let lastName = c.last_name;
+
+                                                                            let name = firstName + ' ' + lastName;
+
+                                                                            let email = emailWork.indexOf(e.target.value.trim()) > -1 ? emailWork :
+                                                                                emailPersonal.indexOf(e.target.value.trim()) ? emailPersonal : emailOther
+
+                                                                            if (email === '') {
+                                                                                email = emailWork !== '' ? emailWork :
+                                                                                    emailPersonal !== '' ? emailPersonal : emailOther;
+                                                                            }
+
+                                                                            if (emailWork.trim() !== '' || emailPersonal.trim() !== '' || emailOther !== '') {
+                                                                                items.push({
+                                                                                    name: name,
+                                                                                    email: email,
+                                                                                    selected: i === 0
+                                                                                });
+                                                                            }
+
+                                                                            return true;
+                                                                        });
+
+
+                                                                        await setEmailToDropdownItems(e.target.value.trim() === '' ? [] : items);
+                                                                    }
+                                                                }).catch(async e => {
+                                                                    console.log('error getting emails', e);
+                                                                })
+                                                            }
+                                                        }
+                                                    }}
+                                                    onChange={async (e) => { await props.setAutomaticEmailsTo(e.target.value) }}
+                                                    value={props.automaticEmailsTo || ''}
+                                                />
+                                            </SwiperSlide>
+                                        </Swiper>
                                     </div>
 
                                     <Transition
@@ -3454,19 +3537,19 @@ function Customers(props) {
                                                                             className={mochiItemClasses}
                                                                             id={item.id}
                                                                             onClick={async () => {
-                                                                                let automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
-
                                                                                 if (item.email !== '' && isEmailValid(item.email)) {
-                                                                                    automaticEmails = { ...automaticEmails, automatic_emails_to: ((automaticEmails.automatic_emails_to || '') + ';' + (item.email + '|' + item.name)).trim() };
+                                                                                    if (tempAutomaticEmails.find(t => t.email === item.email && t.type === 'to') === undefined) {
+                                                                                        setTempAutomaticEmails([
+                                                                                            ...tempAutomaticEmails,
+                                                                                            {
+                                                                                                id: 0,
+                                                                                                name: item.name,
+                                                                                                email: item.email,
+                                                                                                type: 'to'
+                                                                                            }
+                                                                                        ])
+                                                                                    }
                                                                                     await props.setAutomaticEmailsTo('');
-
-                                                                                    await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
-
-                                                                                    $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-                                                                                        if (res.result === 'OK') {
-                                                                                            console.log(res);
-                                                                                        }
-                                                                                    });
 
                                                                                     setEmailToDropdownItems([]);
                                                                                     refAutomaticEmailsTo.current.focus();
@@ -3494,15 +3577,14 @@ function Customers(props) {
                                 <div className="input-toggle-container">
                                     <input type="checkbox" id={props.panelName + '-cbox-automatic-emails-booked-load-btn'}
                                         onChange={e => {
-                                            console.log('here');
-                                            let automatic_emails = (props.selectedCustomer?.automatic_emails || {});
-                                            automatic_emails.automatic_emails_booked_load = e.target.checked ? 1 : 0;
-                                            props.setSelectedCustomer({
-                                                ...props.selectedCustomer, automatic_emails: automatic_emails
-                                            });
-                                            validateAutomaticEmailsForSaving();
+                                            setTempAutomaticEmails(tempAutomaticEmails.map((t, i) => {
+                                                t.booked_load = e.target.checked ? 1 : 0;
+                                                return t;
+                                            }))
+
+                                            setTempBookedLoad(e.target.checked);
                                         }}
-                                        checked={(props.selectedCustomer?.automatic_emails?.automatic_emails_booked_load || 0) === 1} />
+                                        checked={tempBookedLoad} />
                                     <label htmlFor={props.panelName + '-cbox-automatic-emails-booked-load-btn'}>
                                         <div className="label-text">Booked Load</div>
                                         <div className="input-toggle-btn"></div>
@@ -3512,14 +3594,14 @@ function Customers(props) {
                                 <div className="input-toggle-container">
                                     <input type="checkbox" id={props.panelName + '-cbox-automatic-emails-check-calls-btn'}
                                         onChange={e => {
-                                            let automatic_emails = (props.selectedCustomer?.automatic_emails || {});
-                                            automatic_emails.automatic_emails_check_calls = e.target.checked ? 1 : 0;
-                                            props.setSelectedCustomer({
-                                                ...props.selectedCustomer, automatic_emails: automatic_emails
-                                            });
-                                            validateAutomaticEmailsForSaving();
+                                            setTempAutomaticEmails(tempAutomaticEmails.map((t, i) => {
+                                                t.check_calls = e.target.checked ? 1 : 0;
+                                                return t;
+                                            }))
+
+                                            setTempCheckCalls(e.target.checked);
                                         }}
-                                        checked={(props.selectedCustomer?.automatic_emails?.automatic_emails_check_calls || 0) === 1} />
+                                        checked={tempCheckCalls} />
                                     <label htmlFor={props.panelName + '-cbox-automatic-emails-check-calls-btn'}>
                                         <div className="label-text">Check Calls</div>
                                         <div className="input-toggle-btn"></div>
@@ -3527,289 +3609,274 @@ function Customers(props) {
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
-                            <div className="form-row">
-                                <div className="select-box-container" style={{ flexGrow: 1 }}>
+                            <div className="form-row" style={{ width: '100%' }}>
+                                <div className="select-box-container" style={{ width: 'calc(100% - 11.6rem - 5px)' }}>
                                     <div className="select-box-wrapper">
-                                        {
-                                            (props.selectedCustomer?.automatic_emails?.automatic_emails_cc || '').split(';').map((item, index) => {
-                                                if (item.trim() !== '') {
-                                                    let textToShow = item.split('|');
-
-                                                    return (
-                                                        <div key={index} style={{
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            fontSize: '0.7rem',
-                                                            backgroundColor: 'rgba(0,0,0,0.2)',
-                                                            padding: '2px 10px',
-                                                            borderRadius: '10px',
-                                                            marginRight: '2px',
-                                                            cursor: 'default'
-                                                        }} title={item}>
-                                                            <span className="fas fa-trash-alt" style={{ marginRight: '5px', cursor: 'pointer' }}
-                                                                onClick={() => {
-                                                                    let automatic_emails = props.selectedCustomer?.automatic_emails || {};
-                                                                    automatic_emails.automatic_emails_cc = automatic_emails.automatic_emails_cc.replace(item.toString(), '').trim();
-
-                                                                    automatic_emails.automatic_emails_cc = automatic_emails.automatic_emails_cc.replace(';;', ';').trim();
-
-                                                                    let checkingStart = true;
-                                                                    let checkingEnd = true;
-
-                                                                    while (checkingStart) {
-                                                                        if (automatic_emails.automatic_emails_cc.substr(0, 1) === ';') {
-                                                                            automatic_emails.automatic_emails_cc = automatic_emails.automatic_emails_cc.slice(1);
-                                                                        } else {
-                                                                            checkingStart = false;
-                                                                        }
-                                                                    }
-
-                                                                    while (checkingEnd) {
-                                                                        if (automatic_emails.automatic_emails_cc.substr(-1) === ';') {
-                                                                            automatic_emails.automatic_emails_cc = automatic_emails.automatic_emails_cc.slice(0, -1);
-                                                                        } else {
-                                                                            checkingEnd = false;
-                                                                        }
-                                                                    }
-
-                                                                    props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automatic_emails });
-                                                                    validateAutomaticEmailsForSaving();
-                                                                }}></span>
-                                                            <span className="automatic-email-inputted" style={{ whiteSpace: 'nowrap' }}>{
-                                                                textToShow.length > 0
-                                                                    ? textToShow[1] !== ''
-                                                                        ? textToShow[1] // name
-                                                                        : textToShow[0] // email
-                                                                    : textToShow[0] // email or blank
-                                                            }</span>
-                                                        </div>
-                                                    )
-                                                } else {
-                                                    return false;
-                                                }
-                                            })
-                                        }
-                                        <input type="text"
-                                            tabIndex={30 + props.tabTimes}
-                                            placeholder="E-mail Cc"
-                                            ref={refAutomaticEmailsCc}
-                                            onKeyDown={async (e) => {
-                                                let key = e.keyCode || e.which;
-                                                let automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
-                                                switch (key) {
-                                                    case 37: case 38: // arrow left | arrow up
-                                                        e.preventDefault();
-                                                        if (emailCcDropdownItems.length > 0) {
-                                                            let selectedIndex = emailCcDropdownItems.findIndex(item => item.selected);
-
-                                                            if (selectedIndex === -1) {
-                                                                await setEmailCcDropdownItems(emailCcDropdownItems.map((item, index) => {
-                                                                    item.selected = index === 0;
-                                                                    return item;
-                                                                }))
-                                                            } else {
-                                                                await setEmailCcDropdownItems(emailCcDropdownItems.map((item, index) => {
-                                                                    if (selectedIndex === 0) {
-                                                                        item.selected = index === (emailCcDropdownItems.length - 1);
-                                                                    } else {
-                                                                        item.selected = index === (selectedIndex - 1)
-                                                                    }
-                                                                    return item;
-                                                                }))
-                                                            }
-
-                                                            refEmailCcPopupItems.current.map((r, i) => {
-                                                                if (r && r.classList.contains('selected')) {
-                                                                    r.scrollIntoView({
-                                                                        behavior: 'auto',
-                                                                        block: 'center',
-                                                                        inline: 'nearest'
-                                                                    })
-                                                                }
-                                                                return true;
-                                                            });
-                                                        }
-                                                        break;
-
-                                                    case 39: case 40: // arrow right | arrow down
-                                                        e.preventDefault();
-                                                        if (emailCcDropdownItems.length > 0) {
-                                                            let selectedIndex = emailCcDropdownItems.findIndex(item => item.selected);
-
-                                                            if (selectedIndex === -1) {
-                                                                await setEmailCcDropdownItems(emailCcDropdownItems.map((item, index) => {
-                                                                    item.selected = index === 0;
-                                                                    return item;
-                                                                }))
-                                                            } else {
-                                                                await setEmailCcDropdownItems(emailCcDropdownItems.map((item, index) => {
-                                                                    if (selectedIndex === (emailCcDropdownItems.length - 1)) {
-                                                                        item.selected = index === 0;
-                                                                    } else {
-                                                                        item.selected = index === (selectedIndex + 1)
-                                                                    }
-                                                                    return item;
-                                                                }))
-                                                            }
-
-                                                            refEmailCcPopupItems.current.map((r, i) => {
-                                                                if (r && r.classList.contains('selected')) {
-                                                                    r.scrollIntoView({
-                                                                        behavior: 'auto',
-                                                                        block: 'center',
-                                                                        inline: 'nearest'
-                                                                    })
-                                                                }
-                                                                return true;
-                                                            });
-                                                        }
-                                                        break;
-
-                                                    case 27: // escape
-                                                        setEmailCcDropdownItems([]);
-                                                        break;
-
-                                                    case 13: // enter
-                                                        automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
-
-                                                        if (emailCcDropdownItems.length > 0 && emailCcDropdownItems.findIndex(item => item.selected) > -1) {
-                                                            let item = emailCcDropdownItems.find(el => el.selected);
-
-                                                            if (item.email !== '' && isEmailValid(item.email)) {
-                                                                automaticEmails = { ...automaticEmails, automatic_emails_cc: ((automaticEmails.automatic_emails_cc || '') + ';' + (item.email + '|' + item.name)).trim() };
-                                                                await props.setAutomaticEmailsCc('');
-
-                                                                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
-
-                                                                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-                                                                    if (res.result === 'OK') {
-                                                                        console.log(res);
-                                                                    }
-                                                                });
-
-                                                                setEmailCcDropdownItems([]);
-                                                                refAutomaticEmailsCc.current.focus();
-                                                            }
-                                                        } else if (emailToDropdownItems.length === 0) {
-                                                            if (isEmailValid((props.automaticEmailsCc || ''))) {
-                                                                automaticEmails = { ...automaticEmails, automatic_emails_cc: ((automaticEmails.automatic_emails_cc || '') + ';' + (props.automaticEmailsCc + '|')).trim() };
-                                                                await props.setAutomaticEmailsTo('');
-
-                                                                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
-
-                                                                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-                                                                    if (res.result === 'OK') {
-                                                                        console.log(res);
-                                                                    }
-                                                                });
-
-                                                                setEmailCcDropdownItems([]);
-                                                                refAutomaticEmailsCc.current.focus();
-                                                            }
-                                                        }
-                                                        break;
-
-                                                    case 9: // tab
-                                                        automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
-
-                                                        if (emailCcDropdownItems.length > 0) {
-                                                            let item = emailCcDropdownItems.find(el => el.selected);
-
-                                                            if (item.email !== '' && isEmailValid(item.email)) {
-                                                                e.preventDefault();
-
-                                                                automaticEmails = { ...automaticEmails, automatic_emails_cc: ((automaticEmails.automatic_emails_cc || '') + ';' + (item.email + '|' + item.name)).trim() };
-                                                                await props.setAutomaticEmailsCc('');
-
-                                                                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
-
-                                                                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-                                                                    if (res.result === 'OK') {
-                                                                        console.log(res);
-                                                                    }
-                                                                });
-
-                                                                setEmailCcDropdownItems([]);
-                                                                refAutomaticEmailsCc.current.focus();
-                                                            }
-                                                        } else if (emailToDropdownItems.length === 0) {
-                                                            if (isEmailValid((props.automaticEmailsCc || ''))) {
-                                                                e.preventDefault();
-
-                                                                automaticEmails = { ...automaticEmails, automatic_emails_cc: ((automaticEmails.automatic_emails_cc || '') + ';' + (props.automaticEmailsCc + '|')).trim() };
-                                                                await props.setAutomaticEmailsTo('');
-
-                                                                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
-
-                                                                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-                                                                    if (res.result === 'OK') {
-                                                                        console.log(res);
-                                                                    }
-                                                                });
-
-                                                                setEmailCcDropdownItems([]);
-                                                                refAutomaticEmailsCc.current.focus();
-                                                            }
-                                                        }
-                                                        break;
-
-                                                    default:
-                                                        break;
-                                                }
-                                            }}
-                                            onInput={async (e) => {
-                                                await props.setAutomaticEmailsCc(e.target.value);
-
-                                                if ((props.selectedCustomer?.id || 0) > 0) {
-                                                    if (e.target.value.trim() === '') {
-                                                        setEmailCcDropdownItems([]);
+                                        <Swiper slidesPerView={1}>
+                                            {
+                                                tempAutomaticEmails.map((item, index) => {
+                                                    if (item.type === 'cc') {
+                                                        return (
+                                                            <SwiperSlide>
+                                                                <div key={index} style={{
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    fontSize: '0.7rem',
+                                                                    backgroundColor: 'rgba(0,0,0,0.2)',
+                                                                    padding: '2px 10px',
+                                                                    borderRadius: '10px',
+                                                                    marginRight: '2px',
+                                                                    cursor: 'default'
+                                                                }} title={item}>
+                                                                    <span className="fas fa-trash-alt" style={{ marginRight: '5px', cursor: 'pointer' }}
+                                                                        onClick={() => {
+                                                                            setTempAutomaticEmails(tempAutomaticEmails.filter((x, i) => i !== index));
+                                                                            refAutomaticEmailsCc.current.focus();
+                                                                        }}></span>
+                                                                    <span className="automatic-email-inputted" style={{ whiteSpace: 'nowrap' }}>{
+                                                                        item.name !== ''
+                                                                            ? item.name
+                                                                            : item.email
+                                                                    }</span>
+                                                                </div>
+                                                            </SwiperSlide>
+                                                        )
                                                     } else {
-                                                        $.post(props.serverUrl + '/getContactsByEmailOrName', {
-                                                            email: e.target.value.trim(),
-                                                            customer_id: props.selectedCustomer?.id
-                                                        }).then(async res => {
-                                                            if (res.result === 'OK') {
-                                                                let items = []
-                                                                res.contacts.map((c, i) => {
-                                                                    let emailWork = c.email_work;
-                                                                    let emailPersonal = c.email_personal;
-                                                                    let emailOther = c.email_other;
-                                                                    let firstName = c.first_name;
-                                                                    let lastName = c.last_name;
-
-                                                                    let name = firstName + ' ' + lastName;
-
-                                                                    let email = emailWork.indexOf(e.target.value.trim()) > -1 ? emailWork :
-                                                                        emailPersonal.indexOf(e.target.value.trim()) ? emailPersonal : emailOther
-
-                                                                    if (email === '') {
-                                                                        email = emailWork !== '' ? emailWork :
-                                                                            emailPersonal !== '' ? emailPersonal : emailOther;
-                                                                    }
-
-                                                                    if (emailWork.trim() !== '' || emailPersonal.trim() !== '' || emailOther !== '') {
-                                                                        items.push({
-                                                                            name: name,
-                                                                            email: email,
-                                                                            selected: i === 0
-                                                                        });
-                                                                    }
-
-                                                                    return true;
-                                                                });
-
-
-                                                                await setEmailCcDropdownItems(e.target.value.trim() === '' ? [] : items);
-                                                            }
-                                                        }).catch(async e => {
-                                                            console.log('error getting emails', e);
-                                                        })
+                                                        return false;
                                                     }
-                                                }
-                                            }}
-                                            onChange={async (e) => { await props.setAutomaticEmailsCc(e.target.value) }}
-                                            value={props.automaticEmailsCc || ''}
-                                        />
+                                                })
+                                            }
+                                            <SwiperSlide>
+                                                <input type="text"
+                                                    tabIndex={30 + props.tabTimes}
+                                                    placeholder="E-mail Cc"
+                                                    ref={refAutomaticEmailsCc}
+                                                    onKeyDown={async (e) => {
+                                                        let key = e.keyCode || e.which;
+                                                        switch (key) {
+                                                            case 37: case 38: // arrow left | arrow up
+                                                                e.preventDefault();
+                                                                if (emailCcDropdownItems.length > 0) {
+                                                                    let selectedIndex = emailCcDropdownItems.findIndex(item => item.selected);
+
+                                                                    if (selectedIndex === -1) {
+                                                                        await setEmailCcDropdownItems(emailCcDropdownItems.map((item, index) => {
+                                                                            item.selected = index === 0;
+                                                                            return item;
+                                                                        }))
+                                                                    } else {
+                                                                        await setEmailCcDropdownItems(emailCcDropdownItems.map((item, index) => {
+                                                                            if (selectedIndex === 0) {
+                                                                                item.selected = index === (emailCcDropdownItems.length - 1);
+                                                                            } else {
+                                                                                item.selected = index === (selectedIndex - 1)
+                                                                            }
+                                                                            return item;
+                                                                        }))
+                                                                    }
+
+                                                                    refEmailCcPopupItems.current.map((r, i) => {
+                                                                        if (r && r.classList.contains('selected')) {
+                                                                            r.scrollIntoView({
+                                                                                behavior: 'auto',
+                                                                                block: 'center',
+                                                                                inline: 'nearest'
+                                                                            })
+                                                                        }
+                                                                        return true;
+                                                                    });
+                                                                }
+                                                                break;
+
+                                                            case 39: case 40: // arrow right | arrow down
+                                                                e.preventDefault();
+                                                                if (emailCcDropdownItems.length > 0) {
+                                                                    let selectedIndex = emailCcDropdownItems.findIndex(item => item.selected);
+
+                                                                    if (selectedIndex === -1) {
+                                                                        await setEmailCcDropdownItems(emailCcDropdownItems.map((item, index) => {
+                                                                            item.selected = index === 0;
+                                                                            return item;
+                                                                        }))
+                                                                    } else {
+                                                                        await setEmailCcDropdownItems(emailCcDropdownItems.map((item, index) => {
+                                                                            if (selectedIndex === (emailCcDropdownItems.length - 1)) {
+                                                                                item.selected = index === 0;
+                                                                            } else {
+                                                                                item.selected = index === (selectedIndex + 1)
+                                                                            }
+                                                                            return item;
+                                                                        }))
+                                                                    }
+
+                                                                    refEmailCcPopupItems.current.map((r, i) => {
+                                                                        if (r && r.classList.contains('selected')) {
+                                                                            r.scrollIntoView({
+                                                                                behavior: 'auto',
+                                                                                block: 'center',
+                                                                                inline: 'nearest'
+                                                                            })
+                                                                        }
+                                                                        return true;
+                                                                    });
+                                                                }
+                                                                break;
+
+                                                            case 27: // escape
+                                                                setEmailCcDropdownItems([]);
+                                                                break;
+
+                                                            case 13: // enter
+                                                                // automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
+
+                                                                if (emailCcDropdownItems.length > 0 && emailCcDropdownItems.findIndex(item => item.selected) > -1) {
+                                                                    let item = emailCcDropdownItems.find(el => el.selected);
+
+                                                                    if (item.email !== '' && isEmailValid(item.email)) {
+                                                                        if (tempAutomaticEmails.find(t => t.email === item.email && t.type === 'cc') === undefined) {
+                                                                            setTempAutomaticEmails([
+                                                                                ...tempAutomaticEmails,
+                                                                                {
+                                                                                    id: 0,
+                                                                                    name: item.name,
+                                                                                    email: item.email,
+                                                                                    type: 'cc'
+                                                                                }
+                                                                            ])
+                                                                        }
+                                                                        await props.setAutomaticEmailsCc('');
+
+                                                                        setEmailCcDropdownItems([]);
+                                                                        refAutomaticEmailsCc.current.focus();
+                                                                    }
+                                                                } else if (emailToDropdownItems.length === 0) {
+                                                                    if (isEmailValid((props.automaticEmailsCc || ''))) {
+                                                                        if (tempAutomaticEmails.find(t => t.email === props.automaticEmailsCc && t.type === 'cc') === undefined) {
+                                                                            setTempAutomaticEmails([
+                                                                                ...tempAutomaticEmails,
+                                                                                {
+                                                                                    id: 0,
+                                                                                    name: '',
+                                                                                    email: props.automaticEmailsCc,
+                                                                                    type: 'cc'
+                                                                                }
+                                                                            ])
+                                                                        }
+                                                                        await props.setAutomaticEmailsCc('');
+
+                                                                        setEmailCcDropdownItems([]);
+                                                                        refAutomaticEmailsCc.current.focus();
+                                                                    }
+                                                                }
+                                                                break;
+
+                                                            case 9: // tab
+                                                                // automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
+
+                                                                if (emailCcDropdownItems.length > 0) {
+                                                                    let item = emailCcDropdownItems.find(el => el.selected);
+
+                                                                    if (item.email !== '' && isEmailValid(item.email)) {
+                                                                        e.preventDefault();
+
+                                                                        if (tempAutomaticEmails.find(t => t.email === item.email && t.type === 'cc') === undefined) {
+                                                                            setTempAutomaticEmails([
+                                                                                ...tempAutomaticEmails,
+                                                                                {
+                                                                                    id: 0,
+                                                                                    name: item.name,
+                                                                                    email: item.email,
+                                                                                    type: 'cc'
+                                                                                }
+                                                                            ])
+                                                                        }
+                                                                        await props.setAutomaticEmailsCc('');
+
+                                                                        setEmailCcDropdownItems([]);
+                                                                        refAutomaticEmailsCc.current.focus();
+                                                                    }
+                                                                } else if (emailToDropdownItems.length === 0) {
+                                                                    if (isEmailValid((props.automaticEmailsCc || ''))) {
+                                                                        e.preventDefault();
+
+                                                                        if (tempAutomaticEmails.find(t => t.email === props.automaticEmailsCc && t.type === 'cc') === undefined) {
+                                                                            setTempAutomaticEmails([
+                                                                                ...tempAutomaticEmails,
+                                                                                {
+                                                                                    id: 0,
+                                                                                    name: '',
+                                                                                    email: props.automaticEmailsCc,
+                                                                                    type: 'cc'
+                                                                                }
+                                                                            ])
+                                                                        }
+                                                                        await props.setAutomaticEmailsCc('');
+
+                                                                        setEmailCcDropdownItems([]);
+                                                                        refAutomaticEmailsCc.current.focus();
+                                                                    }
+                                                                }
+                                                                break;
+
+                                                            default:
+                                                                break;
+                                                        }
+                                                    }}
+                                                    onInput={async (e) => {
+                                                        await props.setAutomaticEmailsCc(e.target.value);
+
+                                                        if ((props.selectedCustomer?.id || 0) > 0) {
+                                                            if (e.target.value.trim() === '') {
+                                                                setEmailCcDropdownItems([]);
+                                                            } else {
+                                                                $.post(props.serverUrl + '/getContactsByEmailOrName', {
+                                                                    email: e.target.value.trim(),
+                                                                    customer_id: props.selectedCustomer?.id
+                                                                }).then(async res => {
+                                                                    if (res.result === 'OK') {
+                                                                        let items = []
+                                                                        res.contacts.map((c, i) => {
+                                                                            let emailWork = c.email_work;
+                                                                            let emailPersonal = c.email_personal;
+                                                                            let emailOther = c.email_other;
+                                                                            let firstName = c.first_name;
+                                                                            let lastName = c.last_name;
+
+                                                                            let name = firstName + ' ' + lastName;
+
+                                                                            let email = emailWork.indexOf(e.target.value.trim()) > -1 ? emailWork :
+                                                                                emailPersonal.indexOf(e.target.value.trim()) ? emailPersonal : emailOther
+
+                                                                            if (email === '') {
+                                                                                email = emailWork !== '' ? emailWork :
+                                                                                    emailPersonal !== '' ? emailPersonal : emailOther;
+                                                                            }
+
+                                                                            if (emailWork.trim() !== '' || emailPersonal.trim() !== '' || emailOther !== '') {
+                                                                                items.push({
+                                                                                    name: name,
+                                                                                    email: email,
+                                                                                    selected: i === 0
+                                                                                });
+                                                                            }
+
+                                                                            return true;
+                                                                        });
+
+
+                                                                        await setEmailCcDropdownItems(e.target.value.trim() === '' ? [] : items);
+                                                                    }
+                                                                }).catch(async e => {
+                                                                    console.log('error getting emails', e);
+                                                                })
+                                                            }
+                                                        }
+                                                    }}
+                                                    onChange={async (e) => { await props.setAutomaticEmailsCc(e.target.value) }}
+                                                    value={props.automaticEmailsCc || ''}
+                                                />
+                                            </SwiperSlide>
+                                        </Swiper>
                                     </div>
 
                                     <Transition
@@ -3848,19 +3915,19 @@ function Customers(props) {
                                                                             className={mochiItemClasses}
                                                                             id={item.id}
                                                                             onClick={async () => {
-                                                                                let automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
-
                                                                                 if (item.email !== '' && isEmailValid(item.email)) {
-                                                                                    automaticEmails = { ...automaticEmails, automatic_emails_cc: ((automaticEmails.automatic_emails_cc || '') + ';' + (item.email + '|' + item.name)).trim() };
+                                                                                    if (tempAutomaticEmails.find(t => t.email === item.email && t.type === 'cc') === undefined) {
+                                                                                        setTempAutomaticEmails([
+                                                                                            ...tempAutomaticEmails,
+                                                                                            {
+                                                                                                id: 0,
+                                                                                                name: item.name,
+                                                                                                email: item.email,
+                                                                                                type: 'cc'
+                                                                                            }
+                                                                                        ])
+                                                                                    }
                                                                                     await props.setAutomaticEmailsCc('');
-
-                                                                                    await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
-
-                                                                                    $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-                                                                                        if (res.result === 'OK') {
-                                                                                            console.log(res);
-                                                                                        }
-                                                                                    });
 
                                                                                     setEmailCcDropdownItems([]);
                                                                                     refAutomaticEmailsCc.current.focus();
@@ -3888,14 +3955,14 @@ function Customers(props) {
                                 <div className="input-toggle-container">
                                     <input type="checkbox" id={props.panelName + '-cbox-automatic-emails-carrier-arrival-shipper-btn'}
                                         onChange={e => {
-                                            let automatic_emails = (props.selectedCustomer?.automatic_emails || {});
-                                            automatic_emails.automatic_emails_carrier_arrival_shipper = e.target.checked ? 1 : 0;
-                                            props.setSelectedCustomer({
-                                                ...props.selectedCustomer, automatic_emails: automatic_emails
-                                            });
-                                            validateAutomaticEmailsForSaving();
+                                            setTempAutomaticEmails(tempAutomaticEmails.map((t, i) => {
+                                                t.carrier_arrival_shipper = e.target.checked ? 1 : 0;
+                                                return t;
+                                            }))
+
+                                            setTempCarrierArrivalShipper(e.target.checked);
                                         }}
-                                        checked={(props.selectedCustomer?.automatic_emails?.automatic_emails_carrier_arrival_shipper || 0) === 1} />
+                                        checked={tempCarrierArrivalShipper} />
                                     <label htmlFor={props.panelName + '-cbox-automatic-emails-carrier-arrival-shipper-btn'}>
                                         <div className="label-text">Carrier Arrival Shipper</div>
                                         <div className="input-toggle-btn"></div>
@@ -3905,14 +3972,14 @@ function Customers(props) {
                                 <div className="input-toggle-container">
                                     <input type="checkbox" id={props.panelName + '-cbox-automatic-emails-carrier-arrival-consignee-btn'}
                                         onChange={e => {
-                                            let automatic_emails = (props.selectedCustomer?.automatic_emails || {});
-                                            automatic_emails.automatic_emails_carrier_arrival_consignee = e.target.checked ? 1 : 0;
-                                            props.setSelectedCustomer({
-                                                ...props.selectedCustomer, automatic_emails: automatic_emails
-                                            });
-                                            validateAutomaticEmailsForSaving();
+                                            setTempAutomaticEmails(tempAutomaticEmails.map((t, i) => {
+                                                t.carrier_arrival_consignee = e.target.checked ? 1 : 0;
+                                                return t;
+                                            }))
+
+                                            setTempCarrierArrivalConsignee(e.target.checked);
                                         }}
-                                        checked={(props.selectedCustomer?.automatic_emails?.automatic_emails_carrier_arrival_consignee || 0) === 1} />
+                                        checked={tempCarrierArrivalConsignee} />
                                     <label htmlFor={props.panelName + '-cbox-automatic-emails-carrier-arrival-consignee-btn'}>
                                         <div className="label-text">Carrier Arrival Consignee</div>
                                         <div className="input-toggle-btn"></div>
@@ -3920,288 +3987,272 @@ function Customers(props) {
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
-                            <div className="form-row">
-                                <div className="select-box-container" style={{ flexGrow: 1 }}>
+                            <div className="form-row" style={{ width: '100%' }}>
+                                <div className="select-box-container" style={{ width: 'calc(100% - 11.6rem - 5px)' }}>
+
                                     <div className="select-box-wrapper">
-                                        {
-                                            (props.selectedCustomer?.automatic_emails?.automatic_emails_bcc || '').split(';').map((item, index) => {
-                                                if (item.trim() !== '') {
-                                                    let textToShow = item.split('|');
-
-                                                    return (
-                                                        <div key={index} style={{
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            fontSize: '0.7rem',
-                                                            backgroundColor: 'rgba(0,0,0,0.2)',
-                                                            padding: '2px 10px',
-                                                            borderRadius: '10px',
-                                                            marginRight: '2px',
-                                                            cursor: 'default'
-                                                        }} title={item}>
-                                                            <span className="fas fa-trash-alt" style={{ marginRight: '5px', cursor: 'pointer' }}
-                                                                onClick={() => {
-                                                                    let automatic_emails = props.selectedCustomer?.automatic_emails || {};
-                                                                    automatic_emails.automatic_emails_bcc = automatic_emails.automatic_emails_bcc.replace(item.toString(), '').trim();
-                                                                    automatic_emails.automatic_emails_bcc = automatic_emails.automatic_emails_bcc.replace(';;', ';').trim();
-
-                                                                    let checkingStart = true;
-                                                                    let checkingEnd = true;
-
-                                                                    while (checkingStart) {
-                                                                        if (automatic_emails.automatic_emails_bcc.substr(0, 1) === ';') {
-                                                                            automatic_emails.automatic_emails_bcc = automatic_emails.automatic_emails_bcc.slice(1);
-                                                                        } else {
-                                                                            checkingStart = false;
-                                                                        }
-                                                                    }
-
-                                                                    while (checkingEnd) {
-                                                                        if (automatic_emails.automatic_emails_bcc.substr(-1) === ';') {
-                                                                            automatic_emails.automatic_emails_bcc = automatic_emails.automatic_emails_bcc.slice(0, -1);
-                                                                        } else {
-                                                                            checkingEnd = false;
-                                                                        }
-                                                                    }
-
-                                                                    props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automatic_emails });
-                                                                    validateAutomaticEmailsForSaving();
-                                                                }}></span>
-                                                            <span className="automatic-email-inputted" style={{ whiteSpace: 'nowrap' }}>{
-                                                                textToShow.length > 0
-                                                                    ? textToShow[1] !== ''
-                                                                        ? textToShow[1] // name
-                                                                        : textToShow[0] // email
-                                                                    : textToShow[0] // email or blank
-                                                            }</span>
-                                                        </div>
-                                                    )
-                                                } else {
-                                                    return false;
-                                                }
-                                            })
-                                        }
-                                        <input type="text"
-                                            tabIndex={31 + props.tabTimes}
-                                            placeholder="E-mail Bcc"
-                                            ref={refAutomaticEmailsBcc}
-                                            onKeyDown={async (e) => {
-                                                let key = e.keyCode || e.which;
-                                                let automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
-                                                switch (key) {
-                                                    case 37: case 38: // arrow left | arrow up
-                                                        e.preventDefault();
-                                                        if (emailBccDropdownItems.length > 0) {
-                                                            let selectedIndex = emailBccDropdownItems.findIndex(item => item.selected);
-
-                                                            if (selectedIndex === -1) {
-                                                                await setEmailBccDropdownItems(emailBccDropdownItems.map((item, index) => {
-                                                                    item.selected = index === 0;
-                                                                    return item;
-                                                                }))
-                                                            } else {
-                                                                await setEmailBccDropdownItems(emailBccDropdownItems.map((item, index) => {
-                                                                    if (selectedIndex === 0) {
-                                                                        item.selected = index === (emailBccDropdownItems.length - 1);
-                                                                    } else {
-                                                                        item.selected = index === (selectedIndex - 1)
-                                                                    }
-                                                                    return item;
-                                                                }))
-                                                            }
-
-                                                            refEmailBccPopupItems.current.map((r, i) => {
-                                                                if (r && r.classList.contains('selected')) {
-                                                                    r.scrollIntoView({
-                                                                        behavior: 'auto',
-                                                                        block: 'center',
-                                                                        inline: 'nearest'
-                                                                    })
-                                                                }
-                                                                return true;
-                                                            });
-                                                        }
-                                                        break;
-
-                                                    case 39: case 40: // arrow right | arrow down
-                                                        e.preventDefault();
-                                                        if (emailBccDropdownItems.length > 0) {
-                                                            let selectedIndex = emailBccDropdownItems.findIndex(item => item.selected);
-
-                                                            if (selectedIndex === -1) {
-                                                                await setEmailBccDropdownItems(emailBccDropdownItems.map((item, index) => {
-                                                                    item.selected = index === 0;
-                                                                    return item;
-                                                                }))
-                                                            } else {
-                                                                await setEmailBccDropdownItems(emailBccDropdownItems.map((item, index) => {
-                                                                    if (selectedIndex === (emailBccDropdownItems.length - 1)) {
-                                                                        item.selected = index === 0;
-                                                                    } else {
-                                                                        item.selected = index === (selectedIndex + 1)
-                                                                    }
-                                                                    return item;
-                                                                }))
-                                                            }
-
-                                                            refEmailBccPopupItems.current.map((r, i) => {
-                                                                if (r && r.classList.contains('selected')) {
-                                                                    r.scrollIntoView({
-                                                                        behavior: 'auto',
-                                                                        block: 'center',
-                                                                        inline: 'nearest'
-                                                                    })
-                                                                }
-                                                                return true;
-                                                            });
-                                                        }
-                                                        break;
-
-                                                    case 27: // escape
-                                                        setEmailBccDropdownItems([]);
-                                                        break;
-
-                                                    case 13: // enter
-                                                        automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
-
-                                                        if (emailBccDropdownItems.length > 0 && emailBccDropdownItems.findIndex(item => item.selected) > -1) {
-                                                            let item = emailBccDropdownItems.find(el => el.selected);
-
-                                                            if (item.email !== '' && isEmailValid(item.email)) {
-                                                                automaticEmails = { ...automaticEmails, automatic_emails_bcc: ((automaticEmails.automatic_emails_bcc || '') + ';' + (item.email + '|' + item.name)).trim() };
-                                                                await props.setAutomaticEmailsBcc('');
-
-                                                                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
-
-                                                                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-                                                                    if (res.result === 'OK') {
-                                                                        console.log(res);
-                                                                    }
-                                                                });
-
-                                                                setEmailBccDropdownItems([]);
-                                                                refAutomaticEmailsBcc.current.focus();
-                                                            }
-                                                        } else if (emailBccDropdownItems.length === 0) {
-                                                            if (isEmailValid((props.automaticEmailsBcc || ''))) {
-                                                                automaticEmails = { ...automaticEmails, automatic_emails_bcc: ((automaticEmails.automatic_emails_bcc || '') + ';' + (props.automaticEmailsBcc + '|')).trim() };
-                                                                await props.setAutomaticEmailsTo('');
-
-                                                                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
-
-                                                                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-                                                                    if (res.result === 'OK') {
-                                                                        console.log(res);
-                                                                    }
-                                                                });
-
-                                                                setEmailBccDropdownItems([]);
-                                                                refAutomaticEmailsBcc.current.focus();
-                                                            }
-                                                        }
-                                                        break;
-
-                                                    case 9: // tab
-                                                        automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
-
-                                                        if (emailBccDropdownItems.length > 0) {
-                                                            let item = emailBccDropdownItems.find(el => el.selected);
-
-                                                            if (item.email !== '' && isEmailValid(item.email)) {
-                                                                e.preventDefault();
-
-                                                                automaticEmails = { ...automaticEmails, automatic_emails_bcc: ((automaticEmails.automatic_emails_bcc || '') + ';' + (item.email + '|' + item.name)).trim() };
-                                                                await props.setAutomaticEmailsBcc('');
-
-                                                                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
-
-                                                                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-                                                                    if (res.result === 'OK') {
-                                                                        console.log(res);
-                                                                    }
-                                                                });
-
-                                                                setEmailBccDropdownItems([]);
-                                                                refAutomaticEmailsBcc.current.focus();
-                                                            }
-                                                        } else if (emailBccDropdownItems.length === 0) {
-                                                            if (isEmailValid((props.automaticEmailsBcc || ''))) {
-                                                                e.preventDefault();
-
-                                                                automaticEmails = { ...automaticEmails, automatic_emails_bcc: ((automaticEmails.automatic_emails_bcc || '') + ';' + (props.automaticEmailsBcc + '|')).trim() };
-                                                                await props.setAutomaticEmailsTo('');
-
-                                                                await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
-
-                                                                $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-                                                                    if (res.result === 'OK') {
-                                                                        console.log(res);
-                                                                    }
-                                                                });
-
-                                                                setEmailBccDropdownItems([]);
-                                                                refAutomaticEmailsBcc.current.focus();
-                                                            }
-                                                        }
-                                                        break;
-
-                                                    default:
-                                                        break;
-                                                }
-                                            }}
-                                            onInput={async (e) => {
-                                                await props.setAutomaticEmailsBcc(e.target.value);
-
-                                                if ((props.selectedCustomer?.id || 0) > 0) {
-                                                    if (e.target.value.trim() === '') {
-                                                        setEmailBccDropdownItems([]);
+                                        <Swiper slidesPerView={1}>
+                                            {
+                                                tempAutomaticEmails.map((item, index) => {
+                                                    if (item.type === 'bcc') {
+                                                        return (
+                                                            <SwiperSlide>
+                                                                <div key={index} style={{
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    fontSize: '0.7rem',
+                                                                    backgroundColor: 'rgba(0,0,0,0.2)',
+                                                                    padding: '2px 10px',
+                                                                    borderRadius: '10px',
+                                                                    marginRight: '2px',
+                                                                    cursor: 'default'
+                                                                }} title={item}>
+                                                                    <span className="fas fa-trash-alt" style={{ marginRight: '5px', cursor: 'pointer' }}
+                                                                        onClick={() => {
+                                                                            setTempAutomaticEmails(tempAutomaticEmails.filter((x, i) => i !== index));
+                                                                            refAutomaticEmailsBcc.current.focus();
+                                                                        }}></span>
+                                                                    <span className="automatic-email-inputted" style={{ whiteSpace: 'nowrap' }}>{
+                                                                        item.name !== ''
+                                                                            ? item.name
+                                                                            : item.email
+                                                                    }</span>
+                                                                </div>
+                                                            </SwiperSlide>
+                                                        )
                                                     } else {
-                                                        $.post(props.serverUrl + '/getContactsByEmailOrName', {
-                                                            email: e.target.value.trim(),
-                                                            customer_id: props.selectedCustomer?.id
-                                                        }).then(async res => {
-                                                            if (res.result === 'OK') {
-                                                                let items = []
-                                                                res.contacts.map((c, i) => {
-                                                                    let emailWork = c.email_work;
-                                                                    let emailPersonal = c.email_personal;
-                                                                    let emailOther = c.email_other;
-                                                                    let firstName = c.first_name;
-                                                                    let lastName = c.last_name;
-
-                                                                    let name = firstName + ' ' + lastName;
-
-                                                                    let email = emailWork.indexOf(e.target.value.trim()) > -1 ? emailWork :
-                                                                        emailPersonal.indexOf(e.target.value.trim()) ? emailPersonal : emailOther
-
-                                                                    if (email === '') {
-                                                                        email = emailWork !== '' ? emailWork :
-                                                                            emailPersonal !== '' ? emailPersonal : emailOther;
-                                                                    }
-
-                                                                    if (emailWork.trim() !== '' || emailPersonal.trim() !== '' || emailOther !== '') {
-                                                                        items.push({
-                                                                            name: name,
-                                                                            email: email,
-                                                                            selected: i === 0
-                                                                        });
-                                                                    }
-
-                                                                    return true;
-                                                                });
-
-
-                                                                await setEmailBccDropdownItems(e.target.value.trim() === '' ? [] : items);
-                                                            }
-                                                        }).catch(async e => {
-                                                            console.log('error getting emails', e);
-                                                        })
+                                                        return false;
                                                     }
-                                                }
-                                            }}
-                                            onChange={async (e) => { await props.setAutomaticEmailsBcc(e.target.value) }}
-                                            value={props.automaticEmailsBcc || ''}
-                                        />
+                                                })
+                                            }
+                                            <SwiperSlide>
+                                                <input type="text"
+                                                    tabIndex={31 + props.tabTimes}
+                                                    placeholder="E-mail Bcc"
+                                                    ref={refAutomaticEmailsBcc}
+                                                    onKeyDown={async (e) => {
+                                                        let key = e.keyCode || e.which;
+                                                        let automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
+                                                        switch (key) {
+                                                            case 37: case 38: // arrow left | arrow up
+                                                                e.preventDefault();
+                                                                if (emailBccDropdownItems.length > 0) {
+                                                                    let selectedIndex = emailBccDropdownItems.findIndex(item => item.selected);
+
+                                                                    if (selectedIndex === -1) {
+                                                                        await setEmailBccDropdownItems(emailBccDropdownItems.map((item, index) => {
+                                                                            item.selected = index === 0;
+                                                                            return item;
+                                                                        }))
+                                                                    } else {
+                                                                        await setEmailBccDropdownItems(emailBccDropdownItems.map((item, index) => {
+                                                                            if (selectedIndex === 0) {
+                                                                                item.selected = index === (emailBccDropdownItems.length - 1);
+                                                                            } else {
+                                                                                item.selected = index === (selectedIndex - 1)
+                                                                            }
+                                                                            return item;
+                                                                        }))
+                                                                    }
+
+                                                                    refEmailBccPopupItems.current.map((r, i) => {
+                                                                        if (r && r.classList.contains('selected')) {
+                                                                            r.scrollIntoView({
+                                                                                behavior: 'auto',
+                                                                                block: 'center',
+                                                                                inline: 'nearest'
+                                                                            })
+                                                                        }
+                                                                        return true;
+                                                                    });
+                                                                }
+                                                                break;
+
+                                                            case 39: case 40: // arrow right | arrow down
+                                                                e.preventDefault();
+                                                                if (emailBccDropdownItems.length > 0) {
+                                                                    let selectedIndex = emailBccDropdownItems.findIndex(item => item.selected);
+
+                                                                    if (selectedIndex === -1) {
+                                                                        await setEmailBccDropdownItems(emailBccDropdownItems.map((item, index) => {
+                                                                            item.selected = index === 0;
+                                                                            return item;
+                                                                        }))
+                                                                    } else {
+                                                                        await setEmailBccDropdownItems(emailBccDropdownItems.map((item, index) => {
+                                                                            if (selectedIndex === (emailBccDropdownItems.length - 1)) {
+                                                                                item.selected = index === 0;
+                                                                            } else {
+                                                                                item.selected = index === (selectedIndex + 1)
+                                                                            }
+                                                                            return item;
+                                                                        }))
+                                                                    }
+
+                                                                    refEmailBccPopupItems.current.map((r, i) => {
+                                                                        if (r && r.classList.contains('selected')) {
+                                                                            r.scrollIntoView({
+                                                                                behavior: 'auto',
+                                                                                block: 'center',
+                                                                                inline: 'nearest'
+                                                                            })
+                                                                        }
+                                                                        return true;
+                                                                    });
+                                                                }
+                                                                break;
+
+                                                            case 27: // escape
+                                                                setEmailBccDropdownItems([]);
+                                                                break;
+
+                                                            case 13: // enter
+                                                                if (emailBccDropdownItems.length > 0 && emailBccDropdownItems.findIndex(item => item.selected) > -1) {
+                                                                    let item = emailBccDropdownItems.find(el => el.selected);
+
+                                                                    if (item.email !== '' && isEmailValid(item.email)) {
+                                                                        if (tempAutomaticEmails.find(t => t.email === item.email && t.type === 'bcc') === undefined) {
+                                                                            setTempAutomaticEmails([
+                                                                                ...tempAutomaticEmails,
+                                                                                {
+                                                                                    id: 0,
+                                                                                    name: item.name,
+                                                                                    email: item.email,
+                                                                                    type: 'bcc'
+                                                                                }
+                                                                            ])
+                                                                        }
+                                                                        await props.setAutomaticEmailsBcc('');
+
+                                                                        setEmailBccDropdownItems([]);
+                                                                        refAutomaticEmailsBcc.current.focus();
+                                                                    }
+                                                                } else if (emailBccDropdownItems.length === 0) {
+                                                                    if (isEmailValid((props.automaticEmailsBcc || ''))) {
+                                                                        if (tempAutomaticEmails.find(t => t.email === props.automaticEmailsBcc && t.type === 'bcc') === undefined) {
+                                                                            setTempAutomaticEmails([
+                                                                                ...tempAutomaticEmails,
+                                                                                {
+                                                                                    id: 0,
+                                                                                    name: '',
+                                                                                    email: props.automaticEmailsBcc,
+                                                                                    type: 'bcc'
+                                                                                }
+                                                                            ])
+                                                                        }
+                                                                        await props.setAutomaticEmailsBcc('');
+
+                                                                        setEmailBccDropdownItems([]);
+                                                                        refAutomaticEmailsBcc.current.focus();
+                                                                    }
+                                                                }
+                                                                break;
+
+                                                            case 9: // tab
+                                                                if (emailBccDropdownItems.length > 0) {
+                                                                    let item = emailBccDropdownItems.find(el => el.selected);
+
+                                                                    if (item.email !== '' && isEmailValid(item.email)) {
+                                                                        e.preventDefault();
+
+                                                                        if (tempAutomaticEmails.find(t => t.email === item.email && t.type === 'bcc') === undefined) {
+                                                                            setTempAutomaticEmails([
+                                                                                ...tempAutomaticEmails,
+                                                                                {
+                                                                                    id: 0,
+                                                                                    name: item.name,
+                                                                                    email: item.email,
+                                                                                    type: 'bcc'
+                                                                                }
+                                                                            ])
+                                                                        }
+                                                                        await props.setAutomaticEmailsBcc('');
+
+                                                                        setEmailBccDropdownItems([]);
+                                                                        refAutomaticEmailsBcc.current.focus();
+                                                                    }
+                                                                } else if (emailBccDropdownItems.length === 0) {
+                                                                    if (isEmailValid((props.automaticEmailsBcc || ''))) {
+                                                                        e.preventDefault();
+
+                                                                        if (tempAutomaticEmails.find(t => t.email === props.automaticEmailsBcc && t.type === 'bcc') === undefined) {
+                                                                            setTempAutomaticEmails([
+                                                                                ...tempAutomaticEmails,
+                                                                                {
+                                                                                    id: 0,
+                                                                                    name: '',
+                                                                                    email: props.automaticEmailsBcc,
+                                                                                    type: 'bcc'
+                                                                                }
+                                                                            ])
+                                                                        }
+                                                                        await props.setAutomaticEmailsBcc('');
+
+                                                                        setEmailBccDropdownItems([]);
+                                                                        refAutomaticEmailsBcc.current.focus();
+                                                                    }
+                                                                }
+                                                                break;
+
+                                                            default:
+                                                                break;
+                                                        }
+                                                    }}
+                                                    onInput={async (e) => {
+                                                        await props.setAutomaticEmailsBcc(e.target.value);
+
+                                                        if ((props.selectedCustomer?.id || 0) > 0) {
+                                                            if (e.target.value.trim() === '') {
+                                                                setEmailBccDropdownItems([]);
+                                                            } else {
+                                                                $.post(props.serverUrl + '/getContactsByEmailOrName', {
+                                                                    email: e.target.value.trim(),
+                                                                    customer_id: props.selectedCustomer?.id
+                                                                }).then(async res => {
+                                                                    if (res.result === 'OK') {
+                                                                        let items = []
+                                                                        res.contacts.map((c, i) => {
+                                                                            let emailWork = c.email_work;
+                                                                            let emailPersonal = c.email_personal;
+                                                                            let emailOther = c.email_other;
+                                                                            let firstName = c.first_name;
+                                                                            let lastName = c.last_name;
+
+                                                                            let name = firstName + ' ' + lastName;
+
+                                                                            let email = emailWork.indexOf(e.target.value.trim()) > -1 ? emailWork :
+                                                                                emailPersonal.indexOf(e.target.value.trim()) ? emailPersonal : emailOther
+
+                                                                            if (email === '') {
+                                                                                email = emailWork !== '' ? emailWork :
+                                                                                    emailPersonal !== '' ? emailPersonal : emailOther;
+                                                                            }
+
+                                                                            if (emailWork.trim() !== '' || emailPersonal.trim() !== '' || emailOther !== '') {
+                                                                                items.push({
+                                                                                    name: name,
+                                                                                    email: email,
+                                                                                    selected: i === 0
+                                                                                });
+                                                                            }
+
+                                                                            return true;
+                                                                        });
+
+
+                                                                        await setEmailBccDropdownItems(e.target.value.trim() === '' ? [] : items);
+                                                                    }
+                                                                }).catch(async e => {
+                                                                    console.log('error getting emails', e);
+                                                                })
+                                                            }
+                                                        }
+                                                    }}
+                                                    onChange={async (e) => { await props.setAutomaticEmailsBcc(e.target.value) }}
+                                                    value={props.automaticEmailsBcc || ''}
+                                                />
+                                            </SwiperSlide>
+                                        </Swiper>
                                     </div>
 
                                     <Transition
@@ -4240,19 +4291,19 @@ function Customers(props) {
                                                                             className={mochiItemClasses}
                                                                             id={item.id}
                                                                             onClick={async () => {
-                                                                                let automaticEmails = props.selectedCustomer?.automatic_emails || { customer_id: props.selectedCustomer?.id };
-
                                                                                 if (item.email !== '' && isEmailValid(item.email)) {
-                                                                                    automaticEmails = { ...automaticEmails, automatic_emails_bcc: ((automaticEmails.automatic_emails_bcc || '') + ';' + (item.email + '|' + item.name)).trim() };
+                                                                                    if (tempAutomaticEmails.find(t => t.email === item.email && t.type === 'bcc') === undefined) {
+                                                                                        setTempAutomaticEmails([
+                                                                                            ...tempAutomaticEmails,
+                                                                                            {
+                                                                                                id: 0,
+                                                                                                name: item.name,
+                                                                                                email: item.email,
+                                                                                                type: 'bcc'
+                                                                                            }
+                                                                                        ])
+                                                                                    }
                                                                                     await props.setAutomaticEmailsBcc('');
-
-                                                                                    await props.setSelectedCustomer({ ...props.selectedCustomer, automatic_emails: automaticEmails });
-
-                                                                                    $.post(props.serverUrl + '/saveAutomaticEmails', automaticEmails).then(res => {
-                                                                                        if (res.result === 'OK') {
-                                                                                            console.log(res);
-                                                                                        }
-                                                                                    });
 
                                                                                     setEmailBccDropdownItems([]);
                                                                                     refAutomaticEmailsBcc.current.focus();
@@ -4280,14 +4331,14 @@ function Customers(props) {
                                 <div className="input-toggle-container">
                                     <input type="checkbox" id={props.panelName + '-cbox-automatic-emails-loaded-btn'}
                                         onChange={e => {
-                                            let automatic_emails = (props.selectedCustomer?.automatic_emails || {});
-                                            automatic_emails.automatic_emails_loaded = e.target.checked ? 1 : 0;
-                                            props.setSelectedCustomer({
-                                                ...props.selectedCustomer, automatic_emails: automatic_emails
-                                            });
-                                            validateAutomaticEmailsForSaving();
+                                            setTempAutomaticEmails(tempAutomaticEmails.map((t, i) => {
+                                                t.loaded = e.target.checked ? 1 : 0;
+                                                return t;
+                                            }))
+
+                                            setTempLoaded(e.target.checked);
                                         }}
-                                        checked={(props.selectedCustomer?.automatic_emails?.automatic_emails_loaded || 0) === 1} />
+                                        checked={tempLoaded} />
                                     <label htmlFor={props.panelName + '-cbox-automatic-emails-loaded-btn'}>
                                         <div className="label-text">Loaded</div>
                                         <div className="input-toggle-btn"></div>
@@ -4297,14 +4348,14 @@ function Customers(props) {
                                 <div className="input-toggle-container">
                                     <input type="checkbox" id={props.panelName + '-cbox-automatic-emails-empty-btn'}
                                         onChange={e => {
-                                            let automatic_emails = (props.selectedCustomer?.automatic_emails || {});
-                                            automatic_emails.automatic_emails_empty = e.target.checked ? 1 : 0;
-                                            props.setSelectedCustomer({
-                                                ...props.selectedCustomer, automatic_emails: automatic_emails
-                                            });
-                                            validateAutomaticEmailsForSaving();
+                                            setTempAutomaticEmails(tempAutomaticEmails.map((t, i) => {
+                                                t.empty = e.target.checked ? 1 : 0;
+                                                return t;
+                                            }))
+
+                                            setTempEmpty(e.target.checked);
                                         }}
-                                        checked={(props.selectedCustomer?.automatic_emails?.automatic_emails_empty || 0) === 1} />
+                                        checked={tempEmpty} />
                                     <label htmlFor={props.panelName + '-cbox-automatic-emails-empty-btn'}>
                                         <div className="label-text">Empty</div>
                                         <div className="input-toggle-btn"></div>
@@ -4312,8 +4363,6 @@ function Customers(props) {
                                 </div>
                             </div>
                         </div>
-
-
                     </div>
 
                     <div className="fields-container-col">
@@ -4514,6 +4563,82 @@ function Customers(props) {
                                 <div className="top-border top-border-left"></div>
                                 <div className="top-border top-border-middle"></div>
                                 <div className="top-border top-border-right"></div>
+                            </div>
+
+                            <div className="automatic-email-container">
+                                <div className="automatic-email-wrapper">
+                                    {
+                                        (props.selectedCustomer?.automatic_emails || []).map((item, index) => {
+                                            return <div className="automatic-email-item" key={index} onClick={() => {
+                                                let itemIndex = tempAutomaticEmails.findIndex(t => t.email === item.email && t.type === item.type);
+                                                let temp = [...tempAutomaticEmails];
+
+                                                if (temp.length === 0 || (temp.length === 1 && temp[0].email === item.email)) {
+                                                    setTempBookedLoad(item.booked_load === 1);
+                                                    setTempCheckCalls(item.check_calls === 1);
+                                                    setTempCarrierArrivalShipper(item.carrier_arrival_shipper === 1);
+                                                    setTempCarrierArrivalConsignee(item.carrier_arrival_consignee === 1);
+                                                    setTempLoaded(item.loaded === 1);
+                                                    setTempEmpty(item.empty === 1);
+                                                }
+
+                                                if (itemIndex > -1) {
+                                                    // console.log(itemIndex, temp, temp.splice(itemIndex, 1, item));
+                                                    temp[itemIndex] = { ...item };
+                                                    setTempAutomaticEmails(temp);
+                                                } else {
+                                                    setTempAutomaticEmails([
+                                                        ...tempAutomaticEmails,
+                                                        { ...item }
+                                                    ])
+                                                }
+
+
+                                            }}>
+                                                <div className="automatic-email-data">
+                                                    <div className="automatic-email-info">
+                                                        <div className="automatic-email-type">{item.type}</div>
+                                                        <div className="automatic-email-name"><b>{item.name !== '' ? item.name : item.email}</b> {item.name !== '' ? '(' + item.email + ')' : ''} </div>
+                                                    </div>
+                                                    <div className="automatic-email-options">
+                                                        {(item.booked_load === 1) && <span>Booked Load</span>}
+                                                        {(item.check_calls === 1) && <span>Check Calls</span>}
+                                                        {(item.carrier_arrival_shipper === 1) && <span>Carrier Arrival Shipper</span>}
+                                                        {(item.carrier_arrival_consignee === 1) && <span>Carrier Arrival Consignee</span>}
+                                                        {(item.loaded === 1) && <span>Loaded</span>}
+                                                        {(item.empty === 1) && <span>Empty</span>}
+                                                    </div>
+                                                </div>
+                                                {
+                                                    tempAutomaticEmails.find(e => e.id === item.id && e.type === item.type) !== undefined &&
+                                                    <FontAwesomeIcon icon={faPencilAlt} />
+                                                }
+
+                                                {
+                                                    <FontAwesomeIcon icon={faTrashAlt} style={{ marginLeft: '0.3rem' }} onClick={(e) => {
+                                                        e.stopPropagation();
+
+                                                        $.post(props.serverUrl + '/removeAutomaticEmail', {
+                                                            customer_id: props.selectedCustomer.id,
+                                                            id: item.id
+                                                        }).then(res => {
+                                                            if (res.result === 'OK') {
+                                                                props.setSelectedCustomer({
+                                                                    ...props.selectedCustomer,
+                                                                    automatic_emails: res.automatic_emails
+                                                                });
+
+                                                                setTempAutomaticEmails(tempAutomaticEmails.filter(t => (t.email !== item.email && t.type === item.type) || (t.type !== item.type)))
+                                                            }
+                                                        }).catch(e => {
+                                                            console.log('error saving automatic emails', e);
+                                                        })
+                                                    }} />
+                                                }
+                                            </div>
+                                        })
+                                    }
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -17,6 +17,7 @@ import Highlighter from "react-highlight-words";
 import Calendar from './calendar/Calendar.jsx';
 import "react-datepicker/dist/react-datepicker.css";
 import Rating from '@material-ui/lab/Rating';
+import axios from 'axios';
 
 function Carriers(props) {
     const refCarrierCode = useRef(null);
@@ -125,42 +126,44 @@ function Carriers(props) {
 
                 selectedCarrier.code = newCode.toUpperCase();
 
-                $.post(props.serverUrl + '/saveCarrier', selectedCarrier).then(async res => {
-                    if (res.result === 'OK') {
-                        let carrier = JSON.parse(JSON.stringify(res.carrier));
+                axios.post(props.serverUrl + '/saveCarrier', selectedCarrier)
+                    .then(async res => {
+                        if (res.data.result === 'OK') {
+                            let carrier = JSON.parse(JSON.stringify(res.data.carrier));
 
-                        if (props.selectedCarrier.id === undefined && (props.selectedCarrier.id || 0) === 0) {
-                            await props.setSelectedCarrier({
-                                ...props.selectedCarrier,
-                                id: carrier.id,
-                                code: carrier.code,
-                                code_number: carrier.code_number,
-                                contacts: carrier.contacts || []
-                            });
-                        } else {
-                            await props.setSelectedCarrier({
-                                ...props.selectedCarrier,
-                                contacts: carrier.contacts || []
+                            if (props.selectedCarrier.id === undefined && (props.selectedCarrier.id || 0) === 0) {
+                                await props.setSelectedCarrier({
+                                    ...props.selectedCarrier,
+                                    id: carrier.id,
+                                    code: carrier.code,
+                                    code_number: carrier.code_number,
+                                    contacts: carrier.contacts || []
+                                });
+                            } else {
+                                await props.setSelectedCarrier({
+                                    ...props.selectedCarrier,
+                                    contacts: carrier.contacts || []
+                                });
+                            }
+
+                            (res.data.carrier.contacts || []).map(async (contact, index) => {
+
+                                if (contact.is_primary === 1) {
+                                    if ((props.selectedContact?.id || 0) === 0 || props.selectedContact?.id === contact.id) {
+                                        await props.setSelectedCarrierContact(contact);
+                                    }
+                                }
+
+                                return true;
                             });
                         }
 
-                        (res.carrier.contacts || []).map(async (contact, index) => {
-
-                            if (contact.is_primary === 1) {
-                                if ((props.selectedContact?.id || 0) === 0 || props.selectedContact?.id === contact.id) {
-                                    await props.setSelectedCarrierContact(contact);
-                                }
-                            }
-
-                            return true;
-                        });
-                    }
-
-                    await setIsSavingCarrier(false);
-                }).catch(e => {
-                    console.log('error on saving carrier', e);
-                    setIsSavingCarrier(false);
-                });
+                        await setIsSavingCarrier(false);
+                    })
+                    .catch(e => {
+                        console.log('error on saving carrier', e);
+                        setIsSavingCarrier(false);
+                    });
             } else {
                 setIsSavingCarrier(false);
             }
@@ -199,17 +202,19 @@ function Carriers(props) {
                 contact.zip_code = props.selectedCarrier.zip;
             }
 
-            $.post(props.serverUrl + '/saveCarrierContact', contact).then(async res => {
-                if (res.result === 'OK') {
-                    await props.setSelectedCarrier({ ...props.selectedCarrier, contacts: res.contacts });
-                    await props.setSelectedCarrierContact(res.contact);
-                }
+            axios.post(props.serverUrl + '/saveCarrierContact', contact)
+                .then(async res => {
+                    if (res.data.result === 'OK') {
+                        await props.setSelectedCarrier({ ...props.selectedCarrier, contacts: res.data.contacts });
+                        await props.setSelectedCarrierContact(res.data.contact);
+                    }
 
-                setIsSavingContact(false);
-            }).catch(e => {
-                console.log('error on saving carrier contact', e);
-                setIsSavingContact(false);
-            });
+                    setIsSavingContact(false);
+                })
+                .catch(e => {
+                    console.log('error on saving carrier contact', e);
+                    setIsSavingContact(false);
+                });
         }
     }, [isSavingContact]);
 
@@ -246,16 +251,18 @@ function Carriers(props) {
 
                     mailing_address.code = newCode.toUpperCase();
 
-                    $.post(props.serverUrl + '/saveCarrierMailingAddress', mailing_address).then(async res => {
-                        if (res.result === 'OK') {
-                            await props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: res.mailing_address });
-                        }
+                    axios.post(props.serverUrl + '/saveCarrierMailingAddress', mailing_address)
+                        .then(async res => {
+                            if (res.data.result === 'OK') {
+                                await props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: res.data.mailing_address });
+                            }
 
-                        await setIsSavingMailingAddress(false);
-                    }).catch(e => {
-                        console.log('error on saving carrier mailing address', e);
-                        setIsSavingMailingAddress(false);
-                    });
+                            await setIsSavingMailingAddress(false);
+                        })
+                        .catch(e => {
+                            console.log('error on saving carrier mailing address', e);
+                            setIsSavingMailingAddress(false);
+                        });
                 } else {
                     setIsSavingMailingAddress(false);
                 }
@@ -296,15 +303,17 @@ function Carriers(props) {
 
                 factoring_company.code = newCode.toUpperCase();
 
-                $.post(props.serverUrl + '/saveFactoringCompany', factoring_company).then(async res => {
-                    if (res.result === 'OK') {
-                        await props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: res.factoring_company });
-                    }
-                    setIsSavingFactoringCompany(false);
-                }).catch(async e => {
-                    console.log('error saving factoring company on carrier', e);
-                    setIsSavingFactoringCompany(false);
-                });
+                axios.post(props.serverUrl + '/saveFactoringCompany', factoring_company)
+                    .then(async res => {
+                        if (res.data.result === 'OK') {
+                            await props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: res.data.factoring_company });
+                        }
+                        setIsSavingFactoringCompany(false);
+                    })
+                    .catch(e => {
+                        console.log('error saving factoring company on carrier', e);
+                        setIsSavingFactoringCompany(false);
+                    });
             } else {
                 setIsSavingFactoringCompany(false);
             }
@@ -326,18 +335,22 @@ function Carriers(props) {
     }, [props.screenFocused])
 
     useEffect(() => {
-        $.post(props.serverUrl + '/getCarrierPopupItems').then(res => {
-            if (res.result === 'OK') {
-                props.setEquipments(res.equipments.map(e => {
-                    e.selected = false;
-                    return e;
-                }));
-                props.setInsuranceTypes(res.insurance_types.map(t => {
-                    t.selected = false;
-                    return t;
-                }));
-            }
-        })
+        axios.post(props.serverUrl + '/getCarrierPopupItems')
+            .then(async res => {
+                if (res.data.result === 'OK') {
+                    props.setEquipments(res.data.equipments.map(e => {
+                        e.selected = false;
+                        return e;
+                    }));
+                    props.setInsuranceTypes(res.data.insurance_types.map(t => {
+                        t.selected = false;
+                        return t;
+                    }));
+                }
+            })
+            .catch(e => {
+                console.log('error getting carrier popup items', e);
+            });
     }, []);
 
     useEffect(() => {
@@ -1289,7 +1302,7 @@ function Carriers(props) {
                         </div>
                         <div className="form-v-sep"></div>
                         <div className="form-row">
-                            <div className="input-box-container" style={{position: 'relative', flexGrow: 1}}>
+                            <div className="input-box-container" style={{ position: 'relative', flexGrow: 1 }}>
                                 <input tabIndex={53 + props.tabTimes} type="text" placeholder="E-Mail" style={{ textTransform: 'lowercase' }}
                                     onKeyDown={validateCarrierForSaving}
                                     onInput={(e) => {
@@ -5151,7 +5164,7 @@ function Carriers(props) {
                         </div>
                         <div className="form-v-sep"></div>
                         <div className="form-row">
-                            <div className="input-box-container" style={{position: 'relative', flexGrow: 1}}>
+                            <div className="input-box-container" style={{ position: 'relative', flexGrow: 1 }}>
                                 <input tabIndex={75 + props.tabTimes} type="text" placeholder="E-Mail" style={{ textTransform: 'lowercase' }}
                                     onKeyDown={validateFactoringCompanyToSave}
                                     onInput={(e) => {

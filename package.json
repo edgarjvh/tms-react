@@ -21,6 +21,7 @@
     "google-distance-matrix": "^1.1.1",
     "here-maps-react": "^2.0.0",
     "jquery": "^3.5.1",
+    "jquery-form": "^4.3.0",
     "loaders.css": "^0.1.2",
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.33",
@@ -76,5 +77,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "video.js": "^7.13.3"
   }
 }
