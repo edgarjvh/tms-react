@@ -178,11 +178,11 @@ function Order(props) {
                                     <div style={{ ...styleFlexCol, flexGrow: 1, marginRight: 10 }}>
                                         <div style={{ ...styleFlexRow, marginBottom: 10 }}><span style={{ ...styleFieldName, marginRight: 5 }}>PO Numbers:</span> <span style={{ ...styleFieldData }}>{
                                             props.selected_order.pickups.length === 0 ? ''
-                                                : (props.selected_order.pickups[0].extra_data?.po_numbers || '')
+                                                : (props.selected_order.pickups[0].po_numbers || '')
                                         }</span></div>
                                         <div style={{ ...styleFlexRow, marginBottom: 10 }}><span style={{ ...styleFieldName, marginRight: 5 }}>BOL Numbers:</span> <span style={{ ...styleFieldData }}>{
                                             props.selected_order.pickups.length === 0 ? ''
-                                                : (props.selected_order.pickups[0].extra_data?.bol_numbers || '')
+                                                : (props.selected_order.pickups[0].bol_numbers || '')
                                         }</span></div>
                                         <div style={{ ...styleFlexRow, marginBottom: 10 }}><span style={{ ...styleFieldName, marginRight: 5 }}>Shipper Number:</span> <span style={{ ...styleFieldData }}>123456789AB</span></div>
                                         <div style={{ ...styleFlexRow }}><span style={{ ...styleFieldName, marginRight: 5 }}>Commodity:</span> <span style={{ ...styleFieldData }}>Aluminium Shapes</span></div>
@@ -260,21 +260,21 @@ function Order(props) {
                                             <span style={{ ...styleFieldName, minWidth: '4rem' }}>SHIPPER:</span>
                                             <span style={{ ...styleFieldData, color: '#4682B4' }}>{
                                                 props.selected_order.pickups.length === 0 ? ''
-                                                    : ((props.selected_order.pickups[0].code) + ((props.selected_order.pickups[0].code_number || 0) === 0 ? '' : props.selected_order.pickups[0].code_number)).toUpperCase()
+                                                    : ((props.selected_order.pickups[0].customer.code) + ((props.selected_order.pickups[0].customer.code_number || 0) === 0 ? '' : props.selected_order.pickups[0].customer.code_number)).toUpperCase()
                                             }</span>
                                         </div>
                                         <div style={{ ...styleFlexRow, marginBottom: 3 }}>
                                             <span style={{ ...styleFieldName, minWidth: '4rem' }}></span>
-                                            <span style={{ ...styleFieldData }}>{props.selected_order.pickups.length === 0 ? '' : props.selected_order.pickups[0].name}</span>
+                                            <span style={{ ...styleFieldData }}>{props.selected_order.pickups.length === 0 ? '' : props.selected_order.pickups[0].customer.name}</span>
                                         </div>
                                         <div style={{ ...styleFlexRow, marginBottom: 3 }}>
                                             <span style={{ ...styleFieldName, minWidth: '4rem' }}></span>
-                                            <span style={{ ...styleFieldData }}>{props.selected_order.pickups.length === 0 ? '' : props.selected_order.pickups[0].address1}</span>
+                                            <span style={{ ...styleFieldData }}>{props.selected_order.pickups.length === 0 ? '' : props.selected_order.pickups[0].customer.address1}</span>
                                         </div>
                                         <div style={{ ...styleFlexRow, marginBottom: 3 }}>
                                             <span style={{ ...styleFieldName, minWidth: '4rem' }}></span>
                                             <span style={{ ...styleFieldData }}>
-                                                {props.selected_order.pickups.length === 0 ? '' : props.selected_order.pickups[0].city}, {props.selected_order.pickups.length === 0 ? '' : props.selected_order.pickups[0].state.toUpperCase()} {props.selected_order.pickups.length === 0 ? '' : props.selected_order.pickups[0].zip}
+                                                {props.selected_order.pickups.length === 0 ? '' : props.selected_order.pickups[0].customer.city}, {props.selected_order.pickups.length === 0 ? '' : props.selected_order.pickups[0].customer.state.toUpperCase()} {props.selected_order.pickups.length === 0 ? '' : props.selected_order.pickups[0].customer.zip}
                                             </span>
                                         </div>
 
@@ -282,28 +282,28 @@ function Order(props) {
                                             <span style={{ ...styleFieldName, minWidth: '4rem' }}>Contact:</span>
                                             <span style={{ ...styleFieldData }}>{
                                                 props.selected_order.pickups.length === 0 ? ''
-                                                    : props.selected_order.pickups[0].contacts.findIndex(el => el.is_primary === 1) === -1
+                                                    : props.selected_order.pickups[0].customer.contacts.findIndex(el => el.is_primary === 1) === -1
                                                         ? ''
-                                                        : props.selected_order.pickups[0].contacts[props.selected_order.pickups[0].contacts.findIndex(el => el.is_primary === 1)].first_name + ' ' +
-                                                        props.selected_order.pickups[0].contacts[props.selected_order.pickups[0].contacts.findIndex(el => el.is_primary === 1)].last_name
+                                                        : props.selected_order.pickups[0].customer.contacts[props.selected_order.pickups[0].customer.contacts.findIndex(el => el.is_primary === 1)].first_name + ' ' +
+                                                        props.selected_order.pickups[0].customer.contacts[props.selected_order.pickups[0].customer.contacts.findIndex(el => el.is_primary === 1)].last_name
                                             }</span>
                                         </div>
                                         <div style={{ ...styleFlexRow, marginBottom: 3 }}>
                                             <span style={{ ...styleFieldName, minWidth: '4rem' }}>Phone:</span>
                                             <span style={{ ...styleFieldData }}>{
                                                 props.selected_order.pickups.length === 0 ? ''
-                                                    : props.selected_order.pickups[0].contacts.findIndex(el => el.is_primary === 1) === -1
+                                                    : props.selected_order.pickups[0].customer.contacts.findIndex(el => el.is_primary === 1) === -1
                                                         ? ''
-                                                        : props.selected_order.pickups[0].contacts[props.selected_order.pickups[0].contacts.findIndex(el => el.is_primary === 1)].phone_work
+                                                        : props.selected_order.pickups[0].customer.contacts[props.selected_order.pickups[0].customer.contacts.findIndex(el => el.is_primary === 1)].phone_work
                                             }</span>
                                         </div>
                                         <div style={{ ...styleFlexRow }}>
                                             <span style={{ ...styleFieldName, minWidth: '4rem' }}>E-Mail:</span>
                                             <span style={{ ...styleFieldData }}>{
                                                 (props.selected_order.pickups.length === 0 ? ''
-                                                    : props.selected_order.pickups[0].contacts.findIndex(el => el.is_primary === 1) === -1
+                                                    : props.selected_order.pickups[0].customer.contacts.findIndex(el => el.is_primary === 1) === -1
                                                         ? ''
-                                                        : props.selected_order.pickups[0].contacts[props.selected_order.pickups[0].contacts.findIndex(el => el.is_primary === 1)].email_work).toLowerCase()
+                                                        : props.selected_order.pickups[0].customer.contacts[props.selected_order.pickups[0].customer.contacts.findIndex(el => el.is_primary === 1)].email_work).toLowerCase()
                                             }</span>
                                         </div>
                                     </div>
@@ -311,13 +311,13 @@ function Order(props) {
                                     <div style={{ ...styleFlexCol, justifyContent: 'center', alignItems: 'flex-start', paddingLeft: 10, flexGrow: 1 }}>
                                         <div style={{ ...styleFlexRow, marginBottom: 3 }}><span style={{ ...styleFieldName, textDecoration: 'underline' }}>PICK UP TIMES</span></div>
                                         <div style={{ ...styleFlexRow, marginBottom: 3 }}><span style={{ ...styleFieldName, width: '3rem' }}>DATE:</span> <span style={{ ...styleFieldData }}>{
-                                            props.selected_order.pickups.length === 0 ? '' : (props.selected_order.pickups[0].extra_data?.pu_date1 || '')
+                                            props.selected_order.pickups.length === 0 ? '' : (props.selected_order.pickups[0].pu_date1 || '')
                                         }</span></div>
                                         <div style={{ ...styleFlexRow, marginBottom: 3 }}><span style={{ ...styleFieldName, width: '3rem' }}>FROM:</span> <span style={{ ...styleFieldData }}>{
-                                            props.selected_order.pickups.length === 0 ? '' : (props.selected_order.pickups[0].extra_data?.pu_time1 || '')
+                                            props.selected_order.pickups.length === 0 ? '' : (props.selected_order.pickups[0].pu_time1 || '')
                                         }</span></div>
                                         <div style={{ ...styleFlexRow, marginBottom: 3 }}><span style={{ ...styleFieldName, width: '3rem' }}>TO:</span> <span style={{ ...styleFieldData }}>{
-                                            props.selected_order.pickups.length === 0 ? '' : (props.selected_order.pickups[0].extra_data?.pu_time2 || '')
+                                            props.selected_order.pickups.length === 0 ? '' : (props.selected_order.pickups[0].pu_time2 || '')
                                         }</span></div>
                                     </div>
                                 </div>
@@ -334,57 +334,57 @@ function Order(props) {
                                             <span style={{ ...styleFieldName, minWidth: '4rem' }}>CONSIGNEE:</span>
                                             <span style={{ ...styleFieldData, color: '#4682B4' }}>{
                                                 props.selected_order.deliveries.length === 0 ? ''
-                                                    : ((props.selected_order.deliveries[props.selected_order.deliveries.length - 1].code) + ((props.selected_order.deliveries[props.selected_order.deliveries.length - 1].code_number || 0) === 0 ? '' : props.selected_order.deliveries[props.selected_order.deliveries.length - 1].code_number)).toUpperCase()
+                                                    : ((props.selected_order.deliveries[props.selected_order.deliveries.length - 1].customer.code) + ((props.selected_order.deliveries[props.selected_order.deliveries.length - 1].customer.code_number || 0) === 0 ? '' : props.selected_order.deliveries[props.selected_order.deliveries.length - 1].customer.code_number)).toUpperCase()
                                             }</span>
                                         </div>
                                         <div style={{ ...styleFlexRow, marginBottom: 3 }}>
                                             <span style={{ ...styleFieldName, minWidth: '4rem' }}></span>
                                             <span style={{ ...styleFieldData }}>{
                                                 props.selected_order.deliveries.length === 0 ? ''
-                                                    : props.selected_order.deliveries[props.selected_order.deliveries.length - 1].name
+                                                    : props.selected_order.deliveries[props.selected_order.deliveries.length - 1].customer.name
                                             }</span>
                                         </div>
                                         <div style={{ ...styleFlexRow, marginBottom: 3 }}>
                                             <span style={{ ...styleFieldName, minWidth: '4rem' }}></span>
                                             <span style={{ ...styleFieldData }}>{
                                                 props.selected_order.deliveries.length === 0 ? ''
-                                                    : props.selected_order.deliveries[props.selected_order.deliveries.length - 1].address1
+                                                    : props.selected_order.deliveries[props.selected_order.deliveries.length - 1].customer.address1
                                             }</span>
                                         </div>
                                         <div style={{ ...styleFlexRow, marginBottom: 3 }}>
                                             <span style={{ ...styleFieldName, minWidth: '4rem' }}></span>
                                             <span style={{ ...styleFieldData }}>{props.selected_order.deliveries.length === 0 ? ''
-                                                : props.selected_order.deliveries[props.selected_order.deliveries.length - 1].city}, {(props.selected_order.deliveries.length === 0 ? ''
-                                                    : props.selected_order.deliveries[props.selected_order.deliveries.length - 1].state).toUpperCase()} {props.selected_order.deliveries.length === 0 ? ''
-                                                        : props.selected_order.deliveries[props.selected_order.deliveries.length - 1].zip}</span>
+                                                : props.selected_order.deliveries[props.selected_order.deliveries.length - 1].customer.city}, {(props.selected_order.deliveries.length === 0 ? ''
+                                                    : props.selected_order.deliveries[props.selected_order.deliveries.length - 1].customer.state).toUpperCase()} {props.selected_order.deliveries.length === 0 ? ''
+                                                        : props.selected_order.deliveries[props.selected_order.deliveries.length - 1].customer.zip}</span>
                                         </div>
 
                                         <div style={{ ...styleFlexRow, marginBottom: 3 }}>
                                             <span style={{ ...styleFieldName, minWidth: '4rem' }}>Contact:</span>
                                             <span style={{ ...styleFieldData }}>{
                                                 props.selected_order.deliveries.length === 0 ? ''
-                                                    : props.selected_order.deliveries[props.selected_order.deliveries.length - 1].contacts.findIndex(el => el.is_primary === 1) === -1
+                                                    : props.selected_order.deliveries[props.selected_order.deliveries.length - 1].customer.contacts.findIndex(el => el.is_primary === 1) === -1
                                                         ? ''
-                                                        : props.selected_order.deliveries[props.selected_order.deliveries.length - 1].contacts[props.selected_order.deliveries[props.selected_order.deliveries.length - 1].contacts.findIndex(el => el.is_primary === 1)].first_name + ' ' +
-                                                        props.selected_order.deliveries[props.selected_order.deliveries.length - 1].contacts[props.selected_order.deliveries[props.selected_order.deliveries.length - 1].contacts.findIndex(el => el.is_primary === 1)].last_name
+                                                        : props.selected_order.deliveries[props.selected_order.deliveries.length - 1].customer.contacts[props.selected_order.deliveries[props.selected_order.deliveries.length - 1].customer.contacts.findIndex(el => el.is_primary === 1)].first_name + ' ' +
+                                                        props.selected_order.deliveries[props.selected_order.deliveries.length - 1].customer.contacts[props.selected_order.deliveries[props.selected_order.deliveries.length - 1].customer.contacts.findIndex(el => el.is_primary === 1)].last_name
                                             }</span>
                                         </div>
                                         <div style={{ ...styleFlexRow, marginBottom: 3 }}>
                                             <span style={{ ...styleFieldName, minWidth: '4rem' }}>Phone:</span>
                                             <span style={{ ...styleFieldData }}>{
                                                 props.selected_order.deliveries.length === 0 ? ''
-                                                    : props.selected_order.deliveries[props.selected_order.deliveries.length - 1].contacts.findIndex(el => el.is_primary === 1) === -1
+                                                    : props.selected_order.deliveries[props.selected_order.deliveries.length - 1].customer.contacts.findIndex(el => el.is_primary === 1) === -1
                                                         ? ''
-                                                        : props.selected_order.deliveries[props.selected_order.deliveries.length - 1].contacts[props.selected_order.deliveries[props.selected_order.deliveries.length - 1].contacts.findIndex(el => el.is_primary === 1)].phone_work
+                                                        : props.selected_order.deliveries[props.selected_order.deliveries.length - 1].customer.contacts[props.selected_order.deliveries[props.selected_order.deliveries.length - 1].customer.contacts.findIndex(el => el.is_primary === 1)].phone_work
                                             }</span>
                                         </div>
                                         <div style={{ ...styleFlexRow }}>
                                             <span style={{ ...styleFieldName, minWidth: '4rem' }}>E-Mail:</span>
                                             <span style={{ ...styleFieldData }}>{(
                                                 props.selected_order.deliveries.length === 0 ? ''
-                                                    : props.selected_order.deliveries[props.selected_order.deliveries.length - 1].contacts.findIndex(el => el.is_primary === 1) === -1
+                                                    : props.selected_order.deliveries[props.selected_order.deliveries.length - 1].customer.contacts.findIndex(el => el.is_primary === 1) === -1
                                                         ? ''
-                                                        : props.selected_order.deliveries[props.selected_order.deliveries.length - 1].contacts[props.selected_order.deliveries[props.selected_order.deliveries.length - 1].contacts.findIndex(el => el.is_primary === 1)].email_work
+                                                        : props.selected_order.deliveries[props.selected_order.deliveries.length - 1].customer.contacts[props.selected_order.deliveries[props.selected_order.deliveries.length - 1].customer.contacts.findIndex(el => el.is_primary === 1)].email_work
                                             ).toLowerCase()}</span>
                                         </div>
                                     </div>
@@ -392,13 +392,13 @@ function Order(props) {
                                     <div style={{ ...styleFlexCol, justifyContent: 'center', alignItems: 'flex-start', flexGrow: 1, paddingLeft: 10 }}>
                                         <div style={{ ...styleFlexRow, marginBottom: 3 }}><span style={{ ...styleFieldName, textDecoration: 'underline' }}>DELIVERY TIMES</span></div>
                                         <div style={{ ...styleFlexRow, marginBottom: 3 }}><span style={{ ...styleFieldName, width: '3rem' }}>DATE:</span> <span style={{ ...styleFieldData }}>{
-                                            props.selected_order.deliveries.length === 0 ? '' : (props.selected_order.deliveries[props.selected_order.deliveries.length - 1].extra_data?.delivery_date1 || '')
+                                            props.selected_order.deliveries.length === 0 ? '' : (props.selected_order.deliveries[props.selected_order.deliveries.length - 1].delivery_date1 || '')
                                         }</span></div>
                                         <div style={{ ...styleFlexRow, marginBottom: 3 }}><span style={{ ...styleFieldName, width: '3rem' }}>FROM:</span> <span style={{ ...styleFieldData }}>{
-                                            props.selected_order.deliveries.length === 0 ? '' : (props.selected_order.deliveries[props.selected_order.deliveries.length - 1].extra_data?.delivery_time1 || '')
+                                            props.selected_order.deliveries.length === 0 ? '' : (props.selected_order.deliveries[props.selected_order.deliveries.length - 1].delivery_time1 || '')
                                         }</span></div>
                                         <div style={{ ...styleFlexRow, marginBottom: 3 }}><span style={{ ...styleFieldName, width: '3rem' }}>TO:</span> <span style={{ ...styleFieldData }}>{
-                                            props.selected_order.deliveries.length === 0 ? '' : (props.selected_order.deliveries[props.selected_order.deliveries.length - 1].extra_data?.delivery_time2 || '')
+                                            props.selected_order.deliveries.length === 0 ? '' : (props.selected_order.deliveries[props.selected_order.deliveries.length - 1].delivery_time2 || '')
                                         }</span></div>
                                     </div>
                                 </div>

@@ -217,6 +217,13 @@ import {
     setNewCarrier,
     setIsSavingOrder,
 
+    //INVOICE
+    setLbInvoiceSelectedOrder,
+    setLbInvoiceOrderNumber,
+    setLbInvoiceTripNumber,
+    setLbInvoiceInternalNotes,
+    setLbInvoiceSelectedInternalNote,
+
 } from '../../../../../actions';
 import { useSpring, config } from 'react-spring';
 import { Transition, Spring, animated } from 'react-spring/renderprops';
@@ -320,6 +327,7 @@ import Bol from './../../../panels/bol/Bol.jsx';
 import RateConf from './../../../panels/rate-conf/RateConf.jsx';
 import Documents from './../../../panels/documents/Documents.jsx';
 
+import LbInvoice from './../../../invoice/Invoice.jsx';
 import LbRouting from './../../../panels/routing/Routing.jsx';
 import LbRateConf from './../../../panels/rate-conf/RateConf.jsx';
 
@@ -527,12 +535,12 @@ function PanelContainer(props) {
                                 openedPanels={props.openedPanels}
 
                                 setSelectedCustomer={props.setSelectedBillToCompanyInfo}
-                                setSelectedContact={props.setSelectedBillToCompanyContact}                                
-                                
+                                setSelectedContact={props.setSelectedBillToCompanyContact}
+
                                 customers={props.billToCompanies}
                                 customerSearch={props.billToCompanySearch}
 
-                                isSavingOrder={props.isSavingOrder}                                
+                                isSavingOrder={props.isSavingOrder}
                                 setIsSavingOrder={props.setIsSavingOrder}
                                 origin='customer'
                                 toSaveOrder={true}
@@ -1615,7 +1623,7 @@ function PanelContainer(props) {
                                 customers={props.shipperCompanies}
                                 customerSearch={props.shipperCompanySearch}
 
-                                isSavingOrder={props.isSavingOrder}                                
+                                isSavingOrder={props.isSavingOrder}
                                 setIsSavingOrder={props.setIsSavingOrder}
                                 origin='customer'
                                 toSaveOrder={true}
@@ -2390,7 +2398,7 @@ function PanelContainer(props) {
                                 selectedOwnerDocumentNote={props.selectedLbShipperCompanyDocumentNote}
 
                                 origin='customer'
-                                
+
                                 savingDocumentUrl='/saveDocument'
                                 deletingDocumentUrl='/deleteCustomerDocument'
                                 savingDocumentNoteUrl='/saveCustomerDocumentNote'
@@ -2698,7 +2706,7 @@ function PanelContainer(props) {
                                 customers={props.consigneeCompanies}
                                 customerSearch={props.consigneeCompanySearch}
 
-                                isSavingOrder={props.isSavingOrder}                                
+                                isSavingOrder={props.isSavingOrder}
                                 setIsSavingOrder={props.setIsSavingOrder}
                                 origin='customer'
                                 toSaveOrder={true}
@@ -2934,7 +2942,7 @@ function PanelContainer(props) {
                                 selectedOwnerDocumentNote={props.selectedConsigneeCompanyDocumentNote}
 
                                 origin='customer'
-                                
+
                                 savingDocumentUrl='/saveDocument'
                                 deletingDocumentUrl='/deleteCustomerDocument'
                                 savingDocumentNoteUrl='/saveCustomerDocumentNote'
@@ -3473,7 +3481,7 @@ function PanelContainer(props) {
                                 selectedOwnerDocumentNote={props.selectedLbConsigneeCompanyDocumentNote}
 
                                 origin='customer'
-                                
+
                                 savingDocumentUrl='/saveDocument'
                                 deletingDocumentUrl='/deleteCustomerDocument'
                                 savingDocumentNoteUrl='/saveCustomerDocumentNote'
@@ -3807,12 +3815,12 @@ function PanelContainer(props) {
 
                                 setSelectedCustomer={props.setSelectedDispatchCarrierInfoCarrier}
                                 setSelectedContact={props.setSelectedDispatchCarrierInfoContact}
-                                
+
                                 customers={props.dispatchCarrierInfoCarriers}
                                 customerSearch={props.dispatchCarrierInfoCarrierSearch}
-                                
+
                                 setSelectedDriver={props.setSelectedDispatchCarrierInfoDriver}
-                                isSavingOrder={props.isSavingOrder}                                
+                                isSavingOrder={props.isSavingOrder}
                                 setIsSavingOrder={props.setIsSavingOrder}
                                 origin='carrier'
                                 toSaveOrder={true}
@@ -4021,7 +4029,7 @@ function PanelContainer(props) {
                                 selectedOwnerDocumentNote={props.selectedDispatchCarrierInfoDocumentNote}
 
                                 origin='carrier'
-                                
+
                                 savingDocumentUrl='/saveCarrierDocument'
                                 deletingDocumentUrl='/deleteCarrierDocument'
                                 savingDocumentNoteUrl='/saveCarrierDocumentNote'
@@ -4613,7 +4621,7 @@ function PanelContainer(props) {
                                 selectedOwnerDocumentNote={props.selectedDispatchCarrierInfoFactoringCompanyDocumentNote}
 
                                 origin='factoring-company'
-                                
+
                                 savingDocumentUrl='/saveFactoringCompanyDocument'
                                 deletingDocumentUrl='/deleteFactoringCompanyDocument'
                                 savingDocumentNoteUrl='/saveFactoringCompanyDocumentNote'
@@ -5140,7 +5148,7 @@ function PanelContainer(props) {
                                 selectedOwnerDocumentNote={props.selectedLbCarrierInfoDocumentNote}
 
                                 origin='carrier'
-                                
+
                                 savingDocumentUrl='/saveCarrierDocument'
                                 deletingDocumentUrl='/deleteCarrierDocument'
                                 savingDocumentNoteUrl='/saveCarrierDocumentNote'
@@ -5732,7 +5740,7 @@ function PanelContainer(props) {
                                 selectedOwnerDocumentNote={props.selectedLbCarrierInfoFactoringCompanyDocumentNote}
 
                                 origin='factoring-company'
-                                
+
                                 savingDocumentUrl='/saveFactoringCompanyDocument'
                                 deletingDocumentUrl='/deleteFactoringCompanyDocument'
                                 savingDocumentNoteUrl='/saveFactoringCompanyDocumentNote'
@@ -6029,7 +6037,7 @@ function PanelContainer(props) {
                                 selectedOwnerDocumentNote={props.selectedOrderDocumentNote}
 
                                 origin='dispatch'
-                                
+
                                 savingDocumentUrl='/saveOrderDocument'
                                 deletingDocumentUrl='/deleteOrderDocument'
                                 savingDocumentNoteUrl='/saveOrderDocumentNote'
@@ -6470,6 +6478,10 @@ function PanelContainer(props) {
                                     openedPanels={props.openedPanels}
 
                                     setLbSelectedOrder={props.setLbSelectedOrder}
+                                    setLbInvoiceSelectedOrder={props.setLbInvoiceSelectedOrder}
+                                    setLbInvoiceOrderNumber={props.setLbInvoiceOrderNumber}
+                                    setLbInvoiceTripNumber={props.setLbInvoiceTripNumber}
+
                                     setLbSelectedBillToCompanyInfo={props.setLbSelectedBillToCompanyInfo}
                                     setLbSelectedBillToCompanyContact={props.setLbSelectedBillToCompanyContact}
                                     setLbBillToCompanySearch={props.setLbBillToCompanySearch}
@@ -6503,6 +6515,7 @@ function PanelContainer(props) {
                                     consigneeCompanyInfoPanelName='lb-consignee-company-info'
                                     carrierInfoPanelName='lb-carrier-info'
                                     routingPanelName='lb-routing'
+                                    invoicePanelName='lb-invoice'
                                 />
                             </div>
                         </animated.div>
@@ -6510,6 +6523,115 @@ function PanelContainer(props) {
                 ))}
             </Transition>
             {/* ================================== LOAD BOARD =============================== */}
+
+            {/* ================================== LB INVOICE =============================== */}
+            <Transition
+                from={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: props.openedPanels.indexOf('lb-invoice')
+                }}
+                enter={{
+                    opacity: 1,
+                    right: window.innerWidth,
+                    zIndex: props.openedPanels.indexOf('lb-invoice')
+                }}
+                leave={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: 0
+                }}
+                items={props.openedPanels.includes('lb-invoice')}
+                config={{
+                    delay: 0,
+                    duration: 200,
+                    mass: 1, tension: 120, friction: 14
+                }}
+            >
+                {show => show && (styles => (
+                    <Draggable
+                        axis="x"
+                        handle=".drag-handler"
+                        onStart={(e, i) => eventControl(e, i, 'lb-invoice')}
+                        onStop={(e, i) => eventControl(e, i, 'lb-invoice')}
+                        onMouseDown={(e, i) => eventControl(e, i, 'lb-invoice')}
+                        onMouseUp={(e, i) => eventControl(e, i, 'lb-invoice')}
+                        onTouchStart={(e, i) => eventControl(e, i, 'lb-invoice')}
+                        onTouchEnd={(e, i) => eventControl(e, i, 'lb-invoice')}
+                        position={{ x: 0, y: 0 }}
+                    >
+                        <animated.div className="panel panel-lb-invoice" ref={ref => openedPanelsRefs.current.push(ref)} onClick={e => onPanelClick(e, 'lb-invoice')} style={{
+                            ...styles,
+                            width: (window.innerWidth * baseWidth) - (panelGap * props.openedPanels.indexOf('lb-invoice'))
+                        }}>
+                            <div className="panel-content">
+                                <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+                                <div className="close-btn" title="Close" onClick={e => {
+                                    props.setOpenedPanels(props.openedPanels.filter((item, index) => {
+                                        return item !== 'lb-invoice';
+                                    }));
+
+                                }}><span className="fas fa-times"></span></div>
+                                <div className="title">Invoice</div><div className="side-title"><div>Invoice</div></div>
+
+                                <LbInvoice
+                                    pageName={'Invoice Page'}
+                                    panelName={'lb-invoice'}
+                                    isOnPanel={true}
+                                    tabTimes={5000}
+                                    scale={props.scale}
+                                    serverUrl={props.serverUrl}
+                                    setOpenedPanels={props.setOpenedPanels}
+                                    openedPanels={props.openedPanels}
+
+                                    setInvoiceSelectedOrder={props.setLbInvoiceSelectedOrder}
+                                    setInvoiceOrderNumber={props.setLbInvoiceOrderNumber}
+                                    setInvoiceTripNumber={props.setLbInvoiceTripNumber}
+                                    setInvoiceInternalNotes={props.setLbInvoiceInternalNotes}
+                                    setInvoiceSelectedInternalNote={props.setLbInvoiceSelectedInternalNote}
+                                    setInvoiceSelectedBillToCompanyInfo={props.setLbSelectedBillToCompanyInfo}
+                                    setInvoiceSelectedBillToCompanyContact={props.setLbSelectedBillToCompanyContact}
+                                    setInvoiceSelectedBillToCompanyDocument={props.setLbSelectedBillToCompanyDocument}
+                                    setInvoiceSelectedBillToCompanyDocumentTags={props.setLbSelectedBillToCompanyDocumentTags}
+                                    setInvoiceSelectedBillToCompanyDocumentNote={props.setLbSelectedBillToCompanyDocumentNote}
+                                    setSelectedInvoiceCarrierInfoCarrier={props.setSelectedLbCarrierInfoCarrier}
+                                    setSelectedInvoiceCarrierInfoContact={props.setSelectedLbCarrierInfoContact}
+                                    setSelectedInvoiceCarrierInfoDriver={props.setSelectedLbCarrierInfoDriver}
+                                    setSelectedInvoiceCarrierInfoInsurance={props.setSelectedLbCarrierInfoInsurance}
+                                    setSelectedInvoiceCarrierInfoDocument={props.setSelectedLbCarrierInfoDocument}
+                                    setSelectedInvoiceCarrierInfoDocumentTags={props.setSelectedLbCarrierInfoDocumentTags}
+                                    setSelectedInvoiceCarrierInfoDocumentNote={props.setSelectedLbCarrierInfoDocumentNote}
+
+                                    internalNotes={props.lbInvoiceInternalNotes}
+                                    selectedInternalNote={props.lbSelectedInvoiceInternalNote}
+                                    selected_order={props.lb_invoice_selected_order}
+                                    order_number={props.lb_invoice_order_number}
+                                    trip_number={props.lb_invoice_trip_number}
+                                    selectedBillToCompanyInfo={props.selectedLbBillToCompanyInfo}
+                                    selectedBillToCompanyContact={props.selectedLbBillToCompanyContact}
+                                    selectedBillToCompanyDocument={props.selectedLbBillToCompanyDocument}
+                                    billToCompanyDocumentTags={props.selectedLbBillToCompanyDocumentTags}
+                                    selectedBillToCompanyDocumentNote={props.selectedLbBillToCompanyDocumentNote}
+                                    selectedInvoiceCarrierInfoCarrier={props.selectedLbCarrierInfoCarrier}
+                                    selectedInvoiceCarrierInfoContact={props.selectedLbCarrierInfoContact}
+                                    selectedInvoiceCarrierInfoDriver={props.selectedLbCarrierInfoDriver}
+                                    selectedInvoiceCarrierInfoInsurance={props.selectedLbCarrierInfoInsurance}
+                                    selectedCarrier={props.selectedLbCarrierInfoCarrier}
+                                    selectedDocument={props.selectedLbCarrierInfoDocument}
+                                    documentTags={props.selectedLbCarrierInfoDocumentTags}
+                                    selectedDocumentNote={props.selectedLbCarrierInfoDocumentNote}
+
+                                    billToCompanyInfoPanelName='lb-bill-to-company-info'
+                                    billToCompanyDocumentsPanelName='lb-bill-to-company-documents'
+                                    carrierInfoPanelName='lb-carrier-info'
+                                    carrierInfoDocumentsPanelName='lb-carrier-info-documents'
+                                />
+                            </div>
+                        </animated.div>
+                    </Draggable>
+                ))}
+            </Transition>
+            {/* ================================== LB INVOICE =============================== */}
         </div>
     )
 }
@@ -6731,6 +6853,13 @@ const mapStateToProps = state => {
         selectedLbCarrierInfoFactoringCompanyDocumentNote: state.carrierReducers.selectedLbCarrierInfoFactoringCompanyDocumentNote,
         selectedLbCarrierInfoFactoringCompanyDocumentTags: state.carrierReducers.lbCarrierInfoFactoringCompanyDocumentTags,
         lbCarrierInfoFactoringCompanyContacts: state.carrierReducers.lbCarrierInfoFactoringCompanyContacts,
+
+        //INVOICE
+        lb_invoice_selected_order: state.invoiceReducers.lb_selected_order,
+        lb_invoice_order_number: state.invoiceReducers.lb_order_number,
+        lb_invoice_trip_number: state.invoiceReducers.lb_trip_number,
+        lbInvoiceInternalNotes: state.invoiceReducers.lbInternalNotes,
+        lbSelectedInvoiceInternalNote: state.invoiceReducers.lbSelectedInternalNote,
     }
 }
 
@@ -6944,4 +7073,11 @@ export default connect(mapStateToProps, {
     setLbMileageLoaderVisible,
     setNewCarrier,
     setIsSavingOrder,
+
+    //INVOICE
+    setLbInvoiceSelectedOrder,
+    setLbInvoiceOrderNumber,
+    setLbInvoiceTripNumber,
+    setLbInvoiceInternalNotes,
+    setLbInvoiceSelectedInternalNote,
 })(PanelContainer)

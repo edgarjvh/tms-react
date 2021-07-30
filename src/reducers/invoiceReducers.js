@@ -7,7 +7,14 @@ export const invoiceReducers = (state = {
     trip_number: '',
 
     internalNotes: [],
-    selectedInternalNote: {},   
+    selectedInternalNote: {},
+
+    lb_selected_order: {},
+    lb_order_number: '',
+    lb_trip_number: '',
+
+    lbInternalNotes: [],
+    lbSelectedInternalNote: {},
 }, action) => {
     switch (action.type) {
         case invoiceConstants.SET_SELECTED_DOCUMENT:
@@ -59,18 +66,53 @@ export const invoiceReducers = (state = {
                 invoiceOpenedPanels: action.payload
             }
             break;
-
-
         case invoiceConstants.SET_INVOICE_INTERNAL_NOTES:
             state = {
                 ...state,
                 internalNotes: action.payload
-            }   
+            }
             break;
         case invoiceConstants.SET_INVOICE_SELECTED_INTERNAL_NOTE:
             state = {
                 ...state,
                 selectedInternalNote: action.payload
+            }
+            break;
+
+        case invoiceConstants.SET_LB_INVOICE_SELECTED_ORDER:
+            state = {
+                ...state,
+                lb_selected_order: action.payload
+            }
+            break;
+        case invoiceConstants.SET_LB_INVOICE_ORDER_NUMBER:
+            state = {
+                ...state,
+                lb_order_number: action.payload
+            }
+            break;
+        case invoiceConstants.SET_LB_INVOICE_TRIP_NUMBER:
+            state = {
+                ...state,
+                lb_trip_number: action.payload
+            }
+            break;
+        case invoiceConstants.SET_INVOICE_OPENED_PANELS:
+            state = {
+                ...state,
+                invoiceOpenedPanels: action.payload
+            }
+            break;
+        case invoiceConstants.SET_LB_INVOICE_INTERNAL_NOTES:
+            state = {
+                ...state,
+                lbInternalNotes: action.payload
+            }
+            break;
+        case invoiceConstants.SET_LB_INVOICE_SELECTED_INTERNAL_NOTE:
+            state = {
+                ...state,
+                lbSelectedInternalNote: action.payload
             }
             break;
 

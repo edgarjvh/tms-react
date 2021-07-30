@@ -18,6 +18,9 @@ import axios from 'axios';
 import VideoJS from './../videojs/VideoJS.jsx';
 
 function Documents(props) {
+    const CancelToken = axios.CancelToken;
+    const source = CancelToken.source();
+
     const [isSavingDocument, setIsSavingDocument] = useState(false);
     const [progressUploaded, setProgressUploaded] = useState(0);
     const [progressTotal, setProgressTotal] = useState(0);
@@ -125,6 +128,7 @@ function Documents(props) {
             setIsSavingDocument(true);
 
             const options = {
+                cancelToken: source.token,
                 onUploadProgress: (progressEvent) => {
                     const { loaded, total } = progressEvent;
 
@@ -157,46 +161,6 @@ function Documents(props) {
                     setProgressUploaded(0);
                     setProgressTotal(0);
                 });
-
-            // $.ajax({
-            //     method: "post",
-            //     url: props.serverUrl + props.savingDocumentUrl,
-            //     data: formData,
-            //     contentType: false,
-            //     processData: false,
-            //     cache: false,
-            //     xhr: function () {
-            //         var xhr = new window.XMLHttpRequest();
-            //         xhr.upload.addEventListener("progress", function (evt) {
-            //             if (evt.lengthComputable) {
-            //                 var percentComplete = (evt.loaded / evt.total) * 100;
-            //                 console.log(percentComplete);
-            //             }
-            //         }, false);
-            //         return xhr;
-            //     },
-            //     success: (res) => {
-            //         console.log(res);
-            //         if (res.result === "OK") {
-            //             props.setSelectedOwner({ ...props.selectedOwner, documents: res.documents });
-            //             props.setSelectedOwnerDocument({
-            //                 id: 0,
-            //                 user_id: Math.floor(Math.random() * (15 - 1)) + 1,
-            //                 date_entered: moment().format('MM/DD/YYYY')
-            //             });
-
-            //             refTitleInput.current && refTitleInput.current.focus();
-            //         }
-            //         refDocumentInput.current.value = "";
-
-            //         setIsSavingDocument(false);
-            //     },
-            //     error: (err) => {
-            //         console.log("error saving document", err);
-            //         setIsSavingDocument(false);
-            //         refDocumentInput.current.value = "";
-            //     },
-            // });
         }
     }
 
@@ -489,7 +453,7 @@ function Documents(props) {
                 </div>
             </div>
 
-            <div className="progress-bar-container">
+            <div className="progress-bar-container" style={{overflow: 'unset'}}>
                 <Transition
                     from={{ opacity: 0 }}
                     enter={{ opacity: 1 }}
@@ -499,8 +463,24 @@ function Documents(props) {
                 >
                     {show => show && (styles => (
                         <animated.div style={{ ...styles }}>
+                            {/* <div style={{
+                                position: 'absolute',
+                                zIndex: 2,
+                                top: '-1.2rem',
+                                left: '50%',
+                                transform: 'translateX(-50%)'
+                            }}>
+                                <div className="mochi-button" style={{fontSize: '1rem', lineHeight: 1}} onClick={() => {
+                                    source.cancel('uploading cancelled!');
+                                    setIsSavingDocument(false);
+                                }}>
+                                    <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
+                                    <div className="mochi-button-base" style={{color: 'darkred'}}>Cancel</div>
+                                    <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
+                                </div>
+                            </div> */}
                             <div className="progress-bar-title">{getFileSize(progressUploaded)}{getSizeUnit(progressUploaded)} of {getFileSize(progressTotal)}{getSizeUnit(progressTotal)} | {isNaN(Math.floor((progressUploaded * 100) / progressTotal)) ? 0 : Math.floor((progressUploaded * 100) / progressTotal)}%</div>
-                            <div className="progress-bar-wrapper" style={{ width: (isNaN(Math.floor((progressUploaded * 100) / progressTotal)) ? 0 : Math.floor((progressUploaded * 100) / progressTotal)) + '%' }}></div>
+                            <div className="progress-bar-wrapper" style={{ width: (isNaN(Math.floor((progressUploaded * 100) / progressTotal)) ? 0 : Math.floor((progressUploaded * 100) / progressTotal)) + '%' }}></div>                            
                         </animated.div>
 
                     ))}
@@ -674,17 +654,17 @@ function Documents(props) {
                     {
                         ((props.selectedOwnerDocument.id || 0) > 0 &&
                             (['webm', 'mpg', 'mp2', 'mpeg', 'mpe', 'mpv', 'ogg', 'mp4', 'm4p', 'm4v', 'avi', 'wmv', 'mov', 'qt', 'flv', 'swf', 'avchd'].includes(props.selectedOwnerDocument.doc_extension.toLowerCase()))) &&
-                        <VideoJS options={{
-                            autoplay: true,
-                            controls: true,
-                            responsive: true,
-                            fluid: true,
-                            sources: [{
-                                src: (props.serverUrl + props.serverDocumentsFolder + props.selectedOwnerDocument.doc_id),
-                                type: 'video/' + props.selectedOwnerDocument.doc_extension.toLowerCase()
-                            }]
-                        }} />
-                        // <iframe id="frame-preview" src={(props.serverUrl + props.serverDocumentsFolder + props.selectedOwnerDocument.doc_id) + '#toolbar=1&navpanes=0&scrollbar=0'} frameBorder={0} allowFullScreen={true} width="100%" height="100%"></iframe>
+                        // <VideoJS options={{
+                        //     autoplay: true,
+                        //     controls: true,
+                        //     responsive: true,
+                        //     fluid: true,
+                        //     sources: [{
+                        //         src: (props.serverUrl + props.serverDocumentsFolder + props.selectedOwnerDocument.doc_id),
+                        //         type: 'video/' + props.selectedOwnerDocument.doc_extension.toLowerCase()
+                        //     }]
+                        // }} />
+                        <iframe id="frame-preview" src={(props.serverUrl + props.serverDocumentsFolder + props.selectedOwnerDocument.doc_id) + '#toolbar=1&navpanes=0&scrollbar=0'} frameBorder={0} allowFullScreen={true} width="100%" height="100%"></iframe>
                     }
 
                     {

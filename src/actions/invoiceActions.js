@@ -60,3 +60,34 @@ export const setInvoiceSelectedInternalNote = note => {
         payload: note
     }
 }
+
+export const setLbInvoiceSelectedOrder = order => {
+    return {
+        type: invoiceConstants.SET_LB_INVOICE_SELECTED_ORDER,
+        payload: order
+    }
+}
+export const setLbInvoiceOrderNumber = number => {
+    return {
+        type: invoiceConstants.SET_LB_INVOICE_ORDER_NUMBER,
+        payload: number
+    }
+}
+export const setLbInvoiceTripNumber = number => {
+    return {
+        type: invoiceConstants.SET_LB_INVOICE_TRIP_NUMBER,
+        payload: number
+    }
+}
+export const setLbInvoiceInternalNotes = notes => {
+    return {
+        type: invoiceConstants.SET_LB_INVOICE_INTERNAL_NOTES,
+        payload: notes
+    }
+}
+export const setLbInvoiceSelectedInternalNote = note => {
+    return {
+        type: invoiceConstants.SET_LB_INVOICE_SELECTED_INTERNAL_NOTE,
+        payload: note
+    }
+}

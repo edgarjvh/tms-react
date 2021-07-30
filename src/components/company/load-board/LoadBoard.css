@@ -94,6 +94,7 @@
 }
 .load-board-main-container .lb-form-container .lb-form-wrapper .lb-form-item .order-number {
   min-width: 5rem;
+  text-align: center;
 }
 .load-board-main-container .lb-form-container .lb-form-wrapper .lb-form-item .carrier-code {
   min-width: 5rem;

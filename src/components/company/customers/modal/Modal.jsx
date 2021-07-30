@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { connect } from 'react-redux';
 import $ from 'jquery';
+import axios from 'axios';
 import './Modal.css';
 import { setSelectedCustomer, setSelectedNote, setSelectedDirection, setCustomers, setSelectedDocumentNote, setSelectedDocument } from './../../../../actions';
 import moment from 'moment';
 
 function Modal(props) {
-
     const [isEditing, setIsEditing] = useState(false);
 
     const onChangeText = (e) => {
@@ -22,7 +22,7 @@ function Modal(props) {
             return;
         }
 
-        $.post(props.serverUrl + props.savingDataUrl, {
+        axios.post(props.serverUrl + props.savingDataUrl, {
             id: props.selectedData.id,
             customer_id: props.selectedCustomer.id,
             doc_id: props.selectedParent.id,
@@ -30,21 +30,25 @@ function Modal(props) {
             user: props.isAdding ? user : props.selectedData.user,
             date_time: props.isAdding ? date_time : props.selectedData.date_time
         }).then(res => {
-            if (res.result === 'OK') {
-                props.setSelectedParent(res.data);
+            if (res.data.result === 'OK') {
+                props.setSelectedParent(res.data.data);
                 props.setSelectedData({});
             }
+        }).catch(e => {
+            console.log('error on customer modal', e);
         });
     }
 
     const deleteData = () => {
         if (window.confirm(`Are you sure to delete this ${props.type}?`)) {
-            $.post(props.serverUrl + props.deletingDataUrl, props.selectedData).then(res => {
-                if (res.result === 'OK') {
-                    props.setSelectedParent(res.data);
+            axios.post(props.serverUrl + props.deletingDataUrl, props.selectedData).then(res => {
+                if (res.data.result === 'OK') {
+                    props.setSelectedParent(res.data.data);
                     props.setSelectedData({});
                 }
-            })
+            }).catch(e => {
+                console.log('error on customer modal', e);
+            });
         }
     }
 
@@ -135,7 +139,7 @@ function Modal(props) {
                             {
                                 (props.isEditable && !isEditing && !props.isAdding) &&
                                 <div className="mochi-button" onClick={() => {
-                                    props.setSelectedData({...props.selectedData, oldText: props.selectedData.text})
+                                    props.setSelectedData({ ...props.selectedData, oldText: props.selectedData.text })
                                     setIsEditing(true);
                                 }}>
                                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
@@ -148,8 +152,8 @@ function Modal(props) {
                                 <div className="mochi-button" style={{
                                     marginRight: 5
                                 }} onClick={() => {
-                                    props.setSelectedData({...props.selectedData, text: props.selectedData.oldText})
-                                    setIsEditing(false);                                   
+                                    props.setSelectedData({ ...props.selectedData, text: props.selectedData.oldText })
+                                    setIsEditing(false);
                                 }}>
                                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                                     <div className="mochi-button-base">Cancel</div>

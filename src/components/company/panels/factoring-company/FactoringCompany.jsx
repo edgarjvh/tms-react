@@ -376,7 +376,7 @@ function FactoringCompany(props) {
             if (e.target.value.trim() === '') {
                 setInitialValues();
             } else {
-                $.post(props.serverUrl + '/getFactoringCompanies', { code: e.target.value.trim().toLowerCase() }).then(async res => {
+                $.post(props.serverUrl + '/factoringCompanies', { code: e.target.value.trim().toLowerCase() }).then(async res => {
                     if (res.result === 'OK') {
                         if (res.factoring_companies.length > 0) {
                             props.setSelectedFactoringCompany(res.factoring_companies[0]);
@@ -920,7 +920,7 @@ function FactoringCompany(props) {
                                                     ? 'other' : 'work';
 
                                     } else {
-                                        mailing_address.mailing_contact_id = 0;
+                                        mailing_address.mailing_contact_id = null;
                                         mailing_address.mailing_contact = {};
                                         mailing_address.mailing_contact_primary_phone = 'work';
                                         mailing_address.mailing_contact_primary_email = 'work';

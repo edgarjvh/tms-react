@@ -8,8 +8,19 @@ import MaskedInput from 'react-text-mask';
 import Loader from 'react-loader-spinner';
 import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
 import moment from 'moment';
+import axios from 'axios';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCaretDown, faCaretRight, faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
+import { useDetectClickOutside } from "react-detect-click-outside";
+// import { useTransition, useSpring, animated } from 'react-spring';
+import { Transition, Spring, animated, config } from 'react-spring/renderprops';
+import Highlighter from "react-highlight-words";
+import { DragDropContext, Droppable, Draggable as DraggableDnd } from 'react-beautiful-dnd'
+import { Divider } from '@material-ui/core';
 
 function Routing(props) {
+    const [driverItems, setDriverItems] = useState([]);
+
     var delayTimer;
 
     const [list, setList] = useState([
@@ -81,6 +92,14 @@ function Routing(props) {
     });
     const routingService = platform.getRoutingService();
 
+    const [equipmentItems, setEquipmentItems] = useState([]);
+    const refEquipmentDropDown = useDetectClickOutside({ onTriggered: async () => { await setEquipmentItems([]) } });
+    const refEquipmentPopupItems = useRef([]);
+
+    const refEquipment = useRef();
+    const refDriverDropDown = useDetectClickOutside({ onTriggered: async () => { await setDriverItems([]) } });
+    const refDriverPopupItems = useRef([]);
+
     const [dragging, setDragging] = useState(false);
     const refCarrierEquipment = useRef();
     const refDriverName = useRef();
@@ -129,207 +148,6 @@ function Routing(props) {
         }));
     }
 
-    const popupItemClick = async (item) => {
-        let selected_order = { ...props.selected_order } || { order_number: 0 };
-
-        switch (popupActiveInput) {
-            case 'equipment':
-                await props.setSelectedCarrierInfoDriver({
-                    ...props.selectedCarrierInfoDriver,
-                    equipment: item,
-                    equipment_id: item.id,
-                    carrier_id: props.selectedCarrierInfoCarrier.id || 0
-                });
-
-                if ((props.selectedCarrierInfoCarrier?.id || 0) > 0) {
-                    let driver = {
-                        ...props.selectedCarrierInfoDriver,
-                        id: (props.selectedCarrierInfoDriver?.id || 0),
-                        carrier_id: props.selectedCarrierInfoCarrier.id || 0,
-                        equipment: item,
-                        equipment_id: item.id
-                    };
-
-                    if ((driver.first_name || '').trim() !== '') {
-                        if (!isSavingCarrierDriver) {
-                            setIsSavingCarrierDriver(true);
-
-                            $.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
-                                if (res.result === 'OK') {
-                                    await props.setSelectedCarrierInfoCarrier({ ...props.selectedCarrierInfoCarrier, drivers: res.drivers });
-                                    await props.setSelectedCarrierInfoDriver({ ...driver, id: res.driver.id });
-                                }
-
-                                await setIsSavingCarrierDriver(false);
-                            });
-                        }
-                    }
-                }
-                await setPopupItems([]);
-                break;
-            case 'driver-name':
-                await props.setSelectedCarrierInfoDriver(item);
-
-                selected_order.carrier_driver_id = (item.id || 0);
-
-                if (!isSavingOrder) {
-                    setIsSavingOrder(true);
-                    $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
-                        if (res.result === 'OK') {
-                            await props.setSelectedOrder(res.order);
-                        }
-
-                        setIsSavingOrder(false);
-                    });
-                }
-
-                await setPopupItems([]);
-                break;
-            default:
-                break;
-        }
-    }
-
-    const carrierEquipmentOnKeydown = (e) => {
-        let key = e.key.toLowerCase();
-        setPopupActiveInput('carrier-equipment');
-        const input = refCarrierEquipment.current.getBoundingClientRect();
-
-        setPopupPosition(input);
-
-        let selectedIndex = -1;
-
-        if (popupItems.length === 0) {
-            if (key !== 'tab') {
-                carrierEquipmentsItems.map((item, index) => {
-                    if (item.name === (carrierEquipment.name || '')) {
-                        selectedIndex = index;
-                    }
-                    return true;
-                });
-
-                setPopupItems(carrierEquipmentsItems.map((item, index) => {
-                    if (selectedIndex === -1) {
-                        item.selected = index === 0;
-                    } else {
-                        item.selected = selectedIndex === index;
-                    }
-                    return item;
-                }));
-            }
-        } else {
-            if (key === 'arrowleft' || key === 'arrowup') {
-                popupItems.map((item, index) => {
-                    if (item.selected) {
-                        selectedIndex = index;
-                    }
-                    return true;
-                });
-
-                if (selectedIndex === -1) {
-                    selectedIndex = 0;
-                } else {
-                    if (selectedIndex === 0) {
-                        selectedIndex = popupItems.length - 1;
-                    } else {
-                        selectedIndex -= 1;
-                    }
-                }
-
-                setPopupItems(popupItems.map((item, index) => {
-                    item.selected = selectedIndex === index;
-                    return item;
-                }));
-            }
-
-            if (key === 'arrowright' || key === 'arrowdown') {
-                popupItems.map((item, index) => {
-                    if (item.selected) {
-                        selectedIndex = index;
-                    }
-                    return true;
-                });
-
-                if (selectedIndex === -1) {
-                    selectedIndex = 0;
-                } else {
-                    if (selectedIndex === popupItems.length - 1) {
-                        selectedIndex = 0;
-                    } else {
-                        selectedIndex += 1;
-                    }
-                }
-
-                setPopupItems(popupItems.map((item, index) => {
-                    item.selected = selectedIndex === index;
-                    return item;
-                }));
-            }
-        }
-
-        if (key === 'enter' || key === 'tab') {
-            if (popupItems.length > 0) {
-                popupItems.map((item, index) => {
-                    if (item.selected) {
-                        setCarrierEquipment(item);
-                    }
-
-                    return true;
-                });
-
-                setPopupItems([]);
-            }
-        }
-
-        if (key !== 'tab') {
-            e.preventDefault();
-        }
-    }
-
-    const setPopupPosition = (input) => {
-        let popup = refPopup.current;
-        const { innerWidth, innerHeight } = window;
-        const screenWSection = innerWidth / 3;
-
-        let offset = innerWidth - $(popup).parent().width() - 45;
-
-        if (popup) {
-            popup.childNodes[0].className = 'mochi-contextual-popup';
-            popup.childNodes[0].classList.add('vertical');
-
-            if ((innerHeight - 170 - 30) <= input.top) {
-                popup.childNodes[0].classList.add('above');
-                popup.style.top = (input.top - 175 - input.height) + 'px';
-            } else if ((innerHeight - 170 - 30) > input.top) {
-                popup.childNodes[0].classList.add('below');
-                popup.style.top = (input.top + 10) + 'px';
-            }
-
-            if (input.left <= (screenWSection * 1)) {
-                popup.childNodes[0].classList.add('right');
-                popup.style.left = (input.left - offset) + 'px';
-
-                if (input.width < 70) {
-                    popup.style.left = ((input.left - offset) - 60 + (input.width / 2)) + 'px';
-
-                    if (input.left < 30) {
-                        popup.childNodes[0].classList.add('corner');
-                        popup.style.left = ((input.left - offset) + (input.width / 2)) + 'px';
-                    }
-                }
-            } else if (input.left <= (screenWSection * 2)) {
-                popup.style.left = ((input.left - offset) - 100) + 'px';
-            } else if (input.left > (screenWSection * 2)) {
-                popup.childNodes[0].classList.add('left');
-                popup.style.left = ((input.left - offset) - 200) + 'px';
-
-                if ((innerWidth - input.left) < 100) {
-                    popup.childNodes[0].classList.add('corner');
-                    popup.style.left = ((input.left - offset)) - (300 - (input.width / 2)) + 'px';
-                }
-            }
-        }
-    }
 
     const printWindow = (data) => {
         let mywindow = window.open('', 'new div', 'height=400,width=600');
@@ -348,8 +166,7 @@ function Routing(props) {
 
     useEffect(() => {
         if (trigger) {
-            setTrigger(false);
-
+            props.setMileageLoaderVisible(true);
             let routing = list[2].items.map((item, index) => {
                 let route = {
                     id: 0,
@@ -363,23 +180,125 @@ function Routing(props) {
             let selected_order = { ...props.selected_order };
             selected_order.routing = routing;
 
-            $.post(props.serverUrl + '/saveOrderRouting', {
+            axios.post(props.serverUrl + '/saveOrderRouting', {
                 order_id: props.selected_order?.id || 0,
                 routing: routing
             }).then(res => {
-                console.log(res);
-
-                if (res.result === 'OK') {
-                    props.setSelectedOrder({
+                if (res.data.result === 'OK') {
+                    selected_order = {
                         ...props.selected_order,
-                        routing: res.order_routing
-                    });
+                        routing: res.data.order.routing
+                    }
 
-                    props.setMileageLoaderVisible(true);
+                    props.setSelectedOrder(selected_order);
+
+                    if (res.data.order.routing.length >= 2) {
+                        let params = {
+                            mode: 'fastest;car;traffic:disabled',
+                            routeAttributes: 'summary'
+                        }
+
+                        let waypointCount = 0;
+
+                        res.data.order.routing.map((item, i) => {
+                            if (item.type === 'pickup') {
+                                selected_order.pickups.map((p, i) => {
+                                    if (p.id === item.pickup_id) {
+                                        if ((p.customer?.zip_data || '') !== '') {
+                                            params['waypoint' + waypointCount] = 'geo!' + p.customer.zip_data.latitude.toString() + ',' + p.customer.zip_data.longitude.toString();
+                                            waypointCount += 1;
+                                        }
+                                    }
+                                    return false;
+                                })
+                            } else {
+                                selected_order.deliveries.map((d, i) => {
+                                    if (d.id === item.delivery_id) {
+                                        if ((d.customer?.zip_data || '') !== '') {
+                                            params['waypoint' + waypointCount] = 'geo!' + d.customer.zip_data.latitude.toString() + ',' + d.customer.zip_data.longitude.toString();
+                                            waypointCount += 1;
+                                        }
+                                    }
+                                    return false;
+                                })
+                            }
+
+                            return true;
+                        });
+
+                        routingService.calculateRoute(params,
+                            (result) => {
+                                let miles = result.response.route[0].summary.distance || 0;
+
+                                selected_order.miles = miles;
+
+                                props.setSelectedOrder(selected_order);
+                                props.setMileageLoaderVisible(false);
+                                setTrigger(false);
+
+                                axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                    if (res.data.result === 'OK') {
+
+                                    }
+                                }).catch(e => {
+                                    console.log('error on saving order miles', e);
+                                    props.setMileageLoaderVisible(false);
+                                    setTrigger(false);
+                                });
+                            },
+                            (error) => {
+                                console.log('error getting mileage', error);
+                                selected_order.miles = 0;
+
+                                props.setSelectedOrder(selected_order)
+                                props.setMileageLoaderVisible(false);
+                                setTrigger(false);
+
+                                axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                    if (res.data.result === 'OK') {
+
+                                    }
+                                }).catch(e => {
+                                    console.log('error on saving order miles', e);
+                                    props.setMileageLoaderVisible(false);
+                                    setTrigger(false);
+                                });
+                            });
+                    } else {
+                        selected_order.miles = 0;
+                        props.setSelectedOrder(selected_order)
+                        props.setMileageLoaderVisible(false);
+                        setTrigger(false);
+
+                        axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                            if (res.data.result === 'OK') {
+
+                            }
+                        }).catch(e => {
+                            console.log('error on saving order miles', e);
+                            props.setMileageLoaderVisible(false);
+                            setTrigger(false);
+                        });
+                    }
                 }
             }).catch(e => {
                 console.log('error on saving order routing', e);
-            })
+
+                selected_order.miles = 0;
+                props.setSelectedOrder(selected_order)
+                props.setMileageLoaderVisible(false);
+                setTrigger(false);
+
+                axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                    if (res.data.result === 'OK') {
+
+                    }
+                }).catch(e => {
+                    console.log('error on saving order miles', e);
+                    props.setMileageLoaderVisible(false);
+                    setTrigger(false);
+                });
+            });
         }
     }, [trigger])
 
@@ -505,15 +424,15 @@ function Routing(props) {
                     return;
                 }
 
-                $.post(props.serverUrl + '/carriers', {
+                axios.post(props.serverUrl + '/carriers', {
                     code: e.target.value.toLowerCase()
                 }).then(res => {
-                    if (res.result === 'OK') {
+                    if (res.data.result === 'OK') {
                         if (res.carriers.length > 0) {
 
-                            props.setSelectedCarrierInfoCarrier(res.carriers[0]);
+                            props.setSelectedCarrierInfoCarrier(res.data.carriers[0]);
 
-                            res.carriers[0].contacts.map(c => {
+                            res.data.carriers[0].contacts.map(c => {
                                 if (c.is_primary === 1) {
                                     props.setSelectedCarrierInfoContact(c);
                                 }
@@ -527,11 +446,11 @@ function Routing(props) {
                             selected_order.bill_to_customer_id = (props.selectedBillToCompanyInfo?.id || 0);
                             selected_order.shipper_customer_id = (props.selectedShipperCompanyInfo?.id || 0);
                             selected_order.consignee_customer_id = (props.selectedConsigneeCompanyInfo?.id || 0);
-                            selected_order.carrier_id = res.carriers[0].id;
+                            selected_order.carrier_id = res.data.carriers[0].id;
 
-                            if (res.carriers[0].drivers.length > 0) {
-                                props.setSelectedCarrierInfoDriver(res.carriers[0].drivers[0]);
-                                selected_order.carrier_driver_id = res.carriers[0].drivers[0].id;
+                            if (res.data.carriers[0].drivers.length > 0) {
+                                props.setSelectedCarrierInfoDriver(res.data.carriers[0].drivers[0]);
+                                selected_order.carrier_driver_id = res.data.carriers[0].drivers[0].id;
                             }
 
                             if ((selected_order.ae_number || '') === '') {
@@ -540,12 +459,14 @@ function Routing(props) {
 
                             if (!isSavingOrder) {
                                 setIsSavingOrder(true);
-                                $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
-                                    if (res.result === 'OK') {
-                                        await props.setSelectedOrder(res.order);
+                                axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                    if (res.data.result === 'OK') {
+                                        await props.setSelectedOrder(res.data.order);
                                     }
 
                                     setIsSavingOrder(false);
+                                }).catch(e => {
+                                    console.log('error saving order', e);
                                 });
                             }
 
@@ -561,6 +482,8 @@ function Routing(props) {
                         props.setSelectedCarrierInfoInsurance({});
                         props.setSelectedCarrierInfoContact({});
                     }
+                }).catch(e => {
+                    console.log('error getting carriers', e);
                 });
             } else {
                 props.setSelectedCarrierInfoCarrier({});
@@ -614,13 +537,13 @@ function Routing(props) {
                     if (!isSavingCarrierInfo) {
                         setIsSavingCarrierInfo(true);
 
-                        $.post(props.serverUrl + '/saveCarrier', selectedCarrierInfoCarrier).then(async res => {
-                            if (res.result === 'OK') {
+                        axios.post(props.serverUrl + '/saveCarrier', selectedCarrierInfoCarrier).then(async res => {
+                            if (res.data.result === 'OK') {
                                 if (props.selectedCarrierInfoCarrier.id === undefined && (props.selectedCarrierInfoCarrier.id || 0) === 0) {
-                                    await props.setSelectedCarrierInfoCarrier({ ...props.selectedCarrierInfoCarrier, id: res.carrier.id });
+                                    await props.setSelectedCarrierInfoCarrier({ ...props.selectedCarrierInfoCarrier, id: res.data.carrier.id });
                                 }
 
-                                (res.carrier.contacts || []).map(async (contact, index) => {
+                                (res.data.carrier.contacts || []).map(async (contact, index) => {
 
                                     if (contact.is_primary === 1) {
                                         await props.setSelectedCarrierInfoContact(contact);
@@ -631,6 +554,8 @@ function Routing(props) {
                             }
 
                             await setIsSavingCarrierInfo(false);
+                        }).catch(e => {
+                            console.log('error saving carrier', e);
                         });
                     }
                 }
@@ -697,13 +622,15 @@ function Routing(props) {
             if (!isSavingCarrierContact) {
                 setIsSavingCarrierContact(true);
 
-                $.post(props.serverUrl + '/saveCarrierContact', contact).then(async res => {
-                    if (res.result === 'OK') {
-                        await props.setSelectedCarrierInfoCarrier({ ...props.selectedCarrierInfoCarrier, contacts: res.contacts });
-                        await props.setSelectedCarrierInfoContact(res.contact);
+                axios.post(props.serverUrl + '/saveCarrierContact', contact).then(async res => {
+                    if (res.data.result === 'OK') {
+                        await props.setSelectedCarrierInfoCarrier({ ...props.selectedCarrierInfoCarrier, contacts: res.data.contacts });
+                        await props.setSelectedCarrierInfoContact(res.data.contact);
                     }
 
                     setIsSavingCarrierContact(false);
+                }).catch(e => {
+                    console.log('error saving carrier contact', e);
                 });
             }
         }
@@ -828,14 +755,16 @@ function Routing(props) {
                             if (!isSavingCarrierDriver) {
                                 setIsSavingCarrierDriver(true);
 
-                                $.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
-                                    if (res.result === 'OK') {
-                                        await props.setSelectedCarrierInfoCarrier({ ...props.selectedCarrierInfoCarrier, drivers: res.drivers });
-                                        await props.setSelectedCarrierInfoDriver({ ...props.selectedCarrierInfoDriver, id: res.driver.id });
+                                axios.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
+                                    if (res.data.result === 'OK') {
+                                        await props.setSelectedCarrierInfoCarrier({ ...props.selectedCarrierInfoCarrier, drivers: res.data.drivers });
+                                        await props.setSelectedCarrierInfoDriver({ ...props.selectedCarrierInfoDriver, id: res.data.driver.id });
                                     }
 
                                     await setIsSavingCarrierDriver(false);
                                     await setPopupItems([]);
+                                }).catch(e => {
+                                    console.log('error saving carrier driver', e);
                                 });
                             }
                         }
@@ -856,13 +785,15 @@ function Routing(props) {
                         if (!isSavingCarrierDriver) {
                             setIsSavingCarrierDriver(true);
 
-                            $.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
-                                if (res.result === 'OK') {
-                                    await props.setSelectedCarrierInfoCarrier({ ...props.selectedCarrierInfoCarrier, drivers: res.drivers });
-                                    await props.setSelectedCarrierInfoDriver({ ...props.selectedCarrierInfoDriver, id: res.driver.id });
+                            axios.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
+                                if (res.data.result === 'OK') {
+                                    await props.setSelectedCarrierInfoCarrier({ ...props.selectedCarrierInfoCarrier, drivers: res.data.drivers });
+                                    await props.setSelectedCarrierInfoDriver({ ...props.selectedCarrierInfoDriver, id: res.data.driver.id });
                                 }
 
                                 await setIsSavingCarrierDriver(false);
+                            }).catch(e => {
+                                console.log('error saving carrier driver', e);
                             });
                         }
                     }
@@ -872,87 +803,112 @@ function Routing(props) {
         }
     }
 
-    const onEquipmentInput = async (e) => {
+    const reorder = (list, startIndex, endIndex) => {
+        const result = Array.from(list);
+        const [removed] = result.splice(startIndex, 1);
+        result.splice(endIndex, 0, removed);
 
-        window.clearTimeout(delayTimer);
-        let equipment = props.selectedCarrierInfoDriver.equipment || {};
-        equipment.name = e.target.value.trim();
-        await props.setSelectedCarrierInfoDriver({ ...props.selectedCarrierInfoDriver, equipment_id: 0, equipment: equipment });
+        return result;
+    };
 
-        setPopupActiveInput('equipment');
+    /**
+     * Moves an item from one list to another list.
+     */
+    const move = (source, destination, droppableSource, droppableDestination) => {
+        const sourceClone = Array.from(source);
+        const destClone = Array.from(destination);
+        const [removed] = sourceClone.splice(droppableSource.index, 1);
 
-        if (props.selectedCarrierInfoCarrier.id !== undefined) {
-            if (e.target.value.trim() === '') {
-                await setPopupItems([]);
+        destClone.splice(droppableDestination.index, 0, removed);
+
+        const result = {};
+        result[droppableSource.droppableId] = sourceClone;
+        result[droppableDestination.droppableId] = destClone;
+
+        return result;
+    };
+
+    const onDragEnd = (result) => {
+        const { source, destination } = result;
+
+        if (!destination) {
+            return;
+        }
+        const sInd = +source.droppableId;
+        const dInd = +destination.droppableId;
+
+        if (sInd === 0) {
+            if (dInd !== 2) {
+                return;
             } else {
-                delayTimer = window.setTimeout(() => {
-                    $.post(props.serverUrl + '/getEquipments', {
-                        name: e.target.value.toLowerCase().trim()
-                    }).then(async res => {
-                        const input = refCarrierEquipment.current.getBoundingClientRect();
+                const result = move(list[sInd].items, list[dInd].items, source, destination);
+                let curList = JSON.parse(JSON.stringify(list));
+                curList[sInd].items = result[sInd];
+                curList[dInd].items = result[dInd];
 
-                        let popup = refPopup.current;
-
-                        const { innerWidth, innerHeight } = window;
-
-                        let screenWSection = innerWidth / 3;
-
-                        popup && popup.childNodes[0].classList.add('vertical');
-
-                        if ((innerHeight - 170 - 30) <= input.top) {
-                            popup && popup.childNodes[0].classList.add('above');
-                        }
-
-                        if ((innerHeight - 170 - 30) > input.top) {
-                            popup && popup.childNodes[0].classList.add('below');
-                            popup && (popup.style.top = (input.top + 10) + 'px');
-                        }
-
-                        if (input.left <= (screenWSection * 1)) {
-                            popup && popup.childNodes[0].classList.add('right');
-                            popup && (popup.style.left = input.left + 'px');
-
-                            if (input.width < 70) {
-                                popup && (popup.style.left = (input.left - 60 + (input.width / 2)) + 'px');
-
-                                if (input.left < 30) {
-                                    popup && popup.childNodes[0].classList.add('corner');
-                                    popup && (popup.style.left = (input.left + (input.width / 2)) + 'px');
-                                }
-                            }
-                        }
-
-                        if (input.left <= (screenWSection * 2)) {
-                            popup && (popup.style.left = (input.left - 100) + 'px');
-                        }
-
-                        if (input.left > (screenWSection * 2)) {
-                            popup && popup.childNodes[0].classList.add('left');
-                            popup && (popup.style.left = (input.left - 200) + 'px');
-
-                            if ((innerWidth - input.left) < 100) {
-                                popup && popup.childNodes[0].classList.add('corner');
-                                popup && (popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px');
-                            }
-                        }
-
-                        if (res.result === 'OK') {
-                            if (res.equipments.length > 0) {
-                                let items = res.equipments.map((equipment, i) => {
-                                    equipment.selected = i === 0;
-                                    return equipment;
-                                });
-
-                                await setPopupItems(e.target.value.trim() === '' ? [] : items);
-                            } else {
-                                await setPopupItems([]);
-                            }
-                        }
-                    });
-                }, 300);
+                setList(curList);
             }
         }
+
+        if (sInd === 1) {
+            if (dInd !== 2) {
+                return;
+            } else {
+                const result = move(list[sInd].items, list[dInd].items, source, destination);
+                let curList = JSON.parse(JSON.stringify(list));
+                curList[sInd].items = result[sInd];
+                curList[dInd].items = result[dInd];
+
+                setList(curList);
+            }
+        }
+
+        if (sInd === 2) {
+            let curList = JSON.parse(JSON.stringify(list));
+
+            if (dInd === 2) {
+                const items = reorder(list[2].items, source.index, destination.index);
+                curList[2].items = items;
+                setList(curList);
+            } else {
+                if (curList[sInd].items[source.index].type === 'pickup') {
+                    if (dInd === 0) {
+                        const result = move(list[sInd].items, list[dInd].items, source, destination);
+                        curList[sInd].items = result[sInd];
+                        curList[dInd].items = result[dInd];
+
+                        setList(curList);
+                    } else {
+                        return;
+                    }
+                } else {
+                    if (dInd === 1) {
+                        const result = move(list[sInd].items, list[dInd].items, source, destination);
+                        curList[sInd].items = result[sInd];
+                        curList[dInd].items = result[dInd];
+
+                        setList(curList);
+                    } else {
+                        return;
+                    }
+                }
+            }
+        }
+
+        setTrigger(true);
     }
+
+    const grid = 8;
+
+    const getItemStyle = (isDragging, draggableStyle) => ({
+        userSelect: "none",
+        background: isDragging ? "rgba(43, 193, 255, 0.1)" : "transparent",
+        ...draggableStyle
+    });
+    const getListStyle = isDraggingOver => ({
+        
+        background: !isDraggingOver ? 'transparent' : 'rgba(43, 193, 255, 0.1)'
+    });
 
     return (
         <div className="panel-content routing">
@@ -964,7 +920,6 @@ function Routing(props) {
                 display: 'grid',
                 gridTemplateColumns: '1fr 1fr 1fr 1fr',
                 gridGap: '1rem',
-                // justifyContent: 'space-between',
                 width: '50%',
                 marginTop: 15,
                 marginBottom: 10
@@ -999,56 +954,71 @@ function Routing(props) {
                 </div>
             </div>
 
-            <div style={{
-                flexGrow: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                paddingBottom: 20
-            }}>
-
+            <DragDropContext onDragEnd={onDragEnd}>
                 <div style={{
-                    display: 'flex',
                     flexGrow: 1,
-                    flexBasis: '100%',
-                    marginBottom: 10
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gridTemplateRows: '1fr 1fr',
+                    gridGap: '0.5rem',
+                    paddingBottom: 20
                 }}>
-                    <div className='form-bordered-box' style={{ flexGrow: 1, marginRight: 10, flexBasis: '100%' }}>
-                        <div className='form-header'>
-                            <div className='top-border top-border-left'></div>
-                            <div className='form-title'>Pick Ups</div>
-                            <div className='top-border top-border-middle'></div>
-                            <div className='top-border top-border-right'></div>
-                        </div>
 
-                        {
-                            list.map((grp, grpI) => {
-                                if (grp.title === 'pickup') {
-                                    return <div
-                                        key={grpI}
-                                        className="routing-pickup-container"
-                                        // onDragEnter={dragging && !grp.items.length ? (e) => handleDragEnter(e, { grpI, itemI: 0 }) : null}
-                                        onDragEnter={dragging ? (e) => handleDragEnter(e, { grpI, itemI: grp.items.length }) : null}
-                                    >
-                                        {
-                                            grp.items.map((item, itemI) => {
-                                                return <div
-                                                    key={itemI}
-                                                    className={dragging ? getStyles({ grpI, itemI }) : 'routing-pickup-item'}
-                                                    draggable={true}
-                                                    onDragStart={(e) => { handleDragStart(e, { grpI, itemI }) }}
-                                                    onDragEnter={dragging ? (e) => { handleDragEnter(e, { grpI, itemI }) } : null}
-                                                >
-                                                    <span>{item.customer?.code || ''}</span> <span>{item.customer?.name || ''}</span> <span>{item.customer?.city || ''}-{item.customer?.state || ''}</span>
-                                                </div>
-                                            })
-                                        }
-                                    </div>
-                                }
-                            })
-                        }
+                    <Droppable droppableId="0">
+                        {(provided, snapshot) => {                             
+                            return (
+                            <div className="form-bordered-box" style={getListStyle(snapshot.isDraggingOver)}>
+                                <div className='form-header'>
+                                    <div className='top-border top-border-left'></div>
+                                    <div className='form-title'>Pick Ups</div>
+                                    <div className='top-border top-border-middle'></div>
+                                    <div className='top-border top-border-right'></div>
+                                </div>
 
+                                <div className="routing-pickup-container" {...provided.droppableProps} ref={provided.innerRef} style={{ flexGrow: 1 }}>
+                                    {list.find(grp => grp.title === 'pickup') !== undefined &&
+                                        list.find(grp => grp.title === 'pickup').items.map((item, index) => (
+                                            <DraggableDnd key={item.customer.id} draggableId={`${item.customer.id}`} index={index}>
+                                                {(provided, snapshot) => {
+                                                    if (snapshot.isDragging) {
+                                                        provided.draggableProps.style.left = provided.draggableProps.style.offsetLeft;
+                                                        provided.draggableProps.style.top = provided.draggableProps.style.offsetTop;
+                                                    }
 
-                    </div>
+                                                    return (
+                                                        <div className="routing-pickup-item" ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{
+                                                            ...getItemStyle(
+                                                                snapshot.isDragging,
+                                                                provided.draggableProps.style
+                                                            )
+                                                        }}
+
+                                                        >
+                                                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                                <span>{(item.customer?.code || '') + ((item.customer?.code_number || 0) === 0 ? '' : item.customer.code_number)}</span>
+                                                                <span>{item.customer?.name || ''}</span>
+                                                                <span>{item.customer?.city || ''}-{item.customer?.state || ''}</span>
+                                                            </div>
+
+                                                            {
+                                                                snapshot.isDragging &&
+                                                                <div style={{
+                                                                    textTransform: 'capitalize',
+                                                                    color: 'rgba(0,0,0,0.5)',
+                                                                    fontSize: '0.7rem',
+                                                                    marginLeft: '0.5rem'
+                                                                }}>{item.type}</div>
+                                                            }
+                                                        </div>
+                                                    )
+                                                }}
+                                            </DraggableDnd>
+                                        ))}
+                                    {provided.placeholder}
+                                </div>
+                            </div>
+                        )}}
+                    </Droppable>
 
                     <div className='form-bordered-box' style={{
                         flexGrow: 1, flexBasis: '100%'
@@ -1185,278 +1155,829 @@ function Routing(props) {
                                 />
                             </div>
                             <div className="form-h-sep"></div>
-                            <div className="input-box-container grow" style={{ position: 'relative' }}>
-                                <input tabIndex={56 + props.tabTimes} type="text" placeholder="Equipments"
-                                    ref={refCarrierEquipment}
-                                    onKeyDown={carrierEquipmentOnKeydown}
-                                    onInput={onEquipmentInput}
-                                    onChange={onEquipmentInput}
-                                    value={props.selectedCarrierInfoDriver.equipment?.name || ''}
-                                />
-                                <span className="fas fa-caret-down" style={{
-                                    position: 'absolute',
-                                    right: 5,
-                                    top: 'calc(50% + 2px)',
-                                    transform: `translateY(-50%)`,
-                                    fontSize: '1.1rem',
-                                    cursor: 'pointer'
-                                }} onClick={() => {
-                                    delayTimer = window.setTimeout(() => {
-                                        setPopupActiveInput('equipment');
-                                        $.post(props.serverUrl + '/getEquipments', {
-                                            name: ""
-                                        }).then(async res => {
-                                            const input = refCarrierEquipment.current.getBoundingClientRect();
+                            <div className="select-box-container" style={{ width: '9rem' }}>
+                                <div className="select-box-wrapper">
+                                    <input type="text"
+                                        tabIndex={56 + props.tabTimes}
+                                        placeholder="Equipment"
+                                        ref={refEquipment}
+                                        onKeyDown={async (e) => {
+                                            let key = e.keyCode || e.which;
 
-                                            let popup = refPopup.current;
+                                            switch (key) {
+                                                case 37: case 38: // arrow left | arrow up
+                                                    e.preventDefault();
+                                                    if (equipmentItems.length > 0) {
+                                                        let selectedIndex = equipmentItems.findIndex(item => item.selected);
 
-                                            const { innerWidth, innerHeight } = window;
-
-                                            let screenWSection = innerWidth / 3;
-
-                                            popup && popup.childNodes[0].classList.add('vertical');
-
-                                            if ((innerHeight - 170 - 30) <= input.top) {
-                                                popup && popup.childNodes[0].classList.add('above');
-                                            }
-
-                                            if ((innerHeight - 170 - 30) > input.top) {
-                                                popup && popup.childNodes[0].classList.add('below');
-                                                popup && (popup.style.top = (input.top + 10) + 'px');
-                                            }
-
-                                            if (input.left <= (screenWSection * 1)) {
-                                                popup && popup.childNodes[0].classList.add('right');
-                                                popup && (popup.style.left = input.left + 'px');
-
-                                                if (input.width < 70) {
-                                                    popup && (popup.style.left = (input.left - 60 + (input.width / 2)) + 'px');
-
-                                                    if (input.left < 30) {
-                                                        popup && popup.childNodes[0].classList.add('corner');
-                                                        popup && (popup.style.left = (input.left + (input.width / 2)) + 'px');
-                                                    }
-                                                }
-                                            }
-
-                                            if (input.left <= (screenWSection * 2)) {
-                                                popup && (popup.style.left = (input.left - 100) + 'px');
-                                            }
-
-                                            if (input.left > (screenWSection * 2)) {
-                                                popup && popup.childNodes[0].classList.add('left');
-                                                popup && (popup.style.left = (input.left - 200) + 'px');
-
-                                                if ((innerWidth - input.left) < 100) {
-                                                    popup && popup.childNodes[0].classList.add('corner');
-                                                    popup && (popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px');
-                                                }
-                                            }
-
-                                            if (res.result === 'OK') {
-                                                if (res.equipments.length > 0) {
-                                                    let items = [];
-                                                    let matched = false;
-
-                                                    items = res.equipments.map((equipment, i) => {
-                                                        if (equipment.name === props.selectedCarrierInfoDriver.equipment?.name) {
-                                                            equipment.selected = true;
-                                                            matched = true;
+                                                        if (selectedIndex === -1) {
+                                                            await setEquipmentItems(equipmentItems.map((item, index) => {
+                                                                item.selected = index === 0;
+                                                                return item;
+                                                            }))
                                                         } else {
-                                                            equipment.selected = false;
+                                                            await setEquipmentItems(equipmentItems.map((item, index) => {
+                                                                if (selectedIndex === 0) {
+                                                                    item.selected = index === (equipmentItems.length - 1);
+                                                                } else {
+                                                                    item.selected = index === (selectedIndex - 1)
+                                                                }
+                                                                return item;
+                                                            }))
                                                         }
 
-                                                        return equipment;
-                                                    });
+                                                        refEquipmentPopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    } else {
+                                                        axios.post(props.serverUrl + '/getEquipments').then(async res => {
+                                                            if (res.data.result === 'OK') {
+                                                                await setEquipmentItems(res.data.equipments.map((item, index) => {
+                                                                    item.selected = (props.selectedCarrierInfoDriver?.equipment?.id || 0) === 0
+                                                                        ? index === 0
+                                                                        : item.id === props.selectedCarrierInfoDriver.equipment.id
+                                                                    return item;
+                                                                }))
 
-                                                    if (!matched) {
-                                                        items = res.equipments.map((equipment, i) => {
-                                                            equipment.selected = i === 0;
-                                                            return equipment;
+                                                                refEquipmentPopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
+                                                                });
+                                                            }
+                                                        }).catch(async e => {
+                                                            console.log('error getting equipments', e);
+                                                        })
+                                                    }
+                                                    break;
+
+                                                case 39: case 40: // arrow right | arrow down
+                                                    e.preventDefault();
+                                                    if (equipmentItems.length > 0) {
+                                                        let selectedIndex = equipmentItems.findIndex(item => item.selected);
+
+                                                        if (selectedIndex === -1) {
+                                                            await setEquipmentItems(equipmentItems.map((item, index) => {
+                                                                item.selected = index === 0;
+                                                                return item;
+                                                            }))
+                                                        } else {
+                                                            await setEquipmentItems(equipmentItems.map((item, index) => {
+                                                                if (selectedIndex === (equipmentItems.length - 1)) {
+                                                                    item.selected = index === 0;
+                                                                } else {
+                                                                    item.selected = index === (selectedIndex + 1)
+                                                                }
+                                                                return item;
+                                                            }))
+                                                        }
+
+                                                        refEquipmentPopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    } else {
+                                                        axios.post(props.serverUrl + '/getEquipments').then(async res => {
+                                                            if (res.data.result === 'OK') {
+                                                                await setEquipmentItems(res.data.equipments.map((item, index) => {
+                                                                    item.selected = (props.selectedCarrierInfoDriver?.equipment?.id || 0) === 0
+                                                                        ? index === 0
+                                                                        : item.id === props.selectedCarrierInfoDriver.equipment.id
+                                                                    return item;
+                                                                }))
+
+                                                                refEquipmentPopupItems.current.map((r, i) => {
+                                                                    if (r && r.classList.contains('selected')) {
+                                                                        r.scrollIntoView({
+                                                                            behavior: 'auto',
+                                                                            block: 'center',
+                                                                            inline: 'nearest'
+                                                                        })
+                                                                    }
+                                                                    return true;
+                                                                });
+                                                            }
+                                                        }).catch(async e => {
+                                                            console.log('error getting equipments', e);
+                                                        })
+                                                    }
+                                                    break;
+
+                                                case 27: // escape
+                                                    setEquipmentItems([]);
+                                                    break;
+
+                                                case 13: // enter
+                                                    if (equipmentItems.length > 0 && equipmentItems.findIndex(item => item.selected) > -1) {
+                                                        await props.setSelectedCarrierInfoDriver({
+                                                            ...props.selectedCarrierInfoDriver,
+                                                            equipment: equipmentItems[equipmentItems.findIndex(item => item.selected)],
+                                                            equipment_id: equipmentItems[equipmentItems.findIndex(item => item.selected)].id
+                                                        });
+
+                                                        axios.post(props.serverUrl + '/saveCarrierDriver', {
+                                                            ...props.selectedCarrierInfoDriver,
+                                                            equipment: equipmentItems[equipmentItems.findIndex(item => item.selected)],
+                                                            equipment_id: equipmentItems[equipmentItems.findIndex(item => item.selected)].id,
+                                                            id: (props.selectedCarrierInfoDriver?.id || 0),
+                                                            carrier_id: (props.selectedCarrierInfoCarrier?.id || 0)
+                                                        }).then(async res => {
+                                                            if (res.data.result === 'OK') {
+                                                                // await props.setSelectedCarrierInfoCarrier({ ...props.selectedCarrierInfoCarrier, drivers: res.data.drivers });
+                                                                // await props.setSelectedCarrierInfoDriver({ ...props.selectedCarrierInfoDriver, id: res.data.driver.id });
+                                                            }
+                                                        }).catch(e => {
+                                                            console.log('error saving carrier driver', e);
+                                                        });
+
+                                                        setEquipmentItems([]);
+                                                        refEquipment.current.focus();
+                                                    }
+                                                    break;
+
+                                                case 9: // tab
+                                                    if (equipmentItems.length > 0) {
+                                                        e.preventDefault();
+                                                        await props.setSelectedCarrierInfoDriver({
+                                                            ...props.selectedCarrierInfoDriver,
+                                                            equipment: equipmentItems[equipmentItems.findIndex(item => item.selected)],
+                                                            equipment_id: equipmentItems[equipmentItems.findIndex(item => item.selected)].id
+                                                        });
+
+                                                        axios.post(props.serverUrl + '/saveCarrierDriver', {
+                                                            ...props.selectedCarrierInfoDriver,
+                                                            equipment: equipmentItems[equipmentItems.findIndex(item => item.selected)],
+                                                            equipment_id: equipmentItems[equipmentItems.findIndex(item => item.selected)].id,
+                                                            id: (props.selectedCarrierInfoDriver?.id || 0),
+                                                            carrier_id: (props.selectedCarrierInfoCarrier?.id || 0)
+                                                        }).then(async res => {
+                                                            if (res.data.result === 'OK') {
+                                                                // await props.setSelectedCarrierInfoCarrier({ ...props.selectedCarrierInfoCarrier, drivers: res.data.drivers });
+                                                                // await props.setSelectedCarrierInfoDriver({ ...props.selectedCarrierInfoDriver, id: res.data.driver.id });
+                                                            }
+                                                        }).catch(e => {
+                                                            console.log('error saving carrier driver', e);
+                                                        });
+
+                                                        setEquipmentItems([]);
+                                                        refEquipment.current.focus();
+                                                    }
+                                                    break;
+
+                                                default:
+                                                    break;
+                                            }
+                                        }}
+                                        onBlur={async () => {
+                                            if ((props.selectedCarrierInfoDriver?.equipment?.id || 0) === 0) {
+                                                await props.setSelectedCarrierInfoDriver({ ...props.selectedCarrierInfoDriver, equipment: {} });
+                                            }
+                                        }}
+                                        onInput={async (e) => {
+                                            let equipment = props.selectedCarrierInfoDriver?.equipment || {};
+                                            equipment.id = 0;
+                                            equipment.name = e.target.value;
+                                            await props.setSelectedCarrierInfoDriver({ ...props.selectedCarrierInfoDriver, equipment: equipment, equipment_id: equipment.id });
+
+                                            if (e.target.value.trim() === '') {
+                                                setEquipmentItems([]);
+                                            } else {
+                                                axios.post(props.serverUrl + '/getEquipments', {
+                                                    name: e.target.value.trim()
+                                                }).then(async res => {
+                                                    if (res.data.result === 'OK') {
+                                                        await setEquipmentItems(res.data.equipments.map((item, index) => {
+                                                            item.selected = (props.selectedCarrierInfoDriver?.equipment?.id || 0) === 0
+                                                                ? index === 0
+                                                                : item.id === props.selectedCarrierInfoDriver.equipment.id
+                                                            return item;
+                                                        }))
+                                                    }
+                                                }).catch(async e => {
+                                                    console.log('error getting equipments', e);
+                                                })
+                                            }
+                                        }}
+                                        onChange={async (e) => {
+                                            let equipment = props.selectedCarrierInfoDriver?.equipment || {};
+                                            equipment.id = 0;
+                                            equipment.name = e.target.value;
+                                            await props.setSelectedCarrierInfoDriver({ ...props.selectedCarrierInfoDriver, equipment: equipment, equipment_id: equipment.id });
+                                        }}
+                                        value={props.selectedCarrierInfoDriver?.equipment?.name || ''}
+                                    />
+                                    <FontAwesomeIcon className="dropdown-button" icon={faCaretDown} onClick={() => {
+                                        if (equipmentItems.length > 0) {
+                                            setEquipmentItems([]);
+                                        } else {
+                                            if ((props.selectedCarrierInfoDriver?.equipment?.id || 0) === 0 && (props.selectedCarrierInfoDriver?.equipment?.name || '') !== '') {
+                                                axios.post(props.serverUrl + '/getEquipments', {
+                                                    name: props.selectedCarrierInfoDriver?.equipment.name
+                                                }).then(async res => {
+                                                    if (res.data.result === 'OK') {
+                                                        await setEquipmentItems(res.data.equipments.map((item, index) => {
+                                                            item.selected = (props.selectedCarrierInfoDriver?.equipment?.id || 0) === 0
+                                                                ? index === 0
+                                                                : item.id === props.selectedCarrierInfoDriver.equipment.id
+                                                            return item;
+                                                        }))
+
+                                                        refEquipmentPopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
                                                         });
                                                     }
+                                                }).catch(async e => {
+                                                    console.log('error getting equipments', e);
+                                                })
+                                            } else {
+                                                axios.post(props.serverUrl + '/getEquipments').then(async res => {
+                                                    if (res.data.result === 'OK') {
+                                                        await setEquipmentItems(res.data.equipments.map((item, index) => {
+                                                            item.selected = (props.selectedCarrierInfoDriver?.equipment?.id || 0) === 0
+                                                                ? index === 0
+                                                                : item.id === props.selectedCarrierInfoDriver.equipment.id
+                                                            return item;
+                                                        }))
 
-                                                    await setPopupItems(items);
-
-                                                    popupItemsRef.current.map((r, i) => {
-                                                        if (r && r.classList.contains('selected')) {
-                                                            r.scrollIntoView()
-                                                        }
-                                                        return true;
-                                                    });
-                                                } else {
-                                                    await setPopupItems([]);
-                                                }
+                                                        refEquipmentPopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    }
+                                                }).catch(async e => {
+                                                    console.log('error getting equipments', e);
+                                                })
                                             }
+                                        }
 
-                                            refCarrierEquipment.current.focus();
-                                        });
-                                    }, 300);
-                                }}></span>
+                                        refEquipment.current.focus();
+                                    }} />
+                                </div>
+
+                                <Transition
+                                    from={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                    enter={{ opacity: 1, top: 'calc(100% + 15px)' }}
+                                    leave={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                    items={equipmentItems.length > 0}
+                                    config={{ duration: 100 }}
+                                >
+                                    {show => show && (styles => (
+                                        <animated.div
+                                            className="mochi-contextual-container"
+                                            id="mochi-contextual-container-equipment"
+                                            style={{
+                                                ...styles,
+                                                left: '-130%',
+                                                display: 'block'
+                                            }}
+                                            ref={refEquipmentDropDown}
+                                        >
+                                            <div className="mochi-contextual-popup vertical below left" style={{ height: 150 }}>
+                                                <div className="mochi-contextual-popup-content" >
+                                                    <div className="mochi-contextual-popup-wrapper">
+                                                        {
+                                                            equipmentItems.map((item, index) => {
+                                                                const mochiItemClasses = classnames({
+                                                                    'mochi-item': true,
+                                                                    'selected': item.selected
+                                                                });
+
+                                                                const searchValue = (props.selectedCarrierInfoDriver?.equipment?.id || 0) === 0 && (props.selectedCarrierInfoDriver?.equipment?.name || '') !== ''
+                                                                    ? props.selectedCarrierInfoDriver?.equipment?.name : undefined;
+
+                                                                return (
+                                                                    <div
+                                                                        key={index}
+                                                                        className={mochiItemClasses}
+                                                                        id={item.id}
+                                                                        onClick={async () => {
+                                                                            await props.setSelectedCarrierInfoDriver({
+                                                                                ...props.selectedCarrierInfoDriver,
+                                                                                equipment: item,
+                                                                                equipment_id: item.id
+                                                                            });
+
+                                                                            axios.post(props.serverUrl + '/saveCarrierDriver', {
+                                                                                ...props.selectedCarrierInfoDriver,
+                                                                                equipment: item,
+                                                                                equipment_id: item.id,
+                                                                                id: (props.selectedCarrierInfoDriver?.id || 0),
+                                                                                carrier_id: (props.selectedCarrierInfoCarrier?.id || 0)
+                                                                            }).then(async res => {
+                                                                                if (res.data.result === 'OK') {
+                                                                                    // await props.setSelectedCarrierInfoCarrier({ ...props.selectedCarrierInfoCarrier, drivers: res.data.drivers });
+                                                                                    // await props.setSelectedCarrierInfoDriver({ ...props.selectedCarrierInfoDriver, id: res.data.driver.id });
+                                                                                }
+                                                                            }).catch(e => {
+                                                                                console.log('error saving carrier driver', e);
+                                                                            });
+                                                                            setEquipmentItems([]);
+                                                                            refEquipment.current.focus();
+                                                                        }}
+                                                                        ref={ref => refEquipmentPopupItems.current.push(ref)}
+                                                                    >
+                                                                        {
+                                                                            searchValue === undefined
+                                                                                ? item.name
+                                                                                : <Highlighter
+                                                                                    highlightClassName="mochi-item-highlight-text"
+                                                                                    searchWords={[searchValue]}
+                                                                                    autoEscape={true}
+                                                                                    textToHighlight={item.name}
+                                                                                />
+                                                                        }
+                                                                        {
+                                                                            item.selected &&
+                                                                            <FontAwesomeIcon className="dropdown-selected" icon={faCaretRight} />
+                                                                        }
+                                                                    </div>
+                                                                )
+                                                            })
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </animated.div>
+                                    ))}
+                                </Transition>
                             </div>
                         </div>
                         <div className="form-v-sep"></div>
                         <div className="form-row">
-                            <div className="input-box-container grow" style={{ position: 'relative' }}>
-                                <input tabIndex={57 + props.tabTimes} type="text" placeholder="Driver Name"
-                                    ref={refDriverName}
-                                    onKeyDown={validateCarrierDriverForSaving}
-                                    onChange={(e) => {
-                                        let driver = props.selectedCarrierInfoDriver || {};
+                            <div className="select-box-container" style={{ flexGrow: 1 }}>
+                                <div className="select-box-wrapper">
+                                    <input type="text"
+                                        tabIndex={57 + props.tabTimes}
+                                        placeholder="Driver Name"
+                                        ref={refDriverName}
+                                        onKeyDown={async (e) => {
+                                            let key = e.keyCode || e.which;
 
-                                        if (e.target.value === '') {
-                                            driver = {};
-                                            props.setSelectedCarrierInfoDriver({ ...driver });
-                                        } else {
-                                            let splitted = e.target.value.split(' ');
-                                            let first_name = splitted[0];
+                                            switch (key) {
+                                                case 37: case 38: // arrow left | arrow up
+                                                    e.preventDefault();
+                                                    if (driverItems.length > 0) {
+                                                        let selectedIndex = driverItems.findIndex(item => item.selected);
 
-                                            if (splitted.length > 1) {
-                                                first_name += ' ';
-                                            }
+                                                        if (selectedIndex === -1) {
+                                                            await setDriverItems(driverItems.map((item, index) => {
+                                                                item.selected = index === 0;
+                                                                return item;
+                                                            }))
+                                                        } else {
+                                                            await setDriverItems(driverItems.map((item, index) => {
+                                                                if (selectedIndex === 0) {
+                                                                    item.selected = index === (driverItems.length - 1);
+                                                                } else {
+                                                                    item.selected = index === (selectedIndex - 1)
+                                                                }
+                                                                return item;
+                                                            }))
+                                                        }
 
-                                            let last_name = '';
+                                                        refDriverPopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    } else {
+                                                        if ((props.selectedCarrierInfoCarrier?.id || 0) > 0) {
+                                                            axios.post(props.serverUrl + '/getDriversByCarrierId', {
+                                                                carrier_id: props.selectedCarrierInfoCarrier.id
+                                                            }).then(async res => {
+                                                                if (res.data.result === 'OK') {
+                                                                    if (res.data.count > 1) {
+                                                                        await setDriverItems([
+                                                                            ...[{
+                                                                                first_name: 'Clear',
+                                                                                id: null
+                                                                            }],
+                                                                            ...res.data.drivers.map((item, index) => {
+                                                                                item.selected = (props.selectedCarrierInfoDriver?.id || 0) === 0
+                                                                                    ? index === 0
+                                                                                    : item.id === props.selectedCarrierInfoDriver.id
+                                                                                return item;
+                                                                            })
+                                                                        ])
 
-                                            splitted.map((item, index) => {
-                                                if (index > 0) {
-                                                    last_name += item;
-                                                }
-                                                return true;
-                                            })
-
-                                            props.setSelectedCarrierInfoDriver({ ...driver, first_name: first_name, last_name: last_name });
-                                        }
-                                    }}
-
-                                    onInput={(e) => {
-                                        let driver = props.selectedCarrierInfoDriver || {};
-
-                                        if (e.target.value === '') {
-                                            driver = {};
-                                            props.setSelectedCarrierInfoDriver({ ...driver });
-                                        } else {
-                                            let splitted = e.target.value.split(' ');
-                                            let first_name = splitted[0];
-
-                                            if (splitted.length > 1) {
-                                                first_name += ' ';
-                                            }
-
-                                            let last_name = '';
-
-                                            splitted.map((item, index) => {
-                                                if (index > 0) {
-                                                    last_name += item;
-                                                }
-                                                return true;
-                                            })
-
-                                            props.setSelectedCarrierInfoDriver({ ...driver, first_name: first_name, last_name: last_name });
-                                        }
-                                    }}
-
-                                    value={(props.selectedCarrierInfoDriver?.first_name || '') + ((props.selectedCarrierInfoDriver?.last_name || '').trim() === '' ? '' : ' ' + props.selectedCarrierInfoDriver?.last_name)}
-                                />
-                                {
-                                    (props.selectedCarrierInfoCarrier?.drivers || []).length > 1 &&
-                                    <span className="fas fa-caret-down" style={{
-                                        position: 'absolute',
-                                        right: 5,
-                                        top: 'calc(50% + 2px)',
-                                        transform: `translateY(-50%)`,
-                                        fontSize: '1.1rem',
-                                        cursor: 'pointer'
-                                    }} onClick={() => {
-                                        delayTimer = window.setTimeout(async () => {
-                                            await setPopupActiveInput('driver-name');
-
-                                            const input = refDriverName.current.getBoundingClientRect();
-
-                                            let popup = refPopup.current;
-
-                                            const { innerWidth, innerHeight } = window;
-
-                                            let screenWSection = innerWidth / 3;
-
-                                            popup && popup.childNodes[0].classList.add('vertical');
-
-                                            if ((innerHeight - 170 - 30) <= input.top) {
-                                                popup && popup.childNodes[0].classList.add('above');
-                                            }
-
-                                            if ((innerHeight - 170 - 30) > input.top) {
-                                                popup && popup.childNodes[0].classList.add('below');
-                                                popup && (popup.style.top = (input.top + 10) + 'px');
-                                            }
-
-                                            if (input.left <= (screenWSection * 1)) {
-                                                popup && popup.childNodes[0].classList.add('right');
-                                                popup && (popup.style.left = input.left + 'px');
-
-                                                if (input.width < 70) {
-                                                    popup && (popup.style.left = (input.left - 60 + (input.width / 2)) + 'px');
-
-                                                    if (input.left < 30) {
-                                                        popup && popup.childNodes[0].classList.add('corner');
-                                                        popup && (popup.style.left = (input.left + (input.width / 2)) + 'px');
+                                                                        refDriverPopupItems.current.map((r, i) => {
+                                                                            if (r && r.classList.contains('selected')) {
+                                                                                r.scrollIntoView({
+                                                                                    behavior: 'auto',
+                                                                                    block: 'center',
+                                                                                    inline: 'nearest'
+                                                                                })
+                                                                            }
+                                                                            return true;
+                                                                        });
+                                                                    }
+                                                                }
+                                                            }).catch(async e => {
+                                                                console.log('error getting carrier drivers', e);
+                                                            })
+                                                        }
                                                     }
-                                                }
+                                                    break;
+
+                                                case 39: case 40: // arrow right | arrow down
+                                                    e.preventDefault();
+                                                    if (driverItems.length > 0) {
+                                                        let selectedIndex = driverItems.findIndex(item => item.selected);
+
+                                                        if (selectedIndex === -1) {
+                                                            await setDriverItems(driverItems.map((item, index) => {
+                                                                item.selected = index === 0;
+                                                                return item;
+                                                            }))
+                                                        } else {
+                                                            await setDriverItems(driverItems.map((item, index) => {
+                                                                if (selectedIndex === (driverItems.length - 1)) {
+                                                                    item.selected = index === 0;
+                                                                } else {
+                                                                    item.selected = index === (selectedIndex + 1)
+                                                                }
+                                                                return item;
+                                                            }))
+                                                        }
+
+                                                        refDriverPopupItems.current.map((r, i) => {
+                                                            if (r && r.classList.contains('selected')) {
+                                                                r.scrollIntoView({
+                                                                    behavior: 'auto',
+                                                                    block: 'center',
+                                                                    inline: 'nearest'
+                                                                })
+                                                            }
+                                                            return true;
+                                                        });
+                                                    } else {
+                                                        if ((props.selectedCarrierInfoCarrier?.id || 0) > 0) {
+                                                            axios.post(props.serverUrl + '/getDriversByCarrierId', {
+                                                                carrier_id: props.selectedCarrierInfoCarrier.id
+                                                            }).then(async res => {
+                                                                if (res.data.result === 'OK') {
+                                                                    if (res.data.count > 1) {
+                                                                        await setDriverItems([
+                                                                            ...[{
+                                                                                first_name: 'Clear',
+                                                                                id: null
+                                                                            }],
+                                                                            ...res.data.drivers.map((item, index) => {
+                                                                                item.selected = (props.selectedCarrierInfoDriver?.id || 0) === 0
+                                                                                    ? index === 0
+                                                                                    : item.id === props.selectedCarrierInfoDriver.id
+                                                                                return item;
+                                                                            })
+                                                                        ])
+
+                                                                        refDriverPopupItems.current.map((r, i) => {
+                                                                            if (r && r.classList.contains('selected')) {
+                                                                                r.scrollIntoView({
+                                                                                    behavior: 'auto',
+                                                                                    block: 'center',
+                                                                                    inline: 'nearest'
+                                                                                })
+                                                                            }
+                                                                            return true;
+                                                                        });
+                                                                    }
+                                                                }
+                                                            }).catch(async e => {
+                                                                console.log('error getting carrier drivers', e);
+                                                            })
+                                                        }
+                                                    }
+                                                    break;
+
+                                                case 27: // escape
+                                                    setDriverItems([]);
+                                                    break;
+
+                                                case 13: // enter
+                                                    if (driverItems.length > 0 && driverItems.findIndex(item => item.selected) > -1) {
+
+                                                        await props.setSelectedCarrierInfoDriver(driverItems[driverItems.findIndex(item => item.selected)].id === null ? {} : driverItems[driverItems.findIndex(item => item.selected)]);
+
+                                                        await props.setSelectedOrder({
+                                                            ...props.selected_order,
+                                                            carrier_driver_id: driverItems[driverItems.findIndex(item => item.selected)].id
+                                                        })
+
+
+                                                        axios.post(props.serverUrl + '/saveOrder', { ...props.selected_order, carrier_driver_id: driverItems[driverItems.findIndex(item => item.selected)].id }).then(res => {
+                                                            if (res.data.result === 'OK') {
+
+                                                            }
+                                                        }).catch(e => {
+                                                            console.log('error saving order', e);
+                                                        });
+                                                        setDriverItems([]);
+                                                        refDriverName.current.focus();
+                                                    }
+                                                    break;
+
+                                                case 9: // tab
+                                                    if (driverItems.length > 0) {
+                                                        e.preventDefault();
+                                                        await props.setSelectedCarrierInfoDriver(driverItems[driverItems.findIndex(item => item.selected)].id === null ? {} : driverItems[driverItems.findIndex(item => item.selected)]);
+
+                                                        await props.setSelectedOrder({
+                                                            ...props.selected_order,
+                                                            carrier_driver_id: driverItems[driverItems.findIndex(item => item.selected)].id
+                                                        })
+
+                                                        axios.post(props.serverUrl + '/saveOrder', { ...props.selected_order, carrier_driver_id: driverItems[driverItems.findIndex(item => item.selected)].id }).then(res => {
+                                                            if (res.data.result === 'OK') {
+
+                                                            }
+                                                        }).catch(e => {
+                                                            console.log('error saving order', e);
+                                                        });
+                                                        setDriverItems([]);
+                                                        refDriverName.current.focus();
+                                                    }
+                                                    break;
+
+                                                default:
+                                                    break;
                                             }
+                                        }}
+                                        onBlur={async (e) => {
+                                            if ((props.selectedCarrierInfoDriver?.id || 0) === 0) {
+                                                await props.setSelectedCarrierInfoDriver({});
+                                                await props.setSelectedOrder({
+                                                    ...props.selected_order,
+                                                    carrier_driver_id: null
+                                                })
 
-                                            if (input.left <= (screenWSection * 2)) {
-                                                popup && (popup.style.left = (input.left - 100) + 'px');
-                                            }
+                                                axios.post(props.serverUrl + '/saveOrder', { ...props.selected_order, carrier_driver_id: null }).then(res => {
+                                                    if (res.data.result === 'OK') {
 
-                                            if (input.left > (screenWSection * 2)) {
-                                                popup && popup.childNodes[0].classList.add('left');
-                                                popup && (popup.style.left = (input.left - 200) + 'px');
-
-                                                if ((innerWidth - input.left) < 100) {
-                                                    popup && popup.childNodes[0].classList.add('corner');
-                                                    popup && (popup.style.left = (input.left) - (300 - (input.width / 2)) + 'px');
-                                                }
-                                            }
-
-                                            let items = [];
-                                            let matched = false;
-
-                                            items = props.selectedCarrierInfoCarrier.drivers.map((driver, i) => {
-                                                if (((driver.first_name || '') + ((driver.last_name || '').trim() === '' ? '' : ' ' + driver.last_name))
-                                                    === ((props.selectedCarrierInfoDriver?.first_name || '') + ((props.selectedCarrierInfoDriver?.last_name || '').trim() === '' ? '' : ' ' + props.selectedCarrierInfoDriver?.last_name))) {
-                                                    driver.selected = true;
-                                                    matched = true;
-                                                } else {
-                                                    driver.selected = false;
-                                                }
-
-                                                driver.name = ((driver.first_name || '') + ((driver.last_name || '').trim() === '' ? '' : ' ' + driver.last_name));
-
-                                                return driver;
-                                            });
-
-                                            if (!matched) {
-                                                items = props.selectedCarrierInfoCarrier.drivers.map((driver, i) => {
-                                                    driver.selected = i === 0;
-                                                    return driver;
+                                                    }
+                                                }).catch(e => {
+                                                    console.log('error saving order', e);
                                                 });
                                             }
+                                        }}
+                                        onInput={async (e) => {
+                                            let driver = props.selectedCarrierInfoDriver || {};
+                                            driver.id = 0;
 
-                                            await setPopupItems(items);
+                                            if (e.target.value === '') {
+                                                driver = {};
+                                                await props.setSelectedCarrierInfoDriver({ ...driver });
+                                                setDriverItems([]);
+                                            } else {
+                                                let splitted = e.target.value.split(' ');
+                                                let first_name = splitted[0];
 
-                                            popupItemsRef.current.map((r, i) => {
-                                                if (r && r.classList.contains('selected')) {
-                                                    r.scrollIntoView()
+                                                if (splitted.length > 1) {
+                                                    first_name += ' ';
                                                 }
-                                                return true;
-                                            });
 
-                                            refDriverName.current.focus();
-                                        }, 300);
-                                    }}></span>
-                                }
+                                                let last_name = '';
+
+                                                splitted.map((item, index) => {
+                                                    if (index > 0) {
+                                                        last_name += item;
+                                                    }
+                                                    return true;
+                                                })
+
+                                                props.setSelectedCarrierInfoDriver({ ...driver, first_name: first_name, last_name: last_name });
+
+                                                // if ((props.selectedCarrierInfoCarrier?.id || 0) > 0) {
+                                                //     axios.post(props.serverUrl + '/getDriversByCarrierId', {
+                                                //         carrier_id: props.selectedCarrierInfoCarrier.id
+                                                //     }).then(async res => {
+                                                //         if (res.data.result === 'OK') {
+                                                //             if (res.data.count > 1) {
+                                                //                 await setDriverItems(res.data.drivers.map((item, index) => {
+                                                //                     item.selected = (props.selectedCarrierInfoDriver?.id || 0) === 0
+                                                //                         ? index === 0
+                                                //                         : item.id === props.selectedCarrierInfoDriver.id
+                                                //                     return item;
+                                                //                 }))
+
+                                                //                 refDriverPopupItems.current.map((r, i) => {
+                                                //                     if (r && r.classList.contains('selected')) {
+                                                //                         r.scrollIntoView({
+                                                //                             behavior: 'auto',
+                                                //                             block: 'center',
+                                                //                             inline: 'nearest'
+                                                //                         })
+                                                //                     }
+                                                //                     return true;
+                                                //                 });
+                                                //             }
+                                                //         }
+                                                //     }).catch(async e => {
+                                                //         console.log('error getting carrier drivers', e);
+                                                //     })
+                                                // }
+                                            }
+                                        }}
+                                        onChange={async (e) => {
+                                            let driver = props.selectedCarrierInfoDriver || {};
+                                            driver.id = 0;
+
+                                            if (e.target.value === '') {
+                                                driver = {};
+                                                props.setSelectedCarrierInfoDriver({ ...driver });
+                                                setDriverItems([]);
+                                            } else {
+                                                let splitted = e.target.value.split(' ');
+                                                let first_name = splitted[0];
+
+                                                if (splitted.length > 1) {
+                                                    first_name += ' ';
+                                                }
+
+                                                let last_name = '';
+
+                                                splitted.map((item, index) => {
+                                                    if (index > 0) {
+                                                        last_name += item;
+                                                    }
+                                                    return true;
+                                                })
+
+                                                props.setSelectedCarrierInfoDriver({ ...driver, first_name: first_name, last_name: last_name });
+                                                
+                                            }
+                                        }}
+                                        value={(props.selectedCarrierInfoDriver?.first_name || '') + ((props.selectedCarrierInfoDriver?.last_name || '').trim() === '' ? '' : ' ' + props.selectedCarrierInfoDriver?.last_name)}
+                                    />
+                                    {
+                                        (props.selectedCarrierInfoCarrier?.drivers || []).length > 1 &&
+
+                                        <FontAwesomeIcon className="dropdown-button" icon={faCaretDown} onClick={() => {
+                                            if (driverItems.length > 0) {
+                                                setDriverItems([]);
+                                            } else {
+                                                window.setTimeout(async () => {
+                                                    if ((props.selectedCarrierInfoCarrier?.id || 0) > 0) {
+                                                        axios.post(props.serverUrl + '/getDriversByCarrierId', {
+                                                            carrier_id: props.selectedCarrierInfoCarrier.id
+                                                        }).then(async res => {
+                                                            if (res.data.result === 'OK') {
+                                                                if (res.data.count > 1) {
+
+                                                                    await setDriverItems([
+                                                                        ...[{
+                                                                            first_name: 'Clear',
+                                                                            id: null
+                                                                        }],
+                                                                        ...res.data.drivers.map((item, index) => {
+                                                                            item.selected = (props.selectedCarrierInfoDriver?.id || 0) === 0
+                                                                                ? index === 0
+                                                                                : item.id === props.selectedCarrierInfoDriver.id
+                                                                            return item;
+                                                                        })
+                                                                    ])
+
+                                                                    refDriverPopupItems.current.map((r, i) => {
+                                                                        if (r && r.classList.contains('selected')) {
+                                                                            r.scrollIntoView({
+                                                                                behavior: 'auto',
+                                                                                block: 'center',
+                                                                                inline: 'nearest'
+                                                                            })
+                                                                        }
+                                                                        return true;
+                                                                    });
+                                                                }
+                                                            }
+                                                        }).catch(async e => {
+                                                            console.log('error getting carrier drivers', e);
+                                                        })
+                                                    }
+
+                                                    refDriverName.current.focus();
+                                                }, 0)
+                                            }
+                                        }} />
+                                    }
+                                </div>
+
+                                <Transition
+                                    from={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                    enter={{ opacity: 1, top: 'calc(100% + 15px)' }}
+                                    leave={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                                    items={driverItems.length > 0}
+                                    config={{ duration: 100 }}
+                                >
+                                    {show => show && (styles => (
+                                        <animated.div
+                                            className="mochi-contextual-container"
+                                            id="mochi-contextual-container-driver-name"
+                                            style={{
+                                                ...styles,
+                                                left: '-50%',
+                                                display: 'block'
+                                            }}
+                                            ref={refDriverDropDown}
+                                        >
+                                            <div className="mochi-contextual-popup vertical below" style={{ height: 150 }}>
+                                                <div className="mochi-contextual-popup-content" >
+                                                    <div className="mochi-contextual-popup-wrapper">
+                                                        {
+                                                            driverItems.map((item, index) => {
+                                                                const mochiItemClasses = classnames({
+                                                                    'mochi-item': true,
+                                                                    'selected': item.selected
+                                                                });
+
+                                                                const searchValue = (props.selectedCarrierInfoDriver?.first_name || '') + ((props.selectedCarrierInfoDriver?.last_name || '').trim() === '' ? '' : ' ' + props.selectedCarrierInfoDriver?.last_name);
+
+                                                                return (
+                                                                    <div
+                                                                        key={index}
+                                                                        className={mochiItemClasses}
+                                                                        id={item.id}
+                                                                        onClick={async () => {
+                                                                            await props.setSelectedCarrierInfoDriver(item.id === null ? {} : item);
+
+                                                                            await props.setSelectedOrder({
+                                                                                ...props.selected_order,
+                                                                                carrier_driver_id: item.id
+                                                                            })
+
+                                                                            axios.post(props.serverUrl + '/saveOrder', { ...props.selected_order, carrier_driver_id: item.id }).then(res => {
+                                                                                if (res.data.result === 'OK') {
+
+                                                                                }
+                                                                            }).catch(e => {
+                                                                                console.log('error saving order', e);
+                                                                            });
+                                                                            setDriverItems([]);
+                                                                            refDriverName.current.focus();
+                                                                        }}
+                                                                        ref={ref => refDriverPopupItems.current.push(ref)}
+                                                                    >
+                                                                        {
+                                                                            searchValue === undefined
+                                                                                ? (item?.first_name || '') + ((item?.last_name || '') === '' ? '' : ' ' + item.last_name)
+                                                                                : <Highlighter
+                                                                                    highlightClassName="mochi-item-highlight-text"
+                                                                                    searchWords={[(props.selectedCarrierInfoDriver?.first_name || ''), (props.selectedCarrierInfoDriver?.last_name || '')]}
+                                                                                    autoEscape={true}
+                                                                                    textToHighlight={(item?.first_name || '') + ((item?.last_name || '') === '' ? '' : ' ' + item.last_name)}
+                                                                                />
+                                                                        }
+                                                                        {
+                                                                            item.selected &&
+                                                                            <FontAwesomeIcon className="dropdown-selected" icon={faCaretRight} />
+                                                                        }
+                                                                    </div>
+                                                                )
+                                                            })
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </animated.div>
+                                    ))}
+                                </Transition>
                             </div>
                             <div className="form-h-sep"></div>
-                            <div className="input-box-container grow">
+                            <div className="input-box-container" style={{ width: '9rem' }}>
                                 <MaskedInput tabIndex={58 + props.tabTimes}
                                     mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                     guide={true}
@@ -1514,144 +2035,118 @@ function Routing(props) {
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div style={{
-                    display: 'flex',
-                    flexGrow: 1,
-                    flexBasis: '100%'
-                }}>
-                    <div className='form-bordered-box' style={{ marginRight: 10, flexGrow: 1, flexBasis: '100%' }}>
-                        <div className='form-header'>
-                            <div className='top-border top-border-left'></div>
-                            <div className='form-title'>Deliveries</div>
-                            <div className='top-border top-border-middle'></div>
-                            <div className='top-border top-border-right'></div>
-                        </div>
-
-                        {
-                            list.map((grp, grpI) => {
-                                if (grp.title === 'delivery') {
-                                    return <div
-                                        key={grpI}
-                                        className="routing-delivery-container"
-                                        onDragEnter={dragging && !grp.items.length ? (e) => handleDragEnter(e, { grpI, itemI: 0 }) : null}
-                                    >
-                                        {
-                                            grp.items.map((item, itemI) => {
-                                                return <div
-                                                    key={itemI}
-                                                    className={dragging ? getStyles({ grpI, itemI }) : 'routing-delivery-item'}
-                                                    draggable={true}
-                                                    onDragStart={(e) => { handleDragStart(e, { grpI, itemI }) }}
-                                                    onDragEnter={dragging ? (e) => { handleDragEnter(e, { grpI, itemI }) } : null}
-                                                >
-                                                    <span>{item.customer?.code || ''}</span> <span>{item.customer?.name || ''}</span> <span>{item.customer?.city || ''}-{item.customer?.state || ''}</span>
-                                                </div>
-                                            })
-                                        }
-                                    </div>
-                                }
-                            })
-                        }
-                    </div>
-
-                    <div className='form-bordered-box' style={{
-                        borderBottom: 0,
-                        borderRight: 0,
-                        boxShadow: 'none',
-                        flexGrow: 1,
-                        flexBasis: '100%'
-                    }}>
-                        <div className='form-header'>
-                            <div className='top-border top-border-left'></div>
-                            <div className='form-title'>Route</div>
-                            <div className='top-border top-border-middle'></div>
-                            <div className='form-buttons'>
-                                <div className='mochi-button'>
-                                    <div className='mochi-button-decorator mochi-button-decorator-left'>(</div>
-                                    <div className='mochi-button-base'>Update</div>
-                                    <div className='mochi-button-decorator mochi-button-decorator-right'>)</div>
+                    <Droppable droppableId="1">
+                        {(provided, snapshot) => (
+                            <div className="form-bordered-box" style={getListStyle(snapshot.isDraggingOver)}>
+                                <div className='form-header'>
+                                    <div className='top-border top-border-left'></div>
+                                    <div className='form-title'>Deliveries</div>
+                                    <div className='top-border top-border-middle'></div>
+                                    <div className='top-border top-border-right'></div>
                                 </div>
-                                <div className='mochi-button'>
-                                    <div className='mochi-button-decorator mochi-button-decorator-left'>(</div>
-                                    <div className='mochi-button-base'>E-mail route</div>
-                                    <div className='mochi-button-decorator mochi-button-decorator-right'>)</div>
-                                </div>
-                                <div className='mochi-button'>
-                                    <div className='mochi-button-decorator mochi-button-decorator-left'>(</div>
-                                    <div className='mochi-button-base'>Print route</div>
-                                    <div className='mochi-button-decorator mochi-button-decorator-right'>)</div>
+
+                                <div className="routing-delivery-container" {...provided.droppableProps} ref={provided.innerRef} style={{ flexGrow: 1 }}>
+                                    {list.find(grp => grp.title === 'delivery') !== undefined &&
+                                        list.find(grp => grp.title === 'delivery').items.map((item, index) => (
+                                            <DraggableDnd key={item.customer.id} draggableId={`${item.customer.id}`} index={index}>
+                                                {(provided, snapshot) => {
+                                                    if (snapshot.isDragging) {
+                                                        provided.draggableProps.style.left = provided.draggableProps.style.offsetLeft;
+                                                        provided.draggableProps.style.top = provided.draggableProps.style.offsetTop;
+                                                    }
+
+                                                    return (
+                                                        <div className="routing-delivery-item" ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{
+                                                            ...getItemStyle(
+                                                                snapshot.isDragging,
+                                                                provided.draggableProps.style
+                                                            )
+                                                        }}
+
+                                                        >
+                                                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                                <span>{(item.customer?.code || '') + ((item.customer?.code_number || 0) === 0 ? '' : item.customer.code_number)}</span>
+                                                                <span>{item.customer?.name || ''}</span>
+                                                                <span>{item.customer?.city || ''}-{item.customer?.state || ''}</span>
+                                                            </div>
+
+                                                            {
+                                                                snapshot.isDragging &&
+                                                                <div style={{
+                                                                    textTransform: 'capitalize',
+                                                                    color: 'rgba(0,0,0,0.5)',
+                                                                    fontSize: '0.7rem',
+                                                                    marginLeft: '0.5rem'
+                                                                }}>{item.type}</div>
+                                                            }
+                                                        </div>
+                                                    )
+                                                }}
+                                            </DraggableDnd>
+                                        ))}
+                                    {provided.placeholder}
                                 </div>
                             </div>
-                            <div className='top-border top-border-right'></div>
-                        </div>
-                        <div className="form-right" style={{
-                            position: 'absolute',
-                            height: '100%',
-                            width: 2,
-                            right: -1,
-                            top: 0,
-                            borderRight: '1px solid rgba(0,0,0,0.5)',
-                            boxShadow: '1px 1px 1px 1px rgba(0,0,0,0.3)'
-                        }}>
-                        </div>
-                        <div className="form-footer">
-                            <div className="bottom-border bottom-border-left"></div>
-                            <div className="bottom-border bottom-border-middle"></div>
-                            <div className="form-buttons">
-                                <div className="input-box-container" style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Miles:</div>
-                                    <input style={{ textAlign: 'right', fontWeight: 'bold' }} type="text" readOnly={true} onChange={() => { }} value={props.mileageLoaderVisible ? '' : ((props.selected_order?.miles || 0) / 1609.34).toFixed(0)} />
-                                    <div className="loading-container">
-                                        <Loader type="ThreeDots" color="#333738" height={20} width={20} visible={props.mileageLoaderVisible} />
-                                    </div>
+                        )}
+                    </Droppable>
+
+                    <Droppable droppableId="2">
+                        {(provided, snapshot) => (
+                            <div className="form-bordered-box" style={getListStyle(snapshot.isDraggingOver)}>
+                                <div className='form-header'>
+                                    <div className='top-border top-border-left'></div>
+                                    <div className='form-title'>Route</div>
+                                    <div className='top-border top-border-middle'></div>
+                                    <div className='top-border top-border-right'></div>
+                                </div>
+
+                                <div className="routing-route-container" {...provided.droppableProps} ref={provided.innerRef} style={{ flexGrow: 1 }}>
+                                    {list.find(grp => grp.title === 'route') !== undefined &&
+                                        list.find(grp => grp.title === 'route').items.map((item, index) => (
+                                            <DraggableDnd key={item.customer.id} draggableId={`${item.customer.id}`} index={index}>
+                                                {(provided, snapshot) => {
+                                                    if (snapshot.isDragging) {
+                                                        provided.draggableProps.style.left = provided.draggableProps.style.offsetLeft;
+                                                        provided.draggableProps.style.top = provided.draggableProps.style.offsetTop;
+                                                    }
+
+                                                    return (
+                                                        <div className="routing-route-item" ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{
+                                                            ...getItemStyle(
+                                                                snapshot.isDragging,
+                                                                provided.draggableProps.style
+                                                            )
+                                                        }}
+
+                                                        >
+                                                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                                <span>{(item.customer?.code || '') + ((item.customer?.code_number || 0) === 0 ? '' : item.customer.code_number)}</span>
+                                                                <span>{item.customer?.name || ''}</span>
+                                                                <span>{item.customer?.city || ''}-{item.customer?.state || ''}</span>
+                                                            </div>
+
+                                                            {
+                                                                snapshot.isDragging &&
+                                                                <div style={{
+                                                                    textTransform: 'capitalize',
+                                                                    color: 'rgba(0,0,0,0.5)',
+                                                                    fontSize: '0.7rem',
+                                                                    marginLeft: '0.5rem'
+                                                                }}>{item.type}</div>
+                                                            }
+                                                        </div>
+                                                    )
+                                                }}
+                                            </DraggableDnd>
+                                        ))}
+                                    {provided.placeholder}
                                 </div>
                             </div>
-                            <div className="bottom-border bottom-border-right"></div>
-                        </div>
-
-                        {
-                            list.map((grp, grpI) => {
-                                if (grp.title === 'route') {
-                                    return <div
-                                        key={grpI}
-                                        className="routing-route-container"
-                                        onDragEnter={dragging && !grp.items.length ? (e) => handleDragEnter(e, { grpI, itemI: 0 }) : null}
-                                    // onDragEnter={dragging ? (e) => handleDragEnter(e, { grpI, itemI: grp.items.length }) : null}
-                                    >
-                                        {
-                                            grp.items.map((item, itemI) => {
-                                                return <div
-                                                    key={itemI}
-                                                    className={dragging ? getStyles({ grpI, itemI }) : 'routing-route-item'}
-                                                    draggable={true}
-                                                    onDragStart={(e) => { handleDragStart(e, { grpI, itemI }) }}
-                                                    onDragEnter={dragging ? (e) => { handleDragEnter(e, { grpI, itemI }) } : null}
-                                                >
-                                                    {/* <span className={item.type === 'pickup' ? 'fas fa-arrow-up' : 'fas fa-arrow-down'}></span> */}
-                                                    <span>{item.customer?.code || ''}</span> <span>{item.customer?.name || ''}</span> <span>{item.customer?.city || ''}-{item.customer?.state || ''}</span>
-
-                                                </div>
-                                            })
-                                        }
-                                    </div>
-                                }
-                            })
-                        }
-                    </div>
+                        )}
+                    </Droppable>
                 </div>
-            </div>
-
-            <RoutingPopup
-                popupRef={refPopup}
-                popupClasses={popupContainerClasses}
-                popupItems={popupItems}
-                popupItemsRef={popupItemsRef}
-                popupItemClick={popupItemClick}
-                popupItemKeydown={() => { }}
-                setPopupItems={setPopupItems}
-            />
+            </DragDropContext>
         </div>
     )
 }

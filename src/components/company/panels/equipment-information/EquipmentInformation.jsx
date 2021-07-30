@@ -94,6 +94,8 @@ function EquipmentInformation(props) {
                                 }
                             });
 
+                            refEquipment.current.focus();
+
                             // await res.carriers[0].contacts.map(async c => {
                             //     if (c.is_primary === 1) {
                             //         await props.setSelectedCarrierContact(c);
@@ -123,6 +125,24 @@ function EquipmentInformation(props) {
                             });
                         }
                     }
+                });
+            }else{
+                props.setEquipmentInformation({
+                    ...props.equipmentInformation,
+                    carrier: {
+                        ...props.equipmentInformation.carrier,
+                        id: 0,
+                        code_number: 0,
+                        name: '',
+                        equipments_information: []
+                    },
+                    id: 0,
+                    equipment_id: 0,
+                    equipment: {},
+                    units: '',
+                    equipment_length: '',
+                    equipment_width: '',
+                    equipment_height: ''
                 });
             }
         }
@@ -182,6 +202,7 @@ function EquipmentInformation(props) {
                     <div className="form-h-sep"></div>
                     <div className="input-box-container grow">
                         <input type="text" placeholder="Name"
+                            readOnly={true}
                             onInput={e => {
                                 props.setEquipmentInformation({
                                     ...props.equipmentInformation, carrier: {

@@ -17,8 +17,13 @@ import Highlighter from "react-highlight-words";
 import SwiperCore, { Navigation } from 'swiper';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/swiper-bundle.css';
+import axios from 'axios';
+
+import ToPrint from './ToPrint.jsx';
+import { useReactToPrint } from 'react-to-print';
 
 function Customers(props) {
+    const refPrintCustomerInformation = useRef();
     const refCustomerCode = useRef(null);
     const refCustomerMailingCode = useRef();
     const refCustomerContactFirstName = useRef();
@@ -83,6 +88,11 @@ function Customers(props) {
     const [tempLoaded, setTempLoaded] = useState(false);
     const [tempEmpty, setTempEmpty] = useState(false);
 
+    const handledPrintCustomerInformation = useReactToPrint({
+        pageStyle: () => "@media print {@page {size: 8.5in 11in !important; margin: 0} body {margin: 0;padding: 0;} .page-block {page-break-after: auto !important;page-break-beforer: auto !important; page-break-inside: avoid !important;} .no-print{display:none !important;} .container-sheet{box-shadow: initial !important;margin: 0 !important}}",
+        content: () => refPrintCustomerInformation.current,
+    });
+
     useEffect(() => {
         if (isSavingCustomer) {
             let selectedCustomer = { ...props.selectedCustomer };
@@ -115,9 +125,9 @@ function Customers(props) {
 
                 selectedCustomer.code = newCode.toUpperCase();
 
-                $.post(props.serverUrl + '/saveCustomer', selectedCustomer).then(async res => {
-                    if (res.result === 'OK') {
-                        let customer = JSON.parse(JSON.stringify(res.customer));
+                axios.post(props.serverUrl + '/saveCustomer', selectedCustomer).then(async res => {
+                    if (res.data.result === 'OK') {
+                        let customer = JSON.parse(JSON.stringify(res.data.customer));
                         if ((props.selectedCustomer?.id || 0) === 0) {
                             await props.setSelectedCustomer({
                                 ...props.selectedCustomer,
@@ -133,7 +143,7 @@ function Customers(props) {
                             });
                         }
 
-                        (res.customer.contacts || []).map(async (contact, index) => {
+                        (res.data.customer.contacts || []).map(async (contact, index) => {
                             if (contact.is_primary === 1) {
                                 if ((props.selectedContact?.id || 0) === 0 || props.selectedContact?.id === contact.id) {
                                     await props.setSelectedContact(contact);
@@ -141,14 +151,11 @@ function Customers(props) {
                             }
                             return true;
                         });
-
-                        // if ((selectedCustomer.contacts || []).length === 0 && (res.customer.contacts || []).length === 1) {
-                        //     goToTabindex((17 + props.tabTimes).toString());
-                        // }
                     }
 
                     await setIsSavingCustomer(false);
                 }).catch(e => {
+                    console.log('error saving customer', e);
                     setIsSavingCustomer(false);
                 });
             } else {
@@ -189,10 +196,10 @@ function Customers(props) {
                 contact.zip_code = props.selectedCustomer?.zip;
             }
 
-            $.post(props.serverUrl + '/saveContact', contact).then(async res => {
-                if (res.result === 'OK') {
-                    await props.setSelectedCustomer({ ...props.selectedCustomer, contacts: res.contacts });
-                    await props.setSelectedContact(res.contact);
+            axios.post(props.serverUrl + '/saveContact', contact).then(async res => {
+                if (res.data.result === 'OK') {
+                    await props.setSelectedCustomer({ ...props.selectedCustomer, contacts: res.data.contacts });
+                    await props.setSelectedContact(res.data.contact);
                 }
 
                 setIsSavingContact(false);
@@ -236,9 +243,9 @@ function Customers(props) {
 
                     mailing_address.code = newCode.toUpperCase();
 
-                    $.post(props.serverUrl + '/saveCustomerMailingAddress', mailing_address).then(async res => {
-                        if (res.result === 'OK') {
-                            await props.setSelectedCustomer({ ...props.selectedCustomer, mailing_address: res.mailing_address });
+                    axios.post(props.serverUrl + '/saveCustomerMailingAddress', mailing_address).then(async res => {
+                        if (res.data.result === 'OK') {
+                            await props.setSelectedCustomer({ ...props.selectedCustomer, mailing_address: res.data.mailing_address });
                         }
 
                         await setIsSavingMailingAddress(false);
@@ -360,15 +367,15 @@ function Customers(props) {
         if (keyCode === 9) {
             if (e.target.value.trim() !== '') {
 
-                $.post(props.serverUrl + '/customers', {
+                axios.post(props.serverUrl + '/customers', {
                     code: e.target.value.toLowerCase()
                 }).then(async res => {
-                    if (res.result === 'OK') {
-                        if (res.customers.length > 0) {
+                    if (res.data.result === 'OK') {
+                        if (res.data.customers.length > 0) {
                             await setInitialValues();
-                            await props.setSelectedCustomer(res.customers[0]);
+                            await props.setSelectedCustomer(res.data.customers[0]);
 
-                            await res.customers[0].contacts.map(async c => {
+                            await res.data.customers[0].contacts.map(async c => {
                                 if (c.is_primary === 1) {
                                     await props.setSelectedContact(c);
                                 }
@@ -381,6 +388,8 @@ function Customers(props) {
                     } else {
                         setInitialValues(false);
                     }
+                }).catch(e => {
+                    console.log('error getting customers', e);
                 });
             } else {
                 setInitialValues(false);
@@ -420,15 +429,17 @@ function Customers(props) {
             }
         ]
 
-        $.post(props.serverUrl + '/customerSearch', { search: customerSearch }).then(async res => {
-            if (res.result === 'OK') {
+        axios.post(props.serverUrl + '/customerSearch', { search: customerSearch }).then(async res => {
+            if (res.data.result === 'OK') {
                 await props.setCustomerSearch(customerSearch);
-                await props.setCustomers(res.customers);
+                await props.setCustomers(res.data.customers);
 
                 if (!props.openedPanels.includes(props.customerSearchPanelName)) {
                     props.setOpenedPanels([...props.openedPanels, props.customerSearchPanelName]);
                 }
             }
+        }).catch(e => {
+            console.log('error searching for customers', e);
         });
     }
 
@@ -472,15 +483,17 @@ function Customers(props) {
             }
         ]
 
-        $.post(props.serverUrl + '/customerContactsSearch', { search: filters }).then(async res => {
-            if (res.result === 'OK') {
+        axios.post(props.serverUrl + '/customerContactsSearch', { search: filters }).then(async res => {
+            if (res.data.result === 'OK') {
                 await props.setContactSearch({ ...props.contactSearch, filters: filters });
-                await props.setCustomerContacts(res.contacts);
+                await props.setCustomerContacts(res.data.contacts);
 
                 if (!props.openedPanels.includes(props.customerContactSearchPanelName)) {
                     props.setOpenedPanels([...props.openedPanels, props.customerContactSearchPanelName]);
                 }
             }
+        }).catch(e => {
+            console.log('error searching for customer contacts', e);
         });
     }
 
@@ -628,7 +641,7 @@ function Customers(props) {
                         ? 'other' : 'work';
 
         } else {
-            mailing_address.mailing_contact_id = 0;
+            mailing_address.mailing_contact_id = null;
             mailing_address.mailing_contact = {};
             mailing_address.mailing_contact_primary_phone = 'work';
             mailing_address.mailing_contact_primary_email = 'work';
@@ -688,20 +701,6 @@ function Customers(props) {
         }
     }
 
-    const validateAutomaticEmailsForSaving = () => {
-        if ((props.selectedCustomer?.id || 0) > 0) {
-            let automatic_emails = props.selectedCustomer?.automatic_emails || {};
-
-            automatic_emails = { ...automatic_emails, customer_id: props.selectedCustomer?.id };
-
-            $.post(props.serverUrl + '/saveAutomaticEmails', automatic_emails).then(res => {
-                if (res.result === 'OK') {
-                    console.log(res);
-                }
-            });
-        }
-    }
-
     const isEmailValid = (email) => {
         let mailformat = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
         return email.match(mailformat);
@@ -724,10 +723,12 @@ function Customers(props) {
             hours.delivery_hours_close = formatted;
         }
 
-        $.post(props.serverUrl + '/saveCustomerHours', hours).then(async res => {
-            if (res.result === 'OK') {
-                await props.setSelectedCustomer({ ...props.selectedCustomer, hours: res.customer_hours });
+        axios.post(props.serverUrl + '/saveCustomerHours', hours).then(async res => {
+            if (res.data.result === 'OK') {
+                await props.setSelectedCustomer({ ...props.selectedCustomer, hours: res.data.customer_hours });
             }
+        }).catch(e => {
+            console.log('error saving customer hours', e);
         })
     }
 
@@ -842,6 +843,13 @@ function Customers(props) {
             padding: props.isOnPanel ? '10px 0' : 10
         }}>
             {!props.isOnPanel && <PanelContainer setOpenedPanels={props.setOpenedPanels} openedPanels={props.openedPanels} />}
+
+            <div style={{ display: 'none' }}>
+                <ToPrint
+                    ref={refPrintCustomerInformation}
+                    selectedCustomer={props.selectedCustomer}
+                />
+            </div>
 
             <div className="fields-container">
                 <div className="fields-container-row">
@@ -3187,14 +3195,14 @@ function Customers(props) {
                                             return false;
                                         })
 
-                                        $.post(props.serverUrl + '/saveAutomaticEmails', {
+                                        axios.post(props.serverUrl + '/saveAutomaticEmails', {
                                             customer_id: props.selectedCustomer.id,
                                             automatic_emails: automatic_emails
                                         }).then(res => {
-                                            if (res.result === 'OK') {
+                                            if (res.data.result === 'OK') {
                                                 props.setSelectedCustomer({
                                                     ...props.selectedCustomer,
-                                                    automatic_emails: res.automatic_emails
+                                                    automatic_emails: res.data.automatic_emails
                                                 });
                                             }
 
@@ -3451,13 +3459,13 @@ function Customers(props) {
                                                             if (e.target.value.trim() === '') {
                                                                 setEmailToDropdownItems([]);
                                                             } else {
-                                                                $.post(props.serverUrl + '/getContactsByEmailOrName', {
+                                                                axios.post(props.serverUrl + '/getContactsByEmailOrName', {
                                                                     email: e.target.value.trim(),
                                                                     customer_id: props.selectedCustomer?.id
                                                                 }).then(async res => {
-                                                                    if (res.result === 'OK') {
+                                                                    if (res.data.result === 'OK') {
                                                                         let items = []
-                                                                        res.contacts.map((c, i) => {
+                                                                        res.data.contacts.map((c, i) => {
                                                                             let emailWork = c.email_work;
                                                                             let emailPersonal = c.email_personal;
                                                                             let emailOther = c.email_other;
@@ -3829,13 +3837,13 @@ function Customers(props) {
                                                             if (e.target.value.trim() === '') {
                                                                 setEmailCcDropdownItems([]);
                                                             } else {
-                                                                $.post(props.serverUrl + '/getContactsByEmailOrName', {
+                                                                axios.post(props.serverUrl + '/getContactsByEmailOrName', {
                                                                     email: e.target.value.trim(),
                                                                     customer_id: props.selectedCustomer?.id
                                                                 }).then(async res => {
-                                                                    if (res.result === 'OK') {
+                                                                    if (res.data.result === 'OK') {
                                                                         let items = []
-                                                                        res.contacts.map((c, i) => {
+                                                                        res.data.contacts.map((c, i) => {
                                                                             let emailWork = c.email_work;
                                                                             let emailPersonal = c.email_personal;
                                                                             let emailOther = c.email_other;
@@ -4205,13 +4213,13 @@ function Customers(props) {
                                                             if (e.target.value.trim() === '') {
                                                                 setEmailBccDropdownItems([]);
                                                             } else {
-                                                                $.post(props.serverUrl + '/getContactsByEmailOrName', {
+                                                                axios.post(props.serverUrl + '/getContactsByEmailOrName', {
                                                                     email: e.target.value.trim(),
                                                                     customer_id: props.selectedCustomer?.id
                                                                 }).then(async res => {
-                                                                    if (res.result === 'OK') {
+                                                                    if (res.data.result === 'OK') {
                                                                         let items = []
-                                                                        res.contacts.map((c, i) => {
+                                                                        res.data.contacts.map((c, i) => {
                                                                             let emailWork = c.email_work;
                                                                             let emailPersonal = c.email_personal;
                                                                             let emailOther = c.email_other;
@@ -4618,14 +4626,14 @@ function Customers(props) {
                                                     <FontAwesomeIcon icon={faTrashAlt} style={{ marginLeft: '0.3rem' }} onClick={(e) => {
                                                         e.stopPropagation();
 
-                                                        $.post(props.serverUrl + '/removeAutomaticEmail', {
+                                                        axios.post(props.serverUrl + '/removeAutomaticEmail', {
                                                             customer_id: props.selectedCustomer.id,
                                                             id: item.id
                                                         }).then(res => {
-                                                            if (res.result === 'OK') {
+                                                            if (res.data.result === 'OK') {
                                                                 props.setSelectedCustomer({
                                                                     ...props.selectedCustomer,
-                                                                    automatic_emails: res.automatic_emails
+                                                                    automatic_emails: res.data.automatic_emails
                                                                 });
 
                                                                 setTempAutomaticEmails(tempAutomaticEmails.filter(t => (t.email !== item.email && t.type === item.type) || (t.type !== item.type)))
@@ -4863,16 +4871,16 @@ function Customers(props) {
                                             return (
                                                 <div className="orders-list-item" key={index} onClick={() => {
 
-                                                    $.post(props.serverUrl + '/getOrderByOrderNumber', { order_number: order.order_number }).then(async res => {
-                                                        if (res.result === 'OK') {
+                                                    axios.post(props.serverUrl + '/getOrderByOrderNumber', { order_number: order.order_number }).then(async res => {
+                                                        if (res.data.result === 'OK') {
                                                             await props.setCustomerSelectedOrder({});
-                                                            await props.setCustomerSelectedOrder(res.order);
-                                                            await props.setCustomerOrderNumber(res.order.order_number);
-                                                            await props.setCustomerTripNumber(res.order.trip_number === 0 ? '' : res.order.trip_number);
-                                                            await props.setCustomerSelectedBillToCompanyInfo(res.order.bill_to_company || {});
+                                                            await props.setCustomerSelectedOrder(res.data.order);
+                                                            await props.setCustomerOrderNumber(res.data.order.order_number);
+                                                            await props.setCustomerTripNumber(res.data.order.trip_number === 0 ? '' : res.data.order.trip_number);
+                                                            await props.setCustomerSelectedBillToCompanyInfo(res.data.order.bill_to_company || {});
 
-                                                            if (res.order.bill_to_company) {
-                                                                (res.order.bill_to_company.contacts || []).map(async (contact, index) => {
+                                                            if (res.data.order.bill_to_company) {
+                                                                (res.data.order.bill_to_company.contacts || []).map(async (contact, index) => {
                                                                     if (contact.is_primary === 1) {
                                                                         await props.setCustomerSelectedBillToCompanyContact(contact);
                                                                     }
@@ -4880,25 +4888,25 @@ function Customers(props) {
                                                                 })
                                                             }
 
-                                                            await props.setCustomerSelectedShipperCompanyInfo(res.order.pickups.length > 0
+                                                            await props.setCustomerSelectedShipperCompanyInfo(res.data.order.pickups.length > 0
                                                                 ? {
-                                                                    ...res.order.pickups[0].customer,
-                                                                    pickup_id: res.order.pickups[0].id,
-                                                                    pu_date1: res.order.pickups[0].pu_date1,
-                                                                    pu_date2: res.order.pickups[0].pu_date2,
-                                                                    pu_time1: res.order.pickups[0].pu_time1,
-                                                                    pu_time2: res.order.pickups[0].pu_time2,
-                                                                    bol_numbers: res.order.pickups[0].bol_numbers,
-                                                                    po_numbers: res.order.pickups[0].po_numbers,
-                                                                    ref_numbers: res.order.pickups[0].ref_numbers,
-                                                                    seal_number: res.order.pickups[0].seal_number,
-                                                                    special_instructions: res.order.pickups[0].special_instructions,
-                                                                    type: res.order.pickups[0].type,
+                                                                    ...res.data.order.pickups[0].customer,
+                                                                    pickup_id: res.data.order.pickups[0].id,
+                                                                    pu_date1: res.data.order.pickups[0].pu_date1,
+                                                                    pu_date2: res.data.order.pickups[0].pu_date2,
+                                                                    pu_time1: res.data.order.pickups[0].pu_time1,
+                                                                    pu_time2: res.data.order.pickups[0].pu_time2,
+                                                                    bol_numbers: res.data.order.pickups[0].bol_numbers,
+                                                                    po_numbers: res.data.order.pickups[0].po_numbers,
+                                                                    ref_numbers: res.data.order.pickups[0].ref_numbers,
+                                                                    seal_number: res.data.order.pickups[0].seal_number,
+                                                                    special_instructions: res.data.order.pickups[0].special_instructions,
+                                                                    type: res.data.order.pickups[0].type,
                                                                 }
                                                                 : {});
 
-                                                            if (res.order.pickups.length > 0) {
-                                                                (res.order.pickups[0].customer?.contacts || []).map(async (contact, index) => {
+                                                            if (res.data.order.pickups.length > 0) {
+                                                                (res.data.order.pickups[0].customer?.contacts || []).map(async (contact, index) => {
                                                                     if (contact.is_primary === 1) {
                                                                         await props.setCustomerSelectedShipperCompanyContact(contact);
                                                                     }
@@ -4906,21 +4914,21 @@ function Customers(props) {
                                                                 })
                                                             }
 
-                                                            await props.setCustomerSelectedConsigneeCompanyInfo(res.order.deliveries.length > 0
+                                                            await props.setCustomerSelectedConsigneeCompanyInfo(res.data.order.deliveries.length > 0
                                                                 ? {
-                                                                    ...res.order.deliveries[0].customer,
-                                                                    delivery_id: res.order.deliveries[0].id,
-                                                                    delivery_date1: res.order.deliveries[0].delivery_date1,
-                                                                    delivery_date2: res.order.deliveries[0].delivery_date2,
-                                                                    delivery_time1: res.order.deliveries[0].delivery_time1,
-                                                                    delivery_time2: res.order.deliveries[0].delivery_time2,
-                                                                    special_instructions: res.order.deliveries[0].special_instructions,
-                                                                    type: res.order.deliveries[0].type,
+                                                                    ...res.data.order.deliveries[0].customer,
+                                                                    delivery_id: res.data.order.deliveries[0].id,
+                                                                    delivery_date1: res.data.order.deliveries[0].delivery_date1,
+                                                                    delivery_date2: res.data.order.deliveries[0].delivery_date2,
+                                                                    delivery_time1: res.data.order.deliveries[0].delivery_time1,
+                                                                    delivery_time2: res.data.order.deliveries[0].delivery_time2,
+                                                                    special_instructions: res.data.order.deliveries[0].special_instructions,
+                                                                    type: res.data.order.deliveries[0].type,
                                                                 }
                                                                 : {});
 
-                                                            if (res.order.deliveries.length > 0) {
-                                                                (res.order.deliveries[0].customer?.contacts || []).map(async (contact, index) => {
+                                                            if (res.data.order.deliveries.length > 0) {
+                                                                (res.data.order.deliveries[0].customer?.contacts || []).map(async (contact, index) => {
                                                                     if (contact.is_primary === 1) {
                                                                         await props.setCustomerSelectedConsigneeCompanyContact(contact);
                                                                     }
@@ -4928,10 +4936,10 @@ function Customers(props) {
                                                                 })
                                                             }
 
-                                                            await props.setSelectedCustomerCarrierInfoCarrier(res.order.carrier || {});
+                                                            await props.setSelectedCustomerCarrierInfoCarrier(res.data.order.carrier || {});
 
-                                                            if (res.order.carrier) {
-                                                                (res.order.carrier?.contacts || []).map(async (contact, index) => {
+                                                            if (res.data.order.carrier) {
+                                                                (res.data.order.carrier?.contacts || []).map(async (contact, index) => {
                                                                     if (contact.is_primary === 1) {
                                                                         await props.setSelectedCustomerCarrierInfoContact(contact);
                                                                     }
@@ -4939,11 +4947,11 @@ function Customers(props) {
                                                                 })
                                                             }
 
-                                                            await props.setSelectedCustomerCarrierInfoDriver(res.order.driver || {});
+                                                            await props.setSelectedCustomerCarrierInfoDriver(res.data.order.driver || {});
 
-                                                            await props.setCustomerDivision({ name: res.order.division });
-                                                            await props.setCustomerLoadType({ name: res.order.load_type });
-                                                            await props.setCustomerTemplate({ name: res.order.template });
+                                                            await props.setCustomerDivision({ name: res.data.order.division });
+                                                            await props.setCustomerLoadType({ name: res.data.order.load_type });
+                                                            await props.setCustomerTemplate({ name: res.data.order.template });
 
                                                             console.log(props.openedPanels);
 
@@ -4953,6 +4961,8 @@ function Customers(props) {
                                                         } else {
                                                             props.setCustomerOrderNumber(props.selected_order?.order_number || '');
                                                         }
+                                                    }).catch(e => {
+                                                        console.log('error getting order by order number', e);
                                                     });
                                                 }}>
                                                     {order.order_number} {order.pickups.length > 0 ? (order.pickups[0].customer?.city || '') + '/' + (order.pickups[0].customer?.state || '') : ''}-{order.deliveries.length > 0 ? (order.deliveries[order.deliveries.length - 1].customer?.city || '') + '/' + (order.deliveries[order.deliveries.length - 1].customer?.state || '') : ''}
@@ -4998,23 +5008,7 @@ function Customers(props) {
                         return;
                     }
 
-                    let customer = { ...props.selectedCustomer };
-
-                    let html = ``;
-
-                    html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Code</span>: ${customer.code.toUpperCase() + (customer.code_number === 0 ? '' : customer.code_number)}</div>`;
-                    html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Name</span>: ${customer.name}</div>`;
-                    html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Address 1</span>: ${customer.address1}</div>`;
-                    html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Address 2</span>: ${customer.address2}</div>`;
-                    html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">City</span>: ${customer.city}</div>`;
-                    html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">State</span>: ${customer.state.toUpperCase()}</div>`;
-                    html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Postal Code</span>: ${customer.zip}</div>`;
-                    html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Contact Name</span>: ${customer.contact_name}</div>`;
-                    html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Contact Phone</span>: ${customer.contact_phone}</div>`;
-                    html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Contact Phone Ext</span>: ${customer.ext}</div>`;
-                    html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">E-Mail</span>: ${customer.email}</div>`;
-
-                    printWindow(html);
+                    handledPrintCustomerInformation();
                 }}>
                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                     <div className="mochi-button-base">Print Customer Information</div>

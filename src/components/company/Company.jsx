@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './Company.css';
 import classnames from 'classnames';
 import { connect } from 'react-redux';
-import { Transition, Spring, animated as animated2, config } from 'react-spring/renderprops';
+import { Transition, Spring, animated, config } from 'react-spring/renderprops';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCaretDown, faCaretRight, faCalendarAlt, faPencilAlt, faPen, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { useDetectClickOutside } from "react-detect-click-outside";
@@ -202,6 +202,9 @@ import {
     setInvoiceTripNumber,
     setInvoiceInternalNotes,
     setInvoiceSelectedInternalNote,
+    setLbInvoiceSelectedOrder,
+    setLbInvoiceOrderNumber,
+    setLbInvoiceTripNumber,
 } from '../../actions/invoiceActions';
 
 
@@ -218,11 +221,11 @@ function Company(props) {
     const [chatOptionItems, setChatOptionItems] = useState([
         {
             id: 0,
-            name:'Open in a new tab'
+            name: 'Open in a new tab'
         },
         {
             id: 1,
-            name:'Open in a panel'
+            name: 'Open in a panel'
         }
     ]);
     const [showChatOptions, setShowChatOptions] = useState(false);
@@ -233,7 +236,7 @@ function Company(props) {
         'main-company-container': true,
         'is-showing': props.mainScreen === 'company'
     })
-    
+
     const userClick = () => {
         props.setMainScreen('admin');
     }
@@ -335,7 +338,7 @@ function Company(props) {
                                 config={{ duration: 100 }}
                             >
                                 {show => show && (styles => (
-                                    <div
+                                    <animated.div
                                         className="mochi-contextual-container"
                                         id="mochi-contextual-container-chat"
                                         style={{
@@ -353,7 +356,7 @@ function Company(props) {
                                                             const mochiItemClasses = classnames({
                                                                 'mochi-item': true,
                                                                 'selected': item.selected
-                                                            });                                                            
+                                                            });
 
                                                             return (
                                                                 <div
@@ -363,7 +366,7 @@ function Company(props) {
                                                                     onClick={async (e) => {
                                                                         e.stopPropagation();
 
-                                                                        if (item.id === 0){
+                                                                        if (item.id === 0) {
                                                                             window.open('', '_blank').focus();
                                                                         }
                                                                     }}
@@ -389,7 +392,7 @@ function Company(props) {
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </animated.div>
                                 ))}
                             </Transition>
                             <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
@@ -423,7 +426,7 @@ function Company(props) {
                         position: 'absolute',
                         display: 'flex',
                         width: `${props.pages.length * 100}%`,
-                        overflowX: 'auto',
+                        overflowX: 'hidden',
                         transform: `translateX(${((100 / props.pages.length) * -1) * (props.selectedPageIndex + 1)}%)`
                     }}>
                         <div style={{
@@ -432,7 +435,9 @@ function Company(props) {
                             transform: `scale(${props.scale})`,
                             transition: 'all ease 0.7s',
                             boxShadow: props.scale === 1 ? '0 0 3px 5px transparent' : '0 0 10px 5px rgba(0,0,0,0.5)',
-                            borderRadius: props.scale === 1 ? 0 : '20px'
+                            borderRadius: props.scale === 1 ? 0 : '20px',
+                            overflow: 'hidden'
+
                         }}>
                             <DispatchPage
                                 pageName={'Dispatch Page'}
@@ -558,6 +563,7 @@ function Company(props) {
                                 bolPanelName='bol'
                                 orderDocumentsPanelName='order-documents'
                                 loadBoardPanelName='load-board'
+                                invoicePanelName='lb-invoice'
                             />
                         </div>
 
@@ -747,6 +753,10 @@ function Company(props) {
 
                                 setOpenedPanels={props.setLoadBoardOpenedPanels}
                                 setLbSelectedOrder={props.setLbSelectedOrder}
+                                setLbInvoiceSelectedOrder={props.setLbInvoiceSelectedOrder}
+                                setLbInvoiceOrderNumber={props.setLbInvoiceOrderNumber}
+                                setLbInvoiceTripNumber={props.setLbInvoiceTripNumber}
+
                                 setLbSelectedBillToCompanyInfo={props.setLbSelectedBillToCompanyInfo}
                                 setLbSelectedBillToCompanyContact={props.setLbSelectedBillToCompanyContact}
                                 setLbBillToCompanySearch={props.setLbBillToCompanySearch}
@@ -780,6 +790,7 @@ function Company(props) {
                                 consigneeCompanyInfoPanelName='lb-consignee-company-info'
                                 carrierInfoPanelName='lb-carrier-info'
                                 routingPanelName='lb-routing'
+                                invoicePanelName='lb-invoice'
                             />
                         </div>
 
@@ -1159,6 +1170,9 @@ export default connect(mapStateToProps, {
     //INVOICE
     setInvoiceOpenedPanels,
     setInvoiceSelectedOrder,
+    setLbInvoiceSelectedOrder,
+    setLbInvoiceOrderNumber,
+    setLbInvoiceTripNumber,
     setInvoiceOrderNumber,
     setInvoiceTripNumber,
     setInvoiceInternalNotes,

@@ -131,7 +131,7 @@ function Carriers(props) {
                         if (res.data.result === 'OK') {
                             let carrier = JSON.parse(JSON.stringify(res.data.carrier));
 
-                            if (props.selectedCarrier.id === undefined && (props.selectedCarrier.id || 0) === 0) {
+                            if ((props.selectedCarrier?.id || 0) === 0) {
                                 await props.setSelectedCarrier({
                                     ...props.selectedCarrier,
                                     id: carrier.id,
@@ -303,7 +303,7 @@ function Carriers(props) {
 
                 factoring_company.code = newCode.toUpperCase();
 
-                axios.post(props.serverUrl + '/saveFactoringCompany', factoring_company)
+                axios.post(props.serverUrl + '/saveFactoringCompany', { ...factoring_company, carrier_id: (props.selectedCarrier?.id || null) })
                     .then(async res => {
                         if (res.data.result === 'OK') {
                             await props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: res.data.factoring_company });
@@ -471,15 +471,17 @@ function Carriers(props) {
             }
         ]
 
-        $.post(props.serverUrl + '/carrierSearch', { search: carrierSearch }).then(async res => {
-            if (res.result === 'OK') {
+        axios.post(props.serverUrl + '/carrierSearch', { search: carrierSearch }).then(async res => {
+            if (res.data.result === 'OK') {
                 await props.setCarrierSearch(carrierSearch);
-                await props.setCarriers(res.carriers);
+                await props.setCarriers(res.data.carriers);
 
                 if (!props.openedPanels.includes(props.carrierSearchPanelName)) {
                     props.setOpenedPanels([...props.openedPanels, props.carrierSearchPanelName]);
                 }
             }
+        }).catch(e => {
+            console.log('error searching for carriers', e);
         });
     }
 
@@ -489,15 +491,15 @@ function Carriers(props) {
         if (keyCode === 9) {
             if (e.target.value.trim() !== '') {
 
-                $.post(props.serverUrl + '/carriers', {
+                axios.post(props.serverUrl + '/carriers', {
                     code: e.target.value.toLowerCase()
                 }).then(async res => {
-                    if (res.result === 'OK') {
-                        if (res.carriers.length > 0) {
+                    if (res.data.result === 'OK') {
+                        if (res.data.carriers.length > 0) {
                             await setInitialValues();
-                            await props.setSelectedCarrier(res.carriers[0]);
+                            await props.setSelectedCarrier(res.data.carriers[0]);
 
-                            await res.carriers[0].contacts.map(async c => {
+                            await res.data.carriers[0].contacts.map(async c => {
                                 if (c.is_primary === 1) {
                                     await props.setSelectedCarrierContact(c);
                                 }
@@ -513,9 +515,55 @@ function Carriers(props) {
                     } else {
                         setInitialValues(false);
                     }
+                }).catch(e => {
+                    console.log('error getting carriers', e);
                 });
             } else {
                 setInitialValues(false);
+            }
+        }
+    }
+
+    const getFactoringCompanyByCode = (e) => {
+        let key = e.keyCode || e.which;
+        let selectedCarrier = { ...props.selectedCarrier };
+
+        if (key === 9) {
+            if (e.target.value.trim() === '') {
+                selectedCarrier.factoring_company_id = null;
+                selectedCarrier.factoring_company = {};
+
+                props.setSelectedCarrier(selectedCarrier);
+
+                validateCarrierForSaving(e);
+            } else {
+                axios.post(props.serverUrl + '/factoringCompanies', { code: e.target.value.trim().toLowerCase() }).then(async res => {
+                    if (res.data.result === 'OK') {
+                        if (res.data.factoring_companies.length > 0) {
+                            selectedCarrier.factoring_company = res.data.factoring_companies[0];  
+                            selectedCarrier.factoring_company_id = res.data.factoring_companies[0].id;  
+                            props.setSelectedCarrier(selectedCarrier);
+
+                            validateCarrierForSaving(e);
+                        } else {
+                            selectedCarrier.factoring_company_id = null;
+                            selectedCarrier.factoring_company = {};
+
+                            props.setSelectedCarrier(selectedCarrier);
+
+                            validateCarrierForSaving(e);
+                        }
+                    }
+                }).catch(e => {
+                    console.log('error getting factoring companies', e);
+
+                    selectedCarrier.factoring_company_id = null;
+                    selectedCarrier.factoring_company = {};
+
+                    props.setSelectedCarrier(selectedCarrier);
+
+                    validateCarrierForSaving(e);
+                });
             }
         }
     }
@@ -580,10 +628,10 @@ function Carriers(props) {
             }
         ]
 
-        $.post(props.serverUrl + '/carrierContactsSearch', { search: filters }).then(async res => {
-            if (res.result === 'OK') {
+        axios.post(props.serverUrl + '/carrierContactsSearch', { search: filters }).then(async res => {
+            if (res.data.result === 'OK') {
                 await props.setContactSearch({ ...props.contactSearch, filters: filters });
-                await props.setCarrierContacts(res.contacts.map((contact, index) => {
+                await props.setCarrierContacts(res.data.contacts.map((contact, index) => {
                     contact.customer = contact.carrier;
                     return contact;
                 }))
@@ -592,6 +640,8 @@ function Carriers(props) {
                     props.setOpenedPanels([...props.openedPanels, props.carrierContactSearchPanelName]);
                 }
             }
+        }).catch(e => {
+            console.log('error searching carrier contacts', e);
         });
     }
 
@@ -609,10 +659,12 @@ function Carriers(props) {
         await props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: {} });
 
         if (props.selectedCarrier.id || 0 > 0) {
-            await $.post(props.serverUrl + '/deleteCarrierMailingAddress', { carrier_id: (props.selectedCarrier.id || 0) }).then(async res => {
-                if (res.result === 'OK') {
+            await axios.post(props.serverUrl + '/deleteCarrierMailingAddress', { carrier_id: (props.selectedCarrier.id || 0) }).then(async res => {
+                if (res.data.result === 'OK') {
                     await props.setSelectedCarrier({ ...props.selectedCarrier, mailing_address: {} });
                 }
+            }).catch(e => {
+                console.log('error removing carrier mailing address', e);
             });
         }
     }
@@ -712,7 +764,7 @@ function Carriers(props) {
                         ? 'other' : 'work';
 
         } else {
-            mailing_address.mailing_contact_id = 0;
+            mailing_address.mailing_contact_id = null;
             mailing_address.mailing_contact = {};
             mailing_address.mailing_contact_primary_phone = 'work';
             mailing_address.mailing_contact_primary_email = 'work';
@@ -773,15 +825,17 @@ function Carriers(props) {
             }
         ]
 
-        $.post(props.serverUrl + '/factoringCompanySearch', { search: factoringCompanySearch }).then(async res => {
-            if (res.result === 'OK') {
+        axios.post(props.serverUrl + '/factoringCompanySearch', { search: factoringCompanySearch }).then(async res => {
+            if (res.data.result === 'OK') {
                 await props.setFactoringCompanySearch(factoringCompanySearch);
-                await props.setFactoringCompanies(res.factoring_companies);
+                await props.setFactoringCompanies(res.data.factoring_companies);
 
                 if (!props.openedPanels.includes(props.carrierFactoringCompanySearchPanelName)) {
                     props.setOpenedPanels([...props.openedPanels, props.carrierFactoringCompanySearchPanelName]);
                 }
             }
+        }).catch(e => {
+            console.log('error searching for factoring companies', e);
         });
     }
 
@@ -816,10 +870,12 @@ function Carriers(props) {
         await props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: {} });
 
         if (props.selectedCarrier.id || 0 > 0) {
-            await $.post(props.serverUrl + '/saveCarrier', selectedCarrier).then(async res => {
-                if (res.result === 'OK') {
+            await axios.post(props.serverUrl + '/saveCarrier', selectedCarrier).then(async res => {
+                if (res.data.result === 'OK') {
                     await props.setSelectedCarrier({ ...props.selectedCarrier, factoring_company: {} });
                 }
+            }).catch(e => {
+                console.log('error saving carrier', e);
             });
         }
     }
@@ -845,10 +901,10 @@ function Carriers(props) {
 
                 if ((driver?.first_name || '').trim() !== '') {
 
-                    $.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
-                        if (res.result === 'OK') {
-                            props.setSelectedCarrier({ ...props.selectedCarrier, drivers: res.drivers });
-                            props.setSelectedDriver({ ...props.selectedDriver, id: res.driver.id });
+                    axios.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
+                        if (res.data.result === 'OK') {
+                            props.setSelectedCarrier({ ...props.selectedCarrier, drivers: res.data.drivers });
+                            props.setSelectedDriver({ ...props.selectedDriver, id: res.data.driver.id });
                         }
 
                         setIsSavingDriver(false);
@@ -886,14 +942,14 @@ function Carriers(props) {
                 insurance.amount = accounting.unformat(insurance.amount);
                 insurance.deductible = accounting.unformat(insurance.deductible);
 
-                $.post(props.serverUrl + '/saveInsurance', insurance).then(async res => {
-                    if (res.result === 'OK') {
-                        await props.setSelectedCarrier({ ...props.selectedCarrier, insurances: res.insurances });
+                axios.post(props.serverUrl + '/saveInsurance', insurance).then(async res => {
+                    if (res.data.result === 'OK') {
+                        await props.setSelectedCarrier({ ...props.selectedCarrier, insurances: res.data.insurances });
                         await props.setSelectedInsurance({
                             ...insurance,
-                            id: res.insurance.id,
-                            amount: res.insurance.amount ? accounting.formatNumber(res.insurance.amount, 2, ',', '.') : res.insurance.amount,
-                            deductible: res.insurance.deductible ? accounting.formatNumber(res.insurance.deductible, 2, ',', '.') : res.insurance.deductible
+                            id: res.data.insurance.id,
+                            amount: res.data.insurance.amount ? accounting.formatNumber(res.data.insurance.amount, 2, ',', '.') : res.data.insurance.amount,
+                            deductible: res.data.insurance.deductible ? accounting.formatNumber(res.data.insurance.deductible, 2, ',', '.') : res.data.insurance.deductible
                         });
                     }
                     setIsSavingInsurance(false);
@@ -2417,13 +2473,14 @@ function Carriers(props) {
                                     }
 
                                     if (window.confirm('Are you sure to delete this driver?')) {
-                                        $.post(props.serverUrl + '/deleteCarrierDriver', props.selectedDriver).then(res => {
-                                            if (res.result === 'OK') {
-                                                console.log(res);
-                                                props.setSelectedCarrier({ ...props.selectedCarrier, drivers: res.drivers });
+                                        axios.post(props.serverUrl + '/deleteCarrierDriver', props.selectedDriver).then(res => {
+                                            if (res.data.result === 'OK') {
+                                                props.setSelectedCarrier({ ...props.selectedCarrier, drivers: res.data.drivers });
                                                 props.setSelectedDriver({});
                                             }
-                                        })
+                                        }).catch(e => {
+                                            console.log('error deleting carrier driver', e);
+                                        });
                                     }
                                 }}>
                                     <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
@@ -2547,9 +2604,9 @@ function Carriers(props) {
                                                             return true;
                                                         });
                                                     } else {
-                                                        $.post(props.serverUrl + '/getEquipments').then(async res => {
-                                                            if (res.result === 'OK') {
-                                                                await setDriverEquipmentDropdownItems(res.equipments.map((item, index) => {
+                                                        axios.post(props.serverUrl + '/getEquipments').then(async res => {
+                                                            if (res.data.result === 'OK') {
+                                                                await setDriverEquipmentDropdownItems(res.data.equipments.map((item, index) => {
                                                                     item.selected = (props.selectedDriver?.equipment?.id || 0) === 0
                                                                         ? index === 0
                                                                         : item.id === props.selectedDriver?.equipment.id
@@ -2605,9 +2662,9 @@ function Carriers(props) {
                                                             return true;
                                                         });
                                                     } else {
-                                                        $.post(props.serverUrl + '/getEquipments').then(async res => {
-                                                            if (res.result === 'OK') {
-                                                                await setDriverEquipmentDropdownItems(res.equipments.map((item, index) => {
+                                                        axios.post(props.serverUrl + '/getEquipments').then(async res => {
+                                                            if (res.data.result === 'OK') {
+                                                                await setDriverEquipmentDropdownItems(res.data.equipments.map((item, index) => {
                                                                     item.selected = (props.selectedDriver?.equipment?.id || 0) === 0
                                                                         ? index === 0
                                                                         : item.id === props.selectedDriver?.equipment.id
@@ -2680,11 +2737,11 @@ function Carriers(props) {
                                             if (e.target.value.trim() === '') {
                                                 setDriverEquipmentDropdownItems([]);
                                             } else {
-                                                $.post(props.serverUrl + '/getEquipments', {
+                                                axios.post(props.serverUrl + '/getEquipments', {
                                                     name: e.target.value.trim()
                                                 }).then(async res => {
-                                                    if (res.result === 'OK') {
-                                                        await setDriverEquipmentDropdownItems(res.equipments.map((item, index) => {
+                                                    if (res.data.result === 'OK') {
+                                                        await setDriverEquipmentDropdownItems(res.data.equipments.map((item, index) => {
                                                             item.selected = (props.selectedDriver?.equipment?.id || 0) === 0
                                                                 ? index === 0
                                                                 : item.id === props.selectedDriver?.equipment.id
@@ -2709,11 +2766,11 @@ function Carriers(props) {
                                             setDriverEquipmentDropdownItems([]);
                                         } else {
                                             if ((props.selectedDriver?.equipment?.id || 0) === 0 && (props.selectedDriver?.equipment?.name || '') !== '') {
-                                                $.post(props.serverUrl + '/getEquipments', {
+                                                axios.post(props.serverUrl + '/getEquipments', {
                                                     name: props.selectedDriver?.equipment.name
                                                 }).then(async res => {
-                                                    if (res.result === 'OK') {
-                                                        await setDriverEquipmentDropdownItems(res.equipments.map((item, index) => {
+                                                    if (res.data.result === 'OK') {
+                                                        await setDriverEquipmentDropdownItems(res.data.equipments.map((item, index) => {
                                                             item.selected = (props.selectedDriver?.equipment?.id || 0) === 0
                                                                 ? index === 0
                                                                 : item.id === props.selectedDriver?.equipment.id
@@ -2735,9 +2792,9 @@ function Carriers(props) {
                                                     console.log('error getting driver equipments', e);
                                                 })
                                             } else {
-                                                $.post(props.serverUrl + '/getEquipments').then(async res => {
-                                                    if (res.result === 'OK') {
-                                                        await setDriverEquipmentDropdownItems(res.equipments.map((item, index) => {
+                                                axios.post(props.serverUrl + '/getEquipments').then(async res => {
+                                                    if (res.data.result === 'OK') {
+                                                        await setDriverEquipmentDropdownItems(res.data.equipments.map((item, index) => {
                                                             item.selected = (props.selectedDriver?.equipment?.id || 0) === 0
                                                                 ? index === 0
                                                                 : item.id === props.selectedDriver?.equipment.id
@@ -2879,9 +2936,9 @@ function Carriers(props) {
                                                 if ((driver.first_name || '').trim() !== '') {
                                                     e.preventDefault();
 
-                                                    $.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
-                                                        if (res.result === 'OK') {
-                                                            props.setSelectedCarrier({ ...props.selectedCarrier, drivers: res.drivers });
+                                                    axios.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
+                                                        if (res.data.result === 'OK') {
+                                                            props.setSelectedCarrier({ ...props.selectedCarrier, drivers: res.data.drivers });
                                                             props.setSelectedDriver({});
 
                                                             refCarrierDriverFirstName.current.focus();
@@ -4110,9 +4167,9 @@ function Carriers(props) {
                                                             return true;
                                                         });
                                                     } else {
-                                                        $.post(props.serverUrl + '/getInsuranceTypes').then(async res => {
-                                                            if (res.result === 'OK') {
-                                                                await setInsuranceTypeDropdownItems(res.types.map((item, index) => {
+                                                        axios.post(props.serverUrl + '/getInsuranceTypes').then(async res => {
+                                                            if (res.data.result === 'OK') {
+                                                                await setInsuranceTypeDropdownItems(res.data.types.map((item, index) => {
                                                                     item.selected = (props.selectedInsurance?.insurance_type?.id || 0) === 0
                                                                         ? index === 0
                                                                         : item.id === props.selectedInsurance.insurance_type.id
@@ -4168,9 +4225,9 @@ function Carriers(props) {
                                                             return true;
                                                         });
                                                     } else {
-                                                        $.post(props.serverUrl + '/getInsuranceTypes').then(async res => {
-                                                            if (res.result === 'OK') {
-                                                                await setInsuranceTypeDropdownItems(res.types.map((item, index) => {
+                                                        axios.post(props.serverUrl + '/getInsuranceTypes').then(async res => {
+                                                            if (res.data.result === 'OK') {
+                                                                await setInsuranceTypeDropdownItems(res.data.types.map((item, index) => {
                                                                     item.selected = (props.selectedInsurance?.insurance_type?.id || 0) === 0
                                                                         ? index === 0
                                                                         : item.id === props.selectedInsurance.insurance_type.id
@@ -4243,11 +4300,11 @@ function Carriers(props) {
                                             if (e.target.value.trim() === '') {
                                                 setInsuranceTypeDropdownItems([]);
                                             } else {
-                                                $.post(props.serverUrl + '/getInsuranceTypes', {
+                                                axios.post(props.serverUrl + '/getInsuranceTypes', {
                                                     name: e.target.value.trim()
                                                 }).then(async res => {
-                                                    if (res.result === 'OK') {
-                                                        await setInsuranceTypeDropdownItems(res.types.map((item, index) => {
+                                                    if (res.data.result === 'OK') {
+                                                        await setInsuranceTypeDropdownItems(res.data.types.map((item, index) => {
                                                             item.selected = (props.selectedInsurance?.insurance_type?.id || 0) === 0
                                                                 ? index === 0
                                                                 : item.id === props.selectedInsurance.insurance_type.id
@@ -4272,11 +4329,11 @@ function Carriers(props) {
                                             setInsuranceTypeDropdownItems([]);
                                         } else {
                                             if ((props.selectedInsurance?.insurance_type?.id || 0) === 0 && (props.selectedInsurance?.insurance_type?.name || '') !== '') {
-                                                $.post(props.serverUrl + '/getInsuranceTypes', {
+                                                axios.post(props.serverUrl + '/getInsuranceTypes', {
                                                     name: props.selectedInsurance?.insurance_type.name
                                                 }).then(async res => {
-                                                    if (res.result === 'OK') {
-                                                        await setInsuranceTypeDropdownItems(res.types.map((item, index) => {
+                                                    if (res.data.result === 'OK') {
+                                                        await setInsuranceTypeDropdownItems(res.data.types.map((item, index) => {
                                                             item.selected = (props.selectedInsurance?.insurance_type?.id || 0) === 0
                                                                 ? index === 0
                                                                 : item.id === props.selectedInsurance.insurance_type.id
@@ -4298,9 +4355,9 @@ function Carriers(props) {
                                                     console.log('error getting insurance types', e);
                                                 })
                                             } else {
-                                                $.post(props.serverUrl + '/getInsuranceTypes').then(async res => {
-                                                    if (res.result === 'OK') {
-                                                        await setInsuranceTypeDropdownItems(res.types.map((item, index) => {
+                                                axios.post(props.serverUrl + '/getInsuranceTypes').then(async res => {
+                                                    if (res.data.result === 'OK') {
+                                                        await setInsuranceTypeDropdownItems(res.data.types.map((item, index) => {
                                                             item.selected = (props.selectedInsurance?.insurance_type?.id || 0) === 0
                                                                 ? index === 0
                                                                 : item.id === props.selectedInsurance.insurance_type.id
@@ -4444,9 +4501,9 @@ function Carriers(props) {
                                                             return true;
                                                         });
                                                     } else {
-                                                        $.post(props.serverUrl + '/getInsuranceCompanies').then(async res => {
-                                                            if (res.result === 'OK') {
-                                                                await setInsuranceCompanyDropdownItems(res.companies.map((item, index) => {
+                                                        axios.post(props.serverUrl + '/getInsuranceCompanies').then(async res => {
+                                                            if (res.data.result === 'OK') {
+                                                                await setInsuranceCompanyDropdownItems(res.data.companies.map((item, index) => {
                                                                     item.selected = index === 0;
                                                                     return item;
                                                                 }))
@@ -4500,9 +4557,9 @@ function Carriers(props) {
                                                             return true;
                                                         });
                                                     } else {
-                                                        $.post(props.serverUrl + '/getInsuranceCompanies').then(async res => {
-                                                            if (res.result === 'OK') {
-                                                                await setInsuranceCompanyDropdownItems(res.companies.map((item, index) => {
+                                                        axios.post(props.serverUrl + '/getInsuranceCompanies').then(async res => {
+                                                            if (res.data.result === 'OK') {
+                                                                await setInsuranceCompanyDropdownItems(res.data.companies.map((item, index) => {
                                                                     item.selected = index === 0;
                                                                     return item;
                                                                 }))
@@ -4563,11 +4620,11 @@ function Carriers(props) {
                                             if (e.target.value.trim() === '') {
                                                 setInsuranceCompanyDropdownItems([]);
                                             } else {
-                                                $.post(props.serverUrl + '/getInsuranceCompanies', {
+                                                axios.post(props.serverUrl + '/getInsuranceCompanies', {
                                                     company: e.target.value.trim()
                                                 }).then(async res => {
-                                                    if (res.result === 'OK') {
-                                                        await setInsuranceCompanyDropdownItems(res.companies.map((item, index) => {
+                                                    if (res.data.result === 'OK') {
+                                                        await setInsuranceCompanyDropdownItems(res.data.companies.map((item, index) => {
                                                             item.selected = index === 0;
                                                             return item;
                                                         }))
@@ -4771,14 +4828,14 @@ function Carriers(props) {
 
                                                 e.preventDefault();
 
-                                                $.post(props.serverUrl + '/saveInsurance', insurance).then(res => {
-                                                    if (res.result === 'OK') {
-                                                        props.setSelectedCarrier({ ...props.selectedCarrier, insurances: res.insurances });
+                                                axios.post(props.serverUrl + '/saveInsurance', insurance).then(res => {
+                                                    if (res.data.result === 'OK') {
+                                                        props.setSelectedCarrier({ ...props.selectedCarrier, insurances: res.data.insurances });
 
                                                         props.setSelectedInsurance({});
                                                         refInsuranceType.current.focus();
                                                     } else {
-                                                        console.log(res.result);
+                                                        console.log(res.data.result);
                                                     }
 
                                                     setIsSavingInsurance(false);
@@ -4970,7 +5027,26 @@ function Carriers(props) {
 
                         <div className="form-row">
                             <div className="input-box-container input-code">
-                                <input tabIndex={65 + props.tabTimes} type="text" placeholder="Code" maxLength="8" readOnly={true}
+                                <input tabIndex={65 + props.tabTimes} type="text" placeholder="Code" maxLength="8"
+                                    onKeyDown={getFactoringCompanyByCode}
+                                    onInput={(e) => {
+                                        props.setSelectedCarrier({
+                                            ...props.selectedCarrier,
+                                            factoring_company: {
+                                                ...props.selectedCarrier.factoring_company,
+                                                code: e.target.value
+                                            }
+                                        })
+                                    }}
+                                    onChange={(e) => {
+                                        props.setSelectedCarrier({
+                                            ...props.selectedCarrier,
+                                            factoring_company: {
+                                                ...props.selectedCarrier.factoring_company,
+                                                code: e.target.value
+                                            }
+                                        })
+                                    }}
                                     value={(props.selectedCarrier?.factoring_company?.code || '') + ((props.selectedCarrier?.factoring_company?.code_number || 0) === 0 ? '' : props.selectedCarrier?.factoring_company?.code_number)} />
                             </div>
 

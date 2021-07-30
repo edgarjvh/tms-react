@@ -111,7 +111,15 @@ import {
     setLbSelectedOrder,
     setLbMileageLoaderVisible,
 
+    //INVOICE
+    setLbInvoiceSelectedOrder,
+    setLbInvoiceOrderNumber,
+    setLbInvoiceTripNumber,
+    setLbInvoiceInternalNotes,
+    setLbInvoiceSelectedInternalNote,
+
 } from '../../../../../actions';
+
 import { useSpring, config } from 'react-spring';
 import { Transition, Spring, animated } from 'react-spring/renderprops';
 import { Rnd } from 'react-rnd';
@@ -160,6 +168,7 @@ import LbCarrierInfoFactoringCompanyDocuments from './../../../panels/documents/
 import LbCarrierInfoFactoringCompanyInvoiceSearch from './../../../panels/factoring-company-invoice-search/FactoringCompanyInvoiceSearch.jsx';
 
 import LbDispatch from './../../../dispatch/Dispatch.jsx';
+import LbInvoice from './../../../invoice/Invoice.jsx';
 
 import LbRouting from './../../../panels/routing/Routing.jsx';
 import LbRateConf from './../../../panels/rate-conf/RateConf.jsx';
@@ -606,7 +615,7 @@ function PanelContainer(props) {
                                 selectedOwnerDocumentNote={props.selectedLbBillToCompanyDocumentNote}
 
                                 origin='customer'
-                                
+
                                 savingDocumentUrl='/saveDocument'
                                 deletingDocumentUrl='/deleteCustomerDocument'
                                 savingDocumentNoteUrl='/saveCustomerDocumentNote'
@@ -1146,7 +1155,7 @@ function PanelContainer(props) {
                                 selectedOwnerDocumentNote={props.selectedLbShipperCompanyDocumentNote}
 
                                 origin='customer'
-                                
+
                                 savingDocumentUrl='/saveDocument'
                                 deletingDocumentUrl='/deleteCustomerDocument'
                                 savingDocumentNoteUrl='/saveCustomerDocumentNote'
@@ -1686,7 +1695,7 @@ function PanelContainer(props) {
                                 selectedOwnerDocumentNote={props.selectedLbConsigneeCompanyDocumentNote}
 
                                 origin='customer'
-                                
+
                                 savingDocumentUrl='/saveDocument'
                                 deletingDocumentUrl='/deleteCustomerDocument'
                                 savingDocumentNoteUrl='/saveCustomerDocumentNote'
@@ -2228,7 +2237,7 @@ function PanelContainer(props) {
                                 selectedOwnerDocumentNote={props.selectedLbCarrierInfoDocumentNote}
 
                                 origin='carrier'
-                                
+
                                 savingDocumentUrl='/saveCarrierDocument'
                                 deletingDocumentUrl='/deleteCarrierDocument'
                                 savingDocumentNoteUrl='/saveCarrierDocumentNote'
@@ -2820,7 +2829,7 @@ function PanelContainer(props) {
                                 selectedOwnerDocumentNote={props.selectedLbCarrierInfoFactoringCompanyDocumentNote}
 
                                 origin='factoring-company'
-                                
+
                                 savingDocumentUrl='/saveFactoringCompanyDocument'
                                 deletingDocumentUrl='/deleteFactoringCompanyDocument'
                                 savingDocumentNoteUrl='/saveFactoringCompanyDocumentNote'
@@ -3071,6 +3080,115 @@ function PanelContainer(props) {
                 ))}
             </Transition> */}
             {/* ================================== LB DISPATCH =============================== */}
+
+            {/* ================================== LB INVOICE =============================== */}
+            <Transition
+                from={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: props.openedPanels.indexOf('lb-invoice')
+                }}
+                enter={{
+                    opacity: 1,
+                    right: window.innerWidth,
+                    zIndex: props.openedPanels.indexOf('lb-invoice')
+                }}
+                leave={{
+                    opacity: 1,
+                    right: 0,
+                    zIndex: 0
+                }}
+                items={props.openedPanels.includes('lb-invoice')}
+                config={{
+                    delay: 0,
+                    duration: 200,
+                    mass: 1, tension: 120, friction: 14
+                }}
+            >
+                {show => show && (styles => (
+                    <Draggable
+                        axis="x"
+                        handle=".drag-handler"
+                        onStart={(e, i) => eventControl(e, i, 'lb-invoice')}
+                        onStop={(e, i) => eventControl(e, i, 'lb-invoice')}
+                        onMouseDown={(e, i) => eventControl(e, i, 'lb-invoice')}
+                        onMouseUp={(e, i) => eventControl(e, i, 'lb-invoice')}
+                        onTouchStart={(e, i) => eventControl(e, i, 'lb-invoice')}
+                        onTouchEnd={(e, i) => eventControl(e, i, 'lb-invoice')}
+                        position={{ x: 0, y: 0 }}
+                    >
+                        <animated.div className="panel panel-lb-invoice" ref={ref => openedPanelsRefs.current.push(ref)} onClick={e => onPanelClick(e, 'lb-invoice')} style={{
+                            ...styles,
+                            width: (window.innerWidth * baseWidth) - (panelGap * props.openedPanels.indexOf('lb-invoice'))
+                        }}>
+                            <div className="panel-content">
+                                <div className="drag-handler" onClick={e => e.stopPropagation()}></div>
+                                <div className="close-btn" title="Close" onClick={e => {
+                                    props.setOpenedPanels(props.openedPanels.filter((item, index) => {
+                                        return item !== 'lb-invoice';
+                                    }));
+
+                                }}><span className="fas fa-times"></span></div>
+                                <div className="title">Invoice</div><div className="side-title"><div>Invoice</div></div>
+
+                                <LbInvoice
+                                    pageName={'Invoice Page'}
+                                    panelName={'lb-invoice'}
+                                    isOnPanel={true}
+                                    tabTimes={5000}
+                                    scale={props.scale}
+                                    serverUrl={props.serverUrl}
+                                    setOpenedPanels={props.setOpenedPanels}
+                                    openedPanels={props.openedPanels}
+
+                                    setInvoiceSelectedOrder={props.setLbInvoiceSelectedOrder}
+                                    setInvoiceOrderNumber={props.setLbInvoiceOrderNumber}
+                                    setInvoiceTripNumber={props.setLbInvoiceTripNumber}
+                                    setInvoiceInternalNotes={props.setLbInvoiceInternalNotes}
+                                    setInvoiceSelectedInternalNote={props.setLbInvoiceSelectedInternalNote}
+                                    setInvoiceSelectedBillToCompanyInfo={props.setLbSelectedBillToCompanyInfo}
+                                    setInvoiceSelectedBillToCompanyContact={props.setLbSelectedBillToCompanyContact}
+                                    setInvoiceSelectedBillToCompanyDocument={props.setLbSelectedBillToCompanyDocument}
+                                    setInvoiceSelectedBillToCompanyDocumentTags={props.setLbSelectedBillToCompanyDocumentTags}
+                                    setInvoiceSelectedBillToCompanyDocumentNote={props.setLbSelectedBillToCompanyDocumentNote}
+                                    setSelectedInvoiceCarrierInfoCarrier={props.setSelectedLbCarrierInfoCarrier}
+                                    setSelectedInvoiceCarrierInfoContact={props.setSelectedLbCarrierInfoContact}
+                                    setSelectedInvoiceCarrierInfoDriver={props.setSelectedLbCarrierInfoDriver}
+                                    setSelectedInvoiceCarrierInfoInsurance={props.setSelectedLbCarrierInfoInsurance}
+                                    setSelectedInvoiceCarrierInfoDocument={props.setSelectedLbCarrierInfoDocument}
+                                    setSelectedInvoiceCarrierInfoDocumentTags={props.setSelectedLbCarrierInfoDocumentTags}
+                                    setSelectedInvoiceCarrierInfoDocumentNote={props.setSelectedLbCarrierInfoDocumentNote}
+
+                                    internalNotes={props.lbInvoiceInternalNotes}
+                                    selectedInternalNote={props.lbSelectedInvoiceInternalNote}
+                                    selected_order={props.lb_invoice_selected_order}
+                                    order_number={props.lb_invoice_order_number}
+                                    trip_number={props.lb_invoice_trip_number}
+                                    selectedBillToCompanyInfo={props.selectedLbBillToCompanyInfo}
+                                    selectedBillToCompanyContact={props.selectedLbBillToCompanyContact}
+                                    selectedBillToCompanyDocument={props.selectedLbBillToCompanyDocument}
+                                    billToCompanyDocumentTags={props.selectedLbBillToCompanyDocumentTags}
+                                    selectedBillToCompanyDocumentNote={props.selectedLbBillToCompanyDocumentNote}
+                                    selectedInvoiceCarrierInfoCarrier={props.selectedLbCarrierInfoCarrier}
+                                    selectedInvoiceCarrierInfoContact={props.selectedLbCarrierInfoContact}
+                                    selectedInvoiceCarrierInfoDriver={props.selectedLbCarrierInfoDriver}
+                                    selectedInvoiceCarrierInfoInsurance={props.selectedLbCarrierInfoInsurance}
+                                    selectedCarrier={props.selectedLbCarrierInfoCarrier}
+                                    selectedDocument={props.selectedLbCarrierInfoDocument}
+                                    documentTags={props.selectedLbCarrierInfoDocumentTags}
+                                    selectedDocumentNote={props.selectedLbCarrierInfoDocumentNote}
+
+                                    billToCompanyInfoPanelName='lb-bill-to-company-info'
+                                    billToCompanyDocumentsPanelName='lb-bill-to-company-documents'
+                                    carrierInfoPanelName='lb-carrier-info'
+                                    carrierInfoDocumentsPanelName='lb-carrier-info-documents'
+                                />
+                            </div>
+                        </animated.div>
+                    </Draggable>
+                ))}
+            </Transition>
+            {/* ================================== LB INVOICE =============================== */}
 
             {/* ================================== LB ROUTING =============================== */}
             <Transition
@@ -3364,7 +3482,14 @@ const mapStateToProps = state => {
         lb_selected_order: state.dispatchReducers.lb_selected_order,
         lb_order_number: state.dispatchReducers.lb_order_number,
         lb_trip_number: state.dispatchReducers.lb_trip_number,
-        lbMileageLoaderVisible: state.dispatchReducers.lbMileageLoaderVisible
+        lbMileageLoaderVisible: state.dispatchReducers.lbMileageLoaderVisible,
+
+        //INVOICE
+        lb_invoice_selected_order: state.invoiceReducers.lb_selected_order,
+        lb_invoice_order_number: state.invoiceReducers.lb_order_number,
+        lb_invoice_trip_number: state.invoiceReducers.lb_trip_number,
+        lbInvoiceInternalNotes: state.invoiceReducers.lbInternalNotes,
+        lbSelectedInvoiceInternalNote: state.invoiceReducers.lbSelectedInternalNote,
     }
 }
 
@@ -3471,4 +3596,11 @@ export default connect(mapStateToProps, {
     //DISPATCH
     setLbSelectedOrder,
     setLbMileageLoaderVisible,
+
+    //INVOICE
+    setLbInvoiceSelectedOrder,
+    setLbInvoiceOrderNumber,
+    setLbInvoiceTripNumber,
+    setLbInvoiceInternalNotes,
+    setLbInvoiceSelectedInternalNote,
 })(PanelContainer)

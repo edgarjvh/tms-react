@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { connect } from 'react-redux';
 import $ from 'jquery';
+import axios from 'axios';
 import './Modal.css';
 import { setSelectedCustomer, setSelectedNote, setSelectedDirection, setCustomers, setSelectedDocumentNote, setSelectedDocument } from './../../../../actions';
 import moment from 'moment';
@@ -22,7 +23,7 @@ function Modal(props) {
             return;
         }
 
-        $.post(props.serverUrl + props.savingDataUrl, {
+        axios.post(props.serverUrl + props.savingDataUrl, {
             id: props.selectedData.id,
             customer_id: props.selectedCustomer.id,
             doc_id: props.selectedParent.id,
@@ -32,26 +33,30 @@ function Modal(props) {
             user: props.isAdding ? user : props.selectedData.user,
             date_time: props.isAdding ? date_time : props.selectedData.date_time
         }).then(res => {
-            if (res.result === 'OK') {
-                props.setSelectedParent(res.data);
+            if (res.data.result === 'OK') {
+                props.setSelectedParent(res.data.data);
                 props.setSelectedData({});
             }
+        }).catch(e => {
+            console.log('error on dispatch modal', e);
         });
     }
 
     const deleteData = () => {
         if (window.confirm(`Are you sure to delete this ${props.type}?`)) {
-            $.post(props.serverUrl + props.deletingDataUrl, props.selectedData).then(res => {
-                if (res.result === 'OK') {
-                    props.setSelectedParent(res.data);
+            axios.post(props.serverUrl + props.deletingDataUrl, props.selectedData).then(res => {
+                if (res.data.result === 'OK') {
+                    props.setSelectedParent(res.data.data);
                     props.setSelectedData({});
                 }
-            })
+            }).catch(e => {
+                console.log('error on dispatch modal', e);
+            });
         }
     }
 
     const printData = () => {
-        if ((props.selectedData.text || '').trim() === ''){
+        if ((props.selectedData.text || '').trim() === '') {
             window.alert('There is nothing to print!');
             return;
         }

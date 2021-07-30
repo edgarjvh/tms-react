@@ -5,6 +5,7 @@ import './Dispatch.css';
 import MaskedInput from 'react-text-mask';
 import PanelContainer from './panels/panel-container/PanelContainer.jsx';
 import $ from 'jquery';
+import axios from 'axios';
 import DispatchPopup from './popup/Popup.jsx';
 import DispatchModal from './modal/Modal.jsx';
 import { useTransition, useSpring, animated } from 'react-spring';
@@ -31,6 +32,9 @@ import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
 import ChangeCarrier from './../panels/change-carrier/ChangeCarrier.jsx';
 
 function Dispatch(props) {
+    const [tempPickups, setTempPickups] = useState([]);
+    const [tempDeliveries, setTempDeliveries] = useState([]);
+    const [tempRouting, setTempRouting] = useState([]);
     const [driverItems, setDriverItems] = useState([]);
     SwiperCore.use([Navigation]);
 
@@ -314,16 +318,16 @@ function Dispatch(props) {
         if (key === 9) {
             if (e.target.value !== '') {
 
-                $.post(props.serverUrl + '/customers', {
+                axios.post(props.serverUrl + '/customers', {
                     code: e.target.value.toLowerCase()
                 }).then(async res => {
-                    if (res.result === 'OK') {
-                        if (res.customers.length > 0) {
-                            props.setSelectedBillToCompanyInfo(res.customers[0]);
-                            props.setSelectedBillToCompanyContact((res.customers[0].contacts || []).find(c => c.is_primary === 1) || {});
+                    if (res.data.result === 'OK') {
+                        if (res.data.customers.length > 0) {
+                            props.setSelectedBillToCompanyInfo(res.data.customers[0]);
+                            props.setSelectedBillToCompanyContact((res.data.customers[0].contacts || []).find(c => c.is_primary === 1) || {});
 
                             let selected_order = { ...props.selected_order } || { order_number: 0 };
-                            selected_order.bill_to_customer_id = res.customers[0].id;
+                            selected_order.bill_to_customer_id = res.data.customers[0].id;
 
                             props.setSelectedOrder(selected_order);
 
@@ -336,6 +340,8 @@ function Dispatch(props) {
                         props.setSelectedBillToCompanyInfo({});
                         props.setSelectedBillToCompanyContact({});
                     }
+                }).catch(e => {
+                    console.log('error getting customers', e);
                 });
             } else {
                 props.setSelectedBillToCompanyInfo({});
@@ -350,28 +356,28 @@ function Dispatch(props) {
         if (key === 9) {
             if (e.target.value !== '') {
 
-                $.post(props.serverUrl + '/customers', {
+                axios.post(props.serverUrl + '/customers', {
                     code: e.target.value.toLowerCase()
                 }).then(async res => {
-                    if (res.result === 'OK') {
-                        if (res.customers.length > 0) {
+                    if (res.data.result === 'OK') {
+                        if (res.data.customers.length > 0) {
                             if ((props.selected_order?.id || 0) > 0) {
                                 props.setSelectedOrder({
                                     ...props.selected_order,
                                     pickups: (props.selected_order?.pickups || []).map((p, i) => {
                                         if (p.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
                                             p.order_id = props.selected_order.id;
-                                            p.customer = res.customers[0];
-                                            p.customer_id = res.customers[0].id;
+                                            p.customer = res.data.customers[0];
+                                            p.customer_id = res.data.customers[0].id;
 
                                             props.setSelectedShipperCompanyInfo({
-                                                ...res.customers[0],
+                                                ...res.data.customers[0],
                                                 ...p,
                                                 customer: {},
                                                 pickup_id: p.id
                                             });
 
-                                            props.setSelectedShipperCompanyContact((res.customers[0].contacts || []).find(c => c.is_primary === 1) || {});
+                                            props.setSelectedShipperCompanyContact((res.data.customers[0].contacts || []).find(c => c.is_primary === 1) || {});
 
                                             setIsSavingPickupId(p.id);
                                         }
@@ -385,17 +391,17 @@ function Dispatch(props) {
                                     ...props.selected_order,
                                     pickups: (props.selected_order?.pickups || []).map((p, i) => {
                                         if (p.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
-                                            p.customer = res.customers[0];
-                                            p.customer_id = res.customers[0].id;
+                                            p.customer = res.data.customers[0];
+                                            p.customer_id = res.data.customers[0].id;
 
                                             props.setSelectedShipperCompanyInfo({
-                                                ...res.customers[0],
+                                                ...res.data.customers[0],
                                                 ...p,
                                                 customer: {},
                                                 pickup_id: p.id
                                             });
 
-                                            props.setSelectedShipperCompanyContact((res.customers[0].contacts || []).find(c => c.is_primary === 1) || {});
+                                            props.setSelectedShipperCompanyContact((res.data.customers[0].contacts || []).find(c => c.is_primary === 1) || {});
 
                                         }
                                         return p;
@@ -403,27 +409,29 @@ function Dispatch(props) {
                                 })
 
                                 if ((props.selectedBillToCompanyInfo?.id || 0) === 0) {
-                                    if ((res.customers[0].mailing_address?.bill_to_code || '') !== '') {
+                                    if ((res.data.customers[0].mailing_address?.bill_to_code || '') !== '') {
 
-                                        $.post(props.serverUrl + '/customers', {
-                                            code: (res.customers[0].mailing_address?.bill_to_code || '') + ((res.customers[0].mailing_address?.bill_to_code_number || 0) === 0 ? '' : res.customers[0].mailing_address.bill_to_code_number)
+                                        axios.post(props.serverUrl + '/customers', {
+                                            code: (res.data.customers[0].mailing_address?.bill_to_code || '') + ((res.data.customers[0].mailing_address?.bill_to_code_number || 0) === 0 ? '' : res.data.customers[0].mailing_address.bill_to_code_number)
                                         }).then(res => {
-                                            if (res.result === 'OK') {
-                                                if (res.customers.length > 0) {
+                                            if (res.data.result === 'OK') {
+                                                if (res.data.customers.length > 0) {
 
-                                                    props.setSelectedBillToCompanyInfo(res.customers[0]);
-                                                    props.setSelectedBillToCompanyContact((res.customers[0].contacts || []).find(c => c.is_primary === 1) || {});
+                                                    props.setSelectedBillToCompanyInfo(res.data.customers[0]);
+                                                    props.setSelectedBillToCompanyContact((res.data.customers[0].contacts || []).find(c => c.is_primary === 1) || {});
 
                                                     props.setSelectedOrder({
                                                         ...props.selected_order,
                                                         ae_number: (props.selected_order?.ae_number || '') === '' ? getRandomInt(1, 100) : props.selected_order.ae_number,
-                                                        bill_to_customer_id: res.customers[0].id
+                                                        bill_to_customer_id: res.data.customers[0].id
                                                     });
 
                                                     validateOrderForSaving({ keyCode: 9 });
                                                 }
                                             }
-                                        })
+                                        }).catch(e => {
+                                            console.log('error getting customers', e);
+                                        });
                                     }
                                 }
                             }
@@ -435,6 +443,8 @@ function Dispatch(props) {
                         props.setSelectedShipperCompanyInfo({});
                         props.setSelectedShipperCompanyContact({});
                     }
+                }).catch(e => {
+                    console.log('error getting customers', e);
                 });
             }
         }
@@ -455,35 +465,38 @@ function Dispatch(props) {
                     return;
                 }
 
-                $.post(props.serverUrl + '/customers', {
+                axios.post(props.serverUrl + '/customers', {
                     code: e.target.value.toLowerCase()
                 }).then(async res => {
-                    if (res.result === 'OK') {
-                        if (res.customers.length > 0) {
+                    if (res.data.result === 'OK') {
+                        if (res.data.customers.length > 0) {
+                            let delivery_id = -1;
+
                             props.setSelectedOrder({
                                 ...props.selected_order,
                                 deliveries: (props.selected_order?.deliveries || []).map((d, i) => {
                                     if (d.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
                                         d.order_id = props.selected_order.id;
-                                        d.customer = res.customers[0];
-                                        d.customer_id = res.customers[0].id;
+                                        d.customer = res.data.customers[0];
+                                        d.customer_id = res.data.customers[0].id;
 
-                                        props.setSelectedConsigneeCompanyInfo({
-                                            ...res.customers[0],
-                                            ...d,
-                                            customer: {},
-                                            delivery_id: d.id
-                                        });
+                                        let consignee = { ...res.data.customers[0] };
+                                        consignee = { ...consignee, ...d };
+                                        consignee.customer = {};
+                                        consignee.delivery_id = d.id;
 
-                                        props.setSelectedConsigneeCompanyContact((res.customers[0].contacts || []).find(c => c.is_primary === 1) || {});
+                                        props.setSelectedConsigneeCompanyInfo(consignee);
+                                        props.setSelectedConsigneeCompanyContact((consignee.contacts || []).find(c => c.is_primary === 1) || {});
 
-                                        setIsSavingDeliveryId(d.id);
+                                        delivery_id = d.id;
                                     }
                                     return d;
                                 })
                             })
 
-                            validateOrderForSaving({ keyCode: 9 });
+                            setIsSavingDeliveryId(delivery_id);
+
+                            // validateOrderForSaving({ keyCode: 9 });
                         } else {
                             props.setSelectedConsigneeCompanyInfo({});
                             props.setSelectedConsigneeCompanyContact({});
@@ -492,6 +505,8 @@ function Dispatch(props) {
                         props.setSelectedConsigneeCompanyInfo({});
                         props.setSelectedConsigneeCompanyContact({});
                     }
+                }).catch(e => {
+                    console.log('error getting customers', e);
                 });
             }
         }
@@ -529,15 +544,17 @@ function Dispatch(props) {
             }
         ]
 
-        $.post(props.serverUrl + '/customerSearch', { search: companySearch }).then(res => {
-            if (res.result === 'OK') {
+        axios.post(props.serverUrl + '/customerSearch', { search: companySearch }).then(res => {
+            if (res.data.result === 'OK') {
                 props.setBillToCompanySearch(companySearch);
-                props.setBillToCompanies(res.customers);
+                props.setBillToCompanies(res.data.customers);
 
                 if (!props.openedPanels.includes(props.billToCompanySearchPanelName)) {
                     props.setOpenedPanels([...props.openedPanels, props.billToCompanySearchPanelName]);
                 }
             }
+        }).catch(e => {
+            console.log('error searching for customers', e);
         });
     }
 
@@ -573,15 +590,17 @@ function Dispatch(props) {
             }
         ]
 
-        $.post(props.serverUrl + '/customerSearch', { search: companySearch }).then(res => {
-            if (res.result === 'OK') {
+        axios.post(props.serverUrl + '/customerSearch', { search: companySearch }).then(res => {
+            if (res.data.result === 'OK') {
                 props.setShipperCompanySearch(companySearch);
-                props.setShipperCompanies(res.customers);
+                props.setShipperCompanies(res.data.customers);
 
                 if (!props.openedPanels.includes(props.shipperCompanySearchPanelName)) {
                     props.setOpenedPanels([...props.openedPanels, props.shipperCompanySearchPanelName])
                 }
             }
+        }).catch(e => {
+            console.log('error searching for customers', e);
         });
     }
 
@@ -617,15 +636,17 @@ function Dispatch(props) {
             }
         ]
 
-        $.post(props.serverUrl + '/customerSearch', { search: companySearch }).then(res => {
-            if (res.result === 'OK') {
+        axios.post(props.serverUrl + '/customerSearch', { search: companySearch }).then(res => {
+            if (res.data.result === 'OK') {
                 props.setConsigneeCompanySearch(companySearch);
-                props.setConsigneeCompanies(res.customers);
+                props.setConsigneeCompanies(res.data.customers);
 
                 if (!props.openedPanels.includes(props.consigneeCompanySearchPanelName)) {
                     props.setOpenedPanels([...props.openedPanels, props.consigneeCompanySearchPanelName])
                 }
             }
+        }).catch(e => {
+            console.log('error searching for customers', e);
         });
     }
 
@@ -644,15 +665,15 @@ function Dispatch(props) {
                     return;
                 }
 
-                $.post(props.serverUrl + '/carriers', {
+                axios.post(props.serverUrl + '/carriers', {
                     code: e.target.value.toLowerCase()
                 }).then(res => {
-                    if (res.result === 'OK') {
-                        if (res.carriers.length > 0) {
+                    if (res.data.result === 'OK') {
+                        if (res.data.carriers.length > 0) {
 
-                            props.setSelectedDispatchCarrierInfoCarrier(res.carriers[0]);
+                            props.setSelectedDispatchCarrierInfoCarrier(res.data.carriers[0]);
 
-                            res.carriers[0].contacts.map(c => {
+                            res.data.carriers[0].contacts.map(c => {
                                 if (c.is_primary === 1) {
                                     props.setSelectedDispatchCarrierInfoContact(c);
                                 }
@@ -666,11 +687,11 @@ function Dispatch(props) {
                             selected_order.bill_to_customer_id = (props.selectedBillToCompanyInfo?.id || 0);
                             selected_order.shipper_customer_id = (props.selectedShipperCompanyInfo?.id || 0);
                             selected_order.consignee_customer_id = (props.selectedConsigneeCompanyInfo?.id || 0);
-                            selected_order.carrier_id = res.carriers[0].id;
+                            selected_order.carrier_id = res.data.carriers[0].id;
 
-                            if (res.carriers[0].drivers.length > 0) {
-                                props.setSelectedDispatchCarrierInfoDriver(res.carriers[0].drivers[0]);
-                                selected_order.carrier_driver_id = res.carriers[0].drivers[0].id;
+                            if (res.data.carriers[0].drivers.length > 0) {
+                                props.setSelectedDispatchCarrierInfoDriver(res.data.carriers[0].drivers[0]);
+                                selected_order.carrier_driver_id = res.data.carriers[0].drivers[0].id;
                             }
 
                             if ((selected_order.ae_number || '') === '') {
@@ -686,16 +707,16 @@ function Dispatch(props) {
                                     event_date: '',
                                     user_id: selected_order.ae_number,
                                     event_location: '',
-                                    event_notes: 'Assigned Carrier ' + res.carriers[0].code + (res.carriers[0].code_number === 0 ? '' : res.carriers[0].code_number) + ' - ' + res.carriers[0].name,
+                                    event_notes: 'Assigned Carrier ' + res.data.carriers[0].code + (res.data.carriers[0].code_number === 0 ? '' : res.data.carriers[0].code_number) + ' - ' + res.data.carriers[0].name,
                                     event_type: 'carrier assigned',
-                                    new_carrier_id: res.carriers[0].id
+                                    new_carrier_id: res.data.carriers[0].id
                                 }
 
-                                $.post(props.serverUrl + '/saveOrderEvent', event_parameters).then(async res => {
-                                    if (res.result === 'OK') {
-                                        $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
-                                            if (res.result === 'OK') {
-                                                await props.setSelectedOrder(res.order);
+                                axios.post(props.serverUrl + '/saveOrderEvent', event_parameters).then(async res => {
+                                    if (res.data.result === 'OK') {
+                                        axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                            if (res.data.result === 'OK') {
+                                                await props.setSelectedOrder(res.data.order);
                                             }
 
                                             setIsSavingOrder(false);
@@ -703,7 +724,7 @@ function Dispatch(props) {
                                             console.log('error saving order', e);
                                             setIsSavingOrder(false);
                                         });
-                                    } else if (res.result === 'ORDER ID NOT VALID') {
+                                    } else if (res.data.result === 'ORDER ID NOT VALID') {
                                         window.alert('The order number is not valid!');
                                         goToTabindex((73 + props.tabTimes).toString());
                                     }
@@ -714,9 +735,9 @@ function Dispatch(props) {
                             } else {
                                 if (!isSavingOrder) {
                                     setIsSavingOrder(true);
-                                    $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
-                                        if (res.result === 'OK') {
-                                            await props.setSelectedOrder(res.order);
+                                    axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                        if (res.data.result === 'OK') {
+                                            await props.setSelectedOrder(res.data.order);
                                         }
 
                                         setIsSavingOrder(false);
@@ -738,6 +759,8 @@ function Dispatch(props) {
                         props.setSelectedDispatchCarrierInfoInsurance({});
                         props.setSelectedDispatchCarrierInfoContact({});
                     }
+                }).catch(e => {
+                    console.log('error getting carriers', e);
                 });
             } else {
                 props.setSelectedDispatchCarrierInfoCarrier({});
@@ -988,16 +1011,18 @@ function Dispatch(props) {
             }
         ]
 
-        $.post(props.serverUrl + '/carrierSearch', { search: carrierSearch }).then(async res => {
-            if (res.result === 'OK') {
+        axios.post(props.serverUrl + '/carrierSearch', { search: carrierSearch }).then(async res => {
+            if (res.data.result === 'OK') {
 
                 await props.setDispatchCarrierInfoCarrierSearch(carrierSearch);
-                await props.setDispatchCarrierInfoCarriers(res.carriers);
+                await props.setDispatchCarrierInfoCarriers(res.data.carriers);
 
                 if (!props.openedPanels.includes(props.carrierInfoSearchPanelName)) {
                     props.setOpenedPanels([...props.openedPanels, props.carrierInfoSearchPanelName])
                 }
             }
+        }).catch(e => {
+            console.log('error searching for carriers', e);
         });
     }
 
@@ -1059,13 +1084,13 @@ function Dispatch(props) {
                     if (!isSavingBillToCompanyInfo) {
                         setIsSavingBillToCompanyInfo(true);
 
-                        $.post(props.serverUrl + '/saveCustomer', selectedBillToCompanyInfo).then(async res => {
-                            if (res.result === 'OK') {
+                        axios.post(props.serverUrl + '/saveCustomer', selectedBillToCompanyInfo).then(async res => {
+                            if (res.data.result === 'OK') {
                                 if (props.selectedBillToCompanyInfo.id === undefined || (props.selectedBillToCompanyInfo.id || 0) === 0) {
-                                    await props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, id: res.customer.id });
+                                    await props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, id: res.data.customer.id });
                                 }
 
-                                (res.customer.contacts || []).map(async (contact, index) => {
+                                (res.data.customer.contacts || []).map(async (contact, index) => {
 
                                     if (contact.is_primary === 1) {
                                         await props.setSelectedBillToCompanyContact(contact);
@@ -1076,6 +1101,8 @@ function Dispatch(props) {
                             }
 
                             await setIsSavingBillToCompanyInfo(false);
+                        }).catch(e => {
+                            console.log('error saving customer', e);
                         });
                     }
                 }
@@ -1112,98 +1139,211 @@ function Dispatch(props) {
             if (!isSavingBillToCompanyContact) {
                 setIsSavingBillToCompanyContact(true);
 
-                $.post(props.serverUrl + '/saveContact', contact).then(async res => {
-                    if (res.result === 'OK') {
-                        await props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, contacts: res.contacts });
-                        await props.setSelectedBillToCompanyContact(res.contact);
+                axios.post(props.serverUrl + '/saveContact', contact).then(async res => {
+                    if (res.data.result === 'OK') {
+                        await props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, contacts: res.data.contacts });
+                        await props.setSelectedBillToCompanyContact(res.data.contact);
                     }
 
                     setIsSavingBillToCompanyContact(false);
+                }).catch(e => {
+                    console.log('error saving contact', e);
                 });
             }
         }
     }
 
-    const validateShipperCompanyInfoForSaving = (e) => {
-        let keyCode = e.keyCode || e.which;
-
-        if (keyCode === 9) {
-            window.clearTimeout(delayTimer);
-
+    useEffect(() => {
+        if (isSavingShipperCompanyInfo) {
             if ((props.selectedShipperCompanyInfo.id || 0) === 0) {
+                setIsSavingShipperCompanyInfo(false);
                 return;
             }
 
-            window.setTimeout(() => {
-                let selectedShipperCompanyInfo = props.selectedShipperCompanyInfo;
+            let selectedShipperCompanyInfo = props.selectedShipperCompanyInfo;
 
-                if (selectedShipperCompanyInfo.id === undefined || selectedShipperCompanyInfo.id === -1) {
-                    selectedShipperCompanyInfo.id = 0;
-                    props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, id: 0 });
+            if (selectedShipperCompanyInfo.id === undefined || selectedShipperCompanyInfo.id === -1) {
+                selectedShipperCompanyInfo.id = 0;
+                props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, id: 0 });
+            }
+
+            if (
+                (selectedShipperCompanyInfo.name || '').trim().replace(/\s/g, "").replace("&", "A") !== "" &&
+                (selectedShipperCompanyInfo.city || '').trim().replace(/\s/g, "") !== "" &&
+                (selectedShipperCompanyInfo.state || '').trim().replace(/\s/g, "") !== "" &&
+                (selectedShipperCompanyInfo.address1 || '').trim() !== "" &&
+                (selectedShipperCompanyInfo.zip || '').trim() !== ""
+            ) {
+                let parseCity = selectedShipperCompanyInfo.city.trim().replace(/\s/g, "").substring(0, 3);
+
+                if (parseCity.toLowerCase() === "ft.") {
+                    parseCity = "FO";
+                }
+                if (parseCity.toLowerCase() === "mt.") {
+                    parseCity = "MO";
+                }
+                if (parseCity.toLowerCase() === "st.") {
+                    parseCity = "SA";
                 }
 
-                if (
-                    (selectedShipperCompanyInfo.name || '').trim().replace(/\s/g, "").replace("&", "A") !== "" &&
-                    (selectedShipperCompanyInfo.city || '').trim().replace(/\s/g, "") !== "" &&
-                    (selectedShipperCompanyInfo.state || '').trim().replace(/\s/g, "") !== "" &&
-                    (selectedShipperCompanyInfo.address1 || '').trim() !== "" &&
-                    (selectedShipperCompanyInfo.zip || '').trim() !== ""
-                ) {
-                    let parseCity = selectedShipperCompanyInfo.city.trim().replace(/\s/g, "").substring(0, 3);
+                let mailingParseCity = (selectedShipperCompanyInfo.mailing_city || '').trim().replace(/\s/g, "").substring(0, 3);
 
-                    if (parseCity.toLowerCase() === "ft.") {
-                        parseCity = "FO";
-                    }
-                    if (parseCity.toLowerCase() === "mt.") {
-                        parseCity = "MO";
-                    }
-                    if (parseCity.toLowerCase() === "st.") {
-                        parseCity = "SA";
-                    }
+                if (mailingParseCity.toLowerCase() === "ft.") {
+                    mailingParseCity = "FO";
+                }
+                if (mailingParseCity.toLowerCase() === "mt.") {
+                    mailingParseCity = "MO";
+                }
+                if (mailingParseCity.toLowerCase() === "st.") {
+                    mailingParseCity = "SA";
+                }
 
-                    let mailingParseCity = (selectedShipperCompanyInfo.mailing_city || '').trim().replace(/\s/g, "").substring(0, 3);
+                let newCode = (selectedShipperCompanyInfo.name || '').trim().replace(/\s/g, "").replace("&", "A").substring(0, 3) + parseCity.substring(0, 2) + (selectedShipperCompanyInfo.state || '').trim().replace(/\s/g, "").substring(0, 2);
+                let mailingNewCode = (selectedShipperCompanyInfo.mailing_name || '').trim().replace(/\s/g, "").replace("&", "A").substring(0, 3) + mailingParseCity.substring(0, 2) + (selectedShipperCompanyInfo.mailing_state || '').trim().replace(/\s/g, "").substring(0, 2);
 
-                    if (mailingParseCity.toLowerCase() === "ft.") {
-                        mailingParseCity = "FO";
-                    }
-                    if (mailingParseCity.toLowerCase() === "mt.") {
-                        mailingParseCity = "MO";
-                    }
-                    if (mailingParseCity.toLowerCase() === "st.") {
-                        mailingParseCity = "SA";
-                    }
+                selectedShipperCompanyInfo.code = newCode.toUpperCase();
+                selectedShipperCompanyInfo.mailing_code = mailingNewCode.toUpperCase();
 
-                    let newCode = (selectedShipperCompanyInfo.name || '').trim().replace(/\s/g, "").replace("&", "A").substring(0, 3) + parseCity.substring(0, 2) + (selectedShipperCompanyInfo.state || '').trim().replace(/\s/g, "").substring(0, 2);
-                    let mailingNewCode = (selectedShipperCompanyInfo.mailing_name || '').trim().replace(/\s/g, "").replace("&", "A").substring(0, 3) + mailingParseCity.substring(0, 2) + (selectedShipperCompanyInfo.mailing_state || '').trim().replace(/\s/g, "").substring(0, 2);
+                axios.post(props.serverUrl + '/saveCustomer', selectedShipperCompanyInfo).then(async res => {
+                    if (res.data.result === 'OK') {
+                        if (props.selectedShipperCompanyInfo.id === undefined || (props.selectedShipperCompanyInfo.id || 0) === 0) {
+                            await props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, id: res.data.customer.id });
+                            await props.setSelectedShipperCompanyContact(res.data.customer.contacts.find(c => c.is_primary === 1) || {});
 
-                    selectedShipperCompanyInfo.code = newCode.toUpperCase();
-                    selectedShipperCompanyInfo.mailing_code = mailingNewCode.toUpperCase();
+                            await props.setSelectedOrder({
+                                ...props.selected_order,
+                                pickups: props.selected_order.pickups.map((p, i) => {
+                                    if (p.id || 0 === 0) {
+                                        p.id = res.data.customer.id
+                                    }
+                                    return p;
+                                })
+                            })
+                        }
 
-                    if (!isSavingShipperCompanyInfo) {
-                        setIsSavingShipperCompanyInfo(true);
+                        // validate postal code for calculating miles
+                        let doCalculateMiles = false;
 
-                        $.post(props.serverUrl + '/saveCustomer', selectedShipperCompanyInfo).then(async res => {
-                            if (res.result === 'OK') {
-                                if (props.selectedShipperCompanyInfo.id === undefined || (props.selectedShipperCompanyInfo.id || 0) === 0) {
-                                    await props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, id: res.customer.id });
+                        if ((selectedShipperCompanyInfo.zip_code || '') !== '' && (selectedShipperCompanyInfo.zip_code !== res.data.customer.zip_code)) {
+                            (props.selected_order?.routing || []).map((route, index) => {
+
+                                if (route.type === 'pickup') {
+                                    if (props.selected_order?.pickups || [].find(p => p.customer.id === res.data.customer.id) !== undefined) {
+                                        doCalculateMiles = true;
+                                    }
                                 }
 
-                                (res.customer.contacts || []).map(async (contact, index) => {
+                                return false;
+                            });
+                        }
 
-                                    if (contact.is_primary === 1) {
-                                        await props.setSelectedShipperCompanyContact(contact);
+                        if (doCalculateMiles) {
+
+                            let selected_order = props.selected_order || {};
+
+                            if ((selected_order?.id || 0) > 0) {
+                                selected_order.pickups = selected_order.pickups || [].map((p, i) => {
+
+                                    if ((p.customer?.id || 0) === res.data.customer.id) {
+                                        p.customer = { ...res.data.customer }
+                                    }
+
+                                    return p;
+                                })
+
+                                let params = {
+                                    mode: 'fastest;car;traffic:disabled',
+                                    routeAttributes: 'summary'
+                                }
+
+                                let waypointCount = 0;
+
+
+                                (selected_order.routing || []).map((item, i) => {
+                                    if (item.type === 'pickup') {
+                                        (selected_order.pickups || []).map((p, i) => {
+                                            if (p.id === item.pickup_id) {
+                                                if ((p.customer?.zip_data || '') !== '') {
+                                                    params['waypoint' + waypointCount] = 'geo!' + p.customer.zip_data.latitude.toString() + ',' + p.customer.zip_data.longitude.toString();
+                                                    waypointCount += 1;
+                                                }
+                                            }
+                                            return false;
+                                        })
+                                    } else {
+                                        (selected_order.deliveries || []).map((d, i) => {
+                                            if (d.id === item.delivery_id) {
+                                                if ((d.customer?.zip_data || '') !== '') {
+                                                    params['waypoint' + waypointCount] = 'geo!' + d.customer.zip_data.latitude.toString() + ',' + d.customer.zip_data.longitude.toString();
+                                                    waypointCount += 1;
+                                                }
+                                            }
+                                            return false;
+                                        })
                                     }
 
                                     return true;
                                 });
-                            }
 
-                            await setIsSavingShipperCompanyInfo(false);
-                        });
+                                routingService.calculateRoute(params,
+                                    (result) => {
+                                        let miles = result.response.route[0].summary.distance || 0;
+
+                                        selected_order.miles = miles;
+
+                                        props.setSelectedOrder(selected_order);
+                                        props.setMileageLoaderVisible(false);
+
+
+                                        axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                            if (res.data.result === 'OK') {
+
+                                            }
+                                        }).catch(e => {
+                                            console.log('error on saving order miles', e);
+                                            props.setMileageLoaderVisible(false);
+                                        });
+                                    },
+                                    (error) => {
+                                        console.log('error getting mileage', error);
+                                        selected_order.miles = 0;
+
+                                        props.setSelectedOrder(selected_order)
+                                        props.setMileageLoaderVisible(false);
+
+                                        axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                            if (res.data.result === 'OK') {
+
+                                            }
+                                        }).catch(e => {
+                                            console.log('error on saving order miles', e);
+                                            props.setMileageLoaderVisible(false);
+                                        });
+                                    });
+                            }
+                        }
                     }
-                }
-            }, 300);
+
+                    await setIsSavingShipperCompanyInfo(false);
+                }).catch(async e => {
+                    console.log('error saving customer', e);
+                    await setIsSavingShipperCompanyInfo(false);
+                });
+            } else {
+                setIsSavingShipperCompanyInfo(false);
+            }
         }
+    }, [isSavingShipperCompanyInfo])
+
+    const validateShipperCompanyInfoForSaving = (e) => {
+        let key = e.keyCode || e.which;
+
+        if (key === 9) {
+            if (!isSavingShipperCompanyInfo) {
+                setIsSavingShipperCompanyInfo(true);
+            }
+        }
+
     }
 
     const validateShipperCompanyContactForSaving = (e) => {
@@ -1235,97 +1375,208 @@ function Dispatch(props) {
             if (!isSavingShipperCompanyContact) {
                 setIsSavingShipperCompanyContact(true);
 
-                $.post(props.serverUrl + '/saveContact', contact).then(async res => {
-                    if (res.result === 'OK') {
-                        await props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, contacts: res.contacts });
-                        await props.setSelectedShipperCompanyContact(res.contact);
+                axios.post(props.serverUrl + '/saveContact', contact).then(async res => {
+                    if (res.data.result === 'OK') {
+                        await props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, contacts: res.data.contacts });
+                        await props.setSelectedShipperCompanyContact(res.data.contact);
                     }
 
                     setIsSavingShipperCompanyContact(false);
+                }).catch(e => {
+                    console.log('error saving contact', e);
                 });
             }
         }
     }
 
-    const validateConsigneeCompanyInfoForSaving = (e) => {
-        let keyCode = e.keyCode || e.which;
-
-        if (keyCode === 9) {
-            window.clearTimeout(delayTimer);
+    useEffect(() => {
+        if (isSavingConsigneeCompanyInfo) {
 
             if ((props.selectedConsigneeCompanyInfo.id || 0) === 0) {
+                setIsSavingConsigneeCompanyInfo(false);
                 return;
             }
 
-            window.setTimeout(() => {
-                let selectedConsigneeCompanyInfo = props.selectedConsigneeCompanyInfo;
+            let selectedConsigneeCompanyInfo = props.selectedConsigneeCompanyInfo;
 
-                if (selectedConsigneeCompanyInfo.id === undefined || selectedConsigneeCompanyInfo.id === -1) {
-                    selectedConsigneeCompanyInfo.id = 0;
-                    props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, id: 0 });
+            if (selectedConsigneeCompanyInfo.id === undefined || selectedConsigneeCompanyInfo.id === -1) {
+                selectedConsigneeCompanyInfo.id = 0;
+                props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, id: 0 });
+            }
+
+            if (
+                (selectedConsigneeCompanyInfo.name || '').trim().replace(/\s/g, "").replace("&", "A") !== "" &&
+                (selectedConsigneeCompanyInfo.city || '').trim().replace(/\s/g, "") !== "" &&
+                (selectedConsigneeCompanyInfo.state || '').trim().replace(/\s/g, "") !== "" &&
+                (selectedConsigneeCompanyInfo.address1 || '').trim() !== "" &&
+                (selectedConsigneeCompanyInfo.zip || '').trim() !== ""
+            ) {
+                let parseCity = selectedConsigneeCompanyInfo.city.trim().replace(/\s/g, "").substring(0, 3);
+
+                if (parseCity.toLowerCase() === "ft.") {
+                    parseCity = "FO";
+                }
+                if (parseCity.toLowerCase() === "mt.") {
+                    parseCity = "MO";
+                }
+                if (parseCity.toLowerCase() === "st.") {
+                    parseCity = "SA";
                 }
 
-                if (
-                    (selectedConsigneeCompanyInfo.name || '').trim().replace(/\s/g, "").replace("&", "A") !== "" &&
-                    (selectedConsigneeCompanyInfo.city || '').trim().replace(/\s/g, "") !== "" &&
-                    (selectedConsigneeCompanyInfo.state || '').trim().replace(/\s/g, "") !== "" &&
-                    (selectedConsigneeCompanyInfo.address1 || '').trim() !== "" &&
-                    (selectedConsigneeCompanyInfo.zip || '').trim() !== ""
-                ) {
-                    let parseCity = selectedConsigneeCompanyInfo.city.trim().replace(/\s/g, "").substring(0, 3);
+                let mailingParseCity = (selectedConsigneeCompanyInfo.mailing_city || '').trim().replace(/\s/g, "").substring(0, 3);
 
-                    if (parseCity.toLowerCase() === "ft.") {
-                        parseCity = "FO";
-                    }
-                    if (parseCity.toLowerCase() === "mt.") {
-                        parseCity = "MO";
-                    }
-                    if (parseCity.toLowerCase() === "st.") {
-                        parseCity = "SA";
-                    }
+                if (mailingParseCity.toLowerCase() === "ft.") {
+                    mailingParseCity = "FO";
+                }
+                if (mailingParseCity.toLowerCase() === "mt.") {
+                    mailingParseCity = "MO";
+                }
+                if (mailingParseCity.toLowerCase() === "st.") {
+                    mailingParseCity = "SA";
+                }
 
-                    let mailingParseCity = (selectedConsigneeCompanyInfo.mailing_city || '').trim().replace(/\s/g, "").substring(0, 3);
+                let newCode = (selectedConsigneeCompanyInfo.name || '').trim().replace(/\s/g, "").replace("&", "A").substring(0, 3) + parseCity.substring(0, 2) + (selectedConsigneeCompanyInfo.state || '').trim().replace(/\s/g, "").substring(0, 2);
+                let mailingNewCode = (selectedConsigneeCompanyInfo.mailing_name || '').trim().replace(/\s/g, "").replace("&", "A").substring(0, 3) + mailingParseCity.substring(0, 2) + (selectedConsigneeCompanyInfo.mailing_state || '').trim().replace(/\s/g, "").substring(0, 2);
 
-                    if (mailingParseCity.toLowerCase() === "ft.") {
-                        mailingParseCity = "FO";
-                    }
-                    if (mailingParseCity.toLowerCase() === "mt.") {
-                        mailingParseCity = "MO";
-                    }
-                    if (mailingParseCity.toLowerCase() === "st.") {
-                        mailingParseCity = "SA";
-                    }
+                selectedConsigneeCompanyInfo.code = newCode.toUpperCase();
+                selectedConsigneeCompanyInfo.mailing_code = mailingNewCode.toUpperCase();
 
-                    let newCode = (selectedConsigneeCompanyInfo.name || '').trim().replace(/\s/g, "").replace("&", "A").substring(0, 3) + parseCity.substring(0, 2) + (selectedConsigneeCompanyInfo.state || '').trim().replace(/\s/g, "").substring(0, 2);
-                    let mailingNewCode = (selectedConsigneeCompanyInfo.mailing_name || '').trim().replace(/\s/g, "").replace("&", "A").substring(0, 3) + mailingParseCity.substring(0, 2) + (selectedConsigneeCompanyInfo.mailing_state || '').trim().replace(/\s/g, "").substring(0, 2);
+                axios.post(props.serverUrl + '/saveCustomer', selectedConsigneeCompanyInfo).then(async res => {
+                    if (res.data.result === 'OK') {
+                        if (props.selectedConsigneeCompanyInfo.id === undefined || (props.selectedConsigneeCompanyInfo.id || 0) === 0) {
+                            await props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, id: res.data.customer.id });
+                            await props.setSelectedConsigneeCompanyContact(res.data.customer.contacts.find(c => c.is_primary === 1) || {});
 
-                    selectedConsigneeCompanyInfo.code = newCode.toUpperCase();
-                    selectedConsigneeCompanyInfo.mailing_code = mailingNewCode.toUpperCase();
+                            await props.setSelectedOrder({
+                                ...props.selected_order,
+                                deliveries: props.selected_order.deliveries.map((d, i) => {
+                                    if (d.id || 0 === 0) {
+                                        d.id = res.data.customer.id
+                                    }
+                                    return d;
+                                })
+                            })
+                        }
 
-                    if (!isSavingConsigneeCompanyInfo) {
-                        setIsSavingConsigneeCompanyInfo(true);
+                        // validate postal code for calculating miles
+                        let doCalculateMiles = false;
 
-                        $.post(props.serverUrl + '/saveCustomer', selectedConsigneeCompanyInfo).then(async res => {
-                            if (res.result === 'OK') {
-                                if (props.selectedConsigneeCompanyInfo.id === undefined || (props.selectedConsigneeCompanyInfo.id || 0) === 0) {
-                                    await props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, id: res.customer.id });
+                        if ((selectedConsigneeCompanyInfo.zip_code || '') !== '' && (selectedConsigneeCompanyInfo.zip_code !== res.data.customer.zip_code)) {
+                            (props.selected_order?.routing || []).map((route, index) => {
+
+                                if (route.type === 'delivery') {
+                                    if (props.selected_order?.deliveries || [].find(d => d.customer.id === res.data.customer.id) !== undefined) {
+                                        doCalculateMiles = true;
+                                    }
                                 }
 
-                                (res.customer.contacts || []).map(async (contact, index) => {
+                                return false;
+                            });
+                        }
 
-                                    if (contact.is_primary === 1) {
-                                        await props.setSelectedConsigneeCompanyContact(contact);
+                        if (doCalculateMiles) {
+
+                            let selected_order = props.selected_order || {};
+
+                            if ((selected_order?.id || 0) > 0) {
+                                selected_order.deliveries = selected_order.deliveries || [].map((d, i) => {
+
+                                    if ((d.customer?.id || 0) === res.data.customer.id) {
+                                        d.customer = { ...res.data.customer }
+                                    }
+
+                                    return d;
+                                })
+
+                                let params = {
+                                    mode: 'fastest;car;traffic:disabled',
+                                    routeAttributes: 'summary'
+                                }
+
+                                let waypointCount = 0;
+
+                                (selected_order.routing || []).map((item, i) => {
+                                    if (item.type === 'pickup') {
+                                        (selected_order.pickups || []).map((p, i) => {
+                                            if (p.id === item.pickup_id) {
+                                                if ((p.customer?.zip_data || '') !== '') {
+                                                    params['waypoint' + waypointCount] = 'geo!' + p.customer.zip_data.latitude.toString() + ',' + p.customer.zip_data.longitude.toString();
+                                                    waypointCount += 1;
+                                                }
+                                            }
+                                            return false;
+                                        })
+                                    } else {
+                                        (selected_order.deliveries || []).map((d, i) => {
+                                            if (d.id === item.delivery_id) {
+                                                if ((d.customer?.zip_data || '') !== '') {
+                                                    params['waypoint' + waypointCount] = 'geo!' + d.customer.zip_data.latitude.toString() + ',' + d.customer.zip_data.longitude.toString();
+                                                    waypointCount += 1;
+                                                }
+                                            }
+                                            return false;
+                                        })
                                     }
 
                                     return true;
                                 });
-                            }
 
-                            await setIsSavingConsigneeCompanyInfo(false);
-                        });
+                                routingService.calculateRoute(params,
+                                    (result) => {
+                                        let miles = result.response.route[0].summary.distance || 0;
+
+                                        selected_order.miles = miles;
+
+                                        props.setSelectedOrder(selected_order);
+                                        props.setMileageLoaderVisible(false);
+
+
+                                        axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                            if (res.data.result === 'OK') {
+
+                                            }
+                                        }).catch(e => {
+                                            console.log('error on saving order miles', e);
+                                            props.setMileageLoaderVisible(false);
+                                        });
+                                    },
+                                    (error) => {
+                                        console.log('error getting mileage', error);
+                                        selected_order.miles = 0;
+
+                                        props.setSelectedOrder(selected_order)
+                                        props.setMileageLoaderVisible(false);
+
+                                        axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                            if (res.data.result === 'OK') {
+
+                                            }
+                                        }).catch(e => {
+                                            console.log('error on saving order miles', e);
+                                            props.setMileageLoaderVisible(false);
+                                        });
+                                    });
+                            }
+                        }
                     }
-                }
-            }, 300);
+
+                    setIsSavingConsigneeCompanyInfo(false);
+                }).catch(async e => {
+                    console.log('error saving customer', e);
+                    await setIsSavingConsigneeCompanyInfo(false);
+                });
+            }
+        }
+    }, [isSavingConsigneeCompanyInfo])
+
+
+    const validateConsigneeCompanyInfoForSaving = (e) => {
+        let key = e.keyCode || e.which;
+
+        if (key === 9) {
+            if (!isSavingConsigneeCompanyInfo) {
+                setIsSavingConsigneeCompanyInfo(true);
+            }
         }
     }
 
@@ -1358,13 +1609,15 @@ function Dispatch(props) {
             if (!isSavingConsigneeCompanyContact) {
                 setIsSavingConsigneeCompanyContact(true);
 
-                $.post(props.serverUrl + '/saveContact', contact).then(async res => {
-                    if (res.result === 'OK') {
-                        await props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, contacts: res.contacts });
-                        await props.setSelectedConsigneeCompanyContact(res.contact);
+                axios.post(props.serverUrl + '/saveContact', contact).then(async res => {
+                    if (res.data.result === 'OK') {
+                        await props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, contacts: res.data.contacts });
+                        await props.setSelectedConsigneeCompanyContact(res.data.contact);
                     }
 
                     setIsSavingConsigneeCompanyContact(false);
+                }).catch(e => {
+                    console.log('error saving contact', e);
                 });
             }
         }
@@ -1413,13 +1666,13 @@ function Dispatch(props) {
                     if (!isSavingCarrierInfo) {
                         setIsSavingCarrierInfo(true);
 
-                        $.post(props.serverUrl + '/saveCarrier', selectedDispatchCarrierInfoCarrier).then(async res => {
-                            if (res.result === 'OK') {
+                        axios.post(props.serverUrl + '/saveCarrier', selectedDispatchCarrierInfoCarrier).then(async res => {
+                            if (res.data.result === 'OK') {
                                 if (props.selectedDispatchCarrierInfoCarrier.id === undefined && (props.selectedDispatchCarrierInfoCarrier.id || 0) === 0) {
-                                    await props.setSelectedDispatchCarrierInfoCarrier({ ...props.selectedDispatchCarrierInfoCarrier, id: res.carrier.id });
+                                    await props.setSelectedDispatchCarrierInfoCarrier({ ...props.selectedDispatchCarrierInfoCarrier, id: res.data.carrier.id });
                                 }
 
-                                (res.carrier.contacts || []).map(async (contact, index) => {
+                                (res.data.carrier.contacts || []).map(async (contact, index) => {
 
                                     if (contact.is_primary === 1) {
                                         await props.setSelectedDispatchCarrierInfoContact(contact);
@@ -1430,6 +1683,8 @@ function Dispatch(props) {
                             }
 
                             await setIsSavingCarrierInfo(false);
+                        }).catch(e => {
+                            console.log('error saving carrier', e);
                         });
                     }
                 }
@@ -1470,13 +1725,15 @@ function Dispatch(props) {
             if (!isSavingCarrierContact) {
                 setIsSavingCarrierContact(true);
 
-                $.post(props.serverUrl + '/saveCarrierContact', contact).then(async res => {
-                    if (res.result === 'OK') {
-                        await props.setSelectedDispatchCarrierInfoCarrier({ ...props.selectedDispatchCarrierInfoCarrier, contacts: res.contacts });
-                        await props.setSelectedDispatchCarrierInfoContact(res.contact);
+                axios.post(props.serverUrl + '/saveCarrierContact', contact).then(async res => {
+                    if (res.data.result === 'OK') {
+                        await props.setSelectedDispatchCarrierInfoCarrier({ ...props.selectedDispatchCarrierInfoCarrier, contacts: res.data.contacts });
+                        await props.setSelectedDispatchCarrierInfoContact(res.data.contact);
                     }
 
                     setIsSavingCarrierContact(false);
+                }).catch(e => {
+                    console.log('error saving carrier contact', e);
                 });
             }
         }
@@ -1500,10 +1757,10 @@ function Dispatch(props) {
 
             if ((props.selectedDispatchCarrierInfoCarrier?.id || 0) > 0) {
                 if ((driver.first_name || '').trim() !== '') {
-                    $.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
-                        if (res.result === 'OK') {
-                            await props.setSelectedDispatchCarrierInfoCarrier({ ...props.selectedDispatchCarrierInfoCarrier, drivers: res.drivers });
-                            await props.setSelectedDispatchCarrierInfoDriver({ ...props.selectedDispatchCarrierInfoDriver, id: res.driver.id });
+                    axios.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
+                        if (res.data.result === 'OK') {
+                            await props.setSelectedDispatchCarrierInfoCarrier({ ...props.selectedDispatchCarrierInfoCarrier, drivers: res.data.drivers });
+                            await props.setSelectedDispatchCarrierInfoDriver({ ...props.selectedDispatchCarrierInfoDriver, id: res.data.driver.id });
                         }
 
                         await setIsSavingCarrierDriver(false);
@@ -1568,19 +1825,17 @@ function Dispatch(props) {
                 selected_order.deliveries = []; // se envia vacio para no tocarlo
             }
 
-            $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
-                console.log(res);
-                if (res.result === 'OK') {
-                    await props.setSelectedOrder(res.order);
+            axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                if (res.data.result === 'OK') {
+                    await setTempRouting(res.data.order.routing);
+                    await props.setSelectedOrder(res.data.order);
                 } else {
-                    console.log(res.result);
+                    console.log(res.data.result);
                 }
 
-                props.setMileageLoaderVisible(false);
                 setIsSavingOrder(false);
             }).catch(e => {
                 console.log('error saving order', e);
-                props.setMileageLoaderVisible(false);
                 setIsSavingOrder(false);
             });
         }
@@ -1593,7 +1848,7 @@ function Dispatch(props) {
 
                 if (pickup !== undefined) {
                     if ((pickup.customer?.id || 0) > 0) {
-                        $.post(props.serverUrl + '/saveOrderPickup', {
+                        axios.post(props.serverUrl + '/saveOrderPickup', {
                             id: isSavingPickupId,
                             order_id: props.selected_order?.id || 0,
                             customer_id: pickup.customer.id,
@@ -1607,52 +1862,141 @@ function Dispatch(props) {
                             seal_number: pickup.seal_number || '',
                             special_instructions: pickup.special_instructions || '',
                             type: 'pickup'
-                        }).then(res => {
-                            if (res.result === 'OK') {
-                                props.setSelectedOrder({
+                        }).then(async res => {
+                            if (res.data.result === 'OK') {
+                                await props.setSelectedOrder({
                                     ...props.selected_order,
                                     pickups: (props.selected_order.pickups || []).map((p, i) => {
                                         if (p.id === isSavingPickupId) {
-                                            p = res.pickup;
+                                            p = res.data.pickup;
+
+                                            props.setSelectedShipperCompanyInfo({
+                                                ...props.selectedShipperCompanyInfo,
+                                                pickup_id: res.data.pickup.id
+                                            })
                                         }
                                         return p;
                                     })
                                 })
 
-                                if (res.order_pickups.length === 1 && res.order_deliveries.length === 1) {
+                                if (res.data.order.pickups.length === 1 && res.data.order.deliveries.length === 1) {
                                     let routing = [
                                         {
                                             id: 0,
-                                            pickup_id: res.order_pickups[0].id,
+                                            pickup_id: res.data.order.pickups[0].id,
                                             delivery_id: null,
                                             type: 'pickup'
                                         },
                                         {
                                             id: 0,
                                             pickup_id: null,
-                                            delivery_id: res.order_deliveries[0].id,
+                                            delivery_id: res.data.order.deliveries[0].id,
                                             type: 'delivery'
                                         }
                                     ]
 
-                                    $.post(props.serverUrl + '/saveOrderRouting', {
+                                    let selected_order = props.selected_order;
+
+                                    axios.post(props.serverUrl + '/saveOrderRouting', {
                                         order_id: props.selected_order?.id || 0,
                                         routing: routing
                                     }).then(res => {
-                                        if (res.result === 'OK') {
-                                            props.setSelectedOrder({
-                                                ...props.selected_order,
-                                                routing: res.order_routing
-                                            });
+                                        if (res.data.result === 'OK') {
+                                            selected_order = res.data.order;
+                                            props.setSelectedOrder(selected_order);
 
                                             props.setMileageLoaderVisible(true);
+
+                                            let params = {
+                                                mode: 'fastest;car;traffic:disabled',
+                                                routeAttributes: 'summary'
+                                            }
+
+                                            let waypointCount = 0;
+
+                                            selected_order.routing.map((item, i) => {
+                                                if (item.type === 'pickup') {
+                                                    selected_order.pickups.map((p, i) => {
+                                                        if (p.id === item.pickup_id) {
+                                                            if ((p.customer?.zip_data || '') !== '') {
+                                                                params['waypoint' + waypointCount] = 'geo!' + p.customer.zip_data.latitude.toString() + ',' + p.customer.zip_data.longitude.toString();
+                                                                waypointCount += 1;
+                                                            }
+                                                        }
+                                                        return false;
+                                                    })
+                                                } else {
+                                                    selected_order.deliveries.map((d, i) => {
+                                                        if (d.id === item.delivery_id) {
+                                                            if ((d.customer?.zip_data || '') !== '') {
+                                                                params['waypoint' + waypointCount] = 'geo!' + d.customer.zip_data.latitude.toString() + ',' + d.customer.zip_data.longitude.toString();
+                                                                waypointCount += 1;
+                                                            }
+                                                        }
+                                                        return false;
+                                                    })
+                                                }
+
+                                                return true;
+                                            });
+
+                                            routingService.calculateRoute(params,
+                                                (result) => {
+                                                    let miles = result.response.route[0].summary.distance || 0;
+
+                                                    selected_order.miles = miles;
+
+                                                    props.setSelectedOrder(selected_order);
+                                                    props.setMileageLoaderVisible(false);
+
+                                                    axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                                        if (res.data.result === 'OK') {
+
+                                                        }
+                                                    }).catch(e => {
+                                                        console.log('error on saving order miles', e);
+                                                        props.setMileageLoaderVisible(false);
+                                                    });
+                                                },
+                                                (error) => {
+                                                    console.log('error getting mileage', error);
+                                                    selected_order.miles = 0;
+
+                                                    props.setSelectedOrder(selected_order)
+                                                    props.setMileageLoaderVisible(false);
+
+                                                    axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                                        if (res.data.result === 'OK') {
+
+                                                        }
+                                                    }).catch(e => {
+                                                        console.log('error on saving order miles', e);
+                                                        props.setMileageLoaderVisible(false);
+                                                    });
+                                                });
+                                        } else {
+                                            console.log(res.data.result);
+
+                                            selected_order.miles = 0;
+                                            props.setSelectedOrder(selected_order)
+                                            props.setMileageLoaderVisible(false);
+
+                                            axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                                if (res.data.result === 'OK') {
+
+                                                }
+                                            }).catch(e => {
+                                                console.log('error on saving order miles', e);
+                                                props.setMileageLoaderVisible(false);
+                                            });
                                         }
                                     }).catch(e => {
                                         console.log('error on saving order routing', e);
+                                        props.setMileageLoaderVisible(false);
                                     })
                                 }
                             } else {
-                                console.log(res.result);
+                                console.log(res.data.result);
                             }
                             setIsSavingPickupId(-1);
                         }).catch(e => {
@@ -1682,7 +2026,7 @@ function Dispatch(props) {
 
                 if (delivery !== undefined) {
                     if ((delivery.customer?.id || 0) > 0) {
-                        $.post(props.serverUrl + '/saveOrderDelivery', {
+                        axios.post(props.serverUrl + '/saveOrderDelivery', {
                             id: isSavingDeliveryId,
                             order_id: props.selected_order?.id || 0,
                             customer_id: delivery.customer.id,
@@ -1692,58 +2036,151 @@ function Dispatch(props) {
                             delivery_time2: delivery.delivery_time2 || '',
                             special_instructions: delivery.special_instructions || '',
                             type: 'delivery'
-                        }).then(res => {
-                            if (res.result === 'OK') {
-                                props.setSelectedOrder({
+                        }).then(async res => {
+                            if (res.data.result === 'OK') {
+                                await props.setSelectedOrder({
                                     ...props.selected_order,
                                     deliveries: (props.selected_order.deliveries || []).map((d, i) => {
                                         if (d.id === isSavingDeliveryId) {
-                                            d = res.delivery;
+                                            d = res.data.delivery;
+
+                                            props.setSelectedConsigneeCompanyInfo({
+                                                ...props.selectedConsigneeCompanyInfo,
+                                                delivery_id: res.data.delivery.id
+                                            })
                                         }
                                         return d;
                                     })
-                                })
+                                });
 
-                                if (res.order_pickups.length === 1 && res.order_deliveries.length === 1) {
-                                    let routing = [
-                                        {
-                                            id: 0,
-                                            pickup_id: res.order_pickups[0].id,
-                                            delivery_id: null,
-                                            type: 'pickup'
-                                        },
-                                        {
-                                            id: 0,
-                                            pickup_id: null,
-                                            delivery_id: res.order_deliveries[0].id,
-                                            type: 'delivery'
-                                        }
-                                    ]
+                                if (res.data.order.pickups.length === 1 && res.data.order.deliveries.length === 1) {
+                                    if (!((props.selected_order?.routing || []).length >= 2 &&
+                                        props.selected_order.routing[0].pickup_id === res.data.order.pickups[0].id &&
+                                        props.selected_order.routing[1].delivery_id === res.data.order.deliveries[0].id)) {
+                                        let routing = [
+                                            {
+                                                id: 0,
+                                                pickup_id: res.data.order.pickups[0].id,
+                                                delivery_id: null,
+                                                type: 'pickup'
+                                            },
+                                            {
+                                                id: 0,
+                                                pickup_id: null,
+                                                delivery_id: res.data.order.deliveries[0].id,
+                                                type: 'delivery'
+                                            }
+                                        ]
 
-                                    $.post(props.serverUrl + '/saveOrderRouting', {
-                                        order_id: props.selected_order?.id || 0,
-                                        routing: routing
-                                    }).then(res => {
-                                        if (res.result === 'OK') {
-                                            props.setSelectedOrder({
-                                                ...props.selected_order,
-                                                routing: res.order_routing
-                                            });
+                                        let selected_order = props.selected_order;
 
-                                            props.setMileageLoaderVisible(true);
-                                        }
-                                    }).catch(e => {
-                                        console.log('error on saving order routing', e);
-                                    })
+                                        await axios.post(props.serverUrl + '/saveOrderRouting', {
+                                            order_id: props.selected_order?.id || 0,
+                                            routing: routing
+                                        }).then(async res => {
+                                            if (res.data.result === 'OK') {
+                                                selected_order = res.data.order;
+                                                props.setSelectedOrder(selected_order);
+
+                                                props.setMileageLoaderVisible(true);
+
+                                                let params = {
+                                                    mode: 'fastest;car;traffic:disabled',
+                                                    routeAttributes: 'summary'
+                                                }
+
+                                                let waypointCount = 0;
+
+                                                selected_order.routing.map((item, i) => {
+                                                    if (item.type === 'pickup') {
+                                                        selected_order.pickups.map((p, i) => {
+                                                            if (p.id === item.pickup_id) {
+                                                                if ((p.customer?.zip_data || '') !== '') {
+                                                                    params['waypoint' + waypointCount] = 'geo!' + p.customer.zip_data.latitude.toString() + ',' + p.customer.zip_data.longitude.toString();
+                                                                    waypointCount += 1;
+                                                                }
+                                                            }
+                                                            return false;
+                                                        })
+                                                    } else {
+                                                        selected_order.deliveries.map((d, i) => {
+                                                            if (d.id === item.delivery_id) {
+                                                                if ((d.customer?.zip_data || '') !== '') {
+                                                                    params['waypoint' + waypointCount] = 'geo!' + d.customer.zip_data.latitude.toString() + ',' + d.customer.zip_data.longitude.toString();
+                                                                    waypointCount += 1;
+                                                                }
+                                                            }
+                                                            return false;
+                                                        })
+                                                    }
+
+                                                    return true;
+                                                });
+
+                                                routingService.calculateRoute(params,
+                                                    (result) => {
+                                                        let miles = result.response.route[0].summary.distance || 0;
+
+                                                        selected_order.miles = miles;
+
+                                                        props.setSelectedOrder(selected_order);
+                                                        props.setMileageLoaderVisible(false);
+
+                                                        axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                                            if (res.data.result === 'OK') {
+
+                                                            }
+                                                        }).catch(e => {
+                                                            console.log('error on saving order miles', e);
+                                                            props.setMileageLoaderVisible(false);
+                                                        });
+                                                    },
+                                                    (error) => {
+                                                        console.log('error getting mileage', error);
+                                                        selected_order.miles = 0;
+
+                                                        props.setSelectedOrder(selected_order)
+                                                        props.setMileageLoaderVisible(false);
+
+                                                        axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                                            if (res.data.result === 'OK') {
+
+                                                            }
+                                                        }).catch(e => {
+                                                            console.log('error on saving order miles', e);
+                                                            props.setMileageLoaderVisible(false);
+                                                        });
+                                                    });
+                                            } else {
+                                                console.log(res.data.result);
+
+                                                selected_order.miles = 0;
+                                                props.setSelectedOrder(selected_order)
+                                                props.setMileageLoaderVisible(false);
+
+                                                axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                                    if (res.data.result === 'OK') {
+
+                                                    }
+                                                }).catch(e => {
+                                                    console.log('error on saving order miles', e);
+                                                    props.setMileageLoaderVisible(false);
+                                                });
+                                            }
+                                        }).catch(e => {
+                                            console.log('error on saving order routing', e);
+                                            props.setMileageLoaderVisible(false);
+                                        })
+                                    }
                                 }
                             } else {
-                                console.log(res.result);
+                                console.log(res.data.result);
                             }
                             setIsSavingDeliveryId(-1);
                         }).catch(e => {
                             console.log('error on saving delivery', e);
                             setIsSavingDeliveryId(-1);
-                        })
+                        });
                     } else {
                         console.log('saving delivery customer undefined');
                         setIsSavingDeliveryId(-1);
@@ -1760,96 +2197,23 @@ function Dispatch(props) {
         }
     }, [isSavingDeliveryId]);
 
-    useEffect(() => {
-
-        if (props.mileageLoaderVisible) {
-            if ((props.selected_order?.id || 0) > 0) {
-                if ((props.selected_order.routing || []).length >= 2) {
-
-                    let params = {
-                        mode: 'fastest;car;traffic:disabled',
-                        routeAttributes: 'summary'
-                    }
-
-                    let waypointCount = 0;
-
-                    props.selected_order.routing.map((item, i) => {
-                        if (item.type === 'pickup') {
-                            props.selected_order.pickups.map((p, i) => {
-                                if (p.id === item.pickup_id) {
-                                    if ((p.customer?.zip_data || '') !== '') {
-                                        params['waypoint' + waypointCount] = 'geo!' + p.customer.zip_data.latitude.toString() + ',' + p.customer.zip_data.longitude.toString();
-                                        waypointCount += 1;
-                                    }
-                                }
-                                return false;
-                            })
-                        } else {
-                            props.selected_order.deliveries.map((d, i) => {
-                                if (d.id === item.delivery_id) {
-                                    if ((d.customer?.zip_data || '') !== '') {
-                                        params['waypoint' + waypointCount] = 'geo!' + d.customer.zip_data.latitude.toString() + ',' + d.customer.zip_data.longitude.toString();
-                                        waypointCount += 1;
-                                    }
-                                }
-                                return false;
-                            })
-                        }
-
-                        return true;
-                    });
-
-                    routingService.calculateRoute(params,
-                        (result) => {
-                            let miles = result.response.route[0].summary.distance || 0;
-
-                            props.setSelectedOrder({ ...props.selected_order, miles: miles })
-                            props.setMileageLoaderVisible(false);
-                            validateOrderForSaving({ keyCode: 9 });
-                        },
-                        (error) => {
-                            console.log('error getting mileage', error);
-
-                            props.setSelectedOrder({ ...props.selected_order, miles: 0 })
-                            props.setMileageLoaderVisible(false);
-                            validateOrderForSaving({ keyCode: 9 });
-                        })
-                } else {
-                    props.setSelectedOrder({
-                        ...props.selected_order,
-                        miles: 0
-                    });
-                    validateOrderForSaving({ keyCode: 9 });
-                    props.setMileageLoaderVisible(false);
-                }
-            } else {
-                props.setSelectedOrder({
-                    ...props.selected_order,
-                    miles: 0
-                });
-                validateOrderForSaving({ keyCode: 9 });
-                props.setMileageLoaderVisible(false);
-            }
-        }
-    }, [props.mileageLoaderVisible])
 
     const getOrderByOrderNumber = (e) => {
         let key = e.keyCode || e.which;
 
         if (key === 9) {
             if ((props.order_number || '') !== '') {
-                $.post(props.serverUrl + '/getOrderByOrderNumber', { order_number: props.order_number }).then(async res => {
-                    if (res.result === 'OK') {
+                axios.post(props.serverUrl + '/getOrderByOrderNumber', { order_number: props.order_number }).then(async res => {
+                    if (res.data.result === 'OK') {
                         await props.setSelectedOrder({});
-                        await props.setSelectedOrder(res.order);
-                        await props.setOrderNumber(res.order.order_number);
-                        await props.setTripNumber(res.order.trip_number === 0 ? '' : res.order.trip_number);
-                        await props.setSelectedBillToCompanyInfo(res.order.bill_to_company || {});
+                        await props.setSelectedOrder(res.data.order);
+                        await setTempRouting(res.data.order.routing);
+                        await props.setOrderNumber(res.data.order.order_number);
+                        await props.setTripNumber(res.data.order.trip_number === 0 ? '' : res.data.order.trip_number);
+                        await props.setSelectedBillToCompanyInfo(res.data.order.bill_to_company || {});
 
-                        console.log(res.order.pickups);
-
-                        if (res.order.bill_to_company) {
-                            (res.order.bill_to_company.contacts || []).map(async (contact, index) => {
+                        if (res.data.order.bill_to_company) {
+                            (res.data.order.bill_to_company.contacts || []).map(async (contact, index) => {
                                 if (contact.is_primary === 1) {
                                     await props.setSelectedBillToCompanyContact(contact);
                                 }
@@ -1857,58 +2221,53 @@ function Dispatch(props) {
                             })
                         }
 
-                        await props.setSelectedShipperCompanyInfo(res.order.pickups.length > 0
-                            ? {
-                                ...res.order.pickups[0].customer,
-                                pickup_id: res.order.pickups[0].id,
-                                pu_date1: res.order.pickups[0].pu_date1,
-                                pu_date2: res.order.pickups[0].pu_date2,
-                                pu_time1: res.order.pickups[0].pu_time1,
-                                pu_time2: res.order.pickups[0].pu_time2,
-                                bol_numbers: res.order.pickups[0].bol_numbers,
-                                po_numbers: res.order.pickups[0].po_numbers,
-                                ref_numbers: res.order.pickups[0].ref_numbers,
-                                seal_number: res.order.pickups[0].seal_number,
-                                special_instructions: res.order.pickups[0].special_instructions,
-                                type: res.order.pickups[0].type,
-                            }
-                            : {});
+                        let order = res.data.order;
 
-                        if (res.order.pickups.length > 0) {
-                            (res.order.pickups[0].customer?.contacts || []).map(async (contact, index) => {
-                                if (contact.is_primary === 1) {
-                                    await props.setSelectedShipperCompanyContact(contact);
-                                }
-                                return true;
-                            })
-                        }
+                        let pickup_id = (order.routing || []).find(r => r.type === 'pickup')?.pickup_id || 0;
+                        let pickup = (order.pickups || []).find(p => p.id === pickup_id);
 
-                        await props.setSelectedConsigneeCompanyInfo(res.order.deliveries.length > 0
-                            ? {
-                                ...res.order.deliveries[0].customer,
-                                delivery_id: res.order.deliveries[0].id,
-                                delivery_date1: res.order.deliveries[0].delivery_date1,
-                                delivery_date2: res.order.deliveries[0].delivery_date2,
-                                delivery_time1: res.order.deliveries[0].delivery_time1,
-                                delivery_time2: res.order.deliveries[0].delivery_time2,
-                                special_instructions: res.order.deliveries[0].special_instructions,
-                                type: res.order.deliveries[0].type,
-                            }
-                            : {});
+                        props.setSelectedShipperCompanyInfo(pickup === undefined ? {} : {
+                            ...pickup.customer,
+                            pickup_id: pickup.id,
+                            pu_date1: pickup.pu_date1,
+                            pu_date2: pickup.pu_date2,
+                            pu_time1: pickup.pu_time1,
+                            pu_time2: pickup.pu_time2,
+                            bol_numbers: pickup.bol_numbers,
+                            po_numbers: pickup.po_numbers,
+                            ref_numbers: pickup.ref_numbers,
+                            seal_number: pickup.seal_number,
+                            special_instructions: pickup.special_instructions,
+                            type: pickup.type,
+                        });
 
-                        if (res.order.deliveries.length > 0) {
-                            (res.order.deliveries[0].customer?.contacts || []).map(async (contact, index) => {
-                                if (contact.is_primary === 1) {
-                                    await props.setSelectedConsigneeCompanyContact(contact);
-                                }
-                                return true;
-                            })
-                        }
+                        props.setSelectedShipperCompanyContact(pickup === undefined ? {} : (pickup.contacts || []).find(c => c.is_primary === 1) || {});
 
-                        await props.setSelectedDispatchCarrierInfoCarrier(res.order.carrier || {});
 
-                        if (res.order.carrier) {
-                            (res.order.carrier?.contacts || []).map(async (contact, index) => {
+                        let delivery_id = (order.routing || []).find(r => r.type === 'delivery')?.delivery_id || 0;
+                        let delivery = (order.deliveries || []).find(d => d.id === delivery_id);
+
+                        props.setSelectedConsigneeCompanyInfo(delivery === undefined ? {} : {
+                            ...delivery.customer,
+                            delivery_id: delivery.id,
+                            pu_date1: delivery.pu_date1,
+                            pu_date2: delivery.pu_date2,
+                            pu_time1: delivery.pu_time1,
+                            pu_time2: delivery.pu_time2,
+                            bol_numbers: delivery.bol_numbers,
+                            po_numbers: delivery.po_numbers,
+                            ref_numbers: delivery.ref_numbers,
+                            seal_number: delivery.seal_number,
+                            special_instructions: delivery.special_instructions,
+                            type: delivery.type,
+                        });
+
+                        props.setSelectedConsigneeCompanyContact(delivery === undefined ? {} : (delivery.contacts || []).find(c => c.is_primary === 1) || {});
+
+                        await props.setSelectedDispatchCarrierInfoCarrier(res.data.order.carrier || {});
+
+                        if (res.data.order.carrier) {
+                            (res.data.order.carrier?.contacts || []).map(async (contact, index) => {
                                 if (contact.is_primary === 1) {
                                     await props.setSelectedDispatchCarrierInfoContact(contact);
                                 }
@@ -1916,14 +2275,16 @@ function Dispatch(props) {
                             })
                         }
 
-                        await props.setSelectedDispatchCarrierInfoDriver(res.order.driver || {});
+                        await props.setSelectedDispatchCarrierInfoDriver(res.data.order.driver || {});
 
-                        await props.setDivision({ name: res.order.division });
-                        await props.setLoadType({ name: res.order.load_type });
-                        await props.setTemplate({ name: res.order.template });
+                        await props.setDivision({ name: res.data.order.division });
+                        await props.setLoadType({ name: res.data.order.load_type });
+                        await props.setTemplate({ name: res.data.order.template });
                     } else {
                         props.setOrderNumber(props.selected_order?.order_number || '');
                     }
+                }).catch(e => {
+                    console.log('error getting order by order number', e);
                 });
             } else {
                 if ((props.selected_order?.order_number || '') !== '') {
@@ -1938,16 +2299,17 @@ function Dispatch(props) {
 
         if (key === 9) {
             if ((props.trip_number || '') !== '') {
-                $.post(props.serverUrl + '/getOrderByTripNumber', { trip_number: props.trip_number }).then(async res => {
-                    if (res.result === 'OK') {
+                axios.post(props.serverUrl + '/getOrderByTripNumber', { trip_number: props.trip_number }).then(async res => {
+                    if (res.data.result === 'OK') {
                         await props.setSelectedOrder({});
-                        await props.setSelectedOrder(res.order);
-                        await props.setOrderNumber(res.order.order_number);
-                        await props.setTripNumber(res.order.trip_number === 0 ? '' : res.order.trip_number);
-                        await props.setSelectedBillToCompanyInfo(res.order.bill_to_company || {});
+                        await props.setSelectedOrder(res.data.order);
+                        await setTempRouting(res.data.order.routing);
+                        await props.setOrderNumber(res.data.order.order_number);
+                        await props.setTripNumber(res.data.order.trip_number === 0 ? '' : res.data.order.trip_number);
+                        await props.setSelectedBillToCompanyInfo(res.data.order.bill_to_company || {});
 
-                        if (res.order.bill_to_company) {
-                            (res.order.bill_to_company.contacts || []).map(async (contact, index) => {
+                        if (res.data.order.bill_to_company) {
+                            (res.data.order.bill_to_company.contacts || []).map(async (contact, index) => {
                                 if (contact.is_primary === 1) {
                                     await props.setSelectedBillToCompanyContact(contact);
                                 }
@@ -1955,32 +2317,51 @@ function Dispatch(props) {
                             })
                         }
 
-                        await props.setSelectedShipperCompanyInfo(res.order.pickups.length > 0 ? res.order.pickups[0] : {});
+                        let order = res.data.order;
 
-                        if (res.order.pickups.length > 0) {
-                            (res.order.pickups[0].contacts || []).map(async (contact, index) => {
-                                if (contact.is_primary === 1) {
-                                    await props.setSelectedShipperCompanyContact(contact);
-                                }
-                                return true;
-                            })
-                        }
+                        let pickup_id = (order.routing || []).find(r => r.type === 'pickup')?.pickup_id || 0;
+                        let pickup = (order.pickups || []).find(p => p.id === pickup_id);
 
-                        await props.setSelectedConsigneeCompanyInfo(res.order.deliveries.length > 0 ? res.order.deliveries[0] : {});
+                        props.setSelectedShipperCompanyInfo(pickup === undefined ? {} : {
+                            ...pickup.customer,
+                            pickup_id: pickup.id,
+                            pu_date1: pickup.pu_date1,
+                            pu_date2: pickup.pu_date2,
+                            pu_time1: pickup.pu_time1,
+                            pu_time2: pickup.pu_time2,
+                            bol_numbers: pickup.bol_numbers,
+                            po_numbers: pickup.po_numbers,
+                            ref_numbers: pickup.ref_numbers,
+                            seal_number: pickup.seal_number,
+                            special_instructions: pickup.special_instructions,
+                            type: pickup.type,
+                        });
 
-                        if (res.order.deliveries.length > 0) {
-                            (res.order.deliveries[0].contacts || []).map(async (contact, index) => {
-                                if (contact.is_primary === 1) {
-                                    await props.setSelectedConsigneeCompanyContact(contact);
-                                }
-                                return true;
-                            })
-                        }
+                        props.setSelectedShipperCompanyContact(pickup === undefined ? {} : (pickup.contacts || []).find(c => c.is_primary === 1) || {});
 
-                        await props.setSelectedDispatchCarrierInfoCarrier(res.order.carrier || {});
 
-                        if (res.order.carrier) {
-                            (res.order.carrier.contacts || []).map(async (contact, index) => {
+                        let delivery_id = (order.routing || []).find(r => r.type === 'delivery')?.delivery_id || 0;
+                        let delivery = (order.deliveries || []).find(d => d.id === delivery_id);
+
+                        props.setSelectedConsigneeCompanyInfo(delivery === undefined ? {} : {
+                            ...delivery.customer,
+                            delivery_id: delivery.id,
+                            pu_date1: delivery.pu_date1,
+                            pu_date2: delivery.pu_date2,
+                            pu_time1: delivery.pu_time1,
+                            pu_time2: delivery.pu_time2,
+                            bol_numbers: delivery.bol_numbers,
+                            po_numbers: delivery.po_numbers,
+                            ref_numbers: delivery.ref_numbers,
+                            seal_number: delivery.seal_number,
+                            special_instructions: delivery.special_instructions,
+                            type: delivery.type,
+                        });
+
+                        await props.setSelectedDispatchCarrierInfoCarrier(res.data.order.carrier || {});
+
+                        if (res.data.order.carrier) {
+                            (res.data.order.carrier.contacts || []).map(async (contact, index) => {
                                 if (contact.is_primary === 1) {
                                     await props.setSelectedDispatchCarrierInfoContact(contact);
                                 }
@@ -1988,14 +2369,16 @@ function Dispatch(props) {
                             })
                         }
 
-                        await props.setSelectedDispatchCarrierInfoDriver(res.order.driver || {});
+                        await props.setSelectedDispatchCarrierInfoDriver(res.data.order.driver || {});
 
-                        await props.setDivision({ name: res.order.division });
-                        await props.setLoadType({ name: res.order.load_type });
-                        await props.setTemplate({ name: res.order.template });
+                        await props.setDivision({ name: res.data.order.division });
+                        await props.setLoadType({ name: res.data.order.load_type });
+                        await props.setTemplate({ name: res.data.order.template });
                     } else {
                         props.setTripNumber(props.selected_order?.trip_number || '');
                     }
+                }).catch(e => {
+                    console.log('error getting order by trip number', e);
                 });
             } else {
                 if ((props.selected_order?.trip_number || '') !== '') {
@@ -2182,6 +2565,32 @@ function Dispatch(props) {
         return true;
     }
 
+    const getPickupsOnRouting = () => {
+        let pickups = [];
+
+        (props.selected_order?.routing || []).map((r, i) => {
+            if (r.type === 'pickup') {
+                pickups.push(props.selected_order.pickups.find(p => p.id === r.pickup_id))
+            }
+            return false;
+        })
+
+        return pickups;
+    }
+
+    const getDeliveriesOnRouting = () => {
+        let deliveries = [];
+
+        (props.selected_order?.routing || []).map((r, i) => {
+            if (r.type === 'delivery') {
+                deliveries.push(props.selected_order.deliveries.find(d => d.id === r.delivery_id))
+            }
+            return false;
+        })
+
+        return deliveries;
+    }
+
     return (
         <div className="dispatch-main-container" style={{
             borderRadius: props.scale === 1 ? 0 : '20px',
@@ -2293,9 +2702,9 @@ function Dispatch(props) {
                                                                     return true;
                                                                 });
                                                             } else {
-                                                                $.post(props.serverUrl + '/getDivisions').then(async res => {
-                                                                    if (res.result === 'OK') {
-                                                                        await setDivisionItems(res.divisions.map((item, index) => {
+                                                                axios.post(props.serverUrl + '/getDivisions').then(async res => {
+                                                                    if (res.data.result === 'OK') {
+                                                                        await setDivisionItems(res.data.divisions.map((item, index) => {
                                                                             item.selected = (props.selected_order?.division?.id || 0) === 0
                                                                                 ? index === 0
                                                                                 : item.id === props.selected_order.division.id
@@ -2351,9 +2760,9 @@ function Dispatch(props) {
                                                                     return true;
                                                                 });
                                                             } else {
-                                                                $.post(props.serverUrl + '/getDivisions').then(async res => {
-                                                                    if (res.result === 'OK') {
-                                                                        await setDivisionItems(res.divisions.map((item, index) => {
+                                                                axios.post(props.serverUrl + '/getDivisions').then(async res => {
+                                                                    if (res.data.result === 'OK') {
+                                                                        await setDivisionItems(res.data.divisions.map((item, index) => {
                                                                             item.selected = (props.selected_order?.division?.id || 0) === 0
                                                                                 ? index === 0
                                                                                 : item.id === props.selected_order.division.id
@@ -2427,11 +2836,11 @@ function Dispatch(props) {
                                                     if (e.target.value.trim() === '') {
                                                         setDivisionItems([]);
                                                     } else {
-                                                        $.post(props.serverUrl + '/getDivisions', {
+                                                        axios.post(props.serverUrl + '/getDivisions', {
                                                             name: e.target.value.trim()
                                                         }).then(async res => {
-                                                            if (res.result === 'OK') {
-                                                                await setDivisionItems(res.divisions.map((item, index) => {
+                                                            if (res.data.result === 'OK') {
+                                                                await setDivisionItems(res.data.divisions.map((item, index) => {
                                                                     item.selected = (props.selected_order?.division?.id || 0) === 0
                                                                         ? index === 0
                                                                         : item.id === props.selected_order.division.id
@@ -2456,11 +2865,11 @@ function Dispatch(props) {
                                                     setDivisionItems([]);
                                                 } else {
                                                     if ((props.selected_order?.division?.id || 0) === 0 && (props.selected_order?.division?.name || '') !== '') {
-                                                        $.post(props.serverUrl + '/getDivisions', {
+                                                        axios.post(props.serverUrl + '/getDivisions', {
                                                             name: props.selected_order?.division.name
                                                         }).then(async res => {
-                                                            if (res.result === 'OK') {
-                                                                await setDivisionItems(res.divisions.map((item, index) => {
+                                                            if (res.data.result === 'OK') {
+                                                                await setDivisionItems(res.data.divisions.map((item, index) => {
                                                                     item.selected = (props.selected_order?.division?.id || 0) === 0
                                                                         ? index === 0
                                                                         : item.id === props.selected_order.division.id
@@ -2482,9 +2891,9 @@ function Dispatch(props) {
                                                             console.log('error getting divisions', e);
                                                         })
                                                     } else {
-                                                        $.post(props.serverUrl + '/getDivisions').then(async res => {
-                                                            if (res.result === 'OK') {
-                                                                await setDivisionItems(res.divisions.map((item, index) => {
+                                                        axios.post(props.serverUrl + '/getDivisions').then(async res => {
+                                                            if (res.data.result === 'OK') {
+                                                                await setDivisionItems(res.data.divisions.map((item, index) => {
                                                                     item.selected = (props.selected_order?.division?.id || 0) === 0
                                                                         ? index === 0
                                                                         : item.id === props.selected_order.division.id
@@ -2624,9 +3033,9 @@ function Dispatch(props) {
                                                                     return true;
                                                                 });
                                                             } else {
-                                                                $.post(props.serverUrl + '/getLoadTypes').then(async res => {
-                                                                    if (res.result === 'OK') {
-                                                                        await setLoadTypeItems(res.load_types.map((item, index) => {
+                                                                axios.post(props.serverUrl + '/getLoadTypes').then(async res => {
+                                                                    if (res.data.result === 'OK') {
+                                                                        await setLoadTypeItems(res.data.load_types.map((item, index) => {
                                                                             item.selected = (props.selected_order?.load_type?.id || 0) === 0
                                                                                 ? index === 0
                                                                                 : item.id === props.selected_order.load_type.id
@@ -2682,9 +3091,9 @@ function Dispatch(props) {
                                                                     return true;
                                                                 });
                                                             } else {
-                                                                $.post(props.serverUrl + '/getLoadTypes').then(async res => {
-                                                                    if (res.result === 'OK') {
-                                                                        await setLoadTypeItems(res.load_types.map((item, index) => {
+                                                                axios.post(props.serverUrl + '/getLoadTypes').then(async res => {
+                                                                    if (res.data.result === 'OK') {
+                                                                        await setLoadTypeItems(res.data.load_types.map((item, index) => {
                                                                             item.selected = (props.selected_order?.load_type?.id || 0) === 0
                                                                                 ? index === 0
                                                                                 : item.id === props.selected_order.load_type.id
@@ -2757,11 +3166,11 @@ function Dispatch(props) {
                                                     if (e.target.value.trim() === '') {
                                                         setLoadTypeItems([]);
                                                     } else {
-                                                        $.post(props.serverUrl + '/getLoadTypes', {
+                                                        axios.post(props.serverUrl + '/getLoadTypes', {
                                                             name: e.target.value.trim()
                                                         }).then(async res => {
-                                                            if (res.result === 'OK') {
-                                                                await setLoadTypeItems(res.load_types.map((item, index) => {
+                                                            if (res.data.result === 'OK') {
+                                                                await setLoadTypeItems(res.data.load_types.map((item, index) => {
                                                                     item.selected = (props.selected_order?.load_type?.id || 0) === 0
                                                                         ? index === 0
                                                                         : item.id === props.selected_order.load_type.id
@@ -2786,11 +3195,11 @@ function Dispatch(props) {
                                                     setLoadTypeItems([]);
                                                 } else {
                                                     if ((props.selected_order?.load_type?.id || 0) === 0 && (props.selected_order?.load_type?.name || '') !== '') {
-                                                        $.post(props.serverUrl + '/getLoadTypes', {
+                                                        axios.post(props.serverUrl + '/getLoadTypes', {
                                                             name: props.selected_order?.load_type.name
                                                         }).then(async res => {
-                                                            if (res.result === 'OK') {
-                                                                await setLoadTypeItems(res.load_types.map((item, index) => {
+                                                            if (res.data.result === 'OK') {
+                                                                await setLoadTypeItems(res.data.load_types.map((item, index) => {
                                                                     item.selected = (props.selected_order?.load_type?.id || 0) === 0
                                                                         ? index === 0
                                                                         : item.id === props.selected_order.load_type.id
@@ -2812,9 +3221,9 @@ function Dispatch(props) {
                                                             console.log('error getting load types', e);
                                                         })
                                                     } else {
-                                                        $.post(props.serverUrl + '/getLoadTypes').then(async res => {
-                                                            if (res.result === 'OK') {
-                                                                await setLoadTypeItems(res.load_types.map((item, index) => {
+                                                        axios.post(props.serverUrl + '/getLoadTypes').then(async res => {
+                                                            if (res.data.result === 'OK') {
+                                                                await setLoadTypeItems(res.data.load_types.map((item, index) => {
                                                                     item.selected = (props.selected_order?.load_type?.id || 0) === 0
                                                                         ? index === 0
                                                                         : item.id === props.selected_order.load_type.id
@@ -2954,9 +3363,9 @@ function Dispatch(props) {
                                                                     return true;
                                                                 });
                                                             } else {
-                                                                $.post(props.serverUrl + '/getTemplates').then(async res => {
-                                                                    if (res.result === 'OK') {
-                                                                        await setTemplateItems(res.templates.map((item, index) => {
+                                                                axios.post(props.serverUrl + '/getTemplates').then(async res => {
+                                                                    if (res.data.result === 'OK') {
+                                                                        await setTemplateItems(res.data.templates.map((item, index) => {
                                                                             item.selected = (props.selected_order?.template?.id || 0) === 0
                                                                                 ? index === 0
                                                                                 : item.id === props.selected_order.template.id
@@ -3012,9 +3421,9 @@ function Dispatch(props) {
                                                                     return true;
                                                                 });
                                                             } else {
-                                                                $.post(props.serverUrl + '/getTemplates').then(async res => {
-                                                                    if (res.result === 'OK') {
-                                                                        await setTemplateItems(res.templates.map((item, index) => {
+                                                                axios.post(props.serverUrl + '/getTemplates').then(async res => {
+                                                                    if (res.data.result === 'OK') {
+                                                                        await setTemplateItems(res.data.templates.map((item, index) => {
                                                                             item.selected = (props.selected_order?.template?.id || 0) === 0
                                                                                 ? index === 0
                                                                                 : item.id === props.selected_order.template.id
@@ -3087,11 +3496,11 @@ function Dispatch(props) {
                                                     if (e.target.value.trim() === '') {
                                                         setTemplateItems([]);
                                                     } else {
-                                                        $.post(props.serverUrl + '/getTemplates', {
+                                                        axios.post(props.serverUrl + '/getTemplates', {
                                                             name: e.target.value.trim()
                                                         }).then(async res => {
-                                                            if (res.result === 'OK') {
-                                                                await setTemplateItems(res.templates.map((item, index) => {
+                                                            if (res.data.result === 'OK') {
+                                                                await setTemplateItems(res.data.templates.map((item, index) => {
                                                                     item.selected = (props.selected_order?.template?.id || 0) === 0
                                                                         ? index === 0
                                                                         : item.id === props.selected_order.template.id
@@ -3116,11 +3525,11 @@ function Dispatch(props) {
                                                     setTemplateItems([]);
                                                 } else {
                                                     if ((props.selected_order?.template?.id || 0) === 0 && (props.selected_order?.template?.name || '') !== '') {
-                                                        $.post(props.serverUrl + '/getTemplates', {
+                                                        axios.post(props.serverUrl + '/getTemplates', {
                                                             name: props.selected_order?.template.name
                                                         }).then(async res => {
-                                                            if (res.result === 'OK') {
-                                                                await setTemplateItems(res.templates.map((item, index) => {
+                                                            if (res.data.result === 'OK') {
+                                                                await setTemplateItems(res.data.templates.map((item, index) => {
                                                                     item.selected = (props.selected_order?.template?.id || 0) === 0
                                                                         ? index === 0
                                                                         : item.id === props.selected_order.template.id
@@ -3142,9 +3551,9 @@ function Dispatch(props) {
                                                             console.log('error getting templates', e);
                                                         })
                                                     } else {
-                                                        $.post(props.serverUrl + '/getTemplates').then(async res => {
-                                                            if (res.result === 'OK') {
-                                                                await setTemplateItems(res.templates.map((item, index) => {
+                                                        axios.post(props.serverUrl + '/getTemplates').then(async res => {
+                                                            if (res.data.result === 'OK') {
+                                                                await setTemplateItems(res.data.templates.map((item, index) => {
                                                                     item.selected = (props.selected_order?.template?.id || 0) === 0
                                                                         ? index === 0
                                                                         : item.id === props.selected_order.template.id
@@ -3577,7 +3986,7 @@ function Dispatch(props) {
                                 <div className="input-box-container grow">
                                     <input tabIndex={53 + props.tabTimes} type="text" placeholder="Contact Name"
                                         // onKeyDown={validateCarrierContactForSaving}
-                                        onChange={(e) => {                                            
+                                        onChange={(e) => {
                                             if ((props.selectedDispatchCarrierInfoCarrier?.contacts || []).length === 0) {
                                                 props.setSelectedDispatchCarrierInfoCarrier({ ...props.selectedDispatchCarrierInfoCarrier, contact_name: e.target.value })
                                             }
@@ -3704,9 +4113,9 @@ function Dispatch(props) {
                                                                 return true;
                                                             });
                                                         } else {
-                                                            $.post(props.serverUrl + '/getEquipments').then(async res => {
-                                                                if (res.result === 'OK') {
-                                                                    await setEquipmentItems(res.equipments.map((item, index) => {
+                                                            axios.post(props.serverUrl + '/getEquipments').then(async res => {
+                                                                if (res.data.result === 'OK') {
+                                                                    await setEquipmentItems(res.data.equipments.map((item, index) => {
                                                                         item.selected = (props.selectedDispatchCarrierInfoDriver?.equipment?.id || 0) === 0
                                                                             ? index === 0
                                                                             : item.id === props.selectedDispatchCarrierInfoDriver.equipment.id
@@ -3762,9 +4171,9 @@ function Dispatch(props) {
                                                                 return true;
                                                             });
                                                         } else {
-                                                            $.post(props.serverUrl + '/getEquipments').then(async res => {
-                                                                if (res.result === 'OK') {
-                                                                    await setEquipmentItems(res.equipments.map((item, index) => {
+                                                            axios.post(props.serverUrl + '/getEquipments').then(async res => {
+                                                                if (res.data.result === 'OK') {
+                                                                    await setEquipmentItems(res.data.equipments.map((item, index) => {
                                                                         item.selected = (props.selectedDispatchCarrierInfoDriver?.equipment?.id || 0) === 0
                                                                             ? index === 0
                                                                             : item.id === props.selectedDispatchCarrierInfoDriver.equipment.id
@@ -3837,11 +4246,11 @@ function Dispatch(props) {
                                                 if (e.target.value.trim() === '') {
                                                     setEquipmentItems([]);
                                                 } else {
-                                                    $.post(props.serverUrl + '/getEquipments', {
+                                                    axios.post(props.serverUrl + '/getEquipments', {
                                                         name: e.target.value.trim()
                                                     }).then(async res => {
-                                                        if (res.result === 'OK') {
-                                                            await setEquipmentItems(res.equipments.map((item, index) => {
+                                                        if (res.data.result === 'OK') {
+                                                            await setEquipmentItems(res.data.equipments.map((item, index) => {
                                                                 item.selected = (props.selectedDispatchCarrierInfoDriver?.equipment?.id || 0) === 0
                                                                     ? index === 0
                                                                     : item.id === props.selectedDispatchCarrierInfoDriver.equipment.id
@@ -3866,11 +4275,11 @@ function Dispatch(props) {
                                                 setEquipmentItems([]);
                                             } else {
                                                 if ((props.selectedDispatchCarrierInfoDriver?.equipment?.id || 0) === 0 && (props.selectedDispatchCarrierInfoDriver?.equipment?.name || '') !== '') {
-                                                    $.post(props.serverUrl + '/getEquipments', {
+                                                    axios.post(props.serverUrl + '/getEquipments', {
                                                         name: props.selectedDispatchCarrierInfoDriver?.equipment.name
                                                     }).then(async res => {
-                                                        if (res.result === 'OK') {
-                                                            await setEquipmentItems(res.equipments.map((item, index) => {
+                                                        if (res.data.result === 'OK') {
+                                                            await setEquipmentItems(res.data.equipments.map((item, index) => {
                                                                 item.selected = (props.selectedDispatchCarrierInfoDriver?.equipment?.id || 0) === 0
                                                                     ? index === 0
                                                                     : item.id === props.selectedDispatchCarrierInfoDriver.equipment.id
@@ -3892,9 +4301,9 @@ function Dispatch(props) {
                                                         console.log('error getting equipments', e);
                                                     })
                                                 } else {
-                                                    $.post(props.serverUrl + '/getEquipments').then(async res => {
-                                                        if (res.result === 'OK') {
-                                                            await setEquipmentItems(res.equipments.map((item, index) => {
+                                                    axios.post(props.serverUrl + '/getEquipments').then(async res => {
+                                                        if (res.data.result === 'OK') {
+                                                            await setEquipmentItems(res.data.equipments.map((item, index) => {
                                                                 item.selected = (props.selectedDispatchCarrierInfoDriver?.equipment?.id || 0) === 0
                                                                     ? index === 0
                                                                     : item.id === props.selectedDispatchCarrierInfoDriver.equipment.id
@@ -4042,17 +4451,23 @@ function Dispatch(props) {
                                                             });
                                                         } else {
                                                             if ((props.selectedDispatchCarrierInfoCarrier?.id || 0) > 0) {
-                                                                $.post(props.serverUrl + '/getDriversByCarrierId', {
+                                                                axios.post(props.serverUrl + '/getDriversByCarrierId', {
                                                                     carrier_id: props.selectedDispatchCarrierInfoCarrier.id
                                                                 }).then(async res => {
-                                                                    if (res.result === 'OK') {
-                                                                        if (res.count > 1) {
-                                                                            await setDriverItems(res.drivers.map((item, index) => {
-                                                                                item.selected = (props.selectedDispatchCarrierInfoDriver?.id || 0) === 0
-                                                                                    ? index === 0
-                                                                                    : item.id === props.selectedDispatchCarrierInfoDriver.id
-                                                                                return item;
-                                                                            }))
+                                                                    if (res.data.result === 'OK') {
+                                                                        if (res.data.count > 1) {
+                                                                            await setDriverItems([
+                                                                                ...[{
+                                                                                    first_name: 'Clear',
+                                                                                    id: null
+                                                                                }],
+                                                                                ...res.data.drivers.map((item, index) => {
+                                                                                    item.selected = (props.selectedDispatchCarrierInfoDriver?.id || 0) === 0
+                                                                                        ? index === 0
+                                                                                        : item.id === props.selectedDispatchCarrierInfoDriver.id
+                                                                                    return item;
+                                                                                })
+                                                                            ])
 
                                                                             refDriverPopupItems.current.map((r, i) => {
                                                                                 if (r && r.classList.contains('selected')) {
@@ -4106,17 +4521,23 @@ function Dispatch(props) {
                                                             });
                                                         } else {
                                                             if ((props.selectedDispatchCarrierInfoCarrier?.id || 0) > 0) {
-                                                                $.post(props.serverUrl + '/getDriversByCarrierId', {
+                                                                axios.post(props.serverUrl + '/getDriversByCarrierId', {
                                                                     carrier_id: props.selectedDispatchCarrierInfoCarrier.id
                                                                 }).then(async res => {
-                                                                    if (res.result === 'OK') {
-                                                                        if (res.count > 1) {
-                                                                            await setDriverItems(res.drivers.map((item, index) => {
-                                                                                item.selected = (props.selectedDispatchCarrierInfoDriver?.id || 0) === 0
-                                                                                    ? index === 0
-                                                                                    : item.id === props.selectedDispatchCarrierInfoDriver.id
-                                                                                return item;
-                                                                            }))
+                                                                    if (res.data.result === 'OK') {
+                                                                        if (res.data.count > 1) {
+                                                                            await setDriverItems([
+                                                                                ...[{
+                                                                                    first_name: 'Clear',
+                                                                                    id: null
+                                                                                }],
+                                                                                ...res.data.drivers.map((item, index) => {
+                                                                                    item.selected = (props.selectedDispatchCarrierInfoDriver?.id || 0) === 0
+                                                                                        ? index === 0
+                                                                                        : item.id === props.selectedDispatchCarrierInfoDriver.id
+                                                                                    return item;
+                                                                                })
+                                                                            ])
 
                                                                             refDriverPopupItems.current.map((r, i) => {
                                                                                 if (r && r.classList.contains('selected')) {
@@ -4143,7 +4564,8 @@ function Dispatch(props) {
 
                                                     case 13: // enter
                                                         if (driverItems.length > 0 && driverItems.findIndex(item => item.selected) > -1) {
-                                                            await props.setSelectedDispatchCarrierInfoDriver(driverItems[driverItems.findIndex(item => item.selected)]);
+
+                                                            await props.setSelectedDispatchCarrierInfoDriver(driverItems[driverItems.findIndex(item => item.selected)].id === null ? {} : driverItems[driverItems.findIndex(item => item.selected)]);
 
                                                             await props.setSelectedOrder({
                                                                 ...props.selected_order,
@@ -4159,7 +4581,7 @@ function Dispatch(props) {
                                                     case 9: // tab
                                                         if (driverItems.length > 0) {
                                                             e.preventDefault();
-                                                            await props.setSelectedDispatchCarrierInfoDriver(driverItems[driverItems.findIndex(item => item.selected)]);
+                                                            await props.setSelectedDispatchCarrierInfoDriver(driverItems[driverItems.findIndex(item => item.selected)].id === null ? {} : driverItems[driverItems.findIndex(item => item.selected)]);
 
                                                             await props.setSelectedOrder({
                                                                 ...props.selected_order,
@@ -4181,7 +4603,7 @@ function Dispatch(props) {
                                                     await props.setSelectedDispatchCarrierInfoDriver({});
                                                     await props.setSelectedOrder({
                                                         ...props.selected_order,
-                                                        carrier_driver_id: 0
+                                                        carrier_driver_id: null
                                                     })
 
                                                     validateOrderForSaving({ keyCode: 9 });
@@ -4215,12 +4637,12 @@ function Dispatch(props) {
                                                     props.setSelectedDispatchCarrierInfoDriver({ ...driver, first_name: first_name, last_name: last_name });
 
                                                     // if ((props.selectedDispatchCarrierInfoCarrier?.id || 0) > 0) {
-                                                    //     $.post(props.serverUrl + '/getDriversByCarrierId', {
+                                                    //     axios.post(props.serverUrl + '/getDriversByCarrierId', {
                                                     //         carrier_id: props.selectedDispatchCarrierInfoCarrier.id
                                                     //     }).then(async res => {
-                                                    //         if (res.result === 'OK') {
-                                                    //             if (res.count > 1) {
-                                                    //                 await setDriverItems(res.drivers.map((item, index) => {
+                                                    //         if (res.data.result === 'OK') {
+                                                    //             if (res.data.count > 1) {
+                                                    //                 await setDriverItems(res.data.drivers.map((item, index) => {
                                                     //                     item.selected = (props.selectedDispatchCarrierInfoDriver?.id || 0) === 0
                                                     //                         ? index === 0
                                                     //                         : item.id === props.selectedDispatchCarrierInfoDriver.id
@@ -4273,12 +4695,12 @@ function Dispatch(props) {
                                                     props.setSelectedDispatchCarrierInfoDriver({ ...driver, first_name: first_name, last_name: last_name });
 
                                                     // if ((props.selectedDispatchCarrierInfoCarrier?.id || 0) > 0) {
-                                                    //     $.post(props.serverUrl + '/getDriversByCarrierId', {
+                                                    //     axios.post(props.serverUrl + '/getDriversByCarrierId', {
                                                     //         carrier_id: props.selectedDispatchCarrierInfoCarrier.id
                                                     //     }).then(async res => {
-                                                    //         if (res.result === 'OK') {
-                                                    //             if (res.count > 1) {
-                                                    //                 await setDriverItems(res.drivers.map((item, index) => {
+                                                    //         if (res.data.result === 'OK') {
+                                                    //             if (res.data.count > 1) {
+                                                    //                 await setDriverItems(res.data.drivers.map((item, index) => {
                                                     //                     item.selected = (props.selectedDispatchCarrierInfoDriver?.id || 0) === 0
                                                     //                         ? index === 0
                                                     //                         : item.id === props.selectedDispatchCarrierInfoDriver.id
@@ -4314,17 +4736,24 @@ function Dispatch(props) {
                                                 } else {
                                                     window.setTimeout(async () => {
                                                         if ((props.selectedDispatchCarrierInfoCarrier?.id || 0) > 0) {
-                                                            $.post(props.serverUrl + '/getDriversByCarrierId', {
+                                                            axios.post(props.serverUrl + '/getDriversByCarrierId', {
                                                                 carrier_id: props.selectedDispatchCarrierInfoCarrier.id
                                                             }).then(async res => {
-                                                                if (res.result === 'OK') {
-                                                                    if (res.count > 1) {
-                                                                        await setDriverItems(res.drivers.map((item, index) => {
-                                                                            item.selected = (props.selectedDispatchCarrierInfoDriver?.id || 0) === 0
-                                                                                ? index === 0
-                                                                                : item.id === props.selectedDispatchCarrierInfoDriver.id
-                                                                            return item;
-                                                                        }))
+                                                                if (res.data.result === 'OK') {
+                                                                    if (res.data.count > 1) {
+
+                                                                        await setDriverItems([
+                                                                            ...[{
+                                                                                first_name: 'Clear',
+                                                                                id: null
+                                                                            }],
+                                                                            ...res.data.drivers.map((item, index) => {
+                                                                                item.selected = (props.selectedDispatchCarrierInfoDriver?.id || 0) === 0
+                                                                                    ? index === 0
+                                                                                    : item.id === props.selectedDispatchCarrierInfoDriver.id
+                                                                                return item;
+                                                                            })
+                                                                        ])
 
                                                                         refDriverPopupItems.current.map((r, i) => {
                                                                             if (r && r.classList.contains('selected')) {
@@ -4385,10 +4814,10 @@ function Dispatch(props) {
                                                                             key={index}
                                                                             className={mochiItemClasses}
                                                                             id={item.id}
-                                                                            onClick={async () => {
-                                                                                await props.setSelectedDispatchCarrierInfoDriver(item);
+                                                                            onClick={() => {
+                                                                                props.setSelectedDispatchCarrierInfoDriver(item.id === null ? {} : item);
 
-                                                                                await props.setSelectedOrder({
+                                                                                props.setSelectedOrder({
                                                                                     ...props.selected_order,
                                                                                     carrier_driver_id: item.id
                                                                                 })
@@ -4689,115 +5118,337 @@ function Dispatch(props) {
                         }}
                     >
                         {
-                            (props.selected_order?.pickups || []).map((pickup, index) => {
-                                let fulDateTime1 = (pickup.pu_date1 || '') + ' ' + (pickup.pu_time1 || '');
-                                let fulDateTime2 = (pickup.pu_date2 || '') + ' ' + (pickup.pu_time2 || '');
-                                let puDateTime = undefined;
-                                let statusClass = 'active';
-                                let curDateTime = currentSystemDateTime;
+                            [
+                                ...getPickupsOnRouting(),
+                                ...(props.selected_order?.pickups || []).filter(p => props.selected_order?.routing.find(r => r.pickup_id === p.id) === undefined)
+                            ].map((pickup, index) => {
+                                if (pickup === undefined) {
+                                    return ''
+                                } else {
+                                    let fulDateTime1 = (pickup.pu_date1 || '') + ' ' + (pickup.pu_time1 || '');
+                                    let fulDateTime2 = (pickup.pu_date2 || '') + ' ' + (pickup.pu_time2 || '');
+                                    let puDateTime = undefined;
+                                    let statusClass = 'active';
+                                    let curDateTime = currentSystemDateTime;
 
-                                if (moment(fulDateTime2, 'MM/DD/YYYY HHmm').format('MM/DD/YYYY HHmm') === fulDateTime2) {
-                                    puDateTime = moment(fulDateTime2, 'MM/DD/YYYY HHmm');
-                                } else if (moment(fulDateTime1, 'MM/DD/YYYY HHmm').format('MM/DD/YYYY HHmm') === fulDateTime1) {
-                                    puDateTime = moment(fulDateTime1, 'MM/DD/YYYY HHmm');
-                                }
-
-                                if (puDateTime !== undefined) {
-                                    let pastHour = puDateTime.clone().subtract(1, 'hours');
-
-                                    if ((props.selected_order?.events || []).length > 0) {
-                                        props.selected_order.events.map(item => {
-                                            if (item.event_type === 'loaded' && item.shipper_id === pickup.id) {
-                                                curDateTime = moment(item.event_date + ' ' + item.event_time, 'MM/DD/YYYY HHmm');
-                                            }
-                                            return true;
-                                        })
+                                    if (moment(fulDateTime2, 'MM/DD/YYYY HHmm').format('MM/DD/YYYY HHmm') === fulDateTime2) {
+                                        puDateTime = moment(fulDateTime2, 'MM/DD/YYYY HHmm');
+                                    } else if (moment(fulDateTime1, 'MM/DD/YYYY HHmm').format('MM/DD/YYYY HHmm') === fulDateTime1) {
+                                        puDateTime = moment(fulDateTime1, 'MM/DD/YYYY HHmm');
                                     }
 
-                                    if (curDateTime < pastHour) {
-                                        statusClass = 'active';
-                                    } else if (curDateTime >= pastHour && curDateTime <= puDateTime) {
-                                        statusClass = 'warning';
-                                    } else {
-                                        statusClass = 'expired';
-                                    }
-                                }
+                                    if (puDateTime !== undefined) {
+                                        let pastHour = puDateTime.clone().subtract(1, 'hours');
 
-                                let classes = classnames({
-                                    'order-pickup': true,
-                                    'selected': props.selectedShipperCompanyInfo?.pickup_id === pickup.id,
-                                    'active': statusClass === 'active',
-                                    'warning': statusClass === 'warning',
-                                    'expired': statusClass === 'expired',
-                                    'unsaved': pickup.id === 0
-                                })
-
-                                return (
-                                    <SwiperSlide className={classes} key={index} onClick={() => {
-                                        props.setSelectedShipperCompanyInfo({
-                                            ...pickup.customer,
-                                            pickup_id: pickup.id,
-                                            pu_date1: pickup.pu_date1,
-                                            pu_date2: pickup.pu_date2,
-                                            pu_time1: pickup.pu_time1,
-                                            pu_time2: pickup.pu_time2,
-                                            bol_numbers: pickup.bol_numbers,
-                                            po_numbers: pickup.po_numbers,
-                                            ref_numbers: pickup.ref_numbers,
-                                            seal_number: pickup.seal_number,
-                                            special_instructions: pickup.special_instructions,
-                                            type: pickup.type,
-                                        });
-
-                                        props.setSelectedShipperCompanyContact((pickup.customer?.contacts || []).find(c => c.is_primary === 1) || {});
-
-                                        refShipperCompanyCode.current.focus();
-                                    }}>
-                                        <div>PU {index + 1}</div>
-                                        <div className="pu-remove-btn" title="Remove this pickup" onClick={async (e) => {
-                                            e.stopPropagation();
-
-                                            $.post(props.serverUrl + '/removeOrderPickup', { id: pickup.id, order_id: props.selected_order?.id || 0 }).then(res => {
-                                                if (res.result === 'OK') {
-                                                    let pickups = (props.selected_order?.pickups || []).filter((pu, i) => {
-                                                        return pu.id !== pickup.id;
-                                                    });
-
-                                                    props.setSelectedOrder({
-                                                        ...props.selected_order,
-                                                        pickups: pickups,
-                                                        routing: res.order_routing
-                                                    });
-
-                                                    props.setMileageLoaderVisible(true);
-
-                                                    if (pickup.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
-                                                        if (pickups.length > 0) {
-
-                                                            props.setSelectedShipperCompanyInfo({
-                                                                ...pickups[0].customer || {},
-                                                                ...pickups[0],
-                                                                customer: {},
-                                                                pickup_id: pickups[0].id
-                                                            })
-
-                                                            props.setSelectedShipperCompanyContact((pickups[0].customer?.contacts || []).find(c => c.is_primary === 1) || {});
-                                                        } else {
-                                                            props.setSelectedShipperCompanyInfo({});
-                                                            props.setSelectedShipperCompanyContact({});
-                                                        }
-                                                    }
-                                                } else {
-                                                    console.log(res);
+                                        if ((props.selected_order?.events || []).length > 0) {
+                                            props.selected_order.events.map(item => {
+                                                if (item.event_type === 'loaded' && item.shipper_id === pickup.id) {
+                                                    curDateTime = moment(item.event_date + ' ' + item.event_time, 'MM/DD/YYYY HHmm');
                                                 }
-                                            }).catch(e => {
-                                                console.log('error on removing order pickup', e);
+                                                return true;
+                                            })
+                                        }
+
+                                        if (curDateTime < pastHour) {
+                                            statusClass = 'active';
+                                        } else if (curDateTime >= pastHour && curDateTime <= puDateTime) {
+                                            statusClass = 'warning';
+                                        } else {
+                                            statusClass = 'expired';
+                                        }
+                                    }
+
+                                    let classes = classnames({
+                                        'order-pickup': true,
+                                        'selected': props.selectedShipperCompanyInfo?.pickup_id === pickup.id,
+                                        'active': statusClass === 'active',
+                                        'warning': statusClass === 'warning',
+                                        'expired': statusClass === 'expired',
+                                        'unsaved': pickup.id === 0
+                                    })
+
+                                    return (
+                                        <SwiperSlide className={classes} key={index} onClick={() => {
+                                            props.setSelectedShipperCompanyInfo({
+                                                ...pickup.customer,
+                                                pickup_id: pickup.id,
+                                                pu_date1: pickup.pu_date1,
+                                                pu_date2: pickup.pu_date2,
+                                                pu_time1: pickup.pu_time1,
+                                                pu_time2: pickup.pu_time2,
+                                                bol_numbers: pickup.bol_numbers,
+                                                po_numbers: pickup.po_numbers,
+                                                ref_numbers: pickup.ref_numbers,
+                                                seal_number: pickup.seal_number,
+                                                special_instructions: pickup.special_instructions,
+                                                type: pickup.type,
                                             });
+
+                                            props.setSelectedShipperCompanyContact((pickup.customer?.contacts || []).find(c => c.is_primary === 1) || {});
+
+                                            refShipperCompanyCode.current.focus();
                                         }}>
-                                            <span className="fas fa-times"></span>
-                                        </div>
-                                    </SwiperSlide>
-                                )
+                                            <div>PU {index + 1}</div>
+                                            <div className="pu-remove-btn" title="Remove this pickup" onClick={async (e) => {
+                                                e.stopPropagation();
+
+                                                let selected_order = JSON.parse(JSON.stringify(props.selected_order));
+
+                                                selected_order.pickups = (selected_order?.pickups || []).filter((pu, i) => {
+                                                    return pu.id !== pickup.id;
+                                                });
+
+                                                await props.setSelectedOrder(selected_order);
+
+                                                if (selected_order.pickups.length > 0) {
+                                                    await props.setSelectedShipperCompanyInfo({
+                                                        ...selected_order.pickups[0].customer || {},
+                                                        ...selected_order.pickups[0],
+                                                        customer: {},
+                                                        pickup_id: selected_order.pickups[0].id
+                                                    })
+
+                                                    await props.setSelectedShipperCompanyContact((selected_order.pickups[0].customer?.contacts || []).find(c => c.is_primary === 1) || {});
+                                                } else {
+                                                    await props.setSelectedShipperCompanyInfo({});
+                                                    await props.setSelectedShipperCompanyContact({});
+                                                }
+
+                                                await axios.post(props.serverUrl + '/removeOrderPickup', { id: pickup.id, order_id: selected_order?.id || 0 }).then(res => {
+                                                    if (res.data.result === 'OK') {
+                                                        selected_order = res.data.order;
+
+                                                        // validar routing
+                                                        // 1. VALIDAR PICKUPS AND DELIVERIES = 1
+                                                        if ((selected_order?.pickups || []).length > 0 && selected_order.deliveries.length > 0) {
+                                                            if (selected_order.pickups.length === 1 && selected_order.deliveries.length === 1) {
+                                                                let routing = [
+                                                                    {
+                                                                        order_id: selected_order?.id || 0,
+                                                                        pickup_id: selected_order.pickups[0].id,
+                                                                        delivery_id: null,
+                                                                        type: 'pickup'
+                                                                    },
+                                                                    {
+                                                                        order_id: selected_order?.id || 0,
+                                                                        pickup_id: null,
+                                                                        delivery_id: selected_order.deliveries[0].id,
+                                                                        type: 'delivery'
+                                                                    }
+                                                                ];
+
+                                                                axios.post(props.serverUrl + '/saveOrderRouting', {
+                                                                    order_id: selected_order?.id || 0,
+                                                                    routing: routing
+                                                                }).then(res => {
+                                                                    if (res.data.result === 'OK') {
+                                                                        selected_order.routing = res.data.order;
+                                                                        props.setSelectedOrder(selected_order);
+
+                                                                        props.setMileageLoaderVisible(true);
+
+                                                                        let params = {
+                                                                            mode: 'fastest;car;traffic:disabled',
+                                                                            routeAttributes: 'summary'
+                                                                        }
+
+                                                                        let waypointCount = 0;
+
+                                                                        selected_order.routing.map((item, i) => {
+                                                                            if (item.type === 'pickup') {
+                                                                                selected_order.pickups.map((p, i) => {
+                                                                                    if (p.id === item.pickup_id) {
+                                                                                        if ((p.customer?.zip_data || '') !== '') {
+                                                                                            params['waypoint' + waypointCount] = 'geo!' + p.customer.zip_data.latitude.toString() + ',' + p.customer.zip_data.longitude.toString();
+                                                                                            waypointCount += 1;
+                                                                                        }
+                                                                                    }
+                                                                                    return false;
+                                                                                })
+                                                                            } else {
+                                                                                selected_order.deliveries.map((d, i) => {
+                                                                                    if (d.id === item.delivery_id) {
+                                                                                        if ((d.customer?.zip_data || '') !== '') {
+                                                                                            params['waypoint' + waypointCount] = 'geo!' + d.customer.zip_data.latitude.toString() + ',' + d.customer.zip_data.longitude.toString();
+                                                                                            waypointCount += 1;
+                                                                                        }
+                                                                                    }
+                                                                                    return false;
+                                                                                })
+                                                                            }
+
+                                                                            return true;
+                                                                        });
+
+                                                                        routingService.calculateRoute(params,
+                                                                            (result) => {
+                                                                                let miles = result.response.route[0].summary.distance || 0;
+
+                                                                                selected_order.miles = miles;
+
+                                                                                props.setSelectedOrder(selected_order);
+                                                                                props.setMileageLoaderVisible(false);
+
+
+                                                                                axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                                                                    if (res.data.result === 'OK') {
+
+                                                                                    }
+                                                                                }).catch(e => {
+                                                                                    console.log('error on saving order miles', e);
+                                                                                    props.setMileageLoaderVisible(false);
+                                                                                });
+                                                                            },
+                                                                            (error) => {
+                                                                                console.log('error getting mileage', error);
+                                                                                selected_order.miles = 0;
+
+                                                                                props.setSelectedOrder(selected_order)
+                                                                                props.setMileageLoaderVisible(false);
+
+                                                                                axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                                                                    if (res.data.result === 'OK') {
+
+                                                                                    }
+                                                                                }).catch(e => {
+                                                                                    console.log('error on saving order miles', e);
+                                                                                    props.setMileageLoaderVisible(false);
+                                                                                });
+                                                                            });
+                                                                    } else {
+                                                                        console.log(res.data.result);
+
+                                                                        selected_order.miles = 0;
+                                                                        props.setSelectedOrder(selected_order)
+                                                                        props.setMileageLoaderVisible(false);
+
+                                                                        axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                                                            if (res.data.result === 'OK') {
+
+                                                                            }
+                                                                        }).catch(e => {
+                                                                            console.log('error on saving order miles', e);
+                                                                            props.setMileageLoaderVisible(false);
+                                                                        });
+                                                                    }
+                                                                }).catch(e => {
+                                                                    console.log('error saving order miles', e);
+                                                                    props.setMileageLoaderVisible(false);
+                                                                });
+                                                            } else {
+                                                                if (selected_order.routing.length >= 2) {
+                                                                    props.setMileageLoaderVisible(true);
+
+                                                                    let params = {
+                                                                        mode: 'fastest;car;traffic:disabled',
+                                                                        routeAttributes: 'summary'
+                                                                    }
+
+                                                                    let waypointCount = 0;
+
+                                                                    selected_order.routing.map((item, i) => {
+                                                                        if (item.type === 'pickup') {
+                                                                            selected_order.pickups.map((p, i) => {
+                                                                                if (p.id === item.pickup_id) {
+                                                                                    if ((p.customer?.zip_data || '') !== '') {
+                                                                                        params['waypoint' + waypointCount] = 'geo!' + p.customer.zip_data.latitude.toString() + ',' + p.customer.zip_data.longitude.toString();
+                                                                                        waypointCount += 1;
+                                                                                    }
+                                                                                }
+                                                                                return false;
+                                                                            })
+                                                                        } else {
+                                                                            selected_order.deliveries.map((d, i) => {
+                                                                                if (d.id === item.delivery_id) {
+                                                                                    if ((d.customer?.zip_data || '') !== '') {
+                                                                                        params['waypoint' + waypointCount] = 'geo!' + d.customer.zip_data.latitude.toString() + ',' + d.customer.zip_data.longitude.toString();
+                                                                                        waypointCount += 1;
+                                                                                    }
+                                                                                }
+                                                                                return false;
+                                                                            })
+                                                                        }
+
+                                                                        return true;
+                                                                    });
+
+                                                                    routingService.calculateRoute(params,
+                                                                        (result) => {
+                                                                            let miles = result.response.route[0].summary.distance || 0;
+                                                                            selected_order.miles = miles;
+
+                                                                            props.setSelectedOrder(selected_order);
+                                                                            props.setMileageLoaderVisible(false);
+
+
+                                                                            axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                                                                if (res.data.result === 'OK') {
+
+                                                                                }
+                                                                            }).catch(e => {
+                                                                                props.setMileageLoaderVisible(false);
+                                                                                console.log('error on saving order miles', e);
+                                                                            });
+                                                                        },
+                                                                        (error) => {
+                                                                            console.log('error getting mileage', error);
+                                                                            selected_order.miles = 0;
+                                                                            props.setSelectedOrder(selected_order)
+                                                                            props.setMileageLoaderVisible(false);
+
+                                                                            axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                                                                if (res.data.result === 'OK') {
+
+                                                                                }
+                                                                            }).catch(e => {
+                                                                                props.setMileageLoaderVisible(false);
+                                                                                console.log('error on saving order miles', e);
+                                                                            });
+                                                                        })
+                                                                } else {
+                                                                    selected_order.miles = 0;
+                                                                    props.setSelectedOrder(selected_order)
+                                                                    props.setMileageLoaderVisible(false);
+
+                                                                    axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                                                        if (res.data.result === 'OK') {
+
+                                                                        }
+                                                                    }).catch(e => {
+                                                                        props.setMileageLoaderVisible(false);
+                                                                        console.log('error on saving order miles', e);
+                                                                    });
+                                                                }
+                                                            }
+                                                        } else {
+                                                            // GUARDAR ORDEN CON MILES = 0;
+                                                            selected_order.miles = 0;
+                                                            props.setSelectedOrder(selected_order)
+                                                            props.setMileageLoaderVisible(false);
+
+                                                            axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                                                if (res.data.result === 'OK') {
+
+                                                                }
+                                                            }).catch(e => {
+                                                                props.setMileageLoaderVisible(false);
+                                                                console.log('error on saving order miles', e);
+                                                            });
+                                                        }
+                                                    } else {
+                                                        console.log(res.data);
+                                                        props.setMileageLoaderVisible(false);
+                                                    }
+                                                }).catch(e => {
+                                                    props.setMileageLoaderVisible(false);
+                                                    console.log('error on removing order pickup', e);
+                                                });
+                                            }}>
+                                                <span className="fas fa-times"></span>
+                                            </div>
+                                        </SwiperSlide>
+                                    )
+                                }
                             })
                         }
 
@@ -4854,111 +5505,332 @@ function Dispatch(props) {
                         }}
                     >
                         {
-                            (props.selected_order?.deliveries || []).map((delivery, index) => {
-                                let fulDateTime1 = (delivery.extra_data?.delivery_date1 || '') + ' ' + (delivery.extra_data?.delivery_time1 || '');
-                                let fulDateTime2 = (delivery.extra_data?.delivery_date2 || '') + ' ' + (delivery.extra_data?.delivery_time2 || '');
-                                let deliveryDateTime = undefined;
-                                let statusClass = 'active';
-                                let curDateTime = currentSystemDateTime;
+                            [
+                                ...getDeliveriesOnRouting(),
+                                ...(props.selected_order?.deliveries || []).filter(d => props.selected_order?.routing.find(r => r.delivery_id === d.id) === undefined)
+                            ].map((delivery, index) => {
+                                if (delivery === undefined) {
+                                    return ''
+                                } else {
+                                    let fulDateTime1 = (delivery.delivery_date1 || '') + ' ' + (delivery.delivery_time1 || '');
+                                    let fulDateTime2 = (delivery.delivery_date2 || '') + ' ' + (delivery.delivery_time2 || '');
+                                    let deliveryDateTime = undefined;
+                                    let statusClass = 'active';
+                                    let curDateTime = currentSystemDateTime;
 
-                                if (moment(fulDateTime2, 'MM/DD/YYYY HHmm').format('MM/DD/YYYY HHmm') === fulDateTime2) {
-                                    deliveryDateTime = moment(fulDateTime2, 'MM/DD/YYYY HHmm');
-                                } else if (moment(fulDateTime1, 'MM/DD/YYYY HHmm').format('MM/DD/YYYY HHmm') === fulDateTime1) {
-                                    deliveryDateTime = moment(fulDateTime1, 'MM/DD/YYYY HHmm');
-                                }
-
-                                if (deliveryDateTime !== undefined) {
-                                    let pastHour = deliveryDateTime.clone().subtract(1, 'hours');
-
-                                    if ((props.selected_order?.events || []).length > 0) {
-                                        props.selected_order.events.map(item => {
-                                            if (item.event_type === 'delivered' && item.consignee_id === delivery.id) {
-                                                curDateTime = moment(item.event_date + ' ' + item.event_time, 'MM/DD/YYYY HHmm');
-                                            }
-                                            return true;
-                                        })
+                                    if (moment(fulDateTime2, 'MM/DD/YYYY HHmm').format('MM/DD/YYYY HHmm') === fulDateTime2) {
+                                        deliveryDateTime = moment(fulDateTime2, 'MM/DD/YYYY HHmm');
+                                    } else if (moment(fulDateTime1, 'MM/DD/YYYY HHmm').format('MM/DD/YYYY HHmm') === fulDateTime1) {
+                                        deliveryDateTime = moment(fulDateTime1, 'MM/DD/YYYY HHmm');
                                     }
 
-                                    if (curDateTime < pastHour) {
-                                        statusClass = 'active';
-                                    } else if (curDateTime >= pastHour && curDateTime <= deliveryDateTime) {
-                                        statusClass = 'warning';
-                                    } else {
-                                        statusClass = 'expired';
-                                    }
-                                }
+                                    if (deliveryDateTime !== undefined) {
+                                        let pastHour = deliveryDateTime.clone().subtract(1, 'hours');
 
-                                let classes = classnames({
-                                    'order-delivery': true,
-                                    'selected': props.selectedConsigneeCompanyInfo?.delivery_id === delivery.id,
-                                    'active': statusClass === 'active',
-                                    'warning': statusClass === 'warning',
-                                    'expired': statusClass === 'expired',
-                                    'unsaved': delivery.id === 0
-                                })
-
-                                return (
-                                    <SwiperSlide className={classes} key={index} onClick={() => {
-                                        props.setSelectedConsigneeCompanyInfo({
-                                            ...delivery.customer,
-                                            delivery_id: delivery.id,
-                                            delivery_date1: delivery.delivery_date1,
-                                            delivery_date2: delivery.delivery_date2,
-                                            delivery_time1: delivery.delivery_time1,
-                                            delivery_time2: delivery.delivery_time2,
-                                            special_instructions: delivery.special_instructions,
-                                            type: delivery.type,
-                                        });
-
-                                        props.setSelectedConsigneeCompanyContact((delivery.customer?.contacts || []).find(c => c.is_primary === 1) || {});
-
-                                        refConsigneeCompanyCode.current.focus();
-                                    }}>
-                                        <div>Delivery {index + 1}</div>
-                                        <div className="delivery-remove-btn" title="Remove this delivery" onClick={async (e) => {
-                                            e.stopPropagation();
-
-                                            $.post(props.serverUrl + '/removeOrderDelivery', { id: delivery.id, order_id: props.selected_order?.id || 0 }).then(res => {
-                                                if (res.result === 'OK') {
-                                                    let deliveries = (props.selected_order?.deliveries || []).filter((del, i) => {
-                                                        return del.id !== delivery.id;
-                                                    });
-
-                                                    props.setSelectedOrder({
-                                                        ...props.selected_order,
-                                                        deliveries: deliveries,
-                                                        routing: res.order_routing
-                                                    });
-
-                                                    props.setMileageLoaderVisible(true);
-
-                                                    if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
-                                                        if (deliveries.length > 0) {
-
-                                                            props.setSelectedConsigneeCompanyInfo({
-                                                                ...deliveries[0].customer || {},
-                                                                ...deliveries[0],
-                                                                customer: {},
-                                                                delivery_id: deliveries[0].id
-                                                            })
-
-                                                            props.setSelectedConsigneeCompanyContact((deliveries[0].customer?.contacts || []).find(c => c.is_primary === 1) || {});
-                                                        } else {
-                                                            props.setSelectedConsigneeCompanyInfo({});
-                                                            props.setSelectedConsigneeCompanyContact({});
-                                                        }
-                                                    }
-                                                } else {
-                                                    console.log(res);
+                                        if ((props.selected_order?.events || []).length > 0) {
+                                            props.selected_order.events.map(item => {
+                                                if (item.event_type === 'delivered' && item.consignee_id === delivery.id) {
+                                                    curDateTime = moment(item.event_date + ' ' + item.event_time, 'MM/DD/YYYY HHmm');
                                                 }
-                                            }).catch(e => {
-                                                console.log('error on removing order delivery', e);
+                                                return true;
+                                            })
+                                        }
+
+                                        if (curDateTime < pastHour) {
+                                            statusClass = 'active';
+                                        } else if (curDateTime >= pastHour && curDateTime <= deliveryDateTime) {
+                                            statusClass = 'warning';
+                                        } else {
+                                            statusClass = 'expired';
+                                        }
+                                    }
+
+                                    let classes = classnames({
+                                        'order-delivery': true,
+                                        'selected': props.selectedConsigneeCompanyInfo?.delivery_id === delivery.id,
+                                        'active': statusClass === 'active',
+                                        'warning': statusClass === 'warning',
+                                        'expired': statusClass === 'expired',
+                                        'unsaved': delivery.id === 0
+                                    })
+
+                                    return (
+                                        <SwiperSlide className={classes} key={index} onClick={() => {
+                                            props.setSelectedConsigneeCompanyInfo({
+                                                ...delivery.customer,
+                                                delivery_id: delivery.id,
+                                                delivery_date1: delivery.delivery_date1,
+                                                delivery_date2: delivery.delivery_date2,
+                                                delivery_time1: delivery.delivery_time1,
+                                                delivery_time2: delivery.delivery_time2,
+                                                special_instructions: delivery.special_instructions,
+                                                type: delivery.type,
                                             });
+
+                                            props.setSelectedConsigneeCompanyContact((delivery.customer?.contacts || []).find(c => c.is_primary === 1) || {});
+
+                                            refConsigneeCompanyCode.current.focus();
                                         }}>
-                                            <span className="fas fa-times"></span>
-                                        </div>
-                                    </SwiperSlide>
-                                )
+                                            <div>Delivery {index + 1}</div>
+                                            <div className="delivery-remove-btn" title="Remove this delivery" onClick={async (e) => {
+                                                e.stopPropagation();
+
+                                                let selected_order = JSON.parse(JSON.stringify(props.selected_order));
+
+                                                selected_order.deliveries = (selected_order?.deliveries || []).filter((del, i) => {
+                                                    return del.id !== delivery.id;
+                                                });
+
+                                                await props.setSelectedOrder(selected_order);
+
+                                                if (selected_order.deliveries.length > 0) {
+                                                    await props.setSelectedConsigneeCompanyInfo({
+                                                        ...selected_order.deliveries[0].customer || {},
+                                                        ...selected_order.deliveries[0],
+                                                        customer: {},
+                                                        delivery_id: selected_order.deliveries[0].id
+                                                    })
+
+                                                    await props.setSelectedConsigneeCompanyContact((selected_order.deliveries[0].customer?.contacts || []).find(c => c.is_primary === 1) || {});
+                                                } else {
+                                                    await props.setSelectedConsigneeCompanyInfo({});
+                                                    await props.setSelectedConsigneeCompanyContact({});
+                                                }
+
+                                                await axios.post(props.serverUrl + '/removeOrderDelivery', { id: delivery.id, order_id: selected_order?.id || 0 }).then(res => {
+                                                    if (res.data.result === 'OK') {
+                                                        selected_order = res.data.order;
+
+                                                        // validar routing
+                                                        // 1. VALIDAR PICKUPS AND DELIVERIES = 1
+                                                        if ((selected_order?.pickups || []).length > 0 && selected_order.deliveries.length > 0) {
+                                                            if (selected_order.pickups.length === 1 && selected_order.deliveries.length === 1) {
+                                                                let routing = [
+                                                                    {
+                                                                        order_id: selected_order?.id || 0,
+                                                                        pickup_id: selected_order.pickups[0].id,
+                                                                        delivery_id: null,
+                                                                        type: 'pickup'
+                                                                    },
+                                                                    {
+                                                                        order_id: selected_order?.id || 0,
+                                                                        pickup_id: null,
+                                                                        delivery_id: selected_order.deliveries[0].id,
+                                                                        type: 'delivery'
+                                                                    }
+                                                                ];
+
+                                                                axios.post(props.serverUrl + '/saveOrderRouting', {
+                                                                    order_id: selected_order?.id || 0,
+                                                                    routing: routing
+                                                                }).then(res => {
+                                                                    if (res.data.result === 'OK') {
+                                                                        selected_order = res.data.order;
+                                                                        props.setSelectedOrder(selected_order);
+
+                                                                        props.setMileageLoaderVisible(true);
+
+                                                                        let params = {
+                                                                            mode: 'fastest;car;traffic:disabled',
+                                                                            routeAttributes: 'summary'
+                                                                        }
+
+                                                                        let waypointCount = 0;
+
+                                                                        selected_order.routing.map((item, i) => {
+                                                                            if (item.type === 'pickup') {
+                                                                                selected_order.pickups.map((p, i) => {
+                                                                                    if (p.id === item.pickup_id) {
+                                                                                        if ((p.customer?.zip_data || '') !== '') {
+                                                                                            params['waypoint' + waypointCount] = 'geo!' + p.customer.zip_data.latitude.toString() + ',' + p.customer.zip_data.longitude.toString();
+                                                                                            waypointCount += 1;
+                                                                                        }
+                                                                                    }
+                                                                                    return false;
+                                                                                })
+                                                                            } else {
+                                                                                selected_order.deliveries.map((d, i) => {
+                                                                                    if (d.id === item.delivery_id) {
+                                                                                        if ((d.customer?.zip_data || '') !== '') {
+                                                                                            params['waypoint' + waypointCount] = 'geo!' + d.customer.zip_data.latitude.toString() + ',' + d.customer.zip_data.longitude.toString();
+                                                                                            waypointCount += 1;
+                                                                                        }
+                                                                                    }
+                                                                                    return false;
+                                                                                })
+                                                                            }
+
+                                                                            return true;
+                                                                        });
+
+                                                                        routingService.calculateRoute(params,
+                                                                            (result) => {
+                                                                                let miles = result.response.route[0].summary.distance || 0;
+
+                                                                                selected_order.miles = miles;
+
+                                                                                props.setSelectedOrder(selected_order);
+                                                                                props.setMileageLoaderVisible(false);
+
+
+                                                                                axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                                                                    if (res.data.result === 'OK') {
+
+                                                                                    }
+                                                                                }).catch(e => {
+                                                                                    console.log('error on saving order miles', e);
+                                                                                    props.setMileageLoaderVisible(false);
+                                                                                });
+                                                                            },
+                                                                            (error) => {
+                                                                                console.log('error getting mileage', error);
+                                                                                selected_order.miles = 0;
+
+                                                                                props.setSelectedOrder(selected_order)
+                                                                                props.setMileageLoaderVisible(false);
+
+                                                                                axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                                                                    if (res.data.result === 'OK') {
+
+                                                                                    }
+                                                                                }).catch(e => {
+                                                                                    console.log('error on saving order miles', e);
+                                                                                    props.setMileageLoaderVisible(false);
+                                                                                });
+                                                                            });
+                                                                    } else {
+                                                                        console.log(res.data.result);
+
+                                                                        selected_order.miles = 0;
+                                                                        props.setSelectedOrder(selected_order)
+                                                                        props.setMileageLoaderVisible(false);
+
+                                                                        axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                                                            if (res.data.result === 'OK') {
+
+                                                                            }
+                                                                        }).catch(e => {
+                                                                            console.log('error on saving order miles', e);
+                                                                            props.setMileageLoaderVisible(false);
+                                                                        });
+                                                                    }
+                                                                }).catch(e => {
+                                                                    props.setMileageLoaderVisible(false);
+                                                                    console.log('error saving order miles', e);
+                                                                });
+                                                            } else {
+                                                                if (selected_order.routing.length >= 2) {
+                                                                    props.setMileageLoaderVisible(true);
+
+                                                                    let params = {
+                                                                        mode: 'fastest;car;traffic:disabled',
+                                                                        routeAttributes: 'summary'
+                                                                    }
+
+                                                                    let waypointCount = 0;
+
+                                                                    selected_order.routing.map((item, i) => {
+                                                                        if (item.type === 'pickup') {
+                                                                            selected_order.pickups.map((p, i) => {
+                                                                                if (p.id === item.pickup_id) {
+                                                                                    if ((p.customer?.zip_data || '') !== '') {
+                                                                                        params['waypoint' + waypointCount] = 'geo!' + p.customer.zip_data.latitude.toString() + ',' + p.customer.zip_data.longitude.toString();
+                                                                                        waypointCount += 1;
+                                                                                    }
+                                                                                }
+                                                                                return false;
+                                                                            })
+                                                                        } else {
+                                                                            selected_order.deliveries.map((d, i) => {
+                                                                                if (d.id === item.delivery_id) {
+                                                                                    if ((d.customer?.zip_data || '') !== '') {
+                                                                                        params['waypoint' + waypointCount] = 'geo!' + d.customer.zip_data.latitude.toString() + ',' + d.customer.zip_data.longitude.toString();
+                                                                                        waypointCount += 1;
+                                                                                    }
+                                                                                }
+                                                                                return false;
+                                                                            })
+                                                                        }
+
+                                                                        return true;
+                                                                    });
+
+                                                                    routingService.calculateRoute(params,
+                                                                        (result) => {
+                                                                            let miles = result.response.route[0].summary.distance || 0;
+                                                                            selected_order.miles = miles;
+
+                                                                            props.setSelectedOrder(selected_order);
+                                                                            props.setMileageLoaderVisible(false);
+
+
+                                                                            axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                                                                if (res.data.result === 'OK') {
+
+                                                                                }
+                                                                            }).catch(e => {
+                                                                                console.log('error on saving order miles', e);
+                                                                                props.setMileageLoaderVisible(false);
+                                                                            });
+                                                                        },
+                                                                        (error) => {
+                                                                            console.log('error getting mileage', error);
+                                                                            selected_order.miles = 0;
+                                                                            props.setSelectedOrder(selected_order)
+                                                                            props.setMileageLoaderVisible(false);
+
+                                                                            axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                                                                if (res.data.result === 'OK') {
+
+                                                                                }
+                                                                            }).catch(e => {
+                                                                                console.log('error on saving order miles', e);
+                                                                                props.setMileageLoaderVisible(false);
+                                                                            });
+                                                                        })
+                                                                } else {
+                                                                    selected_order.miles = 0;
+                                                                    props.setSelectedOrder(selected_order)
+                                                                    props.setMileageLoaderVisible(false);
+
+                                                                    axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                                                        if (res.data.result === 'OK') {
+
+                                                                        }
+                                                                    }).catch(e => {
+                                                                        console.log('error on saving order miles', e);
+                                                                        props.setMileageLoaderVisible(false);
+                                                                    });
+                                                                }
+                                                            }
+                                                        } else {
+                                                            // GUARDAR ORDEN CON MILES = 0;
+                                                            selected_order.miles = 0;
+                                                            props.setSelectedOrder(selected_order)
+                                                            props.setMileageLoaderVisible(false);
+
+                                                            axios.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
+                                                                if (res.data.result === 'OK') {
+
+                                                                }
+                                                            }).catch(e => {
+                                                                console.log('error on saving order miles', e);
+                                                                props.setMileageLoaderVisible(false);
+                                                            });
+                                                        }
+                                                    } else {
+                                                        console.log(res.data);
+                                                    }
+                                                }).catch(e => {
+                                                    props.setMileageLoaderVisible(false);
+                                                    console.log('error on removing order delivery', e);
+                                                });
+                                            }}>
+                                                <span className="fas fa-times"></span>
+                                            </div>
+                                        </SwiperSlide>
+                                    )
+                                }
                             })
                         }
 
@@ -6082,7 +6954,7 @@ function Dispatch(props) {
                                                                         return p;
                                                                     })
                                                                 })
-    
+
                                                                 props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, ext: e.target.value })
                                                             }
                                                         }
@@ -6132,7 +7004,7 @@ function Dispatch(props) {
                                                                         return p;
                                                                     })
                                                                 })
-    
+
                                                                 props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, ext: e.target.value })
                                                             }
                                                         }
@@ -6164,28 +7036,30 @@ function Dispatch(props) {
                                                         await setPreSelectedPickupDate1(puDate1);
 
                                                         if (key === 13) {
-                                                            await props.setSelectedShipperCompanyInfo({
-                                                                ...props.selectedShipperCompanyInfo,
-                                                                pu_date1: preSelectedPickupDate1.clone().format('MM/DD/YYYY')
-                                                            });
+                                                            if (isPickupDate1CalendarShown) {
+                                                                await props.setSelectedShipperCompanyInfo({
+                                                                    ...props.selectedShipperCompanyInfo,
+                                                                    pu_date1: preSelectedPickupDate1.clone().format('MM/DD/YYYY')
+                                                                });
 
-                                                            await props.setSelectedOrder({
-                                                                ...props.selected_order,
-                                                                pickups: (props.selected_order?.pickups || []).map((pu, i) => {
-                                                                    if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
-                                                                        pu.pu_date1 = preSelectedPickupDate1.clone().format('MM/DD/YYYY');
-                                                                        pu.pu_date2 = preSelectedPickupDate1.clone().format('MM/DD/YYYY');
-                                                                    }
-                                                                    return pu;
-                                                                })
-                                                            });
+                                                                await props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: (props.selected_order?.pickups || []).map((pu, i) => {
+                                                                        if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                                                                            pu.pu_date1 = preSelectedPickupDate1.clone().format('MM/DD/YYYY');
+                                                                            pu.pu_date2 = preSelectedPickupDate1.clone().format('MM/DD/YYYY');
+                                                                            setIsSavingPickupId(-1);
+                                                                            setIsSavingPickupId(pu.id);
+                                                                        }
+                                                                        return pu;
+                                                                    })
+                                                                });
 
-                                                            await setIsPickupDate1CalendarShown(false);
-                                                            await setIsPickupDate2CalendarShown(false);
-                                                            await setIsDeliveryDate1CalendarShown(false);
-                                                            await setIsDeliveryDate2CalendarShown(false);
-
-                                                            // await validateOrderForSaving({ keyCode: 9 });
+                                                                await setIsPickupDate1CalendarShown(false);
+                                                                await setIsPickupDate2CalendarShown(false);
+                                                                await setIsDeliveryDate1CalendarShown(false);
+                                                                await setIsDeliveryDate2CalendarShown(false);
+                                                            }
 
                                                         }
 
@@ -6236,6 +7110,7 @@ function Dispatch(props) {
                                                                 if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
                                                                     pu.pu_date1 = formatted;
                                                                     pu.pu_date2 = formatted;
+                                                                    setIsSavingPickupId(-1);
                                                                     setIsSavingPickupId(pu.id);
                                                                 }
                                                                 return pu;
@@ -6362,6 +7237,7 @@ function Dispatch(props) {
                                                             let pickups = (props.selected_order?.pickups || []).map((pu, i) => {
                                                                 if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
                                                                     pu.pu_time1 = formatted;
+                                                                    setIsSavingPickupId(-1);
                                                                     setIsSavingPickupId(pu.id);
                                                                 }
                                                                 return pu;
@@ -6421,28 +7297,29 @@ function Dispatch(props) {
                                                         await setPreSelectedPickupDate2(puDate2);
 
                                                         if (key === 13) {
-                                                            await props.setSelectedShipperCompanyInfo({
-                                                                ...props.selectedShipperCompanyInfo,
-                                                                pu_date2: preSelectedPickupDate2.clone().format('MM/DD/YYYY')
-                                                            });
+                                                            if (isPickupDate2CalendarShown) {
+                                                                await props.setSelectedShipperCompanyInfo({
+                                                                    ...props.selectedShipperCompanyInfo,
+                                                                    pu_date2: preSelectedPickupDate2.clone().format('MM/DD/YYYY')
+                                                                });
 
-                                                            await props.setSelectedOrder({
-                                                                ...props.selected_order,
-                                                                pickups: (props.selected_order?.pickups || []).map((pu, i) => {
-                                                                    if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
-                                                                        pu.pu_date2 = preSelectedPickupDate2.clone().format('MM/DD/YYYY')
-                                                                    }
-                                                                    return pu;
-                                                                })
-                                                            });
+                                                                await props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    pickups: (props.selected_order?.pickups || []).map((pu, i) => {
+                                                                        if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                                                                            pu.pu_date2 = preSelectedPickupDate2.clone().format('MM/DD/YYYY')
+                                                                            setIsSavingPickupId(-1);
+                                                                            setIsSavingPickupId(pu.id);
+                                                                        }
+                                                                        return pu;
+                                                                    })
+                                                                });
 
-                                                            await setIsPickupDate1CalendarShown(false);
-                                                            await setIsPickupDate2CalendarShown(false);
-                                                            await setIsDeliveryDate1CalendarShown(false);
-                                                            await setIsDeliveryDate2CalendarShown(false);
-
-                                                            // await validateOrderForSaving({ keyCode: 9 });
-
+                                                                await setIsPickupDate1CalendarShown(false);
+                                                                await setIsPickupDate2CalendarShown(false);
+                                                                await setIsDeliveryDate1CalendarShown(false);
+                                                                await setIsDeliveryDate2CalendarShown(false);
+                                                            }
                                                         }
 
                                                         if (key >= 37 && key <= 40) {
@@ -6474,7 +7351,6 @@ function Dispatch(props) {
                                                                         return pu;
                                                                     })
                                                                 });
-                                                                // await validateOrderForSaving({ keyCode: 9 });
                                                             }
                                                         }
                                                     }}
@@ -6490,6 +7366,7 @@ function Dispatch(props) {
                                                             let pickups = (props.selected_order?.pickups || []).map((pu, i) => {
                                                                 if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
                                                                     pu.pu_date2 = formatted;
+                                                                    setIsSavingPickupId(-1);
                                                                     setIsSavingPickupId(pu.id);
                                                                 }
                                                                 return pu;
@@ -6616,6 +7493,7 @@ function Dispatch(props) {
                                                             let pickups = (props.selected_order?.pickups || []).map((pu, i) => {
                                                                 if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
                                                                     pu.pu_time2 = formatted;
+                                                                    setIsSavingPickupId(-1);
                                                                     setIsSavingPickupId(pu.id);
                                                                 }
                                                                 return pu;
@@ -7762,7 +8640,7 @@ function Dispatch(props) {
                                                                         return p;
                                                                     })
                                                                 })
-    
+
                                                                 props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, contact_name: e.target.value })
                                                             }
                                                         }
@@ -7813,7 +8691,7 @@ function Dispatch(props) {
                                                                         return p;
                                                                     })
                                                                 })
-    
+
                                                                 props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, contact_name: e.target.value })
                                                             }
                                                         }
@@ -8009,7 +8887,7 @@ function Dispatch(props) {
                                                                         return p;
                                                                     })
                                                                 })
-    
+
                                                                 props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, ext: e.target.value })
                                                             }
                                                         }
@@ -8059,7 +8937,7 @@ function Dispatch(props) {
                                                                         return p;
                                                                     })
                                                                 })
-    
+
                                                                 props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, ext: e.target.value })
                                                             }
                                                         }
@@ -8091,29 +8969,30 @@ function Dispatch(props) {
                                                         await setPreSelectedDeliveryDate1(deliveryDate1);
 
                                                         if (key === 13) {
-                                                            await props.setSelectedConsigneeCompanyInfo({
-                                                                ...props.selectedConsigneeCompanyInfo,
-                                                                delivery_date1: preSelectedDeliveryDate1.clone().format('MM/DD/YYYY')
-                                                            });
+                                                            if (isDeliveryDate1CalendarShown) {
+                                                                await props.setSelectedConsigneeCompanyInfo({
+                                                                    ...props.selectedConsigneeCompanyInfo,
+                                                                    delivery_date1: preSelectedDeliveryDate1.clone().format('MM/DD/YYYY')
+                                                                });
 
-                                                            await props.setSelectedOrder({
-                                                                ...props.selected_order,
-                                                                deliveries: (props.selected_order?.deliveries || []).map((delivery, i) => {
-                                                                    if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
-                                                                        delivery.delivery_date1 = preSelectedDeliveryDate1.clone().format('MM/DD/YYYY');
-                                                                        delivery.delivery_date2 = preSelectedDeliveryDate1.clone().format('MM/DD/YYYY');
-                                                                    }
-                                                                    return delivery;
-                                                                })
-                                                            });
+                                                                await props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: (props.selected_order?.deliveries || []).map((delivery, i) => {
+                                                                        if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
+                                                                            delivery.delivery_date1 = preSelectedDeliveryDate1.clone().format('MM/DD/YYYY');
+                                                                            delivery.delivery_date2 = preSelectedDeliveryDate1.clone().format('MM/DD/YYYY');
+                                                                            setIsSavingDeliveryId(-1);
+                                                                            setIsSavingDeliveryId(delivery.id);
+                                                                        }
+                                                                        return delivery;
+                                                                    })
+                                                                });
 
-                                                            await setIsDeliveryDate1CalendarShown(false);
-                                                            await setIsDeliveryDate2CalendarShown(false);
-                                                            await setIsDeliveryDate1CalendarShown(false);
-                                                            await setIsDeliveryDate2CalendarShown(false);
-
-                                                            // await validateOrderForSaving({ keyCode: 9 });
-
+                                                                await setIsDeliveryDate1CalendarShown(false);
+                                                                await setIsDeliveryDate2CalendarShown(false);
+                                                                await setIsDeliveryDate1CalendarShown(false);
+                                                                await setIsDeliveryDate2CalendarShown(false);
+                                                            }
                                                         }
 
                                                         if (key >= 37 && key <= 40) {
@@ -8145,7 +9024,6 @@ function Dispatch(props) {
                                                                         return delivery;
                                                                     })
                                                                 });
-                                                                // await validateOrderForSaving({ keyCode: 9 });
                                                             }
                                                         }
                                                     }}
@@ -8163,6 +9041,7 @@ function Dispatch(props) {
                                                                 if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
                                                                     delivery.delivery_date1 = formatted;
                                                                     delivery.delivery_date2 = formatted;
+                                                                    setIsSavingDeliveryId(-1);
                                                                     setIsSavingDeliveryId(delivery.id);
                                                                 }
                                                                 return delivery;
@@ -8289,6 +9168,7 @@ function Dispatch(props) {
                                                             let deliveries = (props.selected_order?.deliveries || []).map((delivery, i) => {
                                                                 if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
                                                                     delivery.delivery_time1 = formatted;
+                                                                    setIsSavingDeliveryId(-1);
                                                                     setIsSavingDeliveryId(delivery.id);
                                                                 }
                                                                 return delivery;
@@ -8348,27 +9228,29 @@ function Dispatch(props) {
                                                         await setPreSelectedDeliveryDate2(deliveryDate2);
 
                                                         if (key === 13) {
-                                                            await props.setSelectedConsigneeCompanyInfo({
-                                                                ...props.selectedConsigneeCompanyInfo,
-                                                                delivery_date2: preSelectedDeliveryDate2.clone().format('MM/DD/YYYY')
-                                                            });
+                                                            if (isDeliveryDate2CalendarShown) {
+                                                                await props.setSelectedConsigneeCompanyInfo({
+                                                                    ...props.selectedConsigneeCompanyInfo,
+                                                                    delivery_date2: preSelectedDeliveryDate2.clone().format('MM/DD/YYYY')
+                                                                });
 
-                                                            await props.setSelectedOrder({
-                                                                ...props.selected_order,
-                                                                deliveries: (props.selected_order?.deliveries || []).map((delivery, i) => {
-                                                                    if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
-                                                                        delivery.delivery_date2 = preSelectedDeliveryDate2.clone().format('MM/DD/YYYY')
-                                                                    }
-                                                                    return delivery;
-                                                                })
-                                                            });
+                                                                await props.setSelectedOrder({
+                                                                    ...props.selected_order,
+                                                                    deliveries: (props.selected_order?.deliveries || []).map((delivery, i) => {
+                                                                        if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
+                                                                            delivery.delivery_date2 = preSelectedDeliveryDate2.clone().format('MM/DD/YYYY');
+                                                                            setIsSavingDeliveryId(-1);
+                                                                            setIsSavingDeliveryId(delivery.id);
+                                                                        }
+                                                                        return delivery;
+                                                                    })
+                                                                });
 
-                                                            await setIsDeliveryDate1CalendarShown(false);
-                                                            await setIsDeliveryDate2CalendarShown(false);
-                                                            await setIsDeliveryDate1CalendarShown(false);
-                                                            await setIsDeliveryDate2CalendarShown(false);
-
-                                                            // await validateOrderForSaving({ keyCode: 9 });
+                                                                await setIsDeliveryDate1CalendarShown(false);
+                                                                await setIsDeliveryDate2CalendarShown(false);
+                                                                await setIsDeliveryDate1CalendarShown(false);
+                                                                await setIsDeliveryDate2CalendarShown(false);
+                                                            }
 
                                                         }
 
@@ -8401,7 +9283,6 @@ function Dispatch(props) {
                                                                         return delivery;
                                                                     })
                                                                 });
-                                                                // await validateOrderForSaving({ keyCode: 9 });
                                                             }
                                                         }
                                                     }}
@@ -8417,6 +9298,7 @@ function Dispatch(props) {
                                                             let deliveries = (props.selected_order?.deliveries || []).map((delivery, i) => {
                                                                 if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
                                                                     delivery.delivery_date2 = formatted;
+                                                                    setIsSavingDeliveryId(-1);
                                                                     setIsSavingDeliveryId(delivery.id);
                                                                 }
                                                                 return delivery;
@@ -8543,6 +9425,7 @@ function Dispatch(props) {
                                                             let deliveries = (props.selected_order?.deliveries || []).map((delivery, i) => {
                                                                 if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
                                                                     delivery.delivery_time2 = formatted;
+                                                                    setIsSavingDeliveryId(-1);
                                                                     setIsSavingDeliveryId(delivery.id);
                                                                 }
                                                                 return delivery;
@@ -8936,18 +9819,18 @@ function Dispatch(props) {
                                                         await setSelectedOrderEvent(item);
 
                                                         await props.setDispatchEvent(eventItem);
-                                                        await props.setDispatchEventLocation(item.city + ', ' + item.state);
+                                                        await props.setDispatchEventLocation(item.customer.city + ', ' + item.customer.state);
 
                                                         if (eventItem.type === 'arrived') {
-                                                            await props.setDispatchEventNotes('Arrived at ' + item.code + (item.code_number === 0 ? '' : item.code_number) + ' - ' + item.name);
+                                                            await props.setDispatchEventNotes('Arrived at ' + item.customer.code + (item.customer.code_number === 0 ? '' : item.customer.code_number) + ' - ' + item.customer.name);
                                                         }
 
                                                         if (eventItem.type === 'loaded') {
-                                                            await props.setDispatchEventNotes('Loaded at Shipper ' + item.code + (item.code_number === 0 ? '' : item.code_number) + ' - ' + item.name);
+                                                            await props.setDispatchEventNotes('Loaded at Shipper ' + item.customer.code + (item.customer.code_number === 0 ? '' : item.customer.code_number) + ' - ' + item.customer.name);
                                                         }
 
                                                         if (eventItem.type === 'delivered') {
-                                                            await props.setDispatchEventNotes('Delivered at Consignee ' + item.code + (item.code_number === 0 ? '' : item.code_number) + ' - ' + item.name);
+                                                            await props.setDispatchEventNotes('Delivered at Consignee ' + item.customer.code + (item.customer.code_number === 0 ? '' : item.customer.code_number) + ' - ' + item.customer.name);
                                                         }
 
                                                         window.setTimeout(() => {
@@ -8991,23 +9874,25 @@ function Dispatch(props) {
 
                                                             if ((arriveIndex === -1 && departureIndex === -1) || (departureIndex > -1 && departureIndex < arriveIndex)) {
                                                                 let items = [
-                                                                    ...(props.selected_order?.pickups || []).filter(shipper => {
-                                                                        return (props.selected_order?.events.find(el => el.event_type === 'arrived' && el.shipper_id === shipper.id)) === undefined;
+                                                                    ...(props.selected_order?.pickups || []).filter(pu => {
+                                                                        return (props.selected_order?.events.find(el => el.event_type === 'arrived' && el.shipper_id === (pu.customer?.id || 0))) === undefined;
                                                                     }),
-                                                                    ...(props.selected_order?.deliveries || []).filter(consignee => {
-                                                                        return (props.selected_order?.events.find(el => el.event_type === 'arrived' && el.consignee_id === consignee.id)) === undefined;
+                                                                    ...(props.selected_order?.deliveries || []).filter(delivery => {
+                                                                        return (props.selected_order?.events.find(el => el.event_type === 'arrived' && el.consignee_id === (delivery?.customer.id || 0))) === undefined;
                                                                     })
                                                                 ]
 
                                                                 if (items.length > 0) {
                                                                     if (items.length === 1) {
                                                                         await props.setDispatchEvent(item);
-                                                                        await props.setDispatchEventLocation(items[0].city + ', ' + items[0].state);
-                                                                        await props.setDispatchEventNotes('Arrived at ' + items[0].code + (items[0].code_number === 0 ? '' : items[0].code_number) + ' - ' + items[0].name);
+                                                                        await props.setDispatchEventLocation(items[0].customer.city + ', ' + items[0].customer.state);
+                                                                        await props.setDispatchEventNotes('Arrived at ' + items[0].customer.code + (items[0].customer.code_number === 0 ? '' : items[0].customer.code_number) + ' - ' + items[0].customer.name);
                                                                         await setSelectedOrderEvent(items[0]);
 
                                                                         window.setTimeout(() => {
                                                                             setShowDispatchEventItems(false);
+                                                                            setDispatchEventSecondPageItems([]);
+                                                                            setShowDispatchEventSecondPageItems(false);
                                                                             goToTabindex((73 + props.tabTimes).toString());
                                                                         }, 0);
                                                                     } else {
@@ -9078,6 +9963,8 @@ function Dispatch(props) {
 
                                                             window.setTimeout(() => {
                                                                 setShowDispatchEventItems(false);
+                                                                setDispatchEventSecondPageItems([]);
+                                                                setShowDispatchEventSecondPageItems(false);
                                                                 goToTabindex((73 + props.tabTimes).toString());
                                                             }, 0);
                                                         }
@@ -9089,20 +9976,22 @@ function Dispatch(props) {
                                                             }));
 
                                                             let items = [
-                                                                ...(props.selected_order?.pickups || []).filter(shipper => {
-                                                                    return (props.selected_order?.events.find(el => el.event_type === 'loaded' && el.shipper_id === shipper.id)) === undefined;
+                                                                ...(props.selected_order?.pickups || []).filter(pu => {
+                                                                    return (props.selected_order?.events.find(el => el.event_type === 'loaded' && el.shipper_id === pu.customer.id)) === undefined;
                                                                 })
                                                             ]
 
                                                             if (items.length > 0) {
                                                                 if (items.length === 1) {
                                                                     await props.setDispatchEvent(item);
-                                                                    await props.setDispatchEventLocation(items[0].city + ', ' + items[0].state);
-                                                                    await props.setDispatchEventNotes('Loaded at Shipper ' + items[0].code + (items[0].code_number === 0 ? '' : items[0].code_number) + ' - ' + items[0].name);
+                                                                    await props.setDispatchEventLocation(items[0].customer.city + ', ' + items[0].customer.state);
+                                                                    await props.setDispatchEventNotes('Loaded at Shipper ' + items[0].customer.code + (items[0].customer.code_number === 0 ? '' : items[0].customer.code_number) + ' - ' + items[0].customer.name);
                                                                     await setSelectedOrderEvent(items[0]);
 
                                                                     window.setTimeout(() => {
                                                                         setShowDispatchEventItems(false);
+                                                                        setDispatchEventSecondPageItems([]);
+                                                                        setShowDispatchEventSecondPageItems(false);
                                                                         goToTabindex((73 + props.tabTimes).toString());
                                                                     }, 0);
                                                                 } else {
@@ -9135,20 +10024,22 @@ function Dispatch(props) {
                                                             }));
 
                                                             let items = [
-                                                                ...(props.selected_order?.deliveries || []).filter(consignee => {
-                                                                    return (props.selected_order?.events.find(el => el.event_type === 'delivered' && el.consignee_id === consignee.id)) === undefined;
+                                                                ...(props.selected_order?.deliveries || []).filter(delivery => {
+                                                                    return (props.selected_order?.events.find(el => el.event_type === 'delivered' && el.consignee_id === delivery.customer.id)) === undefined;
                                                                 })
                                                             ]
 
                                                             if (items.length > 0) {
                                                                 if (items.length === 1) {
                                                                     await props.setDispatchEvent(item);
-                                                                    await props.setDispatchEventLocation(items[0].city + ', ' + items[0].state);
-                                                                    await props.setDispatchEventNotes('Delivered at Consignee ' + items[0].code + (items[0].code_number === 0 ? '' : items[0].code_number) + ' - ' + items[0].name);
+                                                                    await props.setDispatchEventLocation(items[0].customer.city + ', ' + items[0].customer.state);
+                                                                    await props.setDispatchEventNotes('Delivered at Consignee ' + items[0].customer.code + (items[0].customer.code_number === 0 ? '' : items[0].customer.code_number) + ' - ' + items[0].customer.name);
                                                                     await setSelectedOrderEvent(items[0]);
 
                                                                     window.setTimeout(() => {
                                                                         setShowDispatchEventItems(false);
+                                                                        setDispatchEventSecondPageItems([]);
+                                                                        setShowDispatchEventSecondPageItems(false);
                                                                         goToTabindex((73 + props.tabTimes).toString());
                                                                     }, 0);
                                                                 } else {
@@ -9198,18 +10089,18 @@ function Dispatch(props) {
                                                             await setSelectedOrderEvent(item);
 
                                                             await props.setDispatchEvent(eventItem);
-                                                            await props.setDispatchEventLocation(item.city + ', ' + item.state);
+                                                            await props.setDispatchEventLocation(item.customer.city + ', ' + item.customer.state);
 
                                                             if (eventItem.type === 'arrived') {
-                                                                await props.setDispatchEventNotes('Arrived at ' + item.code + (item.code_number === 0 ? '' : item.code_number) + ' - ' + item.name);
+                                                                await props.setDispatchEventNotes('Arrived at ' + item.customer.code + (item.customer.code_number === 0 ? '' : item.customer.code_number) + ' - ' + item.customer.name);
                                                             }
 
                                                             if (eventItem.type === 'loaded') {
-                                                                await props.setDispatchEventNotes('Loaded at Shipper ' + item.code + (item.code_number === 0 ? '' : item.code_number) + ' - ' + item.name);
+                                                                await props.setDispatchEventNotes('Loaded at Shipper ' + item.customer.code + (item.customer.code_number === 0 ? '' : item.customer.code_number) + ' - ' + item.customer.name);
                                                             }
 
                                                             if (eventItem.type === 'delivered') {
-                                                                await props.setDispatchEventNotes('Delivered at Consignee ' + item.code + (item.code_number === 0 ? '' : item.code_number) + ' - ' + item.name);
+                                                                await props.setDispatchEventNotes('Delivered at Consignee ' + item.customer.code + (item.customer.code_number === 0 ? '' : item.customer.code_number) + ' - ' + item.customer.name);
                                                             }
 
                                                             window.setTimeout(() => {
@@ -9253,23 +10144,25 @@ function Dispatch(props) {
 
                                                                 if ((arriveIndex === -1 && departureIndex === -1) || (departureIndex > -1 && departureIndex < arriveIndex)) {
                                                                     let items = [
-                                                                        ...(props.selected_order?.pickups || []).filter(shipper => {
-                                                                            return (props.selected_order?.events.find(el => el.event_type === 'arrived' && el.shipper_id === shipper.id)) === undefined;
+                                                                        ...(props.selected_order?.pickups || []).filter(pu => {
+                                                                            return (props.selected_order?.events.find(el => el.event_type === 'arrived' && el.shipper_id === (pu.customer?.id || 0))) === undefined;
                                                                         }),
-                                                                        ...(props.selected_order?.deliveries || []).filter(consignee => {
-                                                                            return (props.selected_order?.events.find(el => el.event_type === 'arrived' && el.consignee_id === consignee.id)) === undefined;
+                                                                        ...(props.selected_order?.deliveries || []).filter(delivery => {
+                                                                            return (props.selected_order?.events.find(el => el.event_type === 'arrived' && el.consignee_id === (delivery?.customer.id || 0))) === undefined;
                                                                         })
                                                                     ]
 
                                                                     if (items.length > 0) {
                                                                         if (items.length === 1) {
                                                                             await props.setDispatchEvent(item);
-                                                                            await props.setDispatchEventLocation(items[0].city + ', ' + items[0].state);
-                                                                            await props.setDispatchEventNotes('Arrived at ' + items[0].code + (items[0].code_number === 0 ? '' : items[0].code_number) + ' - ' + items[0].name);
+                                                                            await props.setDispatchEventLocation(items[0].customer.city + ', ' + items[0].customer.state);
+                                                                            await props.setDispatchEventNotes('Arrived at ' + items[0].customer.code + (items[0].customer.code_number === 0 ? '' : items[0].customer.code_number) + ' - ' + items[0].customer.name);
                                                                             await setSelectedOrderEvent(items[0]);
 
                                                                             window.setTimeout(() => {
                                                                                 setShowDispatchEventItems(false);
+                                                                                setDispatchEventSecondPageItems([]);
+                                                                                setShowDispatchEventSecondPageItems(false);
                                                                                 goToTabindex((73 + props.tabTimes).toString());
                                                                             }, 0);
                                                                         } else {
@@ -9340,6 +10233,8 @@ function Dispatch(props) {
 
                                                                 window.setTimeout(() => {
                                                                     setShowDispatchEventItems(false);
+                                                                    setDispatchEventSecondPageItems([]);
+                                                                    setShowDispatchEventSecondPageItems(false);
                                                                     goToTabindex((73 + props.tabTimes).toString());
                                                                 }, 0);
                                                             }
@@ -9351,20 +10246,22 @@ function Dispatch(props) {
                                                                 }));
 
                                                                 let items = [
-                                                                    ...(props.selected_order?.pickups || []).filter(shipper => {
-                                                                        return (props.selected_order?.events.find(el => el.event_type === 'loaded' && el.shipper_id === shipper.id)) === undefined;
+                                                                    ...(props.selected_order?.pickups || []).filter(pu => {
+                                                                        return (props.selected_order?.events.find(el => el.event_type === 'loaded' && el.shipper_id === pu.customer.id)) === undefined;
                                                                     })
                                                                 ]
 
                                                                 if (items.length > 0) {
                                                                     if (items.length === 1) {
                                                                         await props.setDispatchEvent(item);
-                                                                        await props.setDispatchEventLocation(items[0].city + ', ' + items[0].state);
-                                                                        await props.setDispatchEventNotes('Loaded at Shipper ' + items[0].code + (items[0].code_number === 0 ? '' : items[0].code_number) + ' - ' + items[0].name);
+                                                                        await props.setDispatchEventLocation(items[0].customer.city + ', ' + items[0].customer.state);
+                                                                        await props.setDispatchEventNotes('Loaded at Shipper ' + items[0].customer.code + (items[0].customer.code_number === 0 ? '' : items[0].customer.code_number) + ' - ' + items[0].customer.name);
                                                                         await setSelectedOrderEvent(items[0]);
 
                                                                         window.setTimeout(() => {
                                                                             setShowDispatchEventItems(false);
+                                                                            setDispatchEventSecondPageItems([]);
+                                                                            setShowDispatchEventSecondPageItems(false);
                                                                             goToTabindex((73 + props.tabTimes).toString());
                                                                         }, 0);
                                                                     } else {
@@ -9397,20 +10294,22 @@ function Dispatch(props) {
                                                                 }));
 
                                                                 let items = [
-                                                                    ...(props.selected_order?.deliveries || []).filter(consignee => {
-                                                                        return (props.selected_order?.events.find(el => el.event_type === 'delivered' && el.consignee_id === consignee.id)) === undefined;
+                                                                    ...(props.selected_order?.deliveries || []).filter(delivery => {
+                                                                        return (props.selected_order?.events.find(el => el.event_type === 'delivered' && el.consignee_id === delivery.customer.id)) === undefined;
                                                                     })
                                                                 ]
 
                                                                 if (items.length > 0) {
                                                                     if (items.length === 1) {
                                                                         await props.setDispatchEvent(item);
-                                                                        await props.setDispatchEventLocation(items[0].city + ', ' + items[0].state);
-                                                                        await props.setDispatchEventNotes('Delivered at Consignee ' + items[0].code + (items[0].code_number === 0 ? '' : items[0].code_number) + ' - ' + items[0].name);
+                                                                        await props.setDispatchEventLocation(items[0].customer.city + ', ' + items[0].customer.state);
+                                                                        await props.setDispatchEventNotes('Delivered at Consignee ' + items[0].customer.code + (items[0].customer.code_number === 0 ? '' : items[0].customer.code_number) + ' - ' + items[0].customer.name);
                                                                         await setSelectedOrderEvent(items[0]);
 
                                                                         window.setTimeout(() => {
                                                                             setShowDispatchEventItems(false);
+                                                                            setDispatchEventSecondPageItems([]);
+                                                                            setShowDispatchEventSecondPageItems(false);
                                                                             goToTabindex((73 + props.tabTimes).toString());
                                                                         }, 0);
                                                                     } else {
@@ -9569,23 +10468,25 @@ function Dispatch(props) {
 
                                                                                         if ((arriveIndex === -1 && departureIndex === -1) || (departureIndex > -1 && departureIndex < arriveIndex)) {
                                                                                             let items = [
-                                                                                                ...(props.selected_order?.pickups || []).filter(shipper => {
-                                                                                                    return (props.selected_order?.events.find(el => el.event_type === 'arrived' && el.shipper_id === shipper.id)) === undefined;
+                                                                                                ...(props.selected_order?.pickups || []).filter(pu => {
+                                                                                                    return (props.selected_order?.events.find(el => el.event_type === 'arrived' && el.shipper_id === (pu.customer?.id || 0))) === undefined;
                                                                                                 }),
-                                                                                                ...(props.selected_order?.deliveries || []).filter(consignee => {
-                                                                                                    return (props.selected_order?.events.find(el => el.event_type === 'arrived' && el.consignee_id === consignee.id)) === undefined;
+                                                                                                ...(props.selected_order?.deliveries || []).filter(delivery => {
+                                                                                                    return (props.selected_order?.events.find(el => el.event_type === 'arrived' && el.consignee_id === (delivery?.id || 0))) === undefined;
                                                                                                 })
                                                                                             ]
 
                                                                                             if (items.length > 0) {
                                                                                                 if (items.length === 1) {
                                                                                                     await props.setDispatchEvent(item);
-                                                                                                    await props.setDispatchEventLocation(items[0].city + ', ' + items[0].state);
-                                                                                                    await props.setDispatchEventNotes('Arrived at ' + items[0].code + (items[0].code_number === 0 ? '' : items[0].code_number) + ' - ' + items[0].name);
+                                                                                                    await props.setDispatchEventLocation(items[0].customer.city + ', ' + items[0].customer.state);
+                                                                                                    await props.setDispatchEventNotes('Arrived at ' + items[0].customer.code + (items[0].customer.code_number === 0 ? '' : items[0].customer.code_number) + ' - ' + items[0].customer.name);
                                                                                                     await setSelectedOrderEvent(items[0]);
 
                                                                                                     window.setTimeout(() => {
                                                                                                         setShowDispatchEventItems(false);
+                                                                                                        setDispatchEventSecondPageItems([]);
+                                                                                                        setShowDispatchEventSecondPageItems(false);
                                                                                                         goToTabindex((73 + props.tabTimes).toString());
                                                                                                     }, 0);
                                                                                                 } else {
@@ -9656,6 +10557,8 @@ function Dispatch(props) {
 
                                                                                         window.setTimeout(() => {
                                                                                             setShowDispatchEventItems(false);
+                                                                                            setDispatchEventSecondPageItems([]);
+                                                                                            setShowDispatchEventSecondPageItems(false);
                                                                                             goToTabindex((73 + props.tabTimes).toString());
                                                                                         }, 0);
                                                                                     }
@@ -9668,20 +10571,22 @@ function Dispatch(props) {
                                                                                         }));
 
                                                                                         let items = [
-                                                                                            ...(props.selected_order?.pickups || []).filter(shipper => {
-                                                                                                return (props.selected_order?.events.find(el => el.event_type === 'loaded' && el.shipper_id === shipper.id)) === undefined;
+                                                                                            ...(props.selected_order?.pickups || []).filter(pu => {
+                                                                                                return (props.selected_order?.events.find(el => el.event_type === 'loaded' && el.shipper_id === (pu.customer?.id || 0))) === undefined;
                                                                                             })
                                                                                         ]
 
                                                                                         if (items.length > 0) {
                                                                                             if (items.length === 1) {
                                                                                                 await props.setDispatchEvent(item);
-                                                                                                await props.setDispatchEventLocation(items[0].city + ', ' + items[0].state);
-                                                                                                await props.setDispatchEventNotes('Loaded at Shipper ' + items[0].code + (items[0].code_number === 0 ? '' : items[0].code_number) + ' - ' + items[0].name);
+                                                                                                await props.setDispatchEventLocation(items[0].customer.city + ', ' + items[0].customer.state);
+                                                                                                await props.setDispatchEventNotes('Loaded at Shipper ' + items[0].customer.code + (items[0].customer.code_number === 0 ? '' : items[0].customer.code_number) + ' - ' + items[0].customer.name);
                                                                                                 await setSelectedOrderEvent(items[0]);
 
                                                                                                 window.setTimeout(() => {
                                                                                                     setShowDispatchEventItems(false);
+                                                                                                    setDispatchEventSecondPageItems([]);
+                                                                                                    setShowDispatchEventSecondPageItems(false);
                                                                                                     goToTabindex((73 + props.tabTimes).toString());
                                                                                                 }, 0);
                                                                                             } else {
@@ -9714,20 +10619,22 @@ function Dispatch(props) {
                                                                                         }));
 
                                                                                         let items = [
-                                                                                            ...(props.selected_order?.deliveries || []).filter(consignee => {
-                                                                                                return (props.selected_order?.events.find(el => el.event_type === 'delivered' && el.consignee_id === consignee.id)) === undefined;
+                                                                                            ...(props.selected_order?.deliveries || []).filter(delivery => {
+                                                                                                return (props.selected_order?.events.find(el => el.event_type === 'delivered' && el.consignee_id === (delivery.customer?.id || 0))) === undefined;
                                                                                             })
                                                                                         ]
 
                                                                                         if (items.length > 0) {
                                                                                             if (items.length === 1) {
                                                                                                 await props.setDispatchEvent(item);
-                                                                                                await props.setDispatchEventLocation(items[0].city + ', ' + items[0].state);
-                                                                                                await props.setDispatchEventNotes('Delivered at Consignee ' + items[0].code + (items[0].code_number === 0 ? '' : items[0].code_number) + ' - ' + items[0].name);
+                                                                                                await props.setDispatchEventLocation(items[0].customer.city + ', ' + items[0].customer.state);
+                                                                                                await props.setDispatchEventNotes('Delivered at Consignee ' + items[0].customer.code + (items[0].customer.code_number === 0 ? '' : items[0].customer.code_number) + ' - ' + items[0].customer.name);
                                                                                                 await setSelectedOrderEvent(items[0]);
 
                                                                                                 window.setTimeout(() => {
                                                                                                     setShowDispatchEventItems(false);
+                                                                                                    setDispatchEventSecondPageItems([]);
+                                                                                                    setShowDispatchEventSecondPageItems(false);
                                                                                                     goToTabindex((73 + props.tabTimes).toString());
                                                                                                 }, 0);
                                                                                             } else {
@@ -9783,6 +10690,7 @@ function Dispatch(props) {
                                                         <div className="page-wrapper">
                                                             {
                                                                 dispatchEventSecondPageItems.map((item, index) => {
+                                                                    console.log(item);
                                                                     const mochiItemClasses = classnames({
                                                                         'mochi-item': true,
                                                                         'selected': item.selected
@@ -9799,18 +10707,18 @@ function Dispatch(props) {
                                                                                 await setSelectedOrderEvent(item);
 
                                                                                 await props.setDispatchEvent(eventItem);
-                                                                                await props.setDispatchEventLocation(item.city + ', ' + item.state);
+                                                                                await props.setDispatchEventLocation(item.customer.city + ', ' + item.customer.state);
 
                                                                                 if (eventItem.type === 'arrived') {
-                                                                                    await props.setDispatchEventNotes('Arrived at ' + item.code + (item.code_number === 0 ? '' : item.code_number) + ' - ' + item.name);
+                                                                                    await props.setDispatchEventNotes('Arrived at ' + item.customer.code + (item.customer.code_number === 0 ? '' : item.customer.code_number) + ' - ' + item.customer.name);
                                                                                 }
 
                                                                                 if (eventItem.type === 'loaded') {
-                                                                                    await props.setDispatchEventNotes('Loaded at Shipper ' + item.code + (item.code_number === 0 ? '' : item.code_number) + ' - ' + item.name);
+                                                                                    await props.setDispatchEventNotes('Loaded at Shipper ' + item.customer.code + (item.customer.code_number === 0 ? '' : item.customer.code_number) + ' - ' + item.customer.name);
                                                                                 }
 
                                                                                 if (eventItem.type === 'delivered') {
-                                                                                    await props.setDispatchEventNotes('Delivered at Consignee ' + item.code + (item.code_number === 0 ? '' : item.code_number) + ' - ' + item.name);
+                                                                                    await props.setDispatchEventNotes('Delivered at Consignee ' + item.customer.code + (item.customer.code_number === 0 ? '' : item.customer.code_number) + ' - ' + item.customer.name);
                                                                                 }
 
                                                                                 window.setTimeout(() => {
@@ -9832,7 +10740,7 @@ function Dispatch(props) {
                                                                                 searchWords={[]}
                                                                                 autoEscape={true}
                                                                                 textToHighlight={
-                                                                                    item.code + (item.code_number === 0 ? '' : item.code_number) + ' - ' + item.city + ', ' + item.state
+                                                                                    item.customer.code + (item.customer.code_number === 0 ? '' : item.customer.code_number) + ' - ' + item.customer.city + ', ' + item.customer.state
                                                                                 }
                                                                             />
                                                                             {
@@ -10061,15 +10969,15 @@ function Dispatch(props) {
                                         }
 
                                         if (props.dispatchEvent.type === 'arrived') {
-                                            event_parameters.arrived_customer_id = selectedOrderEvent.id;
-                                            event_parameters.shipper_id = (selectedOrderEvent.extra_data?.type || '') === 'pickup' ? selectedOrderEvent.id : 0;
-                                            event_parameters.consignee_id = (selectedOrderEvent.extra_data?.type || '') === 'delivery' ? selectedOrderEvent.id : 0;
+                                            event_parameters.arrived_customer_id = selectedOrderEvent.customer.id;
+                                            event_parameters.shipper_id = (selectedOrderEvent.customer.type || '') === 'pickup' ? selectedOrderEvent.customer.id : null;
+                                            event_parameters.consignee_id = (selectedOrderEvent.customer.type || '') === 'delivery' ? selectedOrderEvent.customer.id : null;
                                         } else if (props.dispatchEvent.type === 'departed') {
                                             event_parameters.departed_customer_id = selectedOrderEvent.id;
                                         } else if (props.dispatchEvent.type === 'loaded') {
-                                            event_parameters.shipper_id = selectedOrderEvent.id;
+                                            event_parameters.shipper_id = selectedOrderEvent.customer.id;
                                         } else if (props.dispatchEvent.type === 'delivered') {
-                                            event_parameters.consignee_id = selectedOrderEvent.id;
+                                            event_parameters.consignee_id = selectedOrderEvent.customer.id;
                                         } else {
                                             if (event_parameters.event_notes.trim() === '') {
                                                 window.alert('You must include some notes!');
@@ -10091,9 +10999,10 @@ function Dispatch(props) {
                                         }
 
                                         if (window.confirm('Save this event?')) {
-                                            $.post(props.serverUrl + '/saveOrderEvent', event_parameters).then(async res => {
-                                                if (res.result === 'OK') {
-                                                    await props.setSelectedOrder({ ...props.selected_order, events: res.order_events });
+                                            e.preventDefault();
+                                            axios.post(props.serverUrl + '/saveOrderEvent', event_parameters).then(async res => {
+                                                if (res.data.result === 'OK') {
+                                                    await props.setSelectedOrder({ ...props.selected_order, events: res.data.order_events });
 
                                                     props.setDispatchEvent({});
                                                     props.setDispatchEventLocation('');
@@ -10102,7 +11011,7 @@ function Dispatch(props) {
                                                     props.setDispatchEventTime('');
 
                                                     refDispatchEvents.current.focus();
-                                                } else if (res.result === 'ORDER ID NOT VALID') {
+                                                } else if (res.data.result === 'ORDER ID NOT VALID') {
                                                     window.alert('The order number is not valid!');
                                                     goToTabindex((75 + props.tabTimes).toString());
                                                 }
@@ -10110,6 +11019,7 @@ function Dispatch(props) {
                                                 console.log('error saving order event', e);
                                             })
                                         } else {
+                                            e.preventDefault();
                                             goToTabindex((75 + props.tabTimes).toString());
                                         }
                                     }
@@ -10157,35 +11067,6 @@ function Dispatch(props) {
                         <div style={{ fontSize: '0.7rem', textDecoration: 'underline', fontWeight: 'bold', textAlign: 'center', whiteSpace: 'nowrap', marginBottom: 1 }}>Percentage</div>
                         <div style={{ fontSize: '0.7rem', textAlign: 'center' }}>15%</div>
                     </div>
-
-                    {/* <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        marginBottom: '2px'
-                    }}>
-                        <div style={{ minWidth: '15%', maxWidth: '15%', fontSize: '0.7rem', textDecoration: 'underline', fontWeight: 'bold' }}>Miles</div>
-                        <div style={{ minWidth: '25%', maxWidth: '25%', fontSize: '0.7rem', textDecoration: 'underline', fontWeight: 'bold', textAlign: 'right' }}>Charges</div>
-                        <div style={{ minWidth: '25%', maxWidth: '25%', fontSize: '0.7rem', textDecoration: 'underline', fontWeight: 'bold', textAlign: 'right' }}>Order Cost</div>
-                        <div style={{ minWidth: '25%', maxWidth: '25%', fontSize: '0.7rem', textDecoration: 'underline', fontWeight: 'bold', textAlign: 'right' }}>Profit</div>
-                        <div style={{ minWidth: '10%', maxWidth: '10%', fontSize: '0.7rem', textDecoration: 'underline', fontWeight: 'bold', textAlign: 'center' }}>%</div>
-                    </div>
-
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between'
-                    }}>
-                        <div style={{ minWidth: '15%', maxWidth: '15%', fontSize: '0.7rem', position: 'relative' }}>
-                            {props.mileageLoaderVisible ? <div className="loading-container" style={{ right: 'initial', left: 0 }}>
-                                <Loader type="ThreeDots" color="#333738" height={20} width={20} visible={props.mileageLoaderVisible} />
-                            </div> : ((props.selected_order?.miles || 0) / 1609.34).toFixed(0)}
-                        </div>
-                        <div style={{ minWidth: '25%', maxWidth: '25%', fontSize: '0.7rem', textAlign: 'right' }}>$2,300.00</div>
-                        <div style={{ minWidth: '25%', maxWidth: '25%', fontSize: '0.7rem', textAlign: 'right' }}>$2,000.00</div>
-                        <div style={{ minWidth: '25%', maxWidth: '25%', fontSize: '0.7rem', textAlign: 'right' }}>$300.00</div>
-                        <div style={{ minWidth: '10%', maxWidth: '10%', fontSize: '0.7rem', textAlign: 'center' }}>15</div>
-                    </div>                     */}
                 </div>
             </div>
 
@@ -10367,39 +11248,30 @@ function Dispatch(props) {
                 </animated.div>
             }
 
-            {/* <DispatchPopup
-                popupRef={refPopup}
-                popupClasses={popupContainerClasses}
-                popupItems={popupItems}
-                popupItemsRef={popupItemsRef}
-                popupItemClick={popupItemClick}
-                popupItemKeydown={() => { }}
-                setPopupItems={setPopupItems}
-            /> */}
-
             <CalendarPopup
                 popupRef={refCalendarPickupDate1}
                 popupClasses={popupCalendarPickupDate1Classes}
-                popupGetter={moment((props.selectedShipperCompanyInfo?.extra_data?.pu_date1 || '').trim(), 'MM/DD/YYYY').format('MM/DD/YYYY') === (props.selectedShipperCompanyInfo?.extra_data?.pu_date1 || '').trim()
-                    ? moment(props.selectedShipperCompanyInfo?.extra_data?.pu_date1, 'MM/DD/YYYY')
-                    : moment()}
-                popupSetter={async (day) => {
 
-                    let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
-                    extra_data.pu_date1 = day.format('MM/DD/YYYY');
-                    extra_data.pu_date2 = day.format('MM/DD/YYYY');
-                    await props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data })
+                popupGetter={moment((props.selectedShipperCompanyInfo?.pu_date1 || '').trim(), 'MM/DD/YYYY').format('MM/DD/YYYY') === (props.selectedShipperCompanyInfo?.pu_date1 || '').trim()
+                    ? moment(props.selectedShipperCompanyInfo?.pu_date1, 'MM/DD/YYYY')
+                    : moment()}
+
+                popupSetter={async (day) => {
+                    await props.setSelectedShipperCompanyInfo({
+                        ...props.selectedShipperCompanyInfo,
+                        pu_date1: day.format('MM/DD/YYYY'),
+                        pu_date2: day.format('MM/DD/YYYY')
+                    })
 
                     let pickups = (props.selected_order?.pickups || []).map((pu, i) => {
-                        if (pu.id === props.selectedShipperCompanyInfo.id) {
-                            pu.extra_data = extra_data;
+                        if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                            pu.pu_date1 = day.format('MM/DD/YYYY');
+                            pu.pu_date2 = day.format('MM/DD/YYYY');
                         }
                         return pu;
                     });
 
                     await props.setSelectedOrder({ ...props.selected_order, pickups: pickups });
-
-                    await validateOrderForSaving({ keyCode: 9 });
                 }}
                 closeCalendar={() => {
                     setIsPickupDate1CalendarShown(false);
@@ -10414,25 +11286,25 @@ function Dispatch(props) {
             <CalendarPopup
                 popupRef={refCalendarPickupDate2}
                 popupClasses={popupCalendarPickupDate2Classes}
-                popupGetter={moment((props.selectedShipperCompanyInfo?.extra_data?.pu_date2 || '').trim(), 'MM/DD/YYYY').format('MM/DD/YYYY') === (props.selectedShipperCompanyInfo?.extra_data?.pu_date2 || '').trim()
-                    ? moment(props.selectedShipperCompanyInfo?.extra_data?.pu_date2, 'MM/DD/YYYY')
-                    : moment()}
-                popupSetter={async (day) => {
 
-                    let extra_data = props.selectedShipperCompanyInfo?.extra_data || {};
-                    extra_data.pu_date2 = day.format('MM/DD/YYYY');
-                    await props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, extra_data: extra_data })
+                popupGetter={moment((props.selectedShipperCompanyInfo?.pu_date2 || '').trim(), 'MM/DD/YYYY').format('MM/DD/YYYY') === (props.selectedShipperCompanyInfo?.pu_date2 || '').trim()
+                    ? moment(props.selectedShipperCompanyInfo?.pu_date2, 'MM/DD/YYYY')
+                    : moment()}
+
+                popupSetter={async (day) => {
+                    await props.setSelectedShipperCompanyInfo({
+                        ...props.selectedShipperCompanyInfo,
+                        pu_date2: day.format('MM/DD/YYYY')
+                    })
 
                     let pickups = (props.selected_order?.pickups || []).map((pu, i) => {
-                        if (pu.id === props.selectedShipperCompanyInfo.id) {
-                            pu.extra_data = extra_data;
+                        if (pu.id === (props.selectedShipperCompanyInfo?.pickup_id || 0)) {
+                            pu.pu_date2 = day.format('MM/DD/YYYY');
                         }
                         return pu;
                     });
 
                     await props.setSelectedOrder({ ...props.selected_order, pickups: pickups });
-
-                    await validateOrderForSaving({ keyCode: 9 });
                 }}
                 closeCalendar={() => {
                     setIsPickupDate1CalendarShown(false);
@@ -10446,26 +11318,27 @@ function Dispatch(props) {
             <CalendarPopup
                 popupRef={refCalendarDeliveryDate1}
                 popupClasses={popupCalendarDeliveryDate1Classes}
-                popupGetter={moment((props.selectedConsigneeCompanyInfo?.extra_data?.delivery_date1 || '').trim(), 'MM/DD/YYYY').format('MM/DD/YYYY') === (props.selectedConsigneeCompanyInfo?.extra_data?.delivery_date1 || '').trim()
-                    ? moment(props.selectedConsigneeCompanyInfo?.extra_data?.delivery_date1, 'MM/DD/YYYY')
-                    : moment()}
-                popupSetter={async (day) => {
 
-                    let extra_data = props.selectedConsigneeCompanyInfo?.extra_data || {};
-                    extra_data.delivery_date1 = day.format('MM/DD/YYYY');
-                    extra_data.delivery_date2 = day.format('MM/DD/YYYY');
-                    await props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, extra_data: extra_data })
+                popupGetter={moment((props.selectedConsigneeCompanyInfo?.delivery_date1 || '').trim(), 'MM/DD/YYYY').format('MM/DD/YYYY') === (props.selectedConsigneeCompanyInfo?.delivery_date1 || '').trim()
+                    ? moment(props.selectedConsigneeCompanyInfo?.delivery_date1, 'MM/DD/YYYY')
+                    : moment()}
+
+                popupSetter={async (day) => {
+                    await props.setSelectedConsigneeCompanyInfo({
+                        ...props.selectedConsigneeCompanyInfo,
+                        delivery_date1: day.format('MM/DD/YYYY'),
+                        delivery_date2: day.format('MM/DD/YYYY')
+                    })
 
                     let deliveries = (props.selected_order?.deliveries || []).map((delivery, i) => {
-                        if (delivery.id === props.selectedConsigneeCompanyInfo.id) {
-                            delivery.extra_data = extra_data;
+                        if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
+                            delivery.delivery_date1 = day.format('MM/DD/YYYY');
+                            delivery.delivery_date2 = day.format('MM/DD/YYYY');
                         }
                         return delivery;
                     });
 
                     await props.setSelectedOrder({ ...props.selected_order, deliveries: deliveries });
-
-                    await validateOrderForSaving({ keyCode: 9 });
                 }}
                 closeCalendar={() => {
                     setIsPickupDate1CalendarShown(false);
@@ -10479,25 +11352,25 @@ function Dispatch(props) {
             <CalendarPopup
                 popupRef={refCalendarDeliveryDate2}
                 popupClasses={popupCalendarDeliveryDate2Classes}
-                popupGetter={moment((props.selectedConsigneeCompanyInfo?.extra_data?.delivery_date2 || '').trim(), 'MM/DD/YYYY').format('MM/DD/YYYY') === (props.selectedConsigneeCompanyInfo?.extra_data?.delivery_date2 || '').trim()
-                    ? moment(props.selectedConsigneeCompanyInfo?.extra_data?.delivery_date2, 'MM/DD/YYYY')
-                    : moment()}
-                popupSetter={async (day) => {
 
-                    let extra_data = props.selectedConsigneeCompanyInfo?.extra_data || {};
-                    extra_data.delivery_date2 = day.format('MM/DD/YYYY');
-                    await props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, extra_data: extra_data })
+                popupGetter={moment((props.selectedConsigneeCompanyInfo?.delivery_date2 || '').trim(), 'MM/DD/YYYY').format('MM/DD/YYYY') === (props.selectedConsigneeCompanyInfo?.delivery_date2 || '').trim()
+                    ? moment(props.selectedConsigneeCompanyInfo?.delivery_date2, 'MM/DD/YYYY')
+                    : moment()}
+
+                popupSetter={async (day) => {
+                    await props.setSelectedConsigneeCompanyInfo({
+                        ...props.selectedConsigneeCompanyInfo,
+                        delivery_date2: day.format('MM/DD/YYYY')
+                    })
 
                     let deliveries = (props.selected_order?.deliveries || []).map((delivery, i) => {
-                        if (delivery.id === props.selectedConsigneeCompanyInfo.id) {
-                            delivery.extra_data = extra_data;
+                        if (delivery.id === (props.selectedConsigneeCompanyInfo?.delivery_id || 0)) {
+                            delivery.delivery_date2 = day.format('MM/DD/YYYY');
                         }
                         return delivery;
                     });
 
                     await props.setSelectedOrder({ ...props.selected_order, deliveries: deliveries });
-
-                    await validateOrderForSaving({ keyCode: 9 });
                 }}
                 closeCalendar={() => {
                     setIsPickupDate1CalendarShown(false);
@@ -10507,8 +11380,6 @@ function Dispatch(props) {
                 }}
                 preDay={preSelectedDeliveryDate2}
             />
-
-
         </div >
     )
 }

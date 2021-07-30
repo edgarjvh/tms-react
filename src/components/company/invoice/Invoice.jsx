@@ -6,6 +6,7 @@ import MaskedInput from 'react-text-mask';
 import InvoicePopup from './popup/Popup.jsx';
 import InvoiceModal from './modal/Modal.jsx';
 import $ from 'jquery';
+import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCaretDown, faCaretRight, faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
 import { useDetectClickOutside } from "react-detect-click-outside";
@@ -108,16 +109,16 @@ function Invoice(props) {
 
         if (key === 9) {
             if ((props.order_number || '') !== '') {
-                $.post(props.serverUrl + '/getOrderByOrderNumber', { order_number: props.order_number }).then(async res => {
-                    if (res.result === 'OK') {
+                axios.post(props.serverUrl + '/getOrderByOrderNumber', { order_number: props.order_number }).then(async res => {
+                    if (res.data.result === 'OK') {
                         await props.setInvoiceSelectedOrder({});
-                        await props.setInvoiceSelectedOrder(res.order);
-                        await props.setInvoiceOrderNumber(res.order.order_number);
-                        await props.setInvoiceTripNumber(res.order.trip_number === 0 ? '' : res.order.trip_number);
-                        await props.setInvoiceSelectedBillToCompanyInfo(res.order.bill_to_company || {});
+                        await props.setInvoiceSelectedOrder(res.data.order);
+                        await props.setInvoiceOrderNumber(res.data.order.order_number);
+                        await props.setInvoiceTripNumber(res.data.order.trip_number === 0 ? '' : res.data.order.trip_number);
+                        await props.setInvoiceSelectedBillToCompanyInfo(res.data.order.bill_to_company || {});
 
-                        if (res.order.bill_to_company) {
-                            (res.order.bill_to_company.contacts || []).map(async (contact, index) => {
+                        if (res.data.order.bill_to_company) {
+                            (res.data.order.bill_to_company.contacts || []).map(async (contact, index) => {
                                 if (contact.is_primary === 1) {
                                     await props.setInvoiceSelectedBillToCompanyContact(contact);
                                 }
@@ -126,10 +127,10 @@ function Invoice(props) {
                         }
 
 
-                        await props.setSelectedInvoiceCarrierInfoCarrier(res.order.carrier || {});
+                        await props.setSelectedInvoiceCarrierInfoCarrier(res.data.order.carrier || {});
 
-                        if (res.order.carrier) {
-                            (res.order.carrier.contacts || []).map(async (contact, index) => {
+                        if (res.data.order.carrier) {
+                            (res.data.order.carrier.contacts || []).map(async (contact, index) => {
                                 if (contact.is_primary === 1) {
                                     await props.setSelectedInvoiceCarrierInfoContact(contact);
                                 }
@@ -137,11 +138,13 @@ function Invoice(props) {
                             })
                         }
 
-                        await props.setSelectedInvoiceCarrierInfoDriver(res.order.driver || {});
+                        await props.setSelectedInvoiceCarrierInfoDriver(res.data.order.driver || {});
 
                     } else {
                         props.setInvoiceOrderNumber(props.selected_order?.order_number || '');
                     }
+                }).catch(e => {
+                    console.log('error getting order by order number', e);
                 });
             } else {
                 if ((props.selected_order?.order_number || '') !== '') {
@@ -156,16 +159,16 @@ function Invoice(props) {
 
         if (key === 9) {
             if ((props.trip_number || '') !== '') {
-                $.post(props.serverUrl + '/getOrderByTripNumber', { trip_number: props.trip_number }).then(async res => {
-                    if (res.result === 'OK') {
+                axios.post(props.serverUrl + '/getOrderByTripNumber', { trip_number: props.trip_number }).then(async res => {
+                    if (res.data.result === 'OK') {
                         await props.setInvoiceSelectedOrder({});
-                        await props.setInvoiceSelectedOrder(res.order);
-                        await props.setInvoiceOrderNumber(res.order.order_number);
-                        await props.setInvoiceTripNumber(res.order.trip_number === 0 ? '' : res.order.trip_number);
-                        await props.setSelectedInvoiceBillToCompanyInfo(res.order.bill_to_company || {});
+                        await props.setInvoiceSelectedOrder(res.data.order);
+                        await props.setInvoiceOrderNumber(res.data.order.order_number);
+                        await props.setInvoiceTripNumber(res.data.order.trip_number === 0 ? '' : res.data.order.trip_number);
+                        await props.setSelectedInvoiceBillToCompanyInfo(res.data.order.bill_to_company || {});
 
-                        if (res.order.bill_to_company) {
-                            (res.order.bill_to_company.contacts || []).map(async (contact, index) => {
+                        if (res.data.order.bill_to_company) {
+                            (res.data.order.bill_to_company.contacts || []).map(async (contact, index) => {
                                 if (contact.is_primary === 1) {
                                     await props.setSelectedInvoiceBillToCompanyContact(contact);
                                 }
@@ -173,10 +176,10 @@ function Invoice(props) {
                             })
                         }
 
-                        await props.setSelectedInvoiceCarrierInfoCarrier(res.order.carrier || {});
+                        await props.setSelectedInvoiceCarrierInfoCarrier(res.data.order.carrier || {});
 
-                        if (res.order.carrier) {
-                            (res.order.carrier.contacts || []).map(async (contact, index) => {
+                        if (res.data.order.carrier) {
+                            (res.data.order.carrier.contacts || []).map(async (contact, index) => {
                                 if (contact.is_primary === 1) {
                                     await props.setSelectedInvoiceCarrierInfoContact(contact);
                                 }
@@ -184,11 +187,13 @@ function Invoice(props) {
                             })
                         }
 
-                        await props.setSelectedInvoiceCarrierInfoDriver(res.order.driver || {});
+                        await props.setSelectedInvoiceCarrierInfoDriver(res.data.order.driver || {});
 
                     } else {
                         props.setInvoiceTripNumber(props.selected_order?.trip_number || '');
                     }
+                }).catch(e => {
+                    console.log('error getting order by trip number', e);
                 });
             } else {
                 if ((props.selected_order?.trip_number || '') !== '') {
@@ -248,13 +253,13 @@ function Invoice(props) {
                 selectedBillToCompanyInfo.code = newCode.toUpperCase();
                 selectedBillToCompanyInfo.mailing_code = mailingNewCode.toUpperCase();
 
-                $.post(props.serverUrl + '/saveCustomer', selectedBillToCompanyInfo).then(async res => {
-                    if (res.result === 'OK') {
+                axios.post(props.serverUrl + '/saveCustomer', selectedBillToCompanyInfo).then(async res => {
+                    if (res.data.result === 'OK') {
                         if (props.selectedBillToCompanyInfo.id === undefined || (props.selectedBillToCompanyInfo.id || 0) === 0) {
-                            await props.setInvoiceSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, id: res.customer.id });
+                            await props.setInvoiceSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, id: res.data.customer.id });
                         }
 
-                        (res.customer.contacts || []).map(async (contact, index) => {
+                        (res.data.customer.contacts || []).map(async (contact, index) => {
 
                             if (contact.is_primary === 1) {
                                 await props.setInvoiceSelectedBillToCompanyContact(contact);
@@ -307,10 +312,10 @@ function Invoice(props) {
                 contact.zip_code = props.selectedBillToCompanyInfo.zip;
             }
 
-            $.post(props.serverUrl + '/saveContact', contact).then(async res => {
-                if (res.result === 'OK') {
-                    await props.setInvoiceSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, contacts: res.contacts });
-                    await props.setInvoiceSelectedBillToCompanyContact(res.contact);
+            axios.post(props.serverUrl + '/saveContact', contact).then(async res => {
+                if (res.data.result === 'OK') {
+                    await props.setInvoiceSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, contacts: res.data.contacts });
+                    await props.setInvoiceSelectedBillToCompanyContact(res.data.contact);
                 }
 
                 setIsSavingBillToCompanyContact(false);
@@ -366,13 +371,13 @@ function Invoice(props) {
 
                 selectedInvoiceCarrierInfoCarrier.code = newCode.toUpperCase();
 
-                $.post(props.serverUrl + '/saveCarrier', selectedInvoiceCarrierInfoCarrier).then(async res => {
-                    if (res.result === 'OK') {
+                axios.post(props.serverUrl + '/saveCarrier', selectedInvoiceCarrierInfoCarrier).then(async res => {
+                    if (res.data.result === 'OK') {
                         if (props.selectedInvoiceCarrierInfoCarrier.id === undefined && (props.selectedInvoiceCarrierInfoCarrier.id || 0) === 0) {
-                            await props.setSelectedInvoiceCarrierInfoCarrier({ ...props.selectedInvoiceCarrierInfoCarrier, id: res.carrier.id });
+                            await props.setSelectedInvoiceCarrierInfoCarrier({ ...props.selectedInvoiceCarrierInfoCarrier, id: res.data.carrier.id });
                         }
 
-                        (res.carrier.contacts || []).map(async (contact, index) => {
+                        (res.data.carrier.contacts || []).map(async (contact, index) => {
 
                             if (contact.is_primary === 1) {
                                 await props.setSelectedInvoiceCarrierInfoContact(contact);
@@ -455,10 +460,10 @@ function Invoice(props) {
                 contact.zip_code = props.selectedInvoiceCarrierInfoCarrier.zip;
             }
 
-            $.post(props.serverUrl + '/saveCarrierContact', contact).then(async res => {
-                if (res.result === 'OK') {
-                    await props.setSelectedInvoiceCarrierInfoCarrier({ ...props.selectedInvoiceCarrierInfoCarrier, contacts: res.contacts });
-                    await props.setSelectedInvoiceCarrierInfoContact(res.contact);
+            axios.post(props.serverUrl + '/saveCarrierContact', contact).then(async res => {
+                if (res.data.result === 'OK') {
+                    await props.setSelectedInvoiceCarrierInfoCarrier({ ...props.selectedInvoiceCarrierInfoCarrier, contacts: res.data.contacts });
+                    await props.setSelectedInvoiceCarrierInfoContact(res.data.contact);
                 }
 
                 setIsSavingCarrierContact(false);
@@ -489,10 +494,10 @@ function Invoice(props) {
 
             if ((props.selectedInvoiceCarrierInfoCarrier?.id || 0) > 0) {
                 if ((driver.first_name || '').trim() !== '') {
-                    $.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
-                        if (res.result === 'OK') {
-                            await props.setSelectedInvoiceCarrierInfoCarrier({ ...props.selectedInvoiceCarrierInfoCarrier, drivers: res.drivers });
-                            await props.setSelectedInvoiceCarrierInfoDriver({ ...props.selectedInvoiceCarrierInfoDriver, id: res.driver.id });
+                    axios.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
+                        if (res.data.result === 'OK') {
+                            await props.setSelectedInvoiceCarrierInfoCarrier({ ...props.selectedInvoiceCarrierInfoCarrier, drivers: res.data.drivers });
+                            await props.setSelectedInvoiceCarrierInfoDriver({ ...props.selectedInvoiceCarrierInfoDriver, id: res.data.driver.id });
                         }
 
                         await setIsSavingCarrierDriver(false);
@@ -638,9 +643,9 @@ function Invoice(props) {
                                                             return true;
                                                         });
                                                     } else {
-                                                        $.post(props.serverUrl + '/getRateTypes').then(async res => {
-                                                            if (res.result === 'OK') {
-                                                                await setBillToRateTypeItems(res.rate_types.map((item, index) => {
+                                                        axios.post(props.serverUrl + '/getRateTypes').then(async res => {
+                                                            if (res.data.result === 'OK') {
+                                                                await setBillToRateTypeItems(res.data.rate_types.map((item, index) => {
                                                                     item.selected = (billToRateType.id || 0) === 0
                                                                         ? index === 0
                                                                         : item.id === billToRateType.id
@@ -696,9 +701,9 @@ function Invoice(props) {
                                                             return true;
                                                         });
                                                     } else {
-                                                        $.post(props.serverUrl + '/getRateTypes').then(async res => {
-                                                            if (res.result === 'OK') {
-                                                                await setBillToRateTypeItems(res.rate_types.map((item, index) => {
+                                                        axios.post(props.serverUrl + '/getRateTypes').then(async res => {
+                                                            if (res.data.result === 'OK') {
+                                                                await setBillToRateTypeItems(res.data.rate_types.map((item, index) => {
                                                                     item.selected = (billToRateType.id || 0) === 0
                                                                         ? index === 0
                                                                         : item.id === billToRateType.id
@@ -761,11 +766,11 @@ function Invoice(props) {
                                             if (e.target.value.trim() === '') {
                                                 setBillToRateTypeItems([]);
                                             } else {
-                                                $.post(props.serverUrl + '/getRateTypes', {
+                                                axios.post(props.serverUrl + '/getRateTypes', {
                                                     name: e.target.value.trim()
                                                 }).then(async res => {
-                                                    if (res.result === 'OK') {
-                                                        await setBillToRateTypeItems(res.rate_types.map((item, index) => {
+                                                    if (res.data.result === 'OK') {
+                                                        await setBillToRateTypeItems(res.data.rate_types.map((item, index) => {
                                                             item.selected = (billToRateType.id || 0) === 0
                                                                 ? index === 0
                                                                 : item.id === billToRateType.id
@@ -786,11 +791,11 @@ function Invoice(props) {
                                             if (e.target.value.trim() === '') {
                                                 setBillToRateTypeItems([]);
                                             } else {
-                                                $.post(props.serverUrl + '/getRateTypes', {
+                                                axios.post(props.serverUrl + '/getRateTypes', {
                                                     name: e.target.value.trim()
                                                 }).then(async res => {
-                                                    if (res.result === 'OK') {
-                                                        await setBillToRateTypeItems(res.rate_types.map((item, index) => {
+                                                    if (res.data.result === 'OK') {
+                                                        await setBillToRateTypeItems(res.data.rate_types.map((item, index) => {
                                                             item.selected = (billToRateType.id || 0) === 0
                                                                 ? index === 0
                                                                 : item.id === billToRateType.id
@@ -809,11 +814,11 @@ function Invoice(props) {
                                             setBillToRateTypeItems([]);
                                         } else {
                                             if ((billToRateType.id || 0) === 0 && (billToRateType.name || '') !== '') {
-                                                $.post(props.serverUrl + '/getRateTypes', {
+                                                axios.post(props.serverUrl + '/getRateTypes', {
                                                     name: billToRateType.name
                                                 }).then(async res => {
-                                                    if (res.result === 'OK') {
-                                                        await setBillToRateTypeItems(res.rate_types.map((item, index) => {
+                                                    if (res.data.result === 'OK') {
+                                                        await setBillToRateTypeItems(res.data.rate_types.map((item, index) => {
                                                             item.selected = (billToRateType.id || 0) === 0
                                                                 ? index === 0
                                                                 : item.id === billToRateType.id
@@ -835,9 +840,9 @@ function Invoice(props) {
                                                     console.log('error getting rate types', e);
                                                 })
                                             } else {
-                                                $.post(props.serverUrl + '/getRateTypes').then(async res => {
-                                                    if (res.result === 'OK') {
-                                                        await setBillToRateTypeItems(res.rate_types.map((item, index) => {
+                                                axios.post(props.serverUrl + '/getRateTypes').then(async res => {
+                                                    if (res.data.result === 'OK') {
+                                                        await setBillToRateTypeItems(res.data.rate_types.map((item, index) => {
                                                             item.selected = (billToRateType.id || 0) === 0
                                                                 ? index === 0
                                                                 : item.id === billToRateType.id
@@ -1230,9 +1235,9 @@ function Invoice(props) {
                                                             return true;
                                                         });
                                                     } else {
-                                                        $.post(props.serverUrl + '/getRateTypes').then(async res => {
-                                                            if (res.result === 'OK') {
-                                                                await setCarrierChargesRateTypeItems(res.rate_types.map((item, index) => {
+                                                        axios.post(props.serverUrl + '/getRateTypes').then(async res => {
+                                                            if (res.data.result === 'OK') {
+                                                                await setCarrierChargesRateTypeItems(res.data.rate_types.map((item, index) => {
                                                                     item.selected = (carrierChargesRateType.id || 0) === 0
                                                                         ? index === 0
                                                                         : item.id === carrierChargesRateType.id
@@ -1288,9 +1293,9 @@ function Invoice(props) {
                                                             return true;
                                                         });
                                                     } else {
-                                                        $.post(props.serverUrl + '/getRateTypes').then(async res => {
-                                                            if (res.result === 'OK') {
-                                                                await setCarrierChargesRateTypeItems(res.rate_types.map((item, index) => {
+                                                        axios.post(props.serverUrl + '/getRateTypes').then(async res => {
+                                                            if (res.data.result === 'OK') {
+                                                                await setCarrierChargesRateTypeItems(res.data.rate_types.map((item, index) => {
                                                                     item.selected = (carrierChargesRateType.id || 0) === 0
                                                                         ? index === 0
                                                                         : item.id === carrierChargesRateType.id
@@ -1353,11 +1358,11 @@ function Invoice(props) {
                                             if (e.target.value.trim() === '') {
                                                 setCarrierChargesRateTypeItems([]);
                                             } else {
-                                                $.post(props.serverUrl + '/getRateTypes', {
+                                                axios.post(props.serverUrl + '/getRateTypes', {
                                                     name: e.target.value.trim()
                                                 }).then(async res => {
-                                                    if (res.result === 'OK') {
-                                                        await setCarrierChargesRateTypeItems(res.rate_types.map((item, index) => {
+                                                    if (res.data.result === 'OK') {
+                                                        await setCarrierChargesRateTypeItems(res.data.rate_types.map((item, index) => {
                                                             item.selected = (carrierChargesRateType.id || 0) === 0
                                                                 ? index === 0
                                                                 : item.id === carrierChargesRateType.id
@@ -1378,11 +1383,11 @@ function Invoice(props) {
                                             if (e.target.value.trim() === '') {
                                                 setCarrierChargesRateTypeItems([]);
                                             } else {
-                                                $.post(props.serverUrl + '/getRateTypes', {
+                                                axios.post(props.serverUrl + '/getRateTypes', {
                                                     name: e.target.value.trim()
                                                 }).then(async res => {
-                                                    if (res.result === 'OK') {
-                                                        await setCarrierChargesRateTypeItems(res.rate_types.map((item, index) => {
+                                                    if (res.data.result === 'OK') {
+                                                        await setCarrierChargesRateTypeItems(res.data.rate_types.map((item, index) => {
                                                             item.selected = (carrierChargesRateType.id || 0) === 0
                                                                 ? index === 0
                                                                 : item.id === carrierChargesRateType.id
@@ -1401,11 +1406,11 @@ function Invoice(props) {
                                             setCarrierChargesRateTypeItems([]);
                                         } else {
                                             if ((carrierChargesRateType.id || 0) === 0 && (carrierChargesRateType.name || '') !== '') {
-                                                $.post(props.serverUrl + '/getRateTypes', {
+                                                axios.post(props.serverUrl + '/getRateTypes', {
                                                     name: carrierChargesRateType.name
                                                 }).then(async res => {
-                                                    if (res.result === 'OK') {
-                                                        await setCarrierChargesRateTypeItems(res.rate_types.map((item, index) => {
+                                                    if (res.data.result === 'OK') {
+                                                        await setCarrierChargesRateTypeItems(res.data.rate_types.map((item, index) => {
                                                             item.selected = (carrierChargesRateType.id || 0) === 0
                                                                 ? index === 0
                                                                 : item.id === carrierChargesRateType.id
@@ -1427,9 +1432,9 @@ function Invoice(props) {
                                                     console.log('error getting rate types', e);
                                                 })
                                             } else {
-                                                $.post(props.serverUrl + '/getRateTypes').then(async res => {
-                                                    if (res.result === 'OK') {
-                                                        await setCarrierChargesRateTypeItems(res.rate_types.map((item, index) => {
+                                                axios.post(props.serverUrl + '/getRateTypes').then(async res => {
+                                                    if (res.data.result === 'OK') {
+                                                        await setCarrierChargesRateTypeItems(res.data.rate_types.map((item, index) => {
                                                             item.selected = (carrierChargesRateType.id || 0) === 0
                                                                 ? index === 0
                                                                 : item.id === carrierChargesRateType.id
@@ -2117,9 +2122,9 @@ function Invoice(props) {
                                                                 return true;
                                                             });
                                                         } else {
-                                                            $.post(props.serverUrl + '/getEquipments').then(async res => {
-                                                                if (res.result === 'OK') {
-                                                                    await setEquipmentItems(res.equipments.map((item, index) => {
+                                                            axios.post(props.serverUrl + '/getEquipments').then(async res => {
+                                                                if (res.data.result === 'OK') {
+                                                                    await setEquipmentItems(res.data.equipments.map((item, index) => {
                                                                         item.selected = (props.selectedInvoiceCarrierInfoDriver?.equipment?.id || 0) === 0
                                                                             ? index === 0
                                                                             : item.id === props.selectedInvoiceCarrierInfoDriver.equipment.id
@@ -2175,9 +2180,9 @@ function Invoice(props) {
                                                                 return true;
                                                             });
                                                         } else {
-                                                            $.post(props.serverUrl + '/getEquipments').then(async res => {
-                                                                if (res.result === 'OK') {
-                                                                    await setEquipmentItems(res.equipments.map((item, index) => {
+                                                            axios.post(props.serverUrl + '/getEquipments').then(async res => {
+                                                                if (res.data.result === 'OK') {
+                                                                    await setEquipmentItems(res.data.equipments.map((item, index) => {
                                                                         item.selected = (props.selectedInvoiceCarrierInfoDriver?.equipment?.id || 0) === 0
                                                                             ? index === 0
                                                                             : item.id === props.selectedInvoiceCarrierInfoDriver.equipment.id
@@ -2250,11 +2255,11 @@ function Invoice(props) {
                                                 if (e.target.value.trim() === '') {
                                                     setEquipmentItems([]);
                                                 } else {
-                                                    $.post(props.serverUrl + '/getEquipments', {
+                                                    axios.post(props.serverUrl + '/getEquipments', {
                                                         name: e.target.value.trim()
                                                     }).then(async res => {
-                                                        if (res.result === 'OK') {
-                                                            await setEquipmentItems(res.equipments.map((item, index) => {
+                                                        if (res.data.result === 'OK') {
+                                                            await setEquipmentItems(res.data.equipments.map((item, index) => {
                                                                 item.selected = (props.selectedInvoiceCarrierInfoDriver?.equipment?.id || 0) === 0
                                                                     ? index === 0
                                                                     : item.id === props.selectedInvoiceCarrierInfoDriver.equipment.id
@@ -2279,11 +2284,11 @@ function Invoice(props) {
                                                 setEquipmentItems([]);
                                             } else {
                                                 if ((props.selectedInvoiceCarrierInfoDriver?.equipment?.id || 0) === 0 && (props.selectedInvoiceCarrierInfoDriver?.equipment?.name || '') !== '') {
-                                                    $.post(props.serverUrl + '/getEquipments', {
+                                                    axios.post(props.serverUrl + '/getEquipments', {
                                                         name: props.selectedInvoiceCarrierInfoDriver?.equipment.name
                                                     }).then(async res => {
-                                                        if (res.result === 'OK') {
-                                                            await setEquipmentItems(res.equipments.map((item, index) => {
+                                                        if (res.data.result === 'OK') {
+                                                            await setEquipmentItems(res.data.equipments.map((item, index) => {
                                                                 item.selected = (props.selectedInvoiceCarrierInfoDriver?.equipment?.id || 0) === 0
                                                                     ? index === 0
                                                                     : item.id === props.selectedInvoiceCarrierInfoDriver.equipment.id
@@ -2305,9 +2310,9 @@ function Invoice(props) {
                                                         console.log('error getting equipments', e);
                                                     })
                                                 } else {
-                                                    $.post(props.serverUrl + '/getEquipments').then(async res => {
-                                                        if (res.result === 'OK') {
-                                                            await setEquipmentItems(res.equipments.map((item, index) => {
+                                                    axios.post(props.serverUrl + '/getEquipments').then(async res => {
+                                                        if (res.data.result === 'OK') {
+                                                            await setEquipmentItems(res.data.equipments.map((item, index) => {
                                                                 item.selected = (props.selectedInvoiceCarrierInfoDriver?.equipment?.id || 0) === 0
                                                                     ? index === 0
                                                                     : item.id === props.selectedInvoiceCarrierInfoDriver.equipment.id
@@ -2455,12 +2460,12 @@ function Invoice(props) {
                                                             });
                                                         } else {
                                                             if ((props.selectedInvoiceCarrierInfoCarrier?.id || 0) > 0) {
-                                                                $.post(props.serverUrl + '/getDriversByCarrierId', {
+                                                                axios.post(props.serverUrl + '/getDriversByCarrierId', {
                                                                     carrier_id: props.selectedInvoiceCarrierInfoCarrier.id
                                                                 }).then(async res => {
-                                                                    if (res.result === 'OK') {
-                                                                        if (res.count > 1) {
-                                                                            await setDriverItems(res.drivers.map((item, index) => {
+                                                                    if (res.data.result === 'OK') {
+                                                                        if (res.data.count > 1) {
+                                                                            await setDriverItems(res.data.drivers.map((item, index) => {
                                                                                 item.selected = (props.selectedInvoiceCarrierInfoDriver?.id || 0) === 0
                                                                                     ? index === 0
                                                                                     : item.id === props.selectedInvoiceCarrierInfoDriver.id
@@ -2519,12 +2524,12 @@ function Invoice(props) {
                                                             });
                                                         } else {
                                                             if ((props.selectedInvoiceCarrierInfoCarrier?.id || 0) > 0) {
-                                                                $.post(props.serverUrl + '/getDriversByCarrierId', {
+                                                                axios.post(props.serverUrl + '/getDriversByCarrierId', {
                                                                     carrier_id: props.selectedInvoiceCarrierInfoCarrier.id
                                                                 }).then(async res => {
-                                                                    if (res.result === 'OK') {
-                                                                        if (res.count > 1) {
-                                                                            await setDriverItems(res.drivers.map((item, index) => {
+                                                                    if (res.data.result === 'OK') {
+                                                                        if (res.data.count > 1) {
+                                                                            await setDriverItems(res.data.drivers.map((item, index) => {
                                                                                 item.selected = (props.selectedInvoiceCarrierInfoDriver?.id || 0) === 0
                                                                                     ? index === 0
                                                                                     : item.id === props.selectedInvoiceCarrierInfoDriver.id
@@ -2628,12 +2633,12 @@ function Invoice(props) {
                                                     props.setSelectedInvoiceCarrierInfoDriver({ ...driver, first_name: first_name, last_name: last_name });
 
                                                     // if ((props.selectedInvoiceCarrierInfoCarrier?.id || 0) > 0) {
-                                                    //     $.post(props.serverUrl + '/getDriversByCarrierId', {
+                                                    //     axios.post(props.serverUrl + '/getDriversByCarrierId', {
                                                     //         carrier_id: props.selectedInvoiceCarrierInfoCarrier.id
                                                     //     }).then(async res => {
-                                                    //         if (res.result === 'OK') {
-                                                    //             if (res.count > 1) {
-                                                    //                 await setDriverItems(res.drivers.map((item, index) => {
+                                                    //         if (res.data.result === 'OK') {
+                                                    //             if (res.data.count > 1) {
+                                                    //                 await setDriverItems(res.data.drivers.map((item, index) => {
                                                     //                     item.selected = (props.selectedInvoiceCarrierInfoDriver?.id || 0) === 0
                                                     //                         ? index === 0
                                                     //                         : item.id === props.selectedInvoiceCarrierInfoDriver.id
@@ -2686,12 +2691,12 @@ function Invoice(props) {
                                                     props.setSelectedInvoiceCarrierInfoDriver({ ...driver, first_name: first_name, last_name: last_name });
 
                                                     // if ((props.selectedInvoiceCarrierInfoCarrier?.id || 0) > 0) {
-                                                    //     $.post(props.serverUrl + '/getDriversByCarrierId', {
+                                                    //     axios.post(props.serverUrl + '/getDriversByCarrierId', {
                                                     //         carrier_id: props.selectedInvoiceCarrierInfoCarrier.id
                                                     //     }).then(async res => {
-                                                    //         if (res.result === 'OK') {
-                                                    //             if (res.count > 1) {
-                                                    //                 await setDriverItems(res.drivers.map((item, index) => {
+                                                    //         if (res.data.result === 'OK') {
+                                                    //             if (res.data.count > 1) {
+                                                    //                 await setDriverItems(res.data.drivers.map((item, index) => {
                                                     //                     item.selected = (props.selectedInvoiceCarrierInfoDriver?.id || 0) === 0
                                                     //                         ? index === 0
                                                     //                         : item.id === props.selectedInvoiceCarrierInfoDriver.id
@@ -2727,12 +2732,12 @@ function Invoice(props) {
                                                 } else {
                                                     window.setTimeout(async () => {
                                                         if ((props.selectedInvoiceCarrierInfoCarrier?.id || 0) > 0) {
-                                                            $.post(props.serverUrl + '/getDriversByCarrierId', {
+                                                            axios.post(props.serverUrl + '/getDriversByCarrierId', {
                                                                 carrier_id: props.selectedInvoiceCarrierInfoCarrier.id
                                                             }).then(async res => {
-                                                                if (res.result === 'OK') {
-                                                                    if (res.count > 1) {
-                                                                        await setDriverItems(res.drivers.map((item, index) => {
+                                                                if (res.data.result === 'OK') {
+                                                                    if (res.data.count > 1) {
+                                                                        await setDriverItems(res.data.drivers.map((item, index) => {
                                                                             item.selected = (props.selectedInvoiceCarrierInfoDriver?.id || 0) === 0
                                                                                 ? index === 0
                                                                                 : item.id === props.selectedInvoiceCarrierInfoDriver.id
@@ -2939,9 +2944,9 @@ function Invoice(props) {
                                                         return true;
                                                     });
                                                 } else {
-                                                    $.post(props.serverUrl + '/getTerms').then(async res => {
-                                                        if (res.result === 'OK') {
-                                                            await setTermsItems(res.terms.map((item, index) => {
+                                                    axios.post(props.serverUrl + '/getTerms').then(async res => {
+                                                        if (res.data.result === 'OK') {
+                                                            await setTermsItems(res.data.terms.map((item, index) => {
                                                                 item.selected = (term.id || 0) === 0
                                                                     ? index === 0
                                                                     : item.id === term.id
@@ -2997,9 +3002,9 @@ function Invoice(props) {
                                                         return true;
                                                     });
                                                 } else {
-                                                    $.post(props.serverUrl + '/getTerms').then(async res => {
-                                                        if (res.result === 'OK') {
-                                                            await setTermsItems(res.terms.map((item, index) => {
+                                                    axios.post(props.serverUrl + '/getTerms').then(async res => {
+                                                        if (res.data.result === 'OK') {
+                                                            await setTermsItems(res.data.terms.map((item, index) => {
                                                                 item.selected = (term.id || 0) === 0
                                                                     ? index === 0
                                                                     : item.id === term.id
@@ -3062,11 +3067,11 @@ function Invoice(props) {
                                         if (e.target.value.trim() === '') {
                                             setTermsItems([]);
                                         } else {
-                                            $.post(props.serverUrl + '/getTerms', {
+                                            axios.post(props.serverUrl + '/getTerms', {
                                                 name: e.target.value.trim()
                                             }).then(async res => {
-                                                if (res.result === 'OK') {
-                                                    await setTermsItems(res.terms.map((item, index) => {
+                                                if (res.data.result === 'OK') {
+                                                    await setTermsItems(res.data.terms.map((item, index) => {
                                                         item.selected = (term.id || 0) === 0
                                                             ? index === 0
                                                             : item.id === term.id
@@ -3087,11 +3092,11 @@ function Invoice(props) {
                                         if (e.target.value.trim() === '') {
                                             setTermsItems([]);
                                         } else {
-                                            $.post(props.serverUrl + '/getTerms', {
+                                            axios.post(props.serverUrl + '/getTerms', {
                                                 name: e.target.value.trim()
                                             }).then(async res => {
-                                                if (res.result === 'OK') {
-                                                    await setTermsItems(res.terms.map((item, index) => {
+                                                if (res.data.result === 'OK') {
+                                                    await setTermsItems(res.data.terms.map((item, index) => {
                                                         item.selected = (term.id || 0) === 0
                                                             ? index === 0
                                                             : item.id === term.id
@@ -3110,11 +3115,11 @@ function Invoice(props) {
                                         setTermsItems([]);
                                     } else {
                                         if ((term.id || 0) === 0 && (term.name || '') !== '') {
-                                            $.post(props.serverUrl + '/getTerms', {
+                                            axios.post(props.serverUrl + '/getTerms', {
                                                 name: term.name
                                             }).then(async res => {
-                                                if (res.result === 'OK') {
-                                                    await setTermsItems(res.terms.map((item, index) => {
+                                                if (res.data.result === 'OK') {
+                                                    await setTermsItems(res.data.terms.map((item, index) => {
                                                         item.selected = (term.id || 0) === 0
                                                             ? index === 0
                                                             : item.id === term.id
@@ -3136,9 +3141,9 @@ function Invoice(props) {
                                                 console.log('error getting terms', e);
                                             })
                                         } else {
-                                            $.post(props.serverUrl + '/getTerms').then(async res => {
-                                                if (res.result === 'OK') {
-                                                    await setTermsItems(res.terms.map((item, index) => {
+                                            axios.post(props.serverUrl + '/getTerms').then(async res => {
+                                                if (res.data.result === 'OK') {
+                                                    await setTermsItems(res.data.terms.map((item, index) => {
                                                         item.selected = (term.id || 0) === 0
                                                             ? index === 0
                                                             : item.id === term.id
