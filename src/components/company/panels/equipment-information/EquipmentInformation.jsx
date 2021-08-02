@@ -9,14 +9,73 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCaretDown, faCaretRight, faCalendarAlt, faPencilAlt, faPen } from '@fortawesome/free-solid-svg-icons';
 import { useDetectClickOutside } from "react-detect-click-outside";
 import Highlighter from "react-highlight-words";
+import MaskedInput from 'react-text-mask';
+import createNumberMask from 'text-mask-addons/dist/createNumberMask';
 
 function EquipmentInformation(props) {
-    const refEquipment = useRef();
     const refEquipmentCarrierCode = useRef();
 
+    const refEquipment = useRef();
     const [equipmentDropdownItems, setEquipmentDropdownItems] = useState([]);
     const refEquipmentDropDown = useDetectClickOutside({ onTriggered: async () => { await setEquipmentDropdownItems([]) } });
     const refEquipmentPopupItems = useRef([]);
+
+    const refLength = useRef();
+    const [lengthDropdownItems, setLengthDropdownItems] = useState([
+        {
+            id: 1,
+            name: 'Feet',
+            value: 'ft',
+            selected: false
+        },
+        {
+            id: 2,
+            name: 'Inches',
+            value: 'in',
+            selected: false
+        }
+    ]);
+    const refLengthDropDown = useDetectClickOutside({ onTriggered: async () => { await setShowLengthDropdownItems(false) } });
+    const refLengthPopupItems = useRef([]);
+    const [showLengthDropdownItems, setShowLengthDropdownItems] = useState(false);
+
+    const refWidth = useRef();
+    const [widthDropdownItems, setWidthDropdownItems] = useState([
+        {
+            id: 1,
+            name: 'Feet',
+            value: 'ft',
+            selected: false
+        },
+        {
+            id: 2,
+            name: 'Inches',
+            value: 'in',
+            selected: false
+        }
+    ]);
+    const refWidthDropDown = useDetectClickOutside({ onTriggered: async () => { await setShowWidthDropdownItems(false) } });
+    const refWidthPopupItems = useRef([]);
+    const [showWidthDropdownItems, setShowWidthDropdownItems] = useState(false);
+
+    const refHeight = useRef();
+    const [heightDropdownItems, setHeightDropdownItems] = useState([
+        {
+            id: 1,
+            name: 'Feet',
+            value: 'ft',
+            selected: false
+        },
+        {
+            id: 2,
+            name: 'Inches',
+            value: 'in',
+            selected: false
+        }
+    ]);
+    const refHeightDropDown = useDetectClickOutside({ onTriggered: async () => { await setShowHeightDropdownItems(false) } });
+    const refHeightPopupItems = useRef([]);
+    const [showHeightDropdownItems, setShowHeightDropdownItems] = useState(false);
 
     const [isSavingEquipmentInformation, setIsSavingEquipmentInformation] = useState(false);
 
@@ -126,7 +185,7 @@ function EquipmentInformation(props) {
                         }
                     }
                 });
-            }else{
+            } else {
                 props.setEquipmentInformation({
                     ...props.equipmentInformation,
                     carrier: {
@@ -172,12 +231,35 @@ function EquipmentInformation(props) {
                 <div className='form-header'>
                     <div className='top-border top-border-left'></div>
                     <div className='top-border top-border-middle'></div>
+                    <div className="form-buttons">
+                        <div className="mochi-button" onClick={() => {
+                            props.setEquipmentInformation({
+                                ...props.equipmentInformation,
+                                id: null,
+                                equipment: {},
+                                equipment_id: null,
+                                units: '',
+                                equipment_length: '',
+                                equipment_length_unit: 'ft',
+                                equipment_width: '',
+                                equipment_width_unit: 'ft',
+                                equipment_height: '',
+                                equipment_height_unit: 'ft',
+                            });
+
+                            refEquipment.current.focus();
+                        }}>
+                            <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
+                            <div className="mochi-button-base">Clear</div>
+                            <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
+                        </div>
+                    </div>
                     <div className='top-border top-border-right'></div>
                 </div>
 
                 <div className="form-row">
                     <div className="input-box-container input-code">
-                        <input type="text" maxLength="8" placeholder="Code"
+                        <input tabIndex={1 + props.tabTimes} type="text" maxLength="8" placeholder="Code"
                             ref={refEquipmentCarrierCode}
                             onKeyDown={searchCarrierByCode}
                             onInput={e => {
@@ -201,7 +283,7 @@ function EquipmentInformation(props) {
                     </div>
                     <div className="form-h-sep"></div>
                     <div className="input-box-container grow">
-                        <input type="text" placeholder="Name"
+                        <input tabIndex={2 + props.tabTimes} type="text" placeholder="Name"
                             readOnly={true}
                             onInput={e => {
                                 props.setEquipmentInformation({
@@ -227,7 +309,7 @@ function EquipmentInformation(props) {
                 <div className="form-row">
                     <div className="select-box-container" style={{ flexGrow: 1 }}>
                         <div className="select-box-wrapper">
-                            <input type="text" placeholder="Equipment"
+                            <input tabIndex={3 + props.tabTimes} type="text" placeholder="Equipment"
                                 ref={refEquipment}
                                 onKeyDown={async (e) => {
                                     let key = e.keyCode || e.which;
@@ -547,8 +629,9 @@ function EquipmentInformation(props) {
                         </Transition>
                     </div>
                     <div className="form-h-sep"></div>
-                    <div className="input-box-container" style={{ width: '10rem' }}>
-                        <input type="text" placeholder="Number of Units"
+                    <div className="input-box-container" style={{ width: '10rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Number of Units</div>
+                        <input tabIndex={4 + props.tabTimes} style={{ textAlign: 'right', fontWeight: 'bold' }} type="text"
                             onInput={(e) => { props.setEquipmentInformation({ ...props.equipmentInformation, units: e.target.value }) }}
                             onChange={(e) => { props.setEquipmentInformation({ ...props.equipmentInformation, units: e.target.value }) }}
                             value={props.equipmentInformation.units || ''}
@@ -556,30 +639,706 @@ function EquipmentInformation(props) {
                     </div>
                 </div>
                 <div className="form-v-sep"></div>
-                <div className="form-row">
-                    <div className="input-box-container grow">
-                        <input type="text" placeholder="Length"
-                            onInput={(e) => { props.setEquipmentInformation({ ...props.equipmentInformation, equipment_length: e.target.value }) }}
-                            onChange={(e) => { props.setEquipmentInformation({ ...props.equipmentInformation, equipment_length: e.target.value }) }}
-                            value={props.equipmentInformation.equipment_length || ''}
-                        />
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gridGap: 2 }}>
+                    <div className="select-box-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div className="select-box-wrapper">
+                            <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Length</div>
+                            <MaskedInput style={{
+                                textAlign: 'right',
+                                fontWeight: 'bold',
+                                paddingRight: (props.equipmentInformation?.equipment_length || '').trim().length > 0 ? 25 : 0
+                            }}
+                                tabIndex={5 + props.tabTimes} type="text"
+                                mask={createNumberMask({
+                                    prefix: '',
+                                    suffix: '',
+                                    includeThousandsSeparator: false,
+                                    allowDecimal: true
+                                })}
+                                guide={false}
+                                ref={refLength}
+                                onKeyDown={async (e) => {
+                                    let key = e.keyCode || e.which;
+
+                                    switch (key) {
+                                        case 38: // arrow left | arrow up
+                                            e.preventDefault();
+                                            if (showLengthDropdownItems) {
+                                                let selectedIndex = lengthDropdownItems.findIndex(item => item.selected);
+
+                                                if (selectedIndex === -1) {
+                                                    await setLengthDropdownItems(lengthDropdownItems.map((item, index) => {
+                                                        item.selected = index === 0;
+                                                        return item;
+                                                    }))
+                                                } else {
+                                                    await setLengthDropdownItems(lengthDropdownItems.map((item, index) => {
+                                                        if (selectedIndex === 0) {
+                                                            item.selected = index === (lengthDropdownItems.length - 1);
+                                                        } else {
+                                                            item.selected = index === (selectedIndex - 1)
+                                                        }
+                                                        return item;
+                                                    }))
+                                                }
+                                            } else {
+                                                await setLengthDropdownItems(lengthDropdownItems.map((item, index) => {
+                                                    item.selected = props.equipmentInformation.equipment_length_unit === item.value
+                                                    return item;
+                                                }))
+
+                                                await setShowLengthDropdownItems(true);
+                                            }
+
+                                            refLengthPopupItems.current.map((r, i) => {
+                                                if (r && r.classList.contains('selected')) {
+                                                    r.scrollIntoView({
+                                                        behavior: 'auto',
+                                                        block: 'center',
+                                                        inline: 'nearest'
+                                                    })
+                                                }
+                                                return true;
+                                            });
+                                            break;
+
+                                        case 40: // arrow right | arrow down
+                                            e.preventDefault();
+                                            if (showLengthDropdownItems) {
+                                                let selectedIndex = lengthDropdownItems.findIndex(item => item.selected);
+
+                                                if (selectedIndex === -1) {
+                                                    await setLengthDropdownItems(lengthDropdownItems.map((item, index) => {
+                                                        item.selected = index === 0;
+                                                        return item;
+                                                    }))
+                                                } else {
+                                                    await setLengthDropdownItems(lengthDropdownItems.map((item, index) => {
+                                                        if (selectedIndex === (lengthDropdownItems.length - 1)) {
+                                                            item.selected = index === 0;
+                                                        } else {
+                                                            item.selected = index === (selectedIndex + 1)
+                                                        }
+                                                        return item;
+                                                    }))
+                                                }
+                                            } else {
+                                                await setLengthDropdownItems(lengthDropdownItems.map((item, index) => {
+                                                    item.selected = props.equipmentInformation.equipment_length_unit === item.value
+                                                    return item;
+                                                }))
+
+                                                await setShowLengthDropdownItems(true);
+                                            }
+
+                                            refLengthPopupItems.current.map((r, i) => {
+                                                if (r && r.classList.contains('selected')) {
+                                                    r.scrollIntoView({
+                                                        behavior: 'auto',
+                                                        block: 'center',
+                                                        inline: 'nearest'
+                                                    })
+                                                }
+                                                return true;
+                                            });
+                                            break;
+
+                                        case 27: // escape
+                                            await setShowLengthDropdownItems(false);
+                                            break;
+
+                                        case 13: // enter
+                                            if (showLengthDropdownItems && lengthDropdownItems.findIndex(item => item.selected) > -1) {
+                                                await props.setEquipmentInformation({
+                                                    ...props.equipmentInformation,
+                                                    equipment_length_unit: lengthDropdownItems[lengthDropdownItems.findIndex(item => item.selected)].value
+                                                });
+                                                await setShowLengthDropdownItems(false);
+                                                refLength.current.inputElement.focus();
+                                            }
+                                            break;
+
+                                        case 9: // tab
+                                            if (showLengthDropdownItems) {
+                                                e.preventDefault();
+                                                await props.setEquipmentInformation({
+                                                    ...props.equipmentInformation,
+                                                    equipment_length_unit: lengthDropdownItems[lengthDropdownItems.findIndex(item => item.selected)].value
+                                                });
+                                                await setShowLengthDropdownItems(false);
+                                                refLength.current.inputElement.focus();
+                                            }
+                                            break;
+
+                                        default:
+                                            break;
+                                    }
+                                }}
+
+                                onInput={(e) => { props.setEquipmentInformation({ ...props.equipmentInformation, equipment_length: e.target.value }) }}
+                                onChange={(e) => { props.setEquipmentInformation({ ...props.equipmentInformation, equipment_length: e.target.value }) }}
+                                value={props.equipmentInformation.equipment_length || ''}
+                            />
+                            {
+                                (props.equipmentInformation?.equipment_length || '').trim().length > 0 &&
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '50%',
+                                    right: '18px',
+                                    transform: 'translateY(-50%)',
+                                    fontSize: '0.75rem',
+                                    fontFamily: 'Mochi Med Oblique',
+                                    fontWeight: 'bold'
+                                }}>{props.equipmentInformation?.equipment_length_unit || ''}</div>
+                            }
+                            {
+                                (props.equipmentInformation?.equipment_length || '').trim().length > 0 &&
+                                <FontAwesomeIcon className="dropdown-button" icon={faCaretDown} onClick={() => {
+                                    if (showLengthDropdownItems) {
+                                        setShowLengthDropdownItems(false);
+                                    } else {
+                                        setLengthDropdownItems(lengthDropdownItems.map((item, index) => {
+                                            item.selected = props.equipmentInformation.equipment_length_unit === item.value
+                                            return item;
+                                        }))
+
+                                        window.setTimeout(() => {
+                                            setShowLengthDropdownItems(true);
+                                        }, 0)
+                                    }
+
+                                    refLength.current.inputElement.focus();
+                                }} />
+                            }
+                        </div>
+                        <Transition
+                            from={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                            enter={{ opacity: 1, top: 'calc(100% + 15px)' }}
+                            leave={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                            items={showLengthDropdownItems}
+                            config={{ duration: 100 }}
+                        >
+                            {show => show && (styles => (
+                                <div
+                                    className="mochi-contextual-container"
+                                    id="mochi-contextual-container-equipment-length"
+                                    style={{
+                                        ...styles,
+                                        left: 0,
+                                        display: 'block'
+                                    }}
+                                    ref={refLengthDropDown}
+                                >
+                                    <div className="mochi-contextual-popup vertical below right">
+                                        <div className="mochi-contextual-popup-content">
+                                            <div className="mochi-contextual-popup-wrapper">
+                                                {
+                                                    lengthDropdownItems.map((item, index) => {
+                                                        const mochiItemClasses = classnames({
+                                                            'mochi-item': true,
+                                                            'selected': item.selected
+                                                        });
+
+                                                        return (
+                                                            <div
+                                                                key={index}
+                                                                className={mochiItemClasses}
+                                                                id={item.id}
+                                                                onClick={async () => {
+                                                                    await props.setEquipmentInformation({
+                                                                        ...props.equipmentInformation,
+                                                                        equipment_length_unit: item.value
+                                                                    });
+                                                                    setShowLengthDropdownItems(false);
+                                                                    refLength.current.inputElement.focus();
+                                                                }}
+                                                                ref={ref => refLengthPopupItems.current.push(ref)}
+                                                            >
+                                                                {
+                                                                    item.name
+                                                                }
+                                                                {
+                                                                    item.selected &&
+                                                                    <FontAwesomeIcon className="dropdown-selected" icon={faCaretRight} />
+                                                                }
+                                                            </div>
+                                                        )
+                                                    })
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </Transition>
                     </div>
-                    <div className="form-h-sep"></div>
-                    <div className="input-box-container grow">
-                        <input type="text" placeholder="Width"
-                            onInput={(e) => { props.setEquipmentInformation({ ...props.equipmentInformation, equipment_width: e.target.value }) }}
-                            onChange={(e) => { props.setEquipmentInformation({ ...props.equipmentInformation, equipment_width: e.target.value }) }}
-                            value={props.equipmentInformation.equipment_width || ''}
-                        />
+
+                    <div className="select-box-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div className="select-box-wrapper">
+                            <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Width</div>
+                            <MaskedInput style={{
+                                textAlign: 'right',
+                                fontWeight: 'bold',
+                                paddingRight: (props.equipmentInformation?.equipment_width || '').trim().length > 0 ? 25 : 0
+                            }}
+                                tabIndex={6 + props.tabTimes} type="text"
+                                mask={createNumberMask({
+                                    prefix: '',
+                                    suffix: '',
+                                    includeThousandsSeparator: false,
+                                    allowDecimal: true
+                                })}
+                                guide={false}
+                                ref={refWidth}
+                                onKeyDown={async (e) => {
+                                    let key = e.keyCode || e.which;
+
+                                    switch (key) {
+                                        case 38: // arrow left | arrow up
+                                            e.preventDefault();
+                                            if (showWidthDropdownItems) {
+                                                let selectedIndex = widthDropdownItems.findIndex(item => item.selected);
+
+                                                if (selectedIndex === -1) {
+                                                    await setWidthDropdownItems(widthDropdownItems.map((item, index) => {
+                                                        item.selected = index === 0;
+                                                        return item;
+                                                    }))
+                                                } else {
+                                                    await setWidthDropdownItems(widthDropdownItems.map((item, index) => {
+                                                        if (selectedIndex === 0) {
+                                                            item.selected = index === (widthDropdownItems.length - 1);
+                                                        } else {
+                                                            item.selected = index === (selectedIndex - 1)
+                                                        }
+                                                        return item;
+                                                    }))
+                                                }
+                                            } else {
+                                                await setWidthDropdownItems(widthDropdownItems.map((item, index) => {
+                                                    item.selected = props.equipmentInformation.equipment_width_unit === item.value
+                                                    return item;
+                                                }))
+
+                                                await setShowWidthDropdownItems(true);
+                                            }
+
+                                            refWidthPopupItems.current.map((r, i) => {
+                                                if (r && r.classList.contains('selected')) {
+                                                    r.scrollIntoView({
+                                                        behavior: 'auto',
+                                                        block: 'center',
+                                                        inline: 'nearest'
+                                                    })
+                                                }
+                                                return true;
+                                            });
+                                            break;
+
+                                        case 40: // arrow right | arrow down
+                                            e.preventDefault();
+                                            if (showWidthDropdownItems) {
+                                                let selectedIndex = widthDropdownItems.findIndex(item => item.selected);
+
+                                                if (selectedIndex === -1) {
+                                                    await setWidthDropdownItems(widthDropdownItems.map((item, index) => {
+                                                        item.selected = index === 0;
+                                                        return item;
+                                                    }))
+                                                } else {
+                                                    await setWidthDropdownItems(widthDropdownItems.map((item, index) => {
+                                                        if (selectedIndex === (widthDropdownItems.length - 1)) {
+                                                            item.selected = index === 0;
+                                                        } else {
+                                                            item.selected = index === (selectedIndex + 1)
+                                                        }
+                                                        return item;
+                                                    }))
+                                                }
+                                            } else {
+                                                await setWidthDropdownItems(widthDropdownItems.map((item, index) => {
+                                                    item.selected = props.equipmentInformation.equipment_width_unit === item.value
+                                                    return item;
+                                                }))
+
+                                                await setShowWidthDropdownItems(true);
+                                            }
+
+                                            refWidthPopupItems.current.map((r, i) => {
+                                                if (r && r.classList.contains('selected')) {
+                                                    r.scrollIntoView({
+                                                        behavior: 'auto',
+                                                        block: 'center',
+                                                        inline: 'nearest'
+                                                    })
+                                                }
+                                                return true;
+                                            });
+                                            break;
+
+                                        case 27: // escape
+                                            await setShowWidthDropdownItems(false);
+                                            break;
+
+                                        case 13: // enter
+                                            if (showWidthDropdownItems && widthDropdownItems.findIndex(item => item.selected) > -1) {
+                                                await props.setEquipmentInformation({
+                                                    ...props.equipmentInformation,
+                                                    equipment_width_unit: widthDropdownItems[widthDropdownItems.findIndex(item => item.selected)].value
+                                                });
+                                                await setShowWidthDropdownItems(false);
+                                                refWidth.current.inputElement.focus();
+                                            }
+                                            break;
+
+                                        case 9: // tab
+                                            if (showWidthDropdownItems) {
+                                                e.preventDefault();
+                                                await props.setEquipmentInformation({
+                                                    ...props.equipmentInformation,
+                                                    equipment_width_unit: widthDropdownItems[widthDropdownItems.findIndex(item => item.selected)].value
+                                                });
+                                                await setShowWidthDropdownItems(false);
+                                                refWidth.current.inputElement.focus();
+                                            }
+                                            break;
+
+                                        default:
+                                            break;
+                                    }
+                                }}
+
+                                onInput={(e) => { props.setEquipmentInformation({ ...props.equipmentInformation, equipment_width: e.target.value }) }}
+                                onChange={(e) => { props.setEquipmentInformation({ ...props.equipmentInformation, equipment_width: e.target.value }) }}
+                                value={props.equipmentInformation.equipment_width || ''}
+                            />
+                            {
+                                (props.equipmentInformation?.equipment_width || '').trim().length > 0 &&
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '50%',
+                                    right: '18px',
+                                    transform: 'translateY(-50%)',
+                                    fontSize: '0.75rem',
+                                    fontFamily: 'Mochi Med Oblique',
+                                    fontWeight: 'bold'
+                                }}>{props.equipmentInformation?.equipment_width_unit || ''}</div>
+                            }
+                            {
+                                (props.equipmentInformation?.equipment_width || '').trim().length > 0 &&
+                                <FontAwesomeIcon className="dropdown-button" icon={faCaretDown} onClick={() => {
+                                    if (showWidthDropdownItems) {
+                                        setShowWidthDropdownItems(false);
+                                    } else {
+                                        setWidthDropdownItems(widthDropdownItems.map((item, index) => {
+                                            item.selected = props.equipmentInformation.equipment_width_unit === item.value
+                                            return item;
+                                        }))
+
+                                        window.setTimeout(() => {
+                                            setShowWidthDropdownItems(true);
+                                        }, 0)
+                                    }
+
+                                    refWidth.current.inputElement.focus();
+                                }} />
+                            }
+                        </div>
+                        <Transition
+                            from={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                            enter={{ opacity: 1, top: 'calc(100% + 15px)' }}
+                            leave={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                            items={showWidthDropdownItems}
+                            config={{ duration: 100 }}
+                        >
+                            {show => show && (styles => (
+                                <div
+                                    className="mochi-contextual-container"
+                                    id="mochi-contextual-container-equipment-width"
+                                    style={{
+                                        ...styles,
+                                        left: 0,
+                                        display: 'block'
+                                    }}
+                                    ref={refWidthDropDown}
+                                >
+                                    <div className="mochi-contextual-popup vertical below right">
+                                        <div className="mochi-contextual-popup-content">
+                                            <div className="mochi-contextual-popup-wrapper">
+                                                {
+                                                    widthDropdownItems.map((item, index) => {
+                                                        const mochiItemClasses = classnames({
+                                                            'mochi-item': true,
+                                                            'selected': item.selected
+                                                        });
+
+                                                        return (
+                                                            <div
+                                                                key={index}
+                                                                className={mochiItemClasses}
+                                                                id={item.id}
+                                                                onClick={async () => {
+                                                                    await props.setEquipmentInformation({
+                                                                        ...props.equipmentInformation,
+                                                                        equipment_width_unit: item.value
+                                                                    });
+                                                                    setShowWidthDropdownItems(false);
+                                                                    refWidth.current.inputElement.focus();
+                                                                }}
+                                                                ref={ref => refWidthPopupItems.current.push(ref)}
+                                                            >
+                                                                {
+                                                                    item.name
+                                                                }
+                                                                {
+                                                                    item.selected &&
+                                                                    <FontAwesomeIcon className="dropdown-selected" icon={faCaretRight} />
+                                                                }
+                                                            </div>
+                                                        )
+                                                    })
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </Transition>
                     </div>
-                    <div className="form-h-sep"></div>
-                    <div className="input-box-container grow">
-                        <input type="text" placeholder="Height"
-                            onKeyDown={validateEquipmentForSaving}
-                            onInput={(e) => { props.setEquipmentInformation({ ...props.equipmentInformation, equipment_height: e.target.value }) }}
-                            onChange={(e) => { props.setEquipmentInformation({ ...props.equipmentInformation, equipment_height: e.target.value }) }}
-                            value={props.equipmentInformation.equipment_height || ''}
-                        />
+
+                    <div className="select-box-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div className="select-box-wrapper">
+                            <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Height</div>
+                            <MaskedInput style={{
+                                textAlign: 'right',
+                                fontWeight: 'bold',
+                                paddingRight: (props.equipmentInformation?.equipment_height || '').trim().length > 0 ? 25 : 0
+                            }}
+                                tabIndex={7 + props.tabTimes} type="text"
+                                mask={createNumberMask({
+                                    prefix: '',
+                                    suffix: '',
+                                    includeThousandsSeparator: false,
+                                    allowDecimal: true
+                                })}
+                                guide={false}
+                                ref={refHeight}
+                                onKeyDown={async (e) => {
+                                    let key = e.keyCode || e.which;
+
+                                    switch (key) {
+                                        case 38: // arrow left | arrow up
+                                            e.preventDefault();
+                                            if (showHeightDropdownItems) {
+                                                let selectedIndex = heightDropdownItems.findIndex(item => item.selected);
+
+                                                if (selectedIndex === -1) {
+                                                    await setHeightDropdownItems(heightDropdownItems.map((item, index) => {
+                                                        item.selected = index === 0;
+                                                        return item;
+                                                    }))
+                                                } else {
+                                                    await setHeightDropdownItems(heightDropdownItems.map((item, index) => {
+                                                        if (selectedIndex === 0) {
+                                                            item.selected = index === (heightDropdownItems.length - 1);
+                                                        } else {
+                                                            item.selected = index === (selectedIndex - 1)
+                                                        }
+                                                        return item;
+                                                    }))
+                                                }
+                                            } else {
+                                                await setHeightDropdownItems(heightDropdownItems.map((item, index) => {
+                                                    item.selected = props.equipmentInformation.equipment_height_unit === item.value
+                                                    return item;
+                                                }))
+
+                                                await setShowHeightDropdownItems(true);
+                                            }
+
+                                            refHeightPopupItems.current.map((r, i) => {
+                                                if (r && r.classList.contains('selected')) {
+                                                    r.scrollIntoView({
+                                                        behavior: 'auto',
+                                                        block: 'center',
+                                                        inline: 'nearest'
+                                                    })
+                                                }
+                                                return true;
+                                            });
+                                            break;
+
+                                        case 40: // arrow right | arrow down
+                                            e.preventDefault();
+                                            if (showHeightDropdownItems) {
+                                                let selectedIndex = heightDropdownItems.findIndex(item => item.selected);
+
+                                                if (selectedIndex === -1) {
+                                                    await setHeightDropdownItems(heightDropdownItems.map((item, index) => {
+                                                        item.selected = index === 0;
+                                                        return item;
+                                                    }))
+                                                } else {
+                                                    await setHeightDropdownItems(heightDropdownItems.map((item, index) => {
+                                                        if (selectedIndex === (heightDropdownItems.length - 1)) {
+                                                            item.selected = index === 0;
+                                                        } else {
+                                                            item.selected = index === (selectedIndex + 1)
+                                                        }
+                                                        return item;
+                                                    }))
+                                                }
+                                            } else {
+                                                await setHeightDropdownItems(heightDropdownItems.map((item, index) => {
+                                                    item.selected = props.equipmentInformation.equipment_height_unit === item.value
+                                                    return item;
+                                                }))
+
+                                                await setShowHeightDropdownItems(true);
+                                            }
+
+                                            refHeightPopupItems.current.map((r, i) => {
+                                                if (r && r.classList.contains('selected')) {
+                                                    r.scrollIntoView({
+                                                        behavior: 'auto',
+                                                        block: 'center',
+                                                        inline: 'nearest'
+                                                    })
+                                                }
+                                                return true;
+                                            });
+                                            break;
+
+                                        case 27: // escape
+                                            await setShowHeightDropdownItems(false);
+                                            break;
+
+                                        case 13: // enter
+                                            if (showHeightDropdownItems && heightDropdownItems.findIndex(item => item.selected) > -1) {
+                                                await props.setEquipmentInformation({
+                                                    ...props.equipmentInformation,
+                                                    equipment_height_unit: heightDropdownItems[heightDropdownItems.findIndex(item => item.selected)].value
+                                                });
+                                                await setShowHeightDropdownItems(false);
+                                                refHeight.current.inputElement.focus();
+                                            }
+                                            break;
+
+                                        case 9: // tab
+                                            e.preventDefault();
+                                            if (showHeightDropdownItems) {
+                                                await props.setEquipmentInformation({
+                                                    ...props.equipmentInformation,
+                                                    equipment_height_unit: heightDropdownItems[heightDropdownItems.findIndex(item => item.selected)].value
+                                                });
+                                                await setShowHeightDropdownItems(false);
+                                                refHeight.current.inputElement.focus();
+                                            }
+
+                                            validateEquipmentForSaving(e);
+                                            break;
+
+                                        default:
+                                            break;
+                                    }
+                                }}
+
+                                onInput={(e) => { props.setEquipmentInformation({ ...props.equipmentInformation, equipment_height: e.target.value }) }}
+                                onChange={(e) => { props.setEquipmentInformation({ ...props.equipmentInformation, equipment_height: e.target.value }) }}
+                                value={props.equipmentInformation.equipment_height || ''}
+                            />
+                            {
+                                (props.equipmentInformation?.equipment_height || '').trim().length > 0 &&
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '50%',
+                                    right: '18px',
+                                    transform: 'translateY(-50%)',
+                                    fontSize: '0.75rem',
+                                    fontFamily: 'Mochi Med Oblique',
+                                    fontWeight: 'bold'
+                                }}>{props.equipmentInformation?.equipment_height_unit || ''}</div>
+                            }
+                            {
+                                (props.equipmentInformation?.equipment_height || '').trim().length > 0 &&
+                                <FontAwesomeIcon className="dropdown-button" icon={faCaretDown} onClick={() => {
+                                    if (showHeightDropdownItems) {
+                                        setShowHeightDropdownItems(false);
+                                    } else {
+                                        setHeightDropdownItems(heightDropdownItems.map((item, index) => {
+                                            item.selected = props.equipmentInformation.equipment_height_unit === item.value
+                                            return item;
+                                        }))
+
+                                        window.setTimeout(() => {
+                                            setShowHeightDropdownItems(true);
+                                        }, 0)
+                                    }
+
+                                    refHeight.current.inputElement.focus();
+                                }} />
+                            }
+                        </div>
+                        <Transition
+                            from={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                            enter={{ opacity: 1, top: 'calc(100% + 15px)' }}
+                            leave={{ opacity: 0, top: 'calc(100% + 10px)' }}
+                            items={showHeightDropdownItems}
+                            config={{ duration: 100 }}
+                        >
+                            {show => show && (styles => (
+                                <div
+                                    className="mochi-contextual-container"
+                                    id="mochi-contextual-container-equipment-height"
+                                    style={{
+                                        ...styles,
+                                        left: '-100%',
+                                        display: 'block'
+                                    }}
+                                    ref={refHeightDropDown}
+                                >
+                                    <div className="mochi-contextual-popup vertical below left">
+                                        <div className="mochi-contextual-popup-content">
+                                            <div className="mochi-contextual-popup-wrapper">
+                                                {
+                                                    heightDropdownItems.map((item, index) => {
+                                                        const mochiItemClasses = classnames({
+                                                            'mochi-item': true,
+                                                            'selected': item.selected
+                                                        });
+
+                                                        return (
+                                                            <div
+                                                                key={index}
+                                                                className={mochiItemClasses}
+                                                                id={item.id}
+                                                                onClick={async () => {
+                                                                    await props.setEquipmentInformation({
+                                                                        ...props.equipmentInformation,
+                                                                        equipment_height_unit: item.value
+                                                                    });
+                                                                    setShowHeightDropdownItems(false);
+                                                                    refHeight.current.inputElement.focus();
+                                                                }}
+                                                                ref={ref => refHeightPopupItems.current.push(ref)}
+                                                            >
+                                                                {
+                                                                    item.name
+                                                                }
+                                                                {
+                                                                    item.selected &&
+                                                                    <FontAwesomeIcon className="dropdown-selected" icon={faCaretRight} />
+                                                                }
+                                                            </div>
+                                                        )
+                                                    })
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </Transition>
                     </div>
                 </div>
             </div>
@@ -619,8 +1378,11 @@ function EquipmentInformation(props) {
                                             equipment_id: eq.equipment.id,
                                             units: eq.units,
                                             equipment_length: eq.equipment_length,
+                                            equipment_length_unit: eq.equipment_length_unit,
                                             equipment_width: eq.equipment_width,
-                                            equipment_height: eq.equipment_height
+                                            equipment_width_unit: eq.equipment_width_unit,
+                                            equipment_height: eq.equipment_height,
+                                            equipment_height_unit: eq.equipment_height_unit
                                         });
 
                                         refEquipment.current.focus();

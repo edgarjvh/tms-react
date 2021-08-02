@@ -906,7 +906,7 @@ function Routing(props) {
         ...draggableStyle
     });
     const getListStyle = isDraggingOver => ({
-        
+
         background: !isDraggingOver ? 'transparent' : 'rgba(43, 193, 255, 0.1)'
     });
 
@@ -925,28 +925,28 @@ function Routing(props) {
                 marginBottom: 10
             }}>
                 <div className="input-box-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>A/E Number:</div>
+                    <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>A/E Number</div>
                     <input style={{ textAlign: 'right', fontWeight: 'bold' }} type="text" disabled={true}
                         onChange={(e) => { }}
                         value={props.selected_order?.ae_number || ''} />
                 </div>
 
                 <div className="input-box-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Order Number:</div>
+                    <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Order Number</div>
                     <input style={{ textAlign: 'right', fontWeight: 'bold' }} type="text" disabled={true}
                         onChange={(e) => { }}
                         value={props.order_number || ''} />
                 </div>
 
                 <div className="input-box-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Trip Number:</div>
+                    <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Trip Number</div>
                     <input style={{ textAlign: 'right', fontWeight: 'bold' }} type="text" disabled={true}
                         onChange={(e) => { }}
                         value={props.trip_number || ''} />
                 </div>
 
                 <div className="input-box-container" style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Miles:</div>
+                    <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Miles</div>
                     <input style={{ textAlign: 'right', fontWeight: 'bold' }} type="text" readOnly={true} onChange={() => { }} value={props.mileageLoaderVisible ? '' : ((props.selected_order?.miles || 0) / 1609.34).toFixed(0)} />
                     <div className="loading-container">
                         <Loader type="ThreeDots" color="#333738" height={20} width={20} visible={props.mileageLoaderVisible} />
@@ -965,59 +965,60 @@ function Routing(props) {
                 }}>
 
                     <Droppable droppableId="0">
-                        {(provided, snapshot) => {                             
+                        {(provided, snapshot) => {
                             return (
-                            <div className="form-bordered-box" style={getListStyle(snapshot.isDraggingOver)}>
-                                <div className='form-header'>
-                                    <div className='top-border top-border-left'></div>
-                                    <div className='form-title'>Pick Ups</div>
-                                    <div className='top-border top-border-middle'></div>
-                                    <div className='top-border top-border-right'></div>
-                                </div>
+                                <div className="form-bordered-box" style={getListStyle(snapshot.isDraggingOver)}>
+                                    <div className='form-header'>
+                                        <div className='top-border top-border-left'></div>
+                                        <div className='form-title'>Pick Ups</div>
+                                        <div className='top-border top-border-middle'></div>
+                                        <div className='top-border top-border-right'></div>
+                                    </div>
 
-                                <div className="routing-pickup-container" {...provided.droppableProps} ref={provided.innerRef} style={{ flexGrow: 1 }}>
-                                    {list.find(grp => grp.title === 'pickup') !== undefined &&
-                                        list.find(grp => grp.title === 'pickup').items.map((item, index) => (
-                                            <DraggableDnd key={item.customer.id} draggableId={`${item.customer.id}`} index={index}>
-                                                {(provided, snapshot) => {
-                                                    if (snapshot.isDragging) {
-                                                        provided.draggableProps.style.left = provided.draggableProps.style.offsetLeft;
-                                                        provided.draggableProps.style.top = provided.draggableProps.style.offsetTop;
-                                                    }
+                                    <div className="routing-pickup-container" {...provided.droppableProps} ref={provided.innerRef} style={{ flexGrow: 1 }}>
+                                        {list.find(grp => grp.title === 'pickup') !== undefined &&
+                                            list.find(grp => grp.title === 'pickup').items.map((item, index) => (
+                                                <DraggableDnd key={item.customer.id} draggableId={`${item.customer.id}`} index={index}>
+                                                    {(provided, snapshot) => {
+                                                        if (snapshot.isDragging) {
+                                                            provided.draggableProps.style.left = provided.draggableProps.style.offsetLeft;
+                                                            provided.draggableProps.style.top = provided.draggableProps.style.offsetTop;
+                                                        }
 
-                                                    return (
-                                                        <div className="routing-pickup-item" ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{
-                                                            ...getItemStyle(
-                                                                snapshot.isDragging,
-                                                                provided.draggableProps.style
-                                                            )
-                                                        }}
+                                                        return (
+                                                            <div className="routing-pickup-item" ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={{
+                                                                ...getItemStyle(
+                                                                    snapshot.isDragging,
+                                                                    provided.draggableProps.style
+                                                                )
+                                                            }}
 
-                                                        >
-                                                            <div style={{ display: 'flex', alignItems: 'center' }}>
-                                                                <span>{(item.customer?.code || '') + ((item.customer?.code_number || 0) === 0 ? '' : item.customer.code_number)}</span>
-                                                                <span>{item.customer?.name || ''}</span>
-                                                                <span>{item.customer?.city || ''}-{item.customer?.state || ''}</span>
+                                                            >
+                                                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                                    <span>{(item.customer?.code || '') + ((item.customer?.code_number || 0) === 0 ? '' : item.customer.code_number)}</span>
+                                                                    <span>{item.customer?.name || ''}</span>
+                                                                    <span>{item.customer?.city || ''}-{item.customer?.state || ''}</span>
+                                                                </div>
+
+                                                                {
+                                                                    snapshot.isDragging &&
+                                                                    <div style={{
+                                                                        textTransform: 'capitalize',
+                                                                        color: 'rgba(0,0,0,0.5)',
+                                                                        fontSize: '0.7rem',
+                                                                        marginLeft: '0.5rem'
+                                                                    }}>{item.type}</div>
+                                                                }
                                                             </div>
-
-                                                            {
-                                                                snapshot.isDragging &&
-                                                                <div style={{
-                                                                    textTransform: 'capitalize',
-                                                                    color: 'rgba(0,0,0,0.5)',
-                                                                    fontSize: '0.7rem',
-                                                                    marginLeft: '0.5rem'
-                                                                }}>{item.type}</div>
-                                                            }
-                                                        </div>
-                                                    )
-                                                }}
-                                            </DraggableDnd>
-                                        ))}
-                                    {provided.placeholder}
+                                                        )
+                                                    }}
+                                                </DraggableDnd>
+                                            ))}
+                                        {provided.placeholder}
+                                    </div>
                                 </div>
-                            </div>
-                        )}}
+                            )
+                        }}
                     </Droppable>
 
                     <div className='form-bordered-box' style={{
@@ -1047,7 +1048,8 @@ function Routing(props) {
                                     onKeyDown={getCarrierInfoByCode}
                                     onInput={(e) => { props.setSelectedCarrierInfoCarrier({ ...props.selectedCarrierInfoCarrier, code: e.target.value }) }}
                                     onChange={(e) => { props.setSelectedCarrierInfoCarrier({ ...props.selectedCarrierInfoCarrier, code: e.target.value }) }}
-                                    value={props.selectedCarrierInfoCarrier?.code || ''}
+                                    value={(props.selectedCarrierInfoCarrier?.code || '') + ((props.selectedCarrierInfoCarrier?.code_number || 0) === 0 ? '' : props.selectedCarrierInfoCarrier.code_number)}
+
                                 />
                             </div>
                             <div className="form-h-sep"></div>
@@ -1088,49 +1090,23 @@ function Routing(props) {
                         <div className="form-row">
                             <div className="input-box-container grow">
                                 <input tabIndex={53 + props.tabTimes} type="text" placeholder="Contact Name"
-                                    onKeyDown={validateCarrierContactForSaving}
+                                    // onKeyDown={validateCarrierContactForSaving}
                                     onChange={(e) => {
-                                        let splitted = e.target.value.split(' ');
-                                        let first_name = splitted[0];
-
-                                        if (splitted.length > 1) {
-                                            first_name += ' ';
+                                        if ((props.selectedCarrierInfoCarrier?.contacts || []).length === 0) {
+                                            props.setSelectedCarrierInfoCarrier({ ...props.selectedCarrierInfoCarrier, contact_name: e.target.value })
                                         }
-
-
-                                        let last_name = '';
-
-                                        splitted.map((item, index) => {
-                                            if (index > 0) {
-                                                last_name += item;
-                                            }
-                                            return true;
-                                        })
-
-                                        props.setSelectedCarrierInfoContact({ ...props.selectedCarrierInfoContact, first_name: first_name, last_name: last_name });
                                     }}
-
                                     onInput={(e) => {
-                                        let splitted = e.target.value.split(' ');
-                                        let first_name = splitted[0];
-
-                                        if (splitted.length > 1) {
-                                            first_name += ' ';
+                                        if ((props.selectedCarrierInfoCarrier?.contacts || []).length === 0) {
+                                            props.setSelectedCarrierInfoCarrier({ ...props.selectedCarrierInfoCarrier, contact_name: e.target.value })
                                         }
-
-                                        let last_name = '';
-
-                                        splitted.map((item, index) => {
-                                            if (index > 0) {
-                                                last_name += item;
-                                            }
-                                            return true;
-                                        })
-
-                                        props.setSelectedCarrierInfoContact({ ...props.selectedCarrierInfoContact, first_name: first_name, last_name: last_name });
                                     }}
 
-                                    value={(props.selectedCarrierInfoContact?.first_name || '') + ((props.selectedCarrierInfoContact?.last_name || '').trim() === '' ? '' : ' ' + props.selectedCarrierInfoContact?.last_name)}
+                                    value={
+                                        (props.selectedCarrierInfoCarrier?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                            ? (props.selectedCarrierInfoCarrier?.contact_name || '')
+                                            : props.selectedCarrierInfoCarrier?.contacts.find(c => c.is_primary === 1).first_name + ' ' + props.selectedCarrierInfoCarrier?.contacts.find(c => c.is_primary === 1).last_name
+                                    }
                                 />
                             </div>
                             <div className="form-h-sep"></div>
@@ -1139,19 +1115,63 @@ function Routing(props) {
                                     mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                     guide={true}
                                     type="text" placeholder="Contact Phone"
-                                    onKeyDown={validateCarrierContactForSaving}
-                                    onInput={(e) => { props.setSelectedCarrierInfoContact({ ...props.selectedCarrierInfoContact, phone_work: e.target.value }) }}
-                                    onChange={(e) => { props.setSelectedCarrierInfoContact({ ...props.selectedCarrierInfoContact, phone_work: e.target.value }) }}
-                                    value={props.selectedCarrierInfoContact.phone_work || ''}
+                                    // onKeyDown={validateCarrierContactForSaving}
+                                    onInput={(e) => {
+                                        if ((props.selectedCarrierInfoCarrier?.contacts || []).length === 0) {
+                                            props.setSelectedCarrierInfoCarrier({ ...props.selectedCarrierInfoCarrier, contact_phone: e.target.value })
+                                        }
+                                    }}
+                                    onChange={(e) => {
+                                        if ((props.selectedCarrierInfoCarrier?.contacts || []).length === 0) {
+                                            props.setSelectedCarrierInfoCarrier({ ...props.selectedCarrierInfoCarrier, contact_phone: e.target.value })
+                                        }
+                                    }}
+                                    value={
+                                        (props.selectedCarrierInfoCarrier?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                            ? (props.selectedCarrierInfoCarrier?.contact_phone || '')
+                                            : props.selectedCarrierInfoCarrier?.contacts.find(c => c.is_primary === 1).primary_phone === 'work'
+                                                ? props.selectedCarrierInfoCarrier?.contacts.find(c => c.is_primary === 1).phone_work
+                                                : props.selectedCarrierInfoCarrier?.contacts.find(c => c.is_primary === 1).primary_phone === 'fax'
+                                                    ? props.selectedCarrierInfoCarrier?.contacts.find(c => c.is_primary === 1).phone_work_fax
+                                                    : props.selectedCarrierInfoCarrier?.contacts.find(c => c.is_primary === 1).primary_phone === 'mobile'
+                                                        ? props.selectedCarrierInfoCarrier?.contacts.find(c => c.is_primary === 1).phone_mobile
+                                                        : props.selectedCarrierInfoCarrier?.contacts.find(c => c.is_primary === 1).primary_phone === 'direct'
+                                                            ? props.selectedCarrierInfoCarrier?.contacts.find(c => c.is_primary === 1).phone_direct
+                                                            : props.selectedCarrierInfoCarrier?.contacts.find(c => c.is_primary === 1).primary_phone === 'other'
+                                                                ? props.selectedCarrierInfoCarrier?.contacts.find(c => c.is_primary === 1).phone_other
+                                                                : ''
+                                    }
                                 />
+                                {
+                                    ((props.selectedCarrierInfoCarrier?.contacts || []).find(c => c.is_primary === 1) !== undefined) &&
+                                    <div
+                                        className={classnames({
+                                            'selected-carrier-contact-primary-phone': true,
+                                            'pushed': false
+                                        })}>
+                                        {props.selectehCarrierInfoCarrier?.contacts.find(c => c.is_primary === 1).primary_phone}
+                                    </div>
+                                }
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container input-phone-ext">
                                 <input tabIndex={55 + props.tabTimes} type="text" placeholder="Ext"
                                     onKeyDown={validateCarrierContactForSaving}
-                                    onInput={(e) => { props.setSelectedCarrierInfoContact({ ...props.selectedCarrierInfoContact, phone_ext: e.target.value }) }}
-                                    onChange={(e) => { props.setSelectedCarrierInfoContact({ ...props.selectedCarrierInfoContact, phone_ext: e.target.value }) }}
-                                    value={props.selectedCarrierInfoContact.phone_ext || ''}
+                                    onInput={(e) => {
+                                        if ((props.selectedCarrierInfoCarrier?.contacts || []).length === 0) {
+                                            props.setSelectedCarrierInfoCarrier({ ...props.selectedCarrierInfoCarrier, ext: e.target.value })
+                                        }
+                                    }}
+                                    onChange={(e) => {
+                                        if ((props.selectedCarrierInfoCarrier?.contacts || []).length === 0) {
+                                            props.setSelectedCarrierInfoCarrier({ ...props.selectedCarrierInfoCarrier, ext: e.target.value })
+                                        }
+                                    }}
+                                    value={
+                                        (props.selectedCarrierInfoCarrier?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                            ? (props.selectedCarrierInfoCarrier?.ext || '')
+                                            : props.selectedCarrierInfoCarrier?.contacts.find(c => c.is_primary === 1).phone_ext
+                                    }
                                 />
                             </div>
                             <div className="form-h-sep"></div>
@@ -1839,7 +1859,7 @@ function Routing(props) {
                                                 })
 
                                                 props.setSelectedCarrierInfoDriver({ ...driver, first_name: first_name, last_name: last_name });
-                                                
+
                                             }
                                         }}
                                         value={(props.selectedCarrierInfoDriver?.first_name || '') + ((props.selectedCarrierInfoDriver?.last_name || '').trim() === '' ? '' : ' ' + props.selectedCarrierInfoDriver?.last_name)}

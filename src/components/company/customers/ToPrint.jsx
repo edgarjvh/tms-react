@@ -18,11 +18,12 @@ export default class ToPrint extends Component {
     styleFieldName = {
         color: 'black',
         fontWeight: 'bold',
-        fontSize: '0.9rem'
+        fontSize: '0.8rem',
+        whiteSpace: 'nowrap'
     }
     styleFieldData = {
         color: 'red',
-        fontSize: '0.9rem'
+        fontSize: '0.8rem'
     }
     styleTitleBackground = {
         backgroundColor: 'lightgray'
@@ -30,7 +31,7 @@ export default class ToPrint extends Component {
     styleFieldDataBold = {
         color: 'red',
         fontWeight: 'bold',
-        fontSize: '0.9rem'
+        fontSize: '0.8rem'
     }
 
     render() {
@@ -400,58 +401,85 @@ export default class ToPrint extends Component {
 
                 {/* PAGE BLOCK */}
                 {
-                    (this.props.selectedCustomer.directions || []).length > 0 &&
-                    <div className="page-block" style={{ paddingTop: '2rem' }}>
-                        <div className="form-bordered-box" style={{ border: '1px solid rgba(0,0,0,0.1)', boxShadow: '1px 1px 1px 0 rgba(0,0,0,0.8)', padding: 10 }}>
-                            <div className="form-title" style={{
-                                position: 'absolute',
-                                backgroundColor: 'white',
-                                top: -10,
-                                left: 10,
-                                padding: '0 10px'
-                            }}>Directions</div>
+                    (this.props.selectedCustomer.directions || []).length > 0
+                        ?
+                        <div className="page-block" style={{ paddingTop: '2rem' }}>
+                            <div className="form-bordered-box" style={{ border: '1px solid rgba(0,0,0,0.1)', boxShadow: '1px 1px 1px 0 rgba(0,0,0,0.8)', padding: 10 }}>
+                                <div className="form-title" style={{
+                                    position: 'absolute',
+                                    backgroundColor: 'white',
+                                    top: -10,
+                                    left: 10,
+                                    padding: '0 10px'
+                                }}>Directions</div>
 
-                            {
-                                this.props.selectedCustomer.directions.map((direction, index) => {
-                                    return (
-                                        <div key={index} style={{ ...this.styleFieldData, marginBottom: '5px'}}>
-                                            {direction.text.split(/\r?\n/).map(text => (
-                                                <div>{text.toUpperCase()}</div>
-                                            ))}
-                                        </div>
-                                    )
-                                })
-                            }
+                                {
+                                    this.props.selectedCustomer.directions.map((direction, index) => {
+                                        return (
+                                            <div key={index} style={{ ...this.styleFieldData, marginBottom: '5px' }}>
+                                                {direction.text.split(/\r?\n/).map((text, i) => (
+                                                    <div key={i}>{text.toUpperCase()}</div>
+                                                ))}
+                                            </div>
+                                        )
+                                    })
+                                }
+                            </div>
                         </div>
-                    </div>
+                        :
+                        <div className="page-block" style={{ paddingTop: '2rem' }}>
+                            <div className="form-bordered-box" style={{ border: '1px solid rgba(0,0,0,0.1)', boxShadow: '1px 1px 1px 0 rgba(0,0,0,0.8)', height: 200 }}>
+                                <div className="form-title" style={{
+                                    position: 'absolute',
+                                    backgroundColor: 'white',
+                                    top: -10,
+                                    left: 10,
+                                    padding: '0 10px'
+                                }}>Directions</div>
+                            </div>
+                        </div>
+
                 }
 
                 {/* PAGE BLOCK */}
                 {
-                    (this.props.selectedCustomer.notes || []).length > 0 &&
-                    <div className="page-block" style={{ paddingTop: '2rem' }}>
-                        <div className="form-bordered-box" style={{ border: '1px solid rgba(0,0,0,0.1)', boxShadow: '1px 1px 1px 0 rgba(0,0,0,0.8)', padding: 10 }}>
-                            <div className="form-title" style={{
-                                position: 'absolute',
-                                backgroundColor: 'white',
-                                top: -10,
-                                left: 10,
-                                padding: '0 10px'
-                            }}>Notes</div>
+                    (this.props.selectedCustomer.notes || []).length > 0
+                        ?
+                        <div className="page-block" style={{ paddingTop: '2rem' }}>
+                            <div className="form-bordered-box" style={{ border: '1px solid rgba(0,0,0,0.1)', boxShadow: '1px 1px 1px 0 rgba(0,0,0,0.8)', padding: 10 }}>
+                                <div className="form-title" style={{
+                                    position: 'absolute',
+                                    backgroundColor: 'white',
+                                    top: -10,
+                                    left: 10,
+                                    padding: '0 10px'
+                                }}>Notes</div>
 
-                            {
-                                this.props.selectedCustomer.notes.map((note, index) => {
-                                    return (
-                                        <div key={index} style={{ ...this.styleFieldData, marginBottom: '5px'}}>
-                                            {note.text.split(/\r?\n/).map(text => (
-                                                <div>{text.toUpperCase()}</div>
-                                            ))}
-                                        </div>
-                                    )
-                                })
-                            }
+                                {
+                                    this.props.selectedCustomer.notes.map((note, index) => {
+                                        return (
+                                            <div key={index} style={{ ...this.styleFieldData, marginBottom: '5px' }}>
+                                                {note.text.split(/\r?\n/).map((text, i) => (
+                                                    <div key={i}>{text.toUpperCase()}</div>
+                                                ))}
+                                            </div>
+                                        )
+                                    })
+                                }
+                            </div>
                         </div>
-                    </div>
+                        :
+                        <div className="page-block" style={{ paddingTop: '2rem' }}>
+                            <div className="form-bordered-box" style={{ border: '1px solid rgba(0,0,0,0.1)', boxShadow: '1px 1px 1px 0 rgba(0,0,0,0.8)', height: 200 }}>
+                                <div className="form-title" style={{
+                                    position: 'absolute',
+                                    backgroundColor: 'white',
+                                    top: -10,
+                                    left: 10,
+                                    padding: '0 10px'
+                                }}>Notes</div>
+                            </div>
+                        </div>
                 }
             </div>
         )

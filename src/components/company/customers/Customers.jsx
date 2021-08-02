@@ -198,7 +198,20 @@ function Customers(props) {
 
             axios.post(props.serverUrl + '/saveContact', contact).then(async res => {
                 if (res.data.result === 'OK') {
-                    await props.setSelectedCustomer({ ...props.selectedCustomer, contacts: res.data.contacts });
+                    let mailing_contact = props.selectedCustomer?.mailing_address?.mailing_contact || {};
+
+                    if ((mailing_contact?.id || 0) === res.data.contact.id) {
+                        mailing_contact = res.data.contact;
+                    }
+
+                    await props.setSelectedCustomer({
+                        ...props.selectedCustomer,
+                        contacts: res.data.contacts,
+                        mailing_address: {
+                            ...props.selectedCustomer.mailing_address,
+                            mailing_contact: mailing_contact
+                        }
+                    });
                     await props.setSelectedContact(res.data.contact);
                 }
 
@@ -844,12 +857,16 @@ function Customers(props) {
         }}>
             {!props.isOnPanel && <PanelContainer setOpenedPanels={props.setOpenedPanels} openedPanels={props.openedPanels} />}
 
-            <div style={{ display: 'none' }}>
-                <ToPrint
-                    ref={refPrintCustomerInformation}
-                    selectedCustomer={props.selectedCustomer}
-                />
-            </div>
+            {
+                (props.selectedCustomer?.id || 0) > 0 &&
+                <div style={{ display: 'none' }}>
+                    <ToPrint
+                        ref={refPrintCustomerInformation}
+                        selectedCustomer={props.selectedCustomer}
+                    />
+                </div>
+
+            }
 
             <div className="fields-container">
                 <div className="fields-container-row">
@@ -2276,31 +2293,31 @@ function Customers(props) {
 
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input tabIndex={37 + props.tabTimes} type="text" placeholder="Invoicing Terms" />
+                                    <input tabIndex={37 + props.tabTimes} type="text" placeholder="Invoicing Terms" readOnly={!props.isAdmin} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input tabIndex={38 + props.tabTimes} type="text" placeholder="Credit Limit Total" />
+                                    <input tabIndex={38 + props.tabTimes} type="text" placeholder="Credit Limit Total" readOnly={!props.isAdmin} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Credit Ordered" />
+                                    <input type="text" placeholder="Credit Ordered" readOnly={!props.isAdmin} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Credit Delivered Not Invoiced" />
+                                    <input type="text" placeholder="Credit Delivered Not Invoiced" readOnly={!props.isAdmin} />
                                 </div>
                             </div>
                             <div className="form-v-sep"></div>
                             <div className="form-row">
                                 <div className="input-box-container grow">
-                                    <input type="text" placeholder="Available Credit" />
+                                    <input type="text" placeholder="Available Credit" readOnly={!props.isAdmin} />
                                 </div>
                             </div>
                         </div>
@@ -3140,7 +3157,11 @@ function Customers(props) {
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container grow">
-                                    <input tabIndex={17 + props.tabTimes} type="text" placeholder="Notes" onKeyDown={validateContactForSaving} onChange={e => props.setSelectedContact({ ...props.selectedContact, notes: e.target.value })} value={props.selectedContact.notes || ''} />
+                                    <input tabIndex={17 + props.tabTimes} type="text" placeholder="Notes"
+                                        onKeyDown={validateContactForSaving}
+                                        onChange={e => props.setSelectedContact({ ...props.selectedContact, notes: e.target.value })}
+                                        value={props.selectedContact.notes || ''}
+                                    />
                                 </div>
                             </div>
                         </div>

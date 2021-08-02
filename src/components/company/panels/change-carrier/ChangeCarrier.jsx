@@ -133,11 +133,13 @@ function ChangeCarrier(props) {
                 event_type: 'changed carrier',
                 old_carrier_id: selected_order.carrier.id,
                 new_carrier_id: props.newCarrier.id
+                
             }
 
             $.post(props.serverUrl + '/saveOrderEvent', event_parameters).then(async res => {
                 if (res.result === 'OK') {
-
+                    selected_order.carrier_driver_id = props.newCarrier.drivers.length > 0 ? props.newCarrier.drivers[0].id : null
+                    
                     $.post(props.serverUrl + '/saveOrder', selected_order).then(async res => {
                         if (res.result === 'OK') {
                             await props.setSelectedOrder(res.order);

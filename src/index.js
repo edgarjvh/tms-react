@@ -12,9 +12,7 @@ import jQuery from 'jquery';
 })(jQuery);
 
 ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+  <App />,
   document.getElementById('root')
 );
 

@@ -196,6 +196,7 @@
 }
 .contact-container .contact-form-bg .contact-form .contact-form-header .contact-avatar-container span.change-contact-avatar-btn {
   right: 3px;
+  font-size: 1.2rem;
 }
 .contact-container .contact-form-bg .contact-form .contact-form-header .contact-avatar-container span.remove-contact-avatar-btn {
   right: 40px;

@@ -114,7 +114,8 @@ export default class ToPrint extends Component {
                                 <div className="page-block" style={{ paddingTop: '2rem' }}>
                                     <div style={{
                                         ...this.styleFlexRow,
-                                        justifyContent: 'space-evenly'
+                                        display: 'grid',
+                                        gridTemplateColumns: '1fr 1fr'
                                     }}>
                                         <div style={{
                                             ...this.styleFlexCol,
@@ -279,7 +280,8 @@ export default class ToPrint extends Component {
                                 <div className="page-block" style={{ paddingTop: '2rem' }}>
                                     <div style={{
                                         ...this.styleFlexRow,
-                                        justifyContent: 'space-evenly'
+                                        display: 'grid',
+                                        gridTemplateColumns: '1fr 1fr'
                                     }}>
                                         <div style={{
                                             ...this.styleFlexCol,

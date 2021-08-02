@@ -172,12 +172,13 @@ function Carriers(props) {
 
     useEffect(() => {
         if (isSavingContact) {
-            if (props.selectedCarrier.id === undefined) {
+            if ((props.selectedCarrier?.id || 0) === 0) {
                 setIsSavingContact(false);
                 return;
             }
 
-            let contact = props.selectedContact;
+            let contact = JSON.parse(JSON.stringify(props.selectedContact));
+            contact.carrier = null;
 
             if (contact.carrier_id === undefined || contact.carrier_id === 0) {
                 contact.carrier_id = props.selectedCarrier.id;
@@ -202,16 +203,34 @@ function Carriers(props) {
                 contact.zip_code = props.selectedCarrier.zip;
             }
 
+            let contacts = [];
+
             axios.post(props.serverUrl + '/saveCarrierContact', contact)
                 .then(async res => {
                     if (res.data.result === 'OK') {
-                        await props.setSelectedCarrier({ ...props.selectedCarrier, contacts: res.data.contacts });
+                        let mailing_contact = props.selectedCarrier?.mailing_address?.mailing_contact || {};
+
+                        if ((mailing_contact?.id || 0) === res.data.contact.id) {
+                            mailing_contact = res.data.contact;
+                        }
+
+                        await props.setSelectedCarrier({ 
+                            ...props.selectedCarrier, 
+                            contacts: res.data.contacts,
+                            mailing_address: {
+                                ...props.selectedCarrier.mailing_address,
+                                mailing_contact: mailing_contact
+                            }
+                        });
                         await props.setSelectedCarrierContact(res.data.contact);
+
+                        contacts = res.data.contacts;
+
+                        
                     }
 
                     setIsSavingContact(false);
-                })
-                .catch(e => {
+                }).catch(e => {
                     console.log('error on saving carrier contact', e);
                     setIsSavingContact(false);
                 });
@@ -540,8 +559,8 @@ function Carriers(props) {
                 axios.post(props.serverUrl + '/factoringCompanies', { code: e.target.value.trim().toLowerCase() }).then(async res => {
                     if (res.data.result === 'OK') {
                         if (res.data.factoring_companies.length > 0) {
-                            selectedCarrier.factoring_company = res.data.factoring_companies[0];  
-                            selectedCarrier.factoring_company_id = res.data.factoring_companies[0].id;  
+                            selectedCarrier.factoring_company = res.data.factoring_companies[0];
+                            selectedCarrier.factoring_company_id = res.data.factoring_companies[0].id;
                             props.setSelectedCarrier(selectedCarrier);
 
                             validateCarrierForSaving(e);
@@ -1218,8 +1237,22 @@ function Carriers(props) {
                                 <input tabIndex={43 + props.tabTimes} type="text" placeholder="Code" maxLength="8"
                                     ref={refCarrierCode}
                                     onKeyDown={searchCarrierByCode}
-                                    onChange={e => props.setSelectedCarrier({ ...props.selectedCarrier, code: e.target.value })}
-                                    value={(props.selectedCarrier.code_number || 0) === 0 ? (props.selectedCarrier.code || '') : props.selectedCarrier.code + props.selectedCarrier.code_number} />
+                                    onInput={e => {
+                                        props.setSelectedCarrier({ 
+                                            ...props.selectedCarrier, 
+                                            code: e.target.value,
+                                            code_number: 0 
+                                        })
+                                    }}
+                                    onChange={e => {
+                                        props.setSelectedCarrier({ 
+                                            ...props.selectedCarrier, 
+                                            code: e.target.value,
+                                            code_number: 0 
+                                        })
+                                    }}
+                                    value={(props.selectedCarrier.code_number || 0) === 0 ? (props.selectedCarrier.code || '') : props.selectedCarrier.code + props.selectedCarrier.code_number} 
+                                    />
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container grow">
@@ -2359,7 +2392,7 @@ function Carriers(props) {
                                                 return (
                                                     <div className="contact-list-item" key={index} onDoubleClick={async () => {
                                                         await props.setIsEditingContact(false);
-                                                        await props.setContactSearchCarrier({ ...props.selectedCarrier, selectedContact: contact });
+                                                        await props.setContactSearchCarrier({ ...props.selectedCarrier, selectedContact: JSON.parse(JSON.stringify(contact)) });
 
                                                         if (!props.openedPanels.includes(props.carrierContactsPanelName)) {
                                                             props.setOpenedPanels([...props.openedPanels, props.carrierContactsPanelName]);
@@ -5034,6 +5067,7 @@ function Carriers(props) {
                                             ...props.selectedCarrier,
                                             factoring_company: {
                                                 ...props.selectedCarrier.factoring_company,
+                                                code_number: 0,
                                                 code: e.target.value
                                             }
                                         })

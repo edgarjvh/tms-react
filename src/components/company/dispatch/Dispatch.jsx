@@ -97,6 +97,11 @@ function Dispatch(props) {
     const refDeliveryDate1 = useRef();
     const refDeliveryDate2 = useRef();
 
+    const refPickupTime1 = useRef();
+    const refPickupTime2 = useRef();
+    const refDeliveryTime1 = useRef();
+    const refDeliveryTime2 = useRef();
+
     const refCalendarPickupDate1 = useRef();
     const refCalendarPickupDate2 = useRef();
     const refCalendarDeliveryDate1 = useRef();
@@ -164,7 +169,9 @@ function Dispatch(props) {
     const refTemplate = useRef();
     const refEquipment = useRef();
     const refDriverName = useRef();
+    const refDriverPhone = useRef();
     const refDispatchEvents = useRef();
+    const refEventTime = useRef();
 
     const [divisionItems, setDivisionItems] = useState([]);
     const refDivisionDropDown = useDetectClickOutside({ onTriggered: async () => { await setDivisionItems([]) } });
@@ -690,7 +697,10 @@ function Dispatch(props) {
                             selected_order.carrier_id = res.data.carriers[0].id;
 
                             if (res.data.carriers[0].drivers.length > 0) {
-                                props.setSelectedDispatchCarrierInfoDriver(res.data.carriers[0].drivers[0]);
+                                props.setSelectedDispatchCarrierInfoDriver({
+                                    ...res.data.carriers[0].drivers[0],
+                                    name: res.data.carriers[0].drivers[0].first_name + (res.data.carriers[0].drivers[0].last_name.trim() === '' ? '' : ' ' + res.data.carriers[0].drivers[0].last_name)
+                                });
                                 selected_order.carrier_driver_id = res.data.carriers[0].drivers[0].id;
                             }
 
@@ -1743,7 +1753,9 @@ function Dispatch(props) {
         let key = e.keyCode || e.which;
 
         if (key === 9) {
-            setIsSavingCarrierDriver(true);
+            if (!isSavingCarrierDriver) {
+                setIsSavingCarrierDriver(true);
+            }
         }
     }
 
@@ -1757,17 +1769,36 @@ function Dispatch(props) {
 
             if ((props.selectedDispatchCarrierInfoCarrier?.id || 0) > 0) {
                 if ((driver.first_name || '').trim() !== '') {
-                    axios.post(props.serverUrl + '/saveCarrierDriver', driver).then(async res => {
+                    axios.post(props.serverUrl + '/saveCarrierDriver', driver).then(res => {
                         if (res.data.result === 'OK') {
-                            await props.setSelectedDispatchCarrierInfoCarrier({ ...props.selectedDispatchCarrierInfoCarrier, drivers: res.data.drivers });
-                            await props.setSelectedDispatchCarrierInfoDriver({ ...props.selectedDispatchCarrierInfoDriver, id: res.data.driver.id });
+                            props.setSelectedDispatchCarrierInfoCarrier({ ...props.selectedDispatchCarrierInfoCarrier, drivers: res.data.drivers });
+                            props.setSelectedDispatchCarrierInfoDriver({ ...driver, id: res.data.driver.id });
+
+                            axios.post(props.serverUrl + '/saveOrder', { ...props.selected_order, carrier_driver_id: res.data.driver.id }).then(async res => {
+                                if (res.data.result === 'OK') {
+                                    // await setTempRouting(res.data.order.routing);
+                                    await props.setSelectedOrder(res.data.order);
+                                } else {
+                                    console.log(res.data.result);
+                                }
+
+                                setIsSavingOrder(false);
+                            }).catch(e => {
+                                console.log('error saving order', e);
+                                setIsSavingOrder(false);
+                            });
                         }
 
-                        await setIsSavingCarrierDriver(false);
+                        setIsSavingCarrierDriver(false);
                     }).catch(e => {
                         console.log('error saving carrier driver', e);
+                        setIsSavingCarrierDriver(false);
                     });
+                } else {
+                    setIsSavingCarrierDriver(false);
                 }
+            } else {
+                setIsSavingCarrierDriver(false);
             }
         }
     }, [isSavingCarrierDriver])
@@ -2275,7 +2306,10 @@ function Dispatch(props) {
                             })
                         }
 
-                        await props.setSelectedDispatchCarrierInfoDriver(res.data.order.driver || {});
+                        await props.setSelectedDispatchCarrierInfoDriver(res.data.order.driver ? {
+                            ...res.data.order.driver,
+                            name: res.data.order.driver.first_name + (res.data.order.driver.last_name.trim() === '' ? '' : ' ' + res.data.order.driver.last_name)
+                        } : { name: '' });
 
                         await props.setDivision({ name: res.data.order.division });
                         await props.setLoadType({ name: res.data.order.load_type });
@@ -2369,7 +2403,10 @@ function Dispatch(props) {
                             })
                         }
 
-                        await props.setSelectedDispatchCarrierInfoDriver(res.data.order.driver || {});
+                        await props.setSelectedDispatchCarrierInfoDriver(res.data.order.driver ? {
+                            ...res.data.order.driver,
+                            name: res.data.order.driver.first_name + (res.data.order.driver.last_name.trim() === '' ? '' : ' ' + res.data.order.driver.last_name)
+                        } : { name: '' });
 
                         await props.setDivision({ name: res.data.order.division });
                         await props.setLoadType({ name: res.data.order.load_type });
@@ -2619,7 +2656,7 @@ function Dispatch(props) {
                                     </div>
 
                                     <div className="input-box-container" style={{ width: '9rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Order Number:</div>
+                                        <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Order Number</div>
                                         <input style={{ textAlign: 'right', fontWeight: 'bold' }} tabIndex={1 + props.tabTimes} type="text"
                                             ref={refOrderNumber}
                                             onKeyDown={getOrderByOrderNumber}
@@ -2629,7 +2666,7 @@ function Dispatch(props) {
                                     </div>
 
                                     <div className="input-box-container" style={{ width: '9rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Trip Number:</div>
+                                        <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Trip Number</div>
                                         <input style={{ textAlign: 'right', fontWeight: 'bold' }} tabIndex={2 + props.tabTimes} type="text"
                                             onKeyDown={getOrderByTripNumber}
                                             onChange={(e) => { props.setTripNumber(e.target.value) }}
@@ -3942,9 +3979,22 @@ function Dispatch(props) {
                                 <div className="input-box-container input-code">
                                     <input tabIndex={50 + props.tabTimes} type="text" placeholder="Code" maxLength="8"
                                         onKeyDown={getCarrierInfoByCode}
-                                        onInput={(e) => { props.setSelectedDispatchCarrierInfoCarrier({ ...props.selectedDispatchCarrierInfoCarrier, code: e.target.value }) }}
-                                        onChange={(e) => { props.setSelectedDispatchCarrierInfoCarrier({ ...props.selectedDispatchCarrierInfoCarrier, code: e.target.value }) }}
-                                        value={props.selectedDispatchCarrierInfoCarrier?.code || ''}
+
+                                        onInput={e => {
+                                            props.setSelectedDispatchCarrierInfoCarrier({ 
+                                                ...props.selectedDispatchCarrierInfoCarrier, 
+                                                code: e.target.value,
+                                                code_number: 0 
+                                            })
+                                        }}
+                                        onChange={e => {
+                                            props.setSelectedDispatchCarrierInfoCarrier({ 
+                                                ...props.selectedDispatchCarrierInfoCarrier, 
+                                                code: e.target.value,
+                                                code_number: 0 
+                                            })
+                                        }}
+                                        value={(props.selectedDispatchCarrierInfoCarrier.code_number || 0) === 0 ? (props.selectedDispatchCarrierInfoCarrier.code || '') : props.selectedDispatchCarrierInfoCarrier.code + props.selectedDispatchCarrierInfoCarrier.code_number} 
                                     />
                                 </div>
                                 <div className="form-h-sep"></div>
@@ -3965,13 +4015,7 @@ function Dispatch(props) {
                             <div className="form-row">
                                 <div className="input-box-container grow">
                                     <input tabIndex={52 + props.tabTimes} type="text" placeholder="Carrier Load - Starting City State - Destination City State"
-                                        readOnly={true}
-                                        // onInput={(e) => {
-                                        //     props.setSelectedOrder({ ...props.selected_order, carrier_load: e.target.value });
-                                        // }}
-                                        // onChange={(e) => {
-                                        //     props.setSelectedOrder({ ...props.selected_order, carrier_load: e.target.value });
-                                        // }}
+                                        readOnly={true}                                        
                                         value={
                                             ((props.selected_order?.carrier?.id || 0) > 0 && (props.selected_order?.pickups || []).length > 0 && (props.selected_order?.deliveries || []).length > 0)
                                                 ? props.selected_order?.pickups[0].customer?.city + ', ' + props.selected_order?.pickups[0].customer?.state +
@@ -4455,7 +4499,7 @@ function Dispatch(props) {
                                                                     carrier_id: props.selectedDispatchCarrierInfoCarrier.id
                                                                 }).then(async res => {
                                                                     if (res.data.result === 'OK') {
-                                                                        if (res.data.count > 1) {
+                                                                        if (res.data.count > 0) {
                                                                             await setDriverItems([
                                                                                 ...[{
                                                                                     first_name: 'Clear',
@@ -4464,22 +4508,32 @@ function Dispatch(props) {
                                                                                 ...res.data.drivers.map((item, index) => {
                                                                                     item.selected = (props.selectedDispatchCarrierInfoDriver?.id || 0) === 0
                                                                                         ? index === 0
-                                                                                        : item.id === props.selectedDispatchCarrierInfoDriver.id
+                                                                                        : item.id === props.selectedDispatchCarrierInfoDriver.id;
+
+                                                                                    item.name = item.first_name + (item.last_name.trim() === '' ? '' : ' ' + item.last_name);
                                                                                     return item;
                                                                                 })
                                                                             ])
 
-                                                                            refDriverPopupItems.current.map((r, i) => {
-                                                                                if (r && r.classList.contains('selected')) {
-                                                                                    r.scrollIntoView({
-                                                                                        behavior: 'auto',
-                                                                                        block: 'center',
-                                                                                        inline: 'nearest'
-                                                                                    })
-                                                                                }
-                                                                                return true;
-                                                                            });
+                                                                        } else {
+                                                                            await setDriverItems([
+                                                                                ...[{
+                                                                                    first_name: 'Clear',
+                                                                                    id: null
+                                                                                }]
+                                                                            ])
                                                                         }
+
+                                                                        refDriverPopupItems.current.map((r, i) => {
+                                                                            if (r && r.classList.contains('selected')) {
+                                                                                r.scrollIntoView({
+                                                                                    behavior: 'auto',
+                                                                                    block: 'center',
+                                                                                    inline: 'nearest'
+                                                                                })
+                                                                            }
+                                                                            return true;
+                                                                        });
                                                                     }
                                                                 }).catch(async e => {
                                                                     console.log('error getting carrier drivers', e);
@@ -4525,7 +4579,7 @@ function Dispatch(props) {
                                                                     carrier_id: props.selectedDispatchCarrierInfoCarrier.id
                                                                 }).then(async res => {
                                                                     if (res.data.result === 'OK') {
-                                                                        if (res.data.count > 1) {
+                                                                        if (res.data.count > 0) {
                                                                             await setDriverItems([
                                                                                 ...[{
                                                                                     first_name: 'Clear',
@@ -4534,22 +4588,32 @@ function Dispatch(props) {
                                                                                 ...res.data.drivers.map((item, index) => {
                                                                                     item.selected = (props.selectedDispatchCarrierInfoDriver?.id || 0) === 0
                                                                                         ? index === 0
-                                                                                        : item.id === props.selectedDispatchCarrierInfoDriver.id
+                                                                                        : item.id === props.selectedDispatchCarrierInfoDriver.id;
+
+                                                                                    item.name = item.first_name + (item.last_name.trim() === '' ? '' : ' ' + item.last_name);
                                                                                     return item;
                                                                                 })
                                                                             ])
 
-                                                                            refDriverPopupItems.current.map((r, i) => {
-                                                                                if (r && r.classList.contains('selected')) {
-                                                                                    r.scrollIntoView({
-                                                                                        behavior: 'auto',
-                                                                                        block: 'center',
-                                                                                        inline: 'nearest'
-                                                                                    })
-                                                                                }
-                                                                                return true;
-                                                                            });
+                                                                        } else {
+                                                                            await setDriverItems([
+                                                                                ...[{
+                                                                                    first_name: 'Clear',
+                                                                                    id: null
+                                                                                }]
+                                                                            ])
                                                                         }
+
+                                                                        refDriverPopupItems.current.map((r, i) => {
+                                                                            if (r && r.classList.contains('selected')) {
+                                                                                r.scrollIntoView({
+                                                                                    behavior: 'auto',
+                                                                                    block: 'center',
+                                                                                    inline: 'nearest'
+                                                                                })
+                                                                            }
+                                                                            return true;
+                                                                        });
                                                                     }
                                                                 }).catch(async e => {
                                                                     console.log('error getting carrier drivers', e);
@@ -4564,171 +4628,114 @@ function Dispatch(props) {
 
                                                     case 13: // enter
                                                         if (driverItems.length > 0 && driverItems.findIndex(item => item.selected) > -1) {
+                                                            if (driverItems[driverItems.findIndex(item => item.selected)].id === null) {
+                                                                await props.setSelectedDispatchCarrierInfoDriver({ name: '' });
 
-                                                            await props.setSelectedDispatchCarrierInfoDriver(driverItems[driverItems.findIndex(item => item.selected)].id === null ? {} : driverItems[driverItems.findIndex(item => item.selected)]);
+                                                                axios.post(props.serverUrl + '/saveOrder', { ...props.selected_order, carrier_driver_id: null }).then(async res => {
+                                                                    if (res.data.result === 'OK') {
+                                                                        await props.setSelectedOrder(res.data.order);
+                                                                    } else {
+                                                                        console.log(res.data.result);
+                                                                    }
 
-                                                            await props.setSelectedOrder({
-                                                                ...props.selected_order,
-                                                                carrier_driver_id: driverItems[driverItems.findIndex(item => item.selected)].id
-                                                            })
+                                                                    setIsSavingOrder(false);
+                                                                }).catch(e => {
+                                                                    console.log('error saving order', e);
+                                                                    setIsSavingOrder(false);
+                                                                });
 
-                                                            validateOrderForSaving({ keyCode: 9 });
+                                                                refDriverName.current.focus();
+                                                            } else {
+                                                                await props.setSelectedDispatchCarrierInfoDriver(driverItems[driverItems.findIndex(item => item.selected)]);
+                                                                validateCarrierDriverForSaving({ keyCode: 9 });
+                                                                refDriverPhone.current.inputElement.focus();
+                                                            }
+
                                                             setDriverItems([]);
-                                                            refDriverName.current.focus();
                                                         }
                                                         break;
 
                                                     case 9: // tab
                                                         if (driverItems.length > 0) {
                                                             e.preventDefault();
-                                                            await props.setSelectedDispatchCarrierInfoDriver(driverItems[driverItems.findIndex(item => item.selected)].id === null ? {} : driverItems[driverItems.findIndex(item => item.selected)]);
+                                                            if (driverItems[driverItems.findIndex(item => item.selected)].id === null) {
+                                                                await props.setSelectedDispatchCarrierInfoDriver({ name: '' });
 
-                                                            await props.setSelectedOrder({
-                                                                ...props.selected_order,
-                                                                carrier_driver_id: driverItems[driverItems.findIndex(item => item.selected)].id
-                                                            })
+                                                                axios.post(props.serverUrl + '/saveOrder', { ...props.selected_order, carrier_driver_id: null }).then(async res => {
+                                                                    if (res.data.result === 'OK') {
+                                                                        await props.setSelectedOrder(res.data.order);
+                                                                    } else {
+                                                                        console.log(res.data.result);
+                                                                    }
 
-                                                            validateOrderForSaving({ keyCode: 9 });
+                                                                    setIsSavingOrder(false);
+                                                                }).catch(e => {
+                                                                    console.log('error saving order', e);
+                                                                    setIsSavingOrder(false);
+                                                                });
+
+                                                                refDriverName.current.focus();
+                                                            } else {
+                                                                await props.setSelectedDispatchCarrierInfoDriver(driverItems[driverItems.findIndex(item => item.selected)]);
+                                                                refDriverPhone.current.inputElement.focus();
+                                                            }
+
                                                             setDriverItems([]);
-                                                            refDriverName.current.focus();
+
                                                         }
+
+                                                        await validateCarrierDriverForSaving({ keyCode: 9 });
                                                         break;
 
                                                     default:
                                                         break;
                                                 }
                                             }}
-                                            onBlur={async (e) => {
-                                                if ((props.selectedDispatchCarrierInfoDriver?.id || 0) === 0) {
-                                                    await props.setSelectedDispatchCarrierInfoDriver({});
-                                                    await props.setSelectedOrder({
-                                                        ...props.selected_order,
-                                                        carrier_driver_id: null
-                                                    })
-
-                                                    validateOrderForSaving({ keyCode: 9 });
+                                            onBlur={(e) => {
+                                                if ((props.selectedDispatchCarrierInfoDriver?.id || 0) > 0) {
+                                                    if (e.target.value.trim() === ''){
+                                                        props.setSelectedDispatchCarrierInfoDriver({ name: '' });
+                                                    }
                                                 }
                                             }}
                                             onInput={async (e) => {
                                                 let driver = props.selectedDispatchCarrierInfoDriver || {};
-                                                driver.id = 0;
 
-                                                if (e.target.value === '') {
-                                                    driver = {};
-                                                    await props.setSelectedDispatchCarrierInfoDriver({ ...driver });
-                                                    setDriverItems([]);
-                                                } else {
-                                                    let splitted = e.target.value.split(' ');
-                                                    let first_name = splitted[0];
+                                                let splitted = e.target.value.split(' ');
+                                                let first_name = splitted[0];
 
-                                                    if (splitted.length > 1) {
-                                                        first_name += ' ';
+                                                let last_name = '';
+
+                                                splitted.map((item, index) => {
+                                                    if (index > 0) {
+                                                        last_name += item + (index < (splitted.length - 1) ? ' ' : '');
                                                     }
+                                                    return true;
+                                                })
 
-                                                    let last_name = '';
-
-                                                    splitted.map((item, index) => {
-                                                        if (index > 0) {
-                                                            last_name += item;
-                                                        }
-                                                        return true;
-                                                    })
-
-                                                    props.setSelectedDispatchCarrierInfoDriver({ ...driver, first_name: first_name, last_name: last_name });
-
-                                                    // if ((props.selectedDispatchCarrierInfoCarrier?.id || 0) > 0) {
-                                                    //     axios.post(props.serverUrl + '/getDriversByCarrierId', {
-                                                    //         carrier_id: props.selectedDispatchCarrierInfoCarrier.id
-                                                    //     }).then(async res => {
-                                                    //         if (res.data.result === 'OK') {
-                                                    //             if (res.data.count > 1) {
-                                                    //                 await setDriverItems(res.data.drivers.map((item, index) => {
-                                                    //                     item.selected = (props.selectedDispatchCarrierInfoDriver?.id || 0) === 0
-                                                    //                         ? index === 0
-                                                    //                         : item.id === props.selectedDispatchCarrierInfoDriver.id
-                                                    //                     return item;
-                                                    //                 }))
-
-                                                    //                 refDriverPopupItems.current.map((r, i) => {
-                                                    //                     if (r && r.classList.contains('selected')) {
-                                                    //                         r.scrollIntoView({
-                                                    //                             behavior: 'auto',
-                                                    //                             block: 'center',
-                                                    //                             inline: 'nearest'
-                                                    //                         })
-                                                    //                     }
-                                                    //                     return true;
-                                                    //                 });
-                                                    //             }
-                                                    //         }
-                                                    //     }).catch(async e => {
-                                                    //         console.log('error getting carrier drivers', e);
-                                                    //     })
-                                                    // }
-                                                }
+                                                props.setSelectedDispatchCarrierInfoDriver({ ...driver, name: e.target.value, first_name: first_name, last_name: last_name });
                                             }}
                                             onChange={async (e) => {
                                                 let driver = props.selectedDispatchCarrierInfoDriver || {};
-                                                driver.id = 0;
 
-                                                if (e.target.value === '') {
-                                                    driver = {};
-                                                    props.setSelectedDispatchCarrierInfoDriver({ ...driver });
-                                                    setDriverItems([]);
-                                                } else {
-                                                    let splitted = e.target.value.split(' ');
-                                                    let first_name = splitted[0];
+                                                let splitted = e.target.value.split(' ');
+                                                let first_name = splitted[0];
 
-                                                    if (splitted.length > 1) {
-                                                        first_name += ' ';
+                                                let last_name = '';
+
+                                                splitted.map((item, index) => {
+                                                    if (index > 0) {
+                                                        last_name += item + (index < (splitted.length - 1) ? ' ' : '');
                                                     }
+                                                    return true;
+                                                })
 
-                                                    let last_name = '';
-
-                                                    splitted.map((item, index) => {
-                                                        if (index > 0) {
-                                                            last_name += item;
-                                                        }
-                                                        return true;
-                                                    })
-
-                                                    props.setSelectedDispatchCarrierInfoDriver({ ...driver, first_name: first_name, last_name: last_name });
-
-                                                    // if ((props.selectedDispatchCarrierInfoCarrier?.id || 0) > 0) {
-                                                    //     axios.post(props.serverUrl + '/getDriversByCarrierId', {
-                                                    //         carrier_id: props.selectedDispatchCarrierInfoCarrier.id
-                                                    //     }).then(async res => {
-                                                    //         if (res.data.result === 'OK') {
-                                                    //             if (res.data.count > 1) {
-                                                    //                 await setDriverItems(res.data.drivers.map((item, index) => {
-                                                    //                     item.selected = (props.selectedDispatchCarrierInfoDriver?.id || 0) === 0
-                                                    //                         ? index === 0
-                                                    //                         : item.id === props.selectedDispatchCarrierInfoDriver.id
-                                                    //                     return item;
-                                                    //                 }))
-
-                                                    //                 refDriverPopupItems.current.map((r, i) => {
-                                                    //                     if (r && r.classList.contains('selected')) {
-                                                    //                         r.scrollIntoView({
-                                                    //                             behavior: 'auto',
-                                                    //                             block: 'center',
-                                                    //                             inline: 'nearest'
-                                                    //                         })
-                                                    //                     }
-                                                    //                     return true;
-                                                    //                 });
-                                                    //             }
-                                                    //         }
-                                                    //     }).catch(async e => {
-                                                    //         console.log('error getting carrier drivers', e);
-                                                    //     })
-                                                    // }
-                                                }
+                                                props.setSelectedDispatchCarrierInfoDriver({ ...driver, name: e.target.value, first_name: first_name, last_name: last_name });
                                             }}
-                                            value={(props.selectedDispatchCarrierInfoDriver?.first_name || '') + ((props.selectedDispatchCarrierInfoDriver?.last_name || '').trim() === '' ? '' : ' ' + props.selectedDispatchCarrierInfoDriver?.last_name)}
+                                            value={(props.selectedDispatchCarrierInfoDriver?.name || '')}
                                         />
                                         {
-                                            (props.selectedDispatchCarrierInfoCarrier?.drivers || []).length > 1 &&
+                                            (props.selectedDispatchCarrierInfoCarrier?.drivers || []).length >= 0 &&
 
                                             <FontAwesomeIcon className="dropdown-button" icon={faCaretDown} onClick={() => {
                                                 if (driverItems.length > 0) {
@@ -4740,8 +4747,7 @@ function Dispatch(props) {
                                                                 carrier_id: props.selectedDispatchCarrierInfoCarrier.id
                                                             }).then(async res => {
                                                                 if (res.data.result === 'OK') {
-                                                                    if (res.data.count > 1) {
-
+                                                                    if (res.data.count > 0) {
                                                                         await setDriverItems([
                                                                             ...[{
                                                                                 first_name: 'Clear',
@@ -4750,22 +4756,32 @@ function Dispatch(props) {
                                                                             ...res.data.drivers.map((item, index) => {
                                                                                 item.selected = (props.selectedDispatchCarrierInfoDriver?.id || 0) === 0
                                                                                     ? index === 0
-                                                                                    : item.id === props.selectedDispatchCarrierInfoDriver.id
+                                                                                    : item.id === props.selectedDispatchCarrierInfoDriver.id;
+
+                                                                                item.name = item.first_name + (item.last_name.trim() === '' ? '' : ' ' + item.last_name);
                                                                                 return item;
                                                                             })
                                                                         ])
 
-                                                                        refDriverPopupItems.current.map((r, i) => {
-                                                                            if (r && r.classList.contains('selected')) {
-                                                                                r.scrollIntoView({
-                                                                                    behavior: 'auto',
-                                                                                    block: 'center',
-                                                                                    inline: 'nearest'
-                                                                                })
-                                                                            }
-                                                                            return true;
-                                                                        });
+                                                                    } else {
+                                                                        await setDriverItems([
+                                                                            ...[{
+                                                                                first_name: 'Clear',
+                                                                                id: null
+                                                                            }]
+                                                                        ])
                                                                     }
+
+                                                                    refDriverPopupItems.current.map((r, i) => {
+                                                                        if (r && r.classList.contains('selected')) {
+                                                                            r.scrollIntoView({
+                                                                                behavior: 'auto',
+                                                                                block: 'center',
+                                                                                inline: 'nearest'
+                                                                            })
+                                                                        }
+                                                                        return true;
+                                                                    });
                                                                 }
                                                             }).catch(async e => {
                                                                 console.log('error getting carrier drivers', e);
@@ -4815,16 +4831,31 @@ function Dispatch(props) {
                                                                             className={mochiItemClasses}
                                                                             id={item.id}
                                                                             onClick={() => {
-                                                                                props.setSelectedDispatchCarrierInfoDriver(item.id === null ? {} : item);
+                                                                                if (item.id === null) {
+                                                                                    props.setSelectedDispatchCarrierInfoDriver({ name: '' });
 
-                                                                                props.setSelectedOrder({
-                                                                                    ...props.selected_order,
-                                                                                    carrier_driver_id: item.id
-                                                                                })
+                                                                                    axios.post(props.serverUrl + '/saveOrder', { ...props.selected_order, carrier_driver_id: null }).then(res => {
+                                                                                        if (res.data.result === 'OK') {
+                                                                                            props.setSelectedOrder(res.data.order);
+                                                                                        } else {
+                                                                                            console.log(res.data.result);
+                                                                                        }
 
-                                                                                validateOrderForSaving({ keyCode: 9 });
+                                                                                        setIsSavingOrder(false);
+                                                                                    }).catch(e => {
+                                                                                        console.log('error saving order', e);
+                                                                                        setIsSavingOrder(false);
+                                                                                    });
+
+                                                                                    refDriverName.current.focus();
+                                                                                } else {
+                                                                                    props.setSelectedDispatchCarrierInfoDriver(item);
+                                                                                    validateCarrierDriverForSaving({ keyCode: 9 });
+
+                                                                                    refDriverPhone.current.inputElement.focus();
+                                                                                }
+
                                                                                 setDriverItems([]);
-                                                                                refDriverName.current.focus();
                                                                             }}
                                                                             ref={ref => refDriverPopupItems.current.push(ref)}
                                                                         >
@@ -4857,6 +4888,7 @@ function Dispatch(props) {
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container grow">
                                     <MaskedInput tabIndex={58 + props.tabTimes}
+                                        ref={refDriverPhone}
                                         mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                         guide={true}
                                         type="text" placeholder="Driver Phone"
@@ -7059,6 +7091,8 @@ function Dispatch(props) {
                                                                 await setIsPickupDate2CalendarShown(false);
                                                                 await setIsDeliveryDate1CalendarShown(false);
                                                                 await setIsDeliveryDate2CalendarShown(false);
+
+                                                                refPickupTime1.current.focus();
                                                             }
 
                                                         }
@@ -7117,6 +7151,11 @@ function Dispatch(props) {
                                                             });
 
                                                             await props.setSelectedOrder({ ...props.selected_order, pickups: pickups });
+
+                                                            // await setIsPickupDate1CalendarShown(false);
+                                                            // await setIsPickupDate2CalendarShown(false);
+                                                            // await setIsDeliveryDate1CalendarShown(false);
+                                                            // await setIsDeliveryDate2CalendarShown(false);
                                                         }
                                                     }}
                                                     onInput={(e) => {
@@ -7221,6 +7260,7 @@ function Dispatch(props) {
                                             <div className="form-h-sep"></div>
                                             <div className="input-box-container grow">
                                                 <input tabIndex={27 + props.tabTimes} type="text" placeholder="PU Time 1"
+                                                    ref={refPickupTime1}
                                                     onKeyDown={(e) => {
                                                         e.stopPropagation();
                                                         setPuTime1KeyCode(e.keyCode || e.which);
@@ -7319,6 +7359,8 @@ function Dispatch(props) {
                                                                 await setIsPickupDate2CalendarShown(false);
                                                                 await setIsDeliveryDate1CalendarShown(false);
                                                                 await setIsDeliveryDate2CalendarShown(false);
+
+                                                                refPickupTime2.current.focus();
                                                             }
                                                         }
 
@@ -7373,6 +7415,11 @@ function Dispatch(props) {
                                                             });
 
                                                             await props.setSelectedOrder({ ...props.selected_order, pickups: pickups });
+
+                                                            // await setIsPickupDate1CalendarShown(false);
+                                                            // await setIsPickupDate2CalendarShown(false);
+                                                            // await setIsDeliveryDate1CalendarShown(false);
+                                                            // await setIsDeliveryDate2CalendarShown(false);
                                                         }
                                                     }}
                                                     onInput={(e) => {
@@ -7477,6 +7524,7 @@ function Dispatch(props) {
                                             <div className="form-h-sep"></div>
                                             <div className="input-box-container grow">
                                                 <input tabIndex={29 + props.tabTimes} type="text" placeholder="PU Time 2"
+                                                    ref={refPickupTime2}
                                                     onKeyDown={(e) => {
                                                         e.stopPropagation();
                                                         setPuTime2KeyCode(e.keyCode || e.which);
@@ -8992,6 +9040,8 @@ function Dispatch(props) {
                                                                 await setIsDeliveryDate2CalendarShown(false);
                                                                 await setIsDeliveryDate1CalendarShown(false);
                                                                 await setIsDeliveryDate2CalendarShown(false);
+
+                                                                refDeliveryTime1.current.focus();
                                                             }
                                                         }
 
@@ -9048,6 +9098,11 @@ function Dispatch(props) {
                                                             });
 
                                                             await props.setSelectedOrder({ ...props.selected_order, deliveries: deliveries });
+
+                                                            // await setIsPickupDate1CalendarShown(false);
+                                                            // await setIsPickupDate2CalendarShown(false);
+                                                            // await setIsDeliveryDate1CalendarShown(false);
+                                                            // await setIsDeliveryDate2CalendarShown(false);
                                                         }
                                                     }}
                                                     onInput={(e) => {
@@ -9152,6 +9207,7 @@ function Dispatch(props) {
                                             <div className="form-h-sep"></div>
                                             <div className="input-box-container grow">
                                                 <input tabIndex={46 + props.tabTimes} type="text" placeholder="Delivery Time 1"
+                                                    ref={refDeliveryTime1}
                                                     onKeyDown={(e) => {
                                                         e.stopPropagation();
                                                         setDeliveryTime1KeyCode(e.keyCode || e.which);
@@ -9250,6 +9306,8 @@ function Dispatch(props) {
                                                                 await setIsDeliveryDate2CalendarShown(false);
                                                                 await setIsDeliveryDate1CalendarShown(false);
                                                                 await setIsDeliveryDate2CalendarShown(false);
+
+                                                                refDeliveryTime2.current.focus();
                                                             }
 
                                                         }
@@ -9305,6 +9363,11 @@ function Dispatch(props) {
                                                             });
 
                                                             await props.setSelectedOrder({ ...props.selected_order, deliveries: deliveries });
+
+                                                            // await setIsPickupDate1CalendarShown(false);
+                                                            // await setIsPickupDate2CalendarShown(false);
+                                                            // await setIsDeliveryDate1CalendarShown(false);
+                                                            // await setIsDeliveryDate2CalendarShown(false);
                                                         }
                                                     }}
                                                     onInput={(e) => {
@@ -9409,6 +9472,7 @@ function Dispatch(props) {
                                             <div className="form-h-sep"></div>
                                             <div className="input-box-container grow">
                                                 <input tabIndex={48 + props.tabTimes} type="text" placeholder="Delivery Time 2"
+                                                    ref={refDeliveryTime2}
                                                     onKeyDown={(e) => {
                                                         e.stopPropagation();
                                                         setDeliveryTime2KeyCode(e.keyCode || e.which);
@@ -10936,16 +11000,18 @@ function Dispatch(props) {
                     <div className="form-h-sep"></div>
                     <div className="input-box-container" style={{ width: '6rem' }}>
                         <input tabIndex={75 + props.tabTimes} type="text" placeholder="Event Time"
-                            onKeyDown={(e) => {
-                                e.stopPropagation();
-                                setDispatchEvebtTimeKeyCode(e.keyCode || e.which);
-                            }}
-                            onBlur={async (e) => {
-                                if (dispatchEventTimeKeyCode === 9) {
-                                    let formatted = getFormattedHours(e.target.value);
-                                    await props.setDispatchEventTime(formatted);
+                        ref={refEventTime}
+                            onKeyDown={async (e) => {
+                                let key = e.keyCode || e.which;
 
-                                    e.preventDefault();
+                                e.stopPropagation();                                
+
+                                if (key === 9){
+                                    e.preventDefault();                              
+                                   
+                                    let formatted = getFormattedHours(e.target.value);
+                                    console.log(e.target.value, formatted);
+                                    await props.setDispatchEventTime(formatted);                                   
 
                                     if ((props.dispatchEvent?.name || '') === '') {
                                         goToTabindex((1 + props.tabTimes).toString());
@@ -10981,19 +11047,19 @@ function Dispatch(props) {
                                         } else {
                                             if (event_parameters.event_notes.trim() === '') {
                                                 window.alert('You must include some notes!');
-                                                goToTabindex((75 + props.tabTimes).toString());
+                                                refEventTime.current.focus();
                                                 return;
                                             }
 
                                             if (event_parameters.event_date.trim() === '') {
                                                 window.alert('You must include the event date!');
-                                                goToTabindex((75 + props.tabTimes).toString());
+                                                refEventTime.current.focus();
                                                 return;
                                             }
 
                                             if (event_parameters.event_time.trim() === '') {
                                                 window.alert('You must include the event time!');
-                                                goToTabindex((75 + props.tabTimes).toString());
+                                                refEventTime.current.focus();
                                                 return;
                                             }
                                         }
@@ -11013,18 +11079,18 @@ function Dispatch(props) {
                                                     refDispatchEvents.current.focus();
                                                 } else if (res.data.result === 'ORDER ID NOT VALID') {
                                                     window.alert('The order number is not valid!');
-                                                    goToTabindex((75 + props.tabTimes).toString());
+                                                    refEventTime.current.focus();
                                                 }
                                             }).catch(e => {
                                                 console.log('error saving order event', e);
                                             })
                                         } else {
                                             e.preventDefault();
-                                            goToTabindex((75 + props.tabTimes).toString());
+                                            refEventTime.current.focus();
                                         }
                                     }
                                 }
-                            }}
+                            }}                            
                             onInput={(e) => {
                                 props.setDispatchEventTime(e.target.value);
                             }}
@@ -11272,6 +11338,8 @@ function Dispatch(props) {
                     });
 
                     await props.setSelectedOrder({ ...props.selected_order, pickups: pickups });
+
+                    refPickupTime1.current.focus();
                 }}
                 closeCalendar={() => {
                     setIsPickupDate1CalendarShown(false);
@@ -11305,6 +11373,8 @@ function Dispatch(props) {
                     });
 
                     await props.setSelectedOrder({ ...props.selected_order, pickups: pickups });
+
+                    refPickupTime2.current.focus();
                 }}
                 closeCalendar={() => {
                     setIsPickupDate1CalendarShown(false);
@@ -11339,6 +11409,8 @@ function Dispatch(props) {
                     });
 
                     await props.setSelectedOrder({ ...props.selected_order, deliveries: deliveries });
+
+                    refDeliveryTime1.current.focus();
                 }}
                 closeCalendar={() => {
                     setIsPickupDate1CalendarShown(false);
@@ -11371,6 +11443,8 @@ function Dispatch(props) {
                     });
 
                     await props.setSelectedOrder({ ...props.selected_order, deliveries: deliveries });
+
+                    refDeliveryTime2.current.focus();
                 }}
                 closeCalendar={() => {
                     setIsPickupDate1CalendarShown(false);

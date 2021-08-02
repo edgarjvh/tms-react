@@ -329,7 +329,7 @@ function Contacts(props) {
                                     (props.isEditingContact && (props.contactSearchCustomer.selectedContact.id || 0) > 0 && (props.contactSearchCustomer.selectedContact.avatar || '') !== '') && <span className="fas fa-trash-alt remove-contact-avatar-btn" onClick={removeContactAvatar}></span>
                                 }
                                 {
-                                    (props.isEditingContact && (props.contactSearchCustomer.selectedContact.id || 0) > 0) && <span className="fas fa-sync change-contact-avatar-btn" onClick={() => { refInputAvatar.current.click() }}></span>
+                                    (props.isEditingContact && (props.contactSearchCustomer.selectedContact.id || 0) > 0) && <span className="fas fa-plus change-contact-avatar-btn" onClick={() => { refInputAvatar.current.click() }}></span>
                                 }
 
                                 <form encType='multipart/form-data' style={{ display: 'none' }}>

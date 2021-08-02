@@ -95,11 +95,6 @@ import Contacts from './../../../panels/contacts/Contacts.jsx';
 import Dispatch from './../../../dispatch/Dispatch.jsx';
 
 function PanelContainer(props) {
-
-    useEffect(() => {
-        console.log(props)
-    }, [])
-
     const baseWidth = 0.95;
     const panelGap = 70;
 

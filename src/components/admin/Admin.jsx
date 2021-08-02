@@ -213,78 +213,11 @@ function Admin(props) {
                         <div className="menu-btn" id="switch-admin-screen-btn" onClick={userClick}>Company</div>
                     </div>
                     <div className="section chat-video-buttons">
-                        <div className="mochi-button" onClick={(e) => {
-                            e.stopPropagation();
-                            setShowChatOptions(true);
+                        <div className="mochi-button" onClick={() => {
+                            window.open('', '_blank').focus();
                         }}>
                             <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
-                            <div className="mochi-button-base">Chat</div>
-
-                            <Transition
-                                from={{ opacity: 0, top: 'calc(100% + 10px)' }}
-                                enter={{ opacity: 1, top: 'calc(100% + 15px)' }}
-                                leave={{ opacity: 0, top: 'calc(100% + 10px)' }}
-                                items={showChatOptions}
-                                config={{ duration: 100 }}
-                            >
-                                {show => show && (styles => (
-                                    <div
-                                        className="mochi-contextual-container"
-                                        id="mochi-contextual-container-chat"
-                                        style={{
-                                            ...styles,
-                                            left: 'calc(-50% - 20px)',
-                                            display: 'block'
-                                        }}
-                                        ref={refShowChatOptionsDropDown}
-                                    >
-                                        <div className="mochi-contextual-popup vertical below right">
-                                            <div className="mochi-contextual-popup-content">
-                                                <div className="mochi-contextual-popup-wrapper">
-                                                    {
-                                                        chatOptionItems.map((item, index) => {
-                                                            const mochiItemClasses = classnames({
-                                                                'mochi-item': true,
-                                                                'selected': item.selected
-                                                            });
-
-                                                            return (
-                                                                <div
-                                                                    key={index}
-                                                                    className={mochiItemClasses}
-                                                                    id={item.id}
-                                                                    onClick={async (e) => {
-                                                                        e.stopPropagation();
-
-                                                                        if (item.id === 0) {
-                                                                            window.open('', '_blank').focus();
-                                                                        }
-                                                                    }}
-                                                                    onMouseOver={() => {
-                                                                        setChatOptionItems(chatOptionItems.map((x) => {
-                                                                            x.selected = x.id === item.id;
-                                                                            return x;
-                                                                        }))
-                                                                    }}
-                                                                    ref={ref => refChatOptionPopupItems.current.push(ref)}
-                                                                >
-                                                                    {
-                                                                        item.name
-                                                                    }
-                                                                    {
-                                                                        item.selected &&
-                                                                        <FontAwesomeIcon className="dropdown-selected" icon={faCaretRight} />
-                                                                    }
-                                                                </div>
-                                                            )
-                                                        })
-                                                    }
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </Transition>
+                            <div className="mochi-button-base">Chat</div>                            
                             <div className="mochi-button-decorator mochi-button-decorator-right">)</div>
                         </div>
 

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { connect } from 'react-redux';
 import classnames from 'classnames';
 import $ from 'jquery';
+import axios from 'axios';
 import Draggable from 'react-draggable';
 import './FactoringCompany.css';
 import MaskedInput from 'react-text-mask';
@@ -161,17 +162,30 @@ function FactoringCompany(props) {
                 contact.zip_code = props.selectedFactoringCompany.zip;
             }
 
-            $.post(props.serverUrl + '/saveFactoringCompanyContact', contact).then(async res => {
-                if (res.result === 'OK') {
-                    await props.setSelectedFactoringCompany({ ...props.selectedFactoringCompany, contacts: res.contacts });
-                    await props.setSelectedFactoringCompanyContact(res.contact);
+            axios.post(props.serverUrl + '/saveFactoringCompanyContact', contact).then(async res => {
+                if (res.data.result === 'OK') {
+                    let mailing_contact = props.selectedFactoringCompany?.mailing_address?.mailing_contact || {};
+
+                    if ((mailing_contact?.id || 0) === res.data.contact.id) {
+                        mailing_contact = res.data.contact;
+                    }
+
+                    await props.setSelectedFactoringCompany({
+                        ...props.selectedFactoringCompany,
+                        contacts: res.data.contacts,
+                        mailing_address: {
+                            ...props.selectedFactoringCompany.mailing_address,
+                            mailing_contact: mailing_contact
+                        }
+                    });
+                    await props.setSelectedFactoringCompanyContact(res.data.contact);
 
                     if ((props.selectedFactoringCompany?.id || 0) > 0 && (props.selectedFactoringCompany.id === (props.selectedCarrier?.factoring_company?.id || 0))) {
                         props.setSelectedCarrier({
                             ...props.selectedCarrier,
                             factoring_company: {
                                 ...props.selectedCarrier.factoring_company,
-                                contacts: res.contacts
+                                contacts: res.data.contacts
                             }
                         })
                     }
