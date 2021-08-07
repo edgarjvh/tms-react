@@ -20,6 +20,62 @@
   overflow                                          : hidden;
   padding                                          : 10px;
 
+  .selected-customer-contact-primary-phone {
+    position      : absolute;
+    right         : 5px;
+    top           : 50%;
+    transform     : translateY(-50%);
+    font-size     : 0.65rem;
+    text-transform: capitalize;
+    font-weight   : bold;
+
+    &.pushed {
+      right: 20px;
+    }
+  }
+
+  .selected-customer-contact-primary-email {
+    position      : absolute;
+    right         : 5px;
+    top           : 50%;
+    transform     : translateY(-50%);
+    font-size     : 0.65rem;
+    text-transform: capitalize;
+    font-weight   : bold;
+
+    &.pushed {
+      right: 20px;
+    }
+  }
+
+  .selected-carrier-contact-primary-phone {
+    position      : absolute;
+    right         : 5px;
+    top           : 50%;
+    transform     : translateY(-50%);
+    font-size     : 0.65rem;
+    text-transform: capitalize;
+    font-weight   : bold;
+
+    &.pushed {
+      right: 20px;
+    }
+  }
+
+  .selected-carrier-contact-primary-email {
+    position      : absolute;
+    right         : 5px;
+    top           : 50%;
+    transform     : translateY(-50%);
+    font-size     : 0.65rem;
+    text-transform: capitalize;
+    font-weight   : bold;
+
+    &.pushed {
+      right: 20px;
+    }
+  }
+
   .form-slider {
     position: relative;
     width   : 100%;
@@ -161,12 +217,15 @@
           width: 3.5rem !important;
         }
         &.input-zip-code{
-          width: 4rem !important;
+          width: 6.5rem !important;
         }
         &.input-phone{
-          width: 4.75rem !important;
+          width: 6.5rem !important;
         }
         &.input-phone-ext{
+          width: 2rem !important;
+        }
+        &.input-state{
           width: 2rem !important;
         }
       }

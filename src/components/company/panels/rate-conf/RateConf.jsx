@@ -6,8 +6,29 @@ import { useReactToPrint } from 'react-to-print';
 function RateConf(props) {
     const componentRef = useRef();
 
-    const handlePrint = useReactToPrint({        
-        pageStyle: () => "@media print {@page {size: 8.5in 11in !important; margin: 0} body {margin: 0;padding: 0;} .page-block {page-break-after: auto !important;page-break-beforer: auto !important; page-break-inside: avoid !important;} .no-print{display:none !important;} .container-sheet{box-shadow: initial !important;margin: 0 !important}}",
+    const handlePrint = useReactToPrint({
+        pageStyle: () => {
+            return `
+                @media print {
+                    @page {
+                        size: 8.5in 11in !important; 
+                        margin: 0;                        
+                    }
+                    .page-block {
+                        page-break-after: auto !important;
+                        page-break-beforer: auto !important; 
+                        page-break-inside: avoid !important;
+                    } 
+                    .no-print{
+                        display:none !important;
+                    } 
+                    .container-sheet{
+                        box-shadow: initial !important;
+                        margin: 0 !important
+                    }
+                }
+            `
+        },
         content: () => componentRef.current,
     });
 

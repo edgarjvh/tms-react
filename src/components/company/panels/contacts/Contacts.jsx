@@ -118,7 +118,40 @@ function Contacts(props) {
                 }
                 break;
             default:
-                tempSelectedContact.primary_phone = 'work';
+                tempSelectedContact.primary_phone = 'work'
+                break;
+        }
+
+        switch (tempSelectedContact.primary_email) {
+            case 'work':
+                if ((tempSelectedContact.email_work || '').trim() === '') {
+                    tempSelectedContact.primary_email = (tempSelectedContact.email_personal || '').trim() !== ''
+                        ? 'personal'
+                        : (tempSelectedContact.email_other || '').trim() !== ''
+                            ? 'other'
+                            : 'work'
+                }
+                break;
+            case 'personal':
+                if ((tempSelectedContact.email_personal || '').trim() === '') {
+                    tempSelectedContact.primary_email = (tempSelectedContact.email_work || '').trim() !== ''
+                        ? 'work'
+                        : (tempSelectedContact.email_other || '').trim() !== ''
+                            ? 'other'
+                            : 'work'
+                }
+                break;
+            case 'other':
+                if ((tempSelectedContact.email_other || '').trim() === '') {
+                    tempSelectedContact.primary_email = (tempSelectedContact.email_work || '').trim() !== ''
+                        ? 'work'
+                        : (tempSelectedContact.email_personal || '').trim() !== ''
+                            ? 'personal'
+                            : 'work'
+                }
+                break;
+            default:
+                tempSelectedContact.primary_email = 'work'
                 break;
         }
 
@@ -191,6 +224,8 @@ function Contacts(props) {
             formData.append("avatar", files[0]);
             formData.append("contact_id", props.contactSearchCustomer.selectedContact.id);
             formData.append("customer_id", props.contactSearchCustomer.id);
+            formData.append("carrier_id", props.contactSearchCustomer.id);
+            formData.append("factoring_company_id", props.contactSearchCustomer.id);
 
             const options = {
                 onUploadProgress: (progressEvent) => {
@@ -269,7 +304,7 @@ function Contacts(props) {
                                                         <div className="contact-name" style={{
                                                             display: 'flex', alignItems: 'center'
                                                         }}>
-                                                            <div style={{flexGrow: 1}}>
+                                                            <div style={{ flexGrow: 1 }}>
                                                                 {(contact.prefix || '') + " " + contact.first_name + " " + (contact.middle_name || '') + " " + contact.last_name}
                                                             </div>
                                                             {

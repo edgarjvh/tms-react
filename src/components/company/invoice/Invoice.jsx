@@ -1799,7 +1799,7 @@ function Invoice(props) {
                                         } />
                                 </div>
                                 <div className="form-h-sep"></div>
-                                <div className="input-box-container input-phone" style={{position: 'relative'}}>
+                                <div className="input-box-container input-phone" style={{ position: 'relative' }}>
                                     <MaskedInput tabIndex={14 + props.tabTimes}
                                         mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                         guide={true}
@@ -2027,20 +2027,20 @@ function Invoice(props) {
                                     <input tabIndex={50 + props.tabTimes} type="text" placeholder="Code" maxLength="8"
                                         readOnly={true}
                                         onInput={e => {
-                                            props.setSelectedInvoiceCarrierInfoCarrier({ 
-                                                ...props.selectedInvoiceCarrierInfoCarrier, 
+                                            props.setSelectedInvoiceCarrierInfoCarrier({
+                                                ...props.selectedInvoiceCarrierInfoCarrier,
                                                 code: e.target.value,
-                                                code_number: 0 
+                                                code_number: 0
                                             })
                                         }}
                                         onChange={e => {
-                                            props.setSelectedInvoiceCarrierInfoCarrier({ 
-                                                ...props.selectedInvoiceCarrierInfoCarrier, 
+                                            props.setSelectedInvoiceCarrierInfoCarrier({
+                                                ...props.selectedInvoiceCarrierInfoCarrier,
                                                 code: e.target.value,
-                                                code_number: 0 
+                                                code_number: 0
                                             })
                                         }}
-                                        value={(props.selectedInvoiceCarrierInfoCarrier.code_number || 0) === 0 ? (props.selectedInvoiceCarrierInfoCarrier.code || '') : props.selectedInvoiceCarrierInfoCarrier.code + props.selectedInvoiceCarrierInfoCarrier.code_number} 
+                                        value={(props.selectedInvoiceCarrierInfoCarrier.code_number || 0) === 0 ? (props.selectedInvoiceCarrierInfoCarrier.code || '') : props.selectedInvoiceCarrierInfoCarrier.code + props.selectedInvoiceCarrierInfoCarrier.code_number}
                                     />
                                 </div>
                                 <div className="form-h-sep"></div>
@@ -2061,11 +2061,19 @@ function Invoice(props) {
                             <div className="form-row">
                                 <div className="input-box-container grow">
                                     <input tabIndex={52 + props.tabTimes} type="text" placeholder="Carrier Load - Starting City State - Destination City State"
-                                        readOnly={true}                                        
+                                        readOnly={true}
                                         value={
-                                            ((props.selected_order?.carrier?.id || 0) > 0 && (props.selected_order?.pickups || []).length > 0 && (props.selected_order?.deliveries || []).length > 0)
-                                                ? props.selected_order?.pickups[0].customer?.city + ', ' + props.selected_order?.pickups[0].customer?.state +
-                                                ' - ' + (props.selected_order?.deliveries[props.selected_order?.deliveries.length - 1].customer?.city || '') + ', ' + (props.selected_order?.deliveries[props.selected_order?.deliveries.length - 1].customer?.state || '')
+                                            ((props.selected_order?.routing || []).length >= 2 && (props.selected_order?.carrier?.id || 0) > 0)
+                                                ? props.selected_order.routing[0].type === 'pickup'
+                                                    ? ((props.selected_order.pickups.find(p => p.id === props.selected_order.routing[0].pickup_id).customer?.city || '') + ', ' + (props.selected_order.pickups.find(p => p.id === props.selected_order.routing[0].pickup_id).customer?.state || '') +
+                                                        ' - ' + (props.selected_order.routing[props.selected_order.routing.length - 1].type === 'pickup'
+                                                            ? (props.selected_order.pickups.find(p => p.id === props.selected_order.routing[props.selected_order.routing.length - 1].pickup_id).customer?.city || '') + ', ' + (props.selected_order.pickups.find(p => p.id === props.selected_order.routing[props.selected_order.routing.length - 1].pickup_id).customer?.state || '') :
+                                                            (props.selected_order.deliveries.find(d => d.id === props.selected_order.routing[props.selected_order.routing.length - 1].delivery_id).customer?.city || '') + ', ' + (props.selected_order.deliveries.find(d => d.id === props.selected_order.routing[props.selected_order.routing.length - 1].delivery_id).customer?.state || '')))
+
+                                                    : ((props.selected_order.deliveries.find(d => d.id === props.selected_order.routing[0].delivery_id).customer?.city || '') + ', ' + (props.selected_order.deliveries.find(d => d.id === props.selected_order.routing[0].delivery_id).customer?.state || '') +
+                                                        ' - ' + (props.selected_order.routing[props.selected_order.routing.length - 1].type === 'pickup'
+                                                            ? (props.selected_order.pickups.find(p => p.id === props.selected_order.routing[props.selected_order.routing.length - 1].pickup_id).customer?.city || '') + ', ' + (props.selected_order.pickups.find(p => p.id === props.selected_order.routing[props.selected_order.routing.length - 1].pickup_id).customer?.state || '') :
+                                                            (props.selected_order.deliveries.find(d => d.id === props.selected_order.routing[props.selected_order.routing.length - 1].delivery_id).customer?.city || '') + ', ' + (props.selected_order.deliveries.find(d => d.id === props.selected_order.routing[props.selected_order.routing.length - 1].delivery_id).customer?.state || '')))
                                                 : ''
                                         }
                                     />
@@ -2096,7 +2104,7 @@ function Invoice(props) {
                                     />
                                 </div>
                                 <div className="form-h-sep"></div>
-                                <div className="input-box-container grow" style={{position: 'relative'}}>
+                                <div className="input-box-container grow" style={{ position: 'relative' }}>
                                     <MaskedInput tabIndex={54 + props.tabTimes}
                                         mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                         guide={true}

@@ -18,8 +18,11 @@ import Calendar from './calendar/Calendar.jsx';
 import "react-datepicker/dist/react-datepicker.css";
 import Rating from '@material-ui/lab/Rating';
 import axios from 'axios';
+import ToPrint from './ToPrint.jsx';
+import { useReactToPrint } from 'react-to-print';
 
 function Carriers(props) {
+    const refPrintCarrierInformation = useRef();
     const refCarrierCode = useRef(null);
     const refCarrierContactPhone = useRef();
     const refCarrierContactFirstName = useRef();
@@ -88,6 +91,37 @@ function Carriers(props) {
     const popupItemsRef = useRef([]);
     const refPopup = useRef();
     const modalTransitionProps = useSpring({ opacity: (props.selectedNote.id !== undefined || props.selectedDirection.id !== undefined) ? 1 : 0 });
+
+    const handledPrintCarrierInformation = useReactToPrint({
+        // pageStyle: () => {
+        //     return `
+        //     @media print {@page {size: 8.5in 11in !important; margin: 0} body {margin: 0;padding: 0;} .page-block {page-break-after: auto !important;page-break-beforer: auto !important; page-break-inside: avoid !important;} .no-print{display:none !important;} .container-sheet{box-shadow: initial !important;margin: 0 !important}}
+        //     `
+        // },
+        pageStyle: () => {
+            return `
+                @media print {
+                    @page {
+                        size: 8.5in 11in !important; 
+                        margin: 0;                        
+                    }
+                    .page-block {
+                        page-break-after: auto !important;
+                        page-break-beforer: auto !important; 
+                        page-break-inside: avoid !important;
+                    } 
+                    .no-print{
+                        display:none !important;
+                    } 
+                    .container-sheet{
+                        box-shadow: initial !important;
+                        margin: 0 !important
+                    }
+                }
+            `
+        },
+        content: () => refPrintCarrierInformation.current
+    });
 
     var delayTimer;
 
@@ -214,8 +248,8 @@ function Carriers(props) {
                             mailing_contact = res.data.contact;
                         }
 
-                        await props.setSelectedCarrier({ 
-                            ...props.selectedCarrier, 
+                        await props.setSelectedCarrier({
+                            ...props.selectedCarrier,
                             contacts: res.data.contacts,
                             mailing_address: {
                                 ...props.selectedCarrier.mailing_address,
@@ -226,7 +260,7 @@ function Carriers(props) {
 
                         contacts = res.data.contacts;
 
-                        
+
                     }
 
                     setIsSavingContact(false);
@@ -961,16 +995,18 @@ function Carriers(props) {
                 insurance.amount = accounting.unformat(insurance.amount);
                 insurance.deductible = accounting.unformat(insurance.deductible);
 
-                axios.post(props.serverUrl + '/saveInsurance', insurance).then(async res => {
+                axios.post(props.serverUrl + '/saveInsurance', insurance).then(res => {
                     if (res.data.result === 'OK') {
-                        await props.setSelectedCarrier({ ...props.selectedCarrier, insurances: res.data.insurances });
-                        await props.setSelectedInsurance({
+                        props.setSelectedCarrier({ ...props.selectedCarrier, insurances: res.data.insurances });
+                        props.setSelectedInsurance({
                             ...insurance,
                             id: res.data.insurance.id,
                             amount: res.data.insurance.amount ? accounting.formatNumber(res.data.insurance.amount, 2, ',', '.') : res.data.insurance.amount,
                             deductible: res.data.insurance.deductible ? accounting.formatNumber(res.data.insurance.deductible, 2, ',', '.') : res.data.insurance.deductible
                         });
                     }
+
+                }).then(() => {
                     setIsSavingInsurance(false);
                 }).catch(e => {
                     console.log('error on saving carrier insurance', e);
@@ -1205,6 +1241,17 @@ function Carriers(props) {
 
             {!props.isOnPanel && <PanelContainer setOpenedPanels={props.setOpenedPanels} openedPanels={props.openedPanels} />}
 
+            {
+                (props.selectedCarrier?.id || 0) > 0 &&
+                <div style={{ display: 'none' }}>
+                    <ToPrint
+                        ref={refPrintCarrierInformation}
+                        selectedCarrier={props.selectedCarrier}
+                    />
+                </div>
+
+            }
+
             <div className="fields-container-row">
                 <div className="fields-container-col">
                     <div className="form-bordered-box" style={{
@@ -1238,21 +1285,21 @@ function Carriers(props) {
                                     ref={refCarrierCode}
                                     onKeyDown={searchCarrierByCode}
                                     onInput={e => {
-                                        props.setSelectedCarrier({ 
-                                            ...props.selectedCarrier, 
+                                        props.setSelectedCarrier({
+                                            ...props.selectedCarrier,
                                             code: e.target.value,
-                                            code_number: 0 
+                                            code_number: 0
                                         })
                                     }}
                                     onChange={e => {
-                                        props.setSelectedCarrier({ 
-                                            ...props.selectedCarrier, 
+                                        props.setSelectedCarrier({
+                                            ...props.selectedCarrier,
                                             code: e.target.value,
-                                            code_number: 0 
+                                            code_number: 0
                                         })
                                     }}
-                                    value={(props.selectedCarrier.code_number || 0) === 0 ? (props.selectedCarrier.code || '') : props.selectedCarrier.code + props.selectedCarrier.code_number} 
-                                    />
+                                    value={(props.selectedCarrier.code_number || 0) === 0 ? (props.selectedCarrier.code || '') : props.selectedCarrier.code + props.selectedCarrier.code_number}
+                                />
                             </div>
                             <div className="form-h-sep"></div>
                             <div className="input-box-container grow">
@@ -3051,7 +3098,8 @@ function Carriers(props) {
                         <div className="form-row">
                             <div className="input-box-container input-code">
                                 <input tabIndex={54 + props.tabTimes} type="text" placeholder="Code" maxLength="8" readOnly={true}
-                                    value={props.selectedCarrier.mailing_address?.code || ''} />
+                                    value={(props.selectedCarrier?.mailing_address?.code_number || 0) === 0 ? (props.selectedCarrier?.mailing_address?.code || '') : props.selectedCarrier?.mailing_address?.code + props.selectedCarrier?.mailing_address?.code_number}
+                                />
                             </div>
 
                             <div className="form-h-sep"></div>
@@ -4078,27 +4126,7 @@ function Carriers(props) {
                                 return;
                             }
 
-                            let carrier = { ...props.selectedCarrier };
-
-                            let html = ``;
-
-                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Code</span>: ${carrier.code.toUpperCase() + (carrier.code_number === 0 ? '' : carrier.code_number)}</div>`;
-                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Name</span>: ${carrier.name}</div>`;
-                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Address 1</span>: ${carrier.address1}</div>`;
-                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Address 2</span>: ${carrier.address2}</div>`;
-                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">City</span>: ${carrier.city}</div>`;
-                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">State</span>: ${carrier.state.toUpperCase()}</div>`;
-                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Postal Code</span>: ${carrier.zip}</div>`;
-                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Contact Name</span>: ${carrier.contact_name}</div>`;
-                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Contact Phone</span>: ${carrier.contact_phone}</div>`;
-                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">Contact Phone Ext</span>: ${carrier.ext}</div>`;
-                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">E-Mail</span>: ${carrier.email}</div>`;
-                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">MC Number</span>: ${carrier.mc_number}</div>`;
-                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">DOT Number</span>: ${carrier.dot_number}</div>`;
-                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">SCAC</span>: ${carrier.scac}</div>`;
-                            html += `<div style="margin-bottom:10px;"><span style="font-weight: bold;">FID</span>: ${carrier.fid}</div>`;
-
-                            printWindow(html);
+                            handledPrintCarrierInformation();
                         }}>
                             <div className="mochi-button-decorator mochi-button-decorator-left">(</div>
                             <div className="mochi-button-base">Print Carrier Information</div>
@@ -5081,7 +5109,8 @@ function Carriers(props) {
                                             }
                                         })
                                     }}
-                                    value={(props.selectedCarrier?.factoring_company?.code || '') + ((props.selectedCarrier?.factoring_company?.code_number || 0) === 0 ? '' : props.selectedCarrier?.factoring_company?.code_number)} />
+                                    value={(props.selectedCarrier?.factoring_company?.code_number || 0) === 0 ? (props.selectedCarrier?.factoring_company?.code || '') : props.selectedCarrier?.factoring_company?.code + props.selectedCarrier?.factoring_company?.code_number}
+                                />
                             </div>
 
                             <div className="form-h-sep"></div>

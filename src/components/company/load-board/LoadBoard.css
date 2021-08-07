@@ -20,6 +20,54 @@
   overflow: hidden;
   padding: 10px;
 }
+.load-board-main-container .selected-customer-contact-primary-phone {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.65rem;
+  text-transform: capitalize;
+  font-weight: bold;
+}
+.load-board-main-container .selected-customer-contact-primary-phone.pushed {
+  right: 20px;
+}
+.load-board-main-container .selected-customer-contact-primary-email {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.65rem;
+  text-transform: capitalize;
+  font-weight: bold;
+}
+.load-board-main-container .selected-customer-contact-primary-email.pushed {
+  right: 20px;
+}
+.load-board-main-container .selected-carrier-contact-primary-phone {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.65rem;
+  text-transform: capitalize;
+  font-weight: bold;
+}
+.load-board-main-container .selected-carrier-contact-primary-phone.pushed {
+  right: 20px;
+}
+.load-board-main-container .selected-carrier-contact-primary-email {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.65rem;
+  text-transform: capitalize;
+  font-weight: bold;
+}
+.load-board-main-container .selected-carrier-contact-primary-email.pushed {
+  right: 20px;
+}
 .load-board-main-container .form-slider {
   position: relative;
   width: 100%;
@@ -139,12 +187,15 @@
   width: 3.5rem !important;
 }
 .load-board-main-container .lb-form-container .lb-form-row .input-box-container.input-zip-code {
-  width: 4rem !important;
+  width: 6.5rem !important;
 }
 .load-board-main-container .lb-form-container .lb-form-row .input-box-container.input-phone {
-  width: 4.75rem !important;
+  width: 6.5rem !important;
 }
 .load-board-main-container .lb-form-container .lb-form-row .input-box-container.input-phone-ext {
+  width: 2rem !important;
+}
+.load-board-main-container .lb-form-container .lb-form-row .input-box-container.input-state {
   width: 2rem !important;
 }
 .load-board-main-container .lb-form-container .lb-form-row .pickups-container {

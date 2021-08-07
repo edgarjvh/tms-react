@@ -18,11 +18,13 @@ export default class ToPrint extends Component {
     styleFieldName = {
         color: 'black',
         fontWeight: 'bold',
-        fontSize: '0.9rem'
+        fontSize: '0.9rem',
+        fontStyle: 'normal'
     }
     styleFieldData = {
         color: 'red',
-        fontSize: '0.9rem'
+        fontSize: '0.9rem',
+        fontStyle: 'italic'
     }
     styleTitleBackground = {
         backgroundColor: 'lightgray'
@@ -40,11 +42,18 @@ export default class ToPrint extends Component {
                 maxWidth: '245.5mm',
                 display: 'block',
                 fontSize: '0.9rem',
+                fontFamily: 'Lato',
+                fontStyle: 'italic'
             }}>
+                <link rel="preconnect" href="https://fonts.googleapis.com" />
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+                <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Play:wght@400;700&display=swap" rel="stylesheet" />
+
 
                 <div className="container-sheet">
                     {/* PAGE BLOCK */}
                     <div className="page-block" style={{ paddingTop: '2rem' }}>
+                        
                         <div style={{
                             ...this.styleFlexRow
                         }}>
@@ -74,7 +83,7 @@ export default class ToPrint extends Component {
                             </span>
                         </div>
 
-                        <div style={{ ...this.styleFieldName, textAlign: 'center', fontSize: '1rem' }}>
+                        <div style={{ ...this.styleFieldName, textAlign: 'center', fontSize: '1rem', fontFamily: 'Play', fontWeight: 'bold' }}>
                             LOAD CONFIRMATION AND RATE AGREEMENT
                         </div>
                     </div>
@@ -95,7 +104,7 @@ export default class ToPrint extends Component {
                             <span style={{ ...this.styleFieldName, marginRight: 10 }}>Total Payment to the Carrier – Inclusive of all Accessorial charges:</span> <span style={{ ...this.styleFieldDataBold }}>$1,200.00</span>
                         </div>
 
-                        <div style={{ ...this.styleFieldName, fontWeight: 'normal' }}>
+                        <div style={{ ...this.styleFieldName, fontWeight: 'normal', fontStyle: 'italic' }}>
                             This rate confirmation sheet issued on <span style={{ ...this.styleFieldDataBold }}>{moment().format('MM/DD/YYYY')}</span> serves to supplement
                             the Master Brokerage Agreement between <span style={{ ...this.styleFieldDataBold }}>ET3 Logistics, LLC</span>, an ICC Property Broker
                             (MC <span style={{ ...this.styleFieldData }}>780648</span>) and: <span style={{ ...this.styleFieldDataBold }}>{this.props.selectedCarrierInfo?.name}</span> a permitted carrier
@@ -111,7 +120,7 @@ export default class ToPrint extends Component {
 
                             return (
                                 // PAGE BLOCK
-                                <div className="page-block" style={{ paddingTop: '2rem' }}>
+                                <div key={index} className="page-block" style={{ paddingTop: '2rem' }}>
                                     <div style={{
                                         ...this.styleFlexRow,
                                         display: 'grid',
@@ -121,7 +130,7 @@ export default class ToPrint extends Component {
                                             ...this.styleFlexCol,
                                             minWidth: '16rem'
                                         }}>
-                                            <div style={{ ...this.styleFieldName, textDecoration: 'underline' }}>{route.type === 'pickup' ? 'Pick-Up' : 'Delivery'} Information</div>
+                                            <div style={{ ...this.styleFieldName}}>{route.type === 'pickup' ? 'Pick-Up' : 'Delivery'} Information</div>
                                             <div style={{ ...this.styleFieldData }}>
                                                 {customer.name} <br />
                                                 {customer.address1} <br />
@@ -202,12 +211,12 @@ export default class ToPrint extends Component {
 
                         </div>
 
-                        <div style={{ ...this.styleFieldName, textAlign: 'center', textDecoration: 'underline', marginTop: '2rem' }}>SPECIAL INSTRUCTIONS</div>
+                        <div style={{ ...this.styleFieldName, textAlign: 'left', marginTop: '2rem', textDecoration: 'underline' }}>SPECIAL INSTRUCTIONS</div>
 
                         {
                             (this.props.selected_order?.notes_for_carrier || []).map((note, index) => {
                                 return (
-                                    <div key={index} style={{ ...this.styleFieldData, marginTop: '1.5rem' }}>
+                                    <div key={index} style={{ ...this.styleFieldData, marginTop: '1rem' }}>
                                         {note.text.split(/\r?\n/).map(text => (
                                             <div>{text.toUpperCase()}</div>
                                         ))}
@@ -219,7 +228,7 @@ export default class ToPrint extends Component {
 
                     {/* PAGE BLOCK */}
                     <div className="page-block" style={{ paddingBottom: '1.5rem', paddingTop: '2rem' }}>
-                        <div style={{ ...this.styleFieldName, fontWeight: 'normal', pageBreakInside: 'avoid' }}>
+                        <div style={{ ...this.styleFieldName, fontStyle: 'italic' , fontWeight: 'normal', pageBreakInside: 'avoid' }}>
                             Carrier agrees that this reflects the entire amount due for all services provided
                             and that no other amount will be billed to <span style={{ ...this.styleFieldDataBold }}>ET3 Logistics, LLC</span>. Will remit Payment with in 30 days
                             of receipt of original signed bills of lading and clear signed delivery receipts,
@@ -264,7 +273,7 @@ export default class ToPrint extends Component {
                 <div className="container-sheet">
                     {/* PAGE BLOCK */}
                     <div className="page-block" style={{ paddingTop: '2rem', pageBreakBefore: 'always' }}>
-                        <div style={{ ...this.styleFieldName, textAlign: 'center', fontSize: '1rem' }}>
+                        <div style={{ ...this.styleFieldName, textAlign: 'center', fontSize: '1rem',fontFamily: 'Play', fontWeight: 'bold' }}>
                             DRIVER INFORMATION SHEET
                         </div>
                     </div>
@@ -287,7 +296,7 @@ export default class ToPrint extends Component {
                                             ...this.styleFlexCol,
                                             minWidth: '16rem'
                                         }}>
-                                            <div style={{ ...this.styleFieldName, textDecoration: 'underline' }}>{route.type === 'pickup' ? 'Pick-Up' : 'Delivery'} Information</div>
+                                            <div style={{ ...this.styleFieldName }}>{route.type === 'pickup' ? 'Pick-Up' : 'Delivery'} Information</div>
                                             <div style={{ ...this.styleFieldData }}>
                                                 {customer.name} <br />
                                                 {customer.address1} <br />

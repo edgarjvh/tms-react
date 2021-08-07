@@ -24,7 +24,10 @@ function CustomerSearch(props) {
 
         if (props.toSaveOrder || false) {
             if ((props.origin || '') === 'carrier') {
-                props.setSelectedDriver((c.drivers || []).length > 0 ? c.drivers[0] : {});
+                props.setSelectedDriver({
+                    ...c.drivers[0],
+                    name: c.drivers[0].first_name + (c.drivers[0].last_name.trim() === '' ? '' : ' ' + c.drivers[0].last_name)
+                });
             }
             props.setIsSavingOrder(true)
         }

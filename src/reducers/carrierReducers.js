@@ -410,9 +410,9 @@ export const carrierReducers = (state = {
             state = {
                 ...state,
                 selectedDriver: action.payload,
-                selectedDispatchCarrierInfoDriver: (state.selectedDispatchCarrierInfoDriver.id || 0) === action.payload.id ? action.payload : state.selectedDispatchCarrierInfoDriver,
-                selectedLbCarrierInfoDriver: (state.selectedLbCarrierInfoDriver.id || 0) === action.payload.id ? action.payload : state.selectedLbCarrierInfoDriver,
-                selectedInvoiceCarrierInfoDriver: (state.selectedInvoiceCarrierInfoDriver.id || 0) === action.payload.id ? action.payload : state.selectedInvoiceCarrierInfoDriver,
+                // selectedDispatchCarrierInfoDriver: ((action.payload.id || 0) > 0 && (state.selectedDispatchCarrierInfoDriver.id || 0) > 0 && state.selectedDispatchCarrierInfoDriver.id === action.payload.id) ? action.payload : state.selectedDispatchCarrierInfoDriver,
+                // selectedLbCarrierInfoDriver: ((action.payload.id || 0) > 0 && (state.selectedLbCarrierInfoDriver.id || 0) > 0 && state.selectedLbCarrierInfoDriver.id === action.payload.id) ? action.payload : state.selectedLbCarrierInfoDriver,
+                // selectedInvoiceCarrierInfoDriver: ((action.payload.id || 0) > 0 && (state.selectedInvoiceCarrierInfoDriver.id || 0) > 0 && state.selectedInvoiceCarrierInfoDriver.id === action.payload.id) ? action.payload : state.selectedInvoiceCarrierInfoDriver,
             }
             break;
         case carriersConstants.SET_EQUIPMENTS:
@@ -670,10 +670,10 @@ export const carrierReducers = (state = {
             state = {
                 ...state,
                 adminSelectedDriver: action.payload,
-                selectedDriver: (state.selectedDriver.id || 0) > 0 && state.selectedDriver.id === action.payload.id ? action.payload : state.selectedDriver,
-                selectedDispatchCarrierInfoDriver: (state.selectedDispatchCarrierInfoDriver.id || 0) > 0 && state.selectedDispatchCarrierInfoDriver.id === action.payload.id ? action.payload : state.selectedDispatchCarrierInfoDriver,
-                selectedLbCarrierInfoDriver: (state.selectedLbCarrierInfoDriver.id || 0) > 0 && state.selectedLbCarrierInfoDriver.id === action.payload.id ? action.payload : state.selectedLbCarrierInfoDriver,
-                selectedInvoiceCarrierInfoDriver: (state.selectedInvoiceCarrierInfoDriver.id || 0) > 0 && state.selectedInvoiceCarrierInfoDriver.id === action.payload.id ? action.payload : state.selectedInvoiceCarrierInfoDriver,
+                // selectedDriver: (state.selectedDriver.id || 0) > 0 && state.selectedDriver.id === action.payload.id ? action.payload : state.selectedDriver,
+                // selectedDispatchCarrierInfoDriver: (state.selectedDispatchCarrierInfoDriver.id || 0) > 0 && state.selectedDispatchCarrierInfoDriver.id === action.payload.id ? action.payload : state.selectedDispatchCarrierInfoDriver,
+                // selectedLbCarrierInfoDriver: (state.selectedLbCarrierInfoDriver.id || 0) > 0 && state.selectedLbCarrierInfoDriver.id === action.payload.id ? action.payload : state.selectedLbCarrierInfoDriver,
+                // selectedInvoiceCarrierInfoDriver: (state.selectedInvoiceCarrierInfoDriver.id || 0) > 0 && state.selectedInvoiceCarrierInfoDriver.id === action.payload.id ? action.payload : state.selectedInvoiceCarrierInfoDriver,
             }
             break;
         case carriersConstants.SET_ADMIN_EQUIPMENTS:
@@ -949,9 +949,9 @@ export const carrierReducers = (state = {
             state = {
                 ...state,
                 selectedDispatchCarrierInfoDriver: action.payload,
-                selectedDriver: (state.selectedDriver.id || 0) === action.payload.id ? action.payload : state.selectedDriver,
-                selectedLbCarrierInfoDriver: (state.selectedLbCarrierInfoDriver.id || 0) === action.payload.id ? action.payload : state.selectedLbCarrierInfoDriver,
-                selectedInvoiceCarrierInfoDriver: (state.selectedInvoiceCarrierInfoDriver.id || 0) === action.payload.id ? action.payload : state.selectedInvoiceCarrierInfoDriver,
+                // selectedDriver: (state.selectedDriver.id || 0) === action.payload.id ? action.payload : state.selectedDriver,
+                // selectedLbCarrierInfoDriver: (state.selectedLbCarrierInfoDriver.id || 0) === action.payload.id ? action.payload : state.selectedLbCarrierInfoDriver,
+                // selectedInvoiceCarrierInfoDriver: (state.selectedInvoiceCarrierInfoDriver.id || 0) === action.payload.id ? action.payload : state.selectedInvoiceCarrierInfoDriver,
             }
             break;
         case carriersConstants.SET_DISPATCH_CARRIER_INFO_EQUIPMENTS:
@@ -1466,9 +1466,9 @@ export const carrierReducers = (state = {
             state = {
                 ...state,
                 selectedInvoiceCarrierInfoDriver: action.payload,
-                selectedDriver: (state.selectedDriver.id || 0) === action.payload.id ? action.payload : state.selectedDriver,
-                selectedLbCarrierInfoDriver: (state.selectedLbCarrierInfoDriver.id || 0) === action.payload.id ? action.payload : state.selectedLbCarrierInfoDriver,
-                selectedDispatchCarrierInfoDriver: (state.selectedDispatchCarrierInfoDriver.id || 0) === action.payload.id ? action.payload : state.selectedDispatchCarrierInfoDriver,
+                // selectedDriver: (state.selectedDriver.id || 0) === action.payload.id ? action.payload : state.selectedDriver,
+                // selectedLbCarrierInfoDriver: (state.selectedLbCarrierInfoDriver.id || 0) === action.payload.id ? action.payload : state.selectedLbCarrierInfoDriver,
+                // selectedDispatchCarrierInfoDriver: (state.selectedDispatchCarrierInfoDriver.id || 0) === action.payload.id ? action.payload : state.selectedDispatchCarrierInfoDriver,
             }
             break;
         case carriersConstants.SET_INVOICE_CARRIER_INFO_EQUIPMENTS:
@@ -1731,9 +1731,9 @@ export const carrierReducers = (state = {
             state = {
                 ...state,
                 selectedLbCarrierInfoDriver: action.payload,
-                selectedDriver: (state.selectedDriver.id || 0) === action.payload.id ? action.payload : state.selectedDriver,
-                selectedDispatchCarrierInfoDriver: (state.selectedDispatchCarrierInfoDriver.id || 0) === action.payload.id ? action.payload : state.selectedDispatchCarrierInfoDriver,
-                selectedInvoiceCarrierInfoDriver: (state.selectedInvoiceCarrierInfoDriver.id || 0) === action.payload.id ? action.payload : state.selectedInvoiceCarrierInfoDriver,
+                // selectedDriver: (state.selectedDriver.id || 0) === action.payload.id ? action.payload : state.selectedDriver,
+                // selectedDispatchCarrierInfoDriver: (state.selectedDispatchCarrierInfoDriver.id || 0) === action.payload.id ? action.payload : state.selectedDispatchCarrierInfoDriver,
+                // selectedInvoiceCarrierInfoDriver: (state.selectedInvoiceCarrierInfoDriver.id || 0) === action.payload.id ? action.payload : state.selectedInvoiceCarrierInfoDriver,
             }
             break;
         case carriersConstants.SET_LB_CARRIER_INFO_EQUIPMENTS:

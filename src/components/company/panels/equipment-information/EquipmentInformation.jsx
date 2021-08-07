@@ -89,11 +89,7 @@ function EquipmentInformation(props) {
             equipmentInformation.equipment_id = equipment.id || 0;
 
             if (equipmentInformation.carrier_id > 0 &&
-                equipmentInformation.equipment_id > 0 &&
-                (equipmentInformation.units || '').trim() !== '' &&
-                (equipmentInformation.equipment_length || '').trim() !== '' &&
-                (equipmentInformation.equipment_width || '').trim() !== '' &&
-                (equipmentInformation.equipment_height || '').trim() !== '') {
+                equipmentInformation.equipment_id > 0) {
 
                 $.post(props.serverUrl + '/saveCarrierEquipment', equipmentInformation).then(async res => {
                     if (res.result === 'OK') {
@@ -103,7 +99,7 @@ function EquipmentInformation(props) {
                                 ...props.equipmentInformation.carrier,
                                 equipments_information: res.equipments_information
                             },
-                            id: 0,
+                            id: null,
                             equipment_id: 0,
                             equipment: {},
                             units: '',
@@ -119,6 +115,8 @@ function EquipmentInformation(props) {
                     console.log('error on saving carrier equipment information', e);
                     setIsSavingEquipmentInformation(false);
                 });
+            } else {
+                setIsSavingEquipmentInformation(false);
             }
         }
     }, [isSavingEquipmentInformation]);
@@ -217,6 +215,7 @@ function EquipmentInformation(props) {
             } else {
                 e.preventDefault();
                 refEquipmentCarrierCode.current.focus();
+                setIsSavingEquipmentInformation(false);
             }
         }
     }
@@ -240,11 +239,11 @@ function EquipmentInformation(props) {
                                 equipment_id: null,
                                 units: '',
                                 equipment_length: '',
-                                equipment_length_unit: 'ft',
+                                equipment_length_unit: '',
                                 equipment_width: '',
-                                equipment_width_unit: 'ft',
+                                equipment_width_unit: '',
                                 equipment_height: '',
-                                equipment_height_unit: 'ft',
+                                equipment_height_unit: '',
                             });
 
                             refEquipment.current.focus();
@@ -643,135 +642,141 @@ function EquipmentInformation(props) {
                     <div className="select-box-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div className="select-box-wrapper">
                             <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Length</div>
-                            <MaskedInput style={{
+                            <input style={{
                                 textAlign: 'right',
                                 fontWeight: 'bold',
                                 paddingRight: (props.equipmentInformation?.equipment_length || '').trim().length > 0 ? 25 : 0
                             }}
                                 tabIndex={5 + props.tabTimes} type="text"
-                                mask={createNumberMask({
-                                    prefix: '',
-                                    suffix: '',
-                                    includeThousandsSeparator: false,
-                                    allowDecimal: true
-                                })}
                                 guide={false}
                                 ref={refLength}
                                 onKeyDown={async (e) => {
                                     let key = e.keyCode || e.which;
 
-                                    switch (key) {
-                                        case 38: // arrow left | arrow up
-                                            e.preventDefault();
-                                            if (showLengthDropdownItems) {
-                                                let selectedIndex = lengthDropdownItems.findIndex(item => item.selected);
+                                    if (key === 70) {
+                                        e.preventDefault();
 
-                                                if (selectedIndex === -1) {
-                                                    await setLengthDropdownItems(lengthDropdownItems.map((item, index) => {
-                                                        item.selected = index === 0;
-                                                        return item;
-                                                    }))
-                                                } else {
-                                                    await setLengthDropdownItems(lengthDropdownItems.map((item, index) => {
-                                                        if (selectedIndex === 0) {
-                                                            item.selected = index === (lengthDropdownItems.length - 1);
-                                                        } else {
-                                                            item.selected = index === (selectedIndex - 1)
-                                                        }
-                                                        return item;
-                                                    }))
-                                                }
-                                            } else {
+                                        props.setEquipmentInformation({
+                                            ...props.equipmentInformation,
+                                            equipment_length_unit: 'ft'
+                                        })
+                                    } else if (key === 73) {
+                                        e.preventDefault();
+                                        props.setEquipmentInformation({
+                                            ...props.equipmentInformation,
+                                            equipment_length_unit: 'in'
+                                        })
+                                    } else if (key === 38) {
+                                        e.preventDefault();
+                                        if (showLengthDropdownItems) {
+                                            let selectedIndex = lengthDropdownItems.findIndex(item => item.selected);
+
+                                            if (selectedIndex === -1) {
                                                 await setLengthDropdownItems(lengthDropdownItems.map((item, index) => {
-                                                    item.selected = props.equipmentInformation.equipment_length_unit === item.value
+                                                    item.selected = index === 0;
                                                     return item;
                                                 }))
-
-                                                await setShowLengthDropdownItems(true);
-                                            }
-
-                                            refLengthPopupItems.current.map((r, i) => {
-                                                if (r && r.classList.contains('selected')) {
-                                                    r.scrollIntoView({
-                                                        behavior: 'auto',
-                                                        block: 'center',
-                                                        inline: 'nearest'
-                                                    })
-                                                }
-                                                return true;
-                                            });
-                                            break;
-
-                                        case 40: // arrow right | arrow down
-                                            e.preventDefault();
-                                            if (showLengthDropdownItems) {
-                                                let selectedIndex = lengthDropdownItems.findIndex(item => item.selected);
-
-                                                if (selectedIndex === -1) {
-                                                    await setLengthDropdownItems(lengthDropdownItems.map((item, index) => {
-                                                        item.selected = index === 0;
-                                                        return item;
-                                                    }))
-                                                } else {
-                                                    await setLengthDropdownItems(lengthDropdownItems.map((item, index) => {
-                                                        if (selectedIndex === (lengthDropdownItems.length - 1)) {
-                                                            item.selected = index === 0;
-                                                        } else {
-                                                            item.selected = index === (selectedIndex + 1)
-                                                        }
-                                                        return item;
-                                                    }))
-                                                }
                                             } else {
                                                 await setLengthDropdownItems(lengthDropdownItems.map((item, index) => {
-                                                    item.selected = props.equipmentInformation.equipment_length_unit === item.value
+                                                    if (selectedIndex === 0) {
+                                                        item.selected = index === (lengthDropdownItems.length - 1);
+                                                    } else {
+                                                        item.selected = index === (selectedIndex - 1)
+                                                    }
                                                     return item;
                                                 }))
-
-                                                await setShowLengthDropdownItems(true);
                                             }
+                                        } else {
+                                            await setLengthDropdownItems(lengthDropdownItems.map((item, index) => {
+                                                item.selected = props.equipmentInformation.equipment_length_unit === item.value
+                                                return item;
+                                            }))
 
-                                            refLengthPopupItems.current.map((r, i) => {
-                                                if (r && r.classList.contains('selected')) {
-                                                    r.scrollIntoView({
-                                                        behavior: 'auto',
-                                                        block: 'center',
-                                                        inline: 'nearest'
-                                                    })
-                                                }
-                                                return true;
+                                            await setShowLengthDropdownItems(true);
+                                        }
+
+                                        refLengthPopupItems.current.map((r, i) => {
+                                            if (r && r.classList.contains('selected')) {
+                                                r.scrollIntoView({
+                                                    behavior: 'auto',
+                                                    block: 'center',
+                                                    inline: 'nearest'
+                                                })
+                                            }
+                                            return true;
+                                        });
+
+                                    } else if (key === 40) {
+                                        e.preventDefault();
+                                        if (showLengthDropdownItems) {
+                                            let selectedIndex = lengthDropdownItems.findIndex(item => item.selected);
+
+                                            if (selectedIndex === -1) {
+                                                await setLengthDropdownItems(lengthDropdownItems.map((item, index) => {
+                                                    item.selected = index === 0;
+                                                    return item;
+                                                }))
+                                            } else {
+                                                await setLengthDropdownItems(lengthDropdownItems.map((item, index) => {
+                                                    if (selectedIndex === (lengthDropdownItems.length - 1)) {
+                                                        item.selected = index === 0;
+                                                    } else {
+                                                        item.selected = index === (selectedIndex + 1)
+                                                    }
+                                                    return item;
+                                                }))
+                                            }
+                                        } else {
+                                            await setLengthDropdownItems(lengthDropdownItems.map((item, index) => {
+                                                item.selected = props.equipmentInformation.equipment_length_unit === item.value
+                                                return item;
+                                            }))
+
+                                            await setShowLengthDropdownItems(true);
+                                        }
+
+                                        refLengthPopupItems.current.map((r, i) => {
+                                            if (r && r.classList.contains('selected')) {
+                                                r.scrollIntoView({
+                                                    behavior: 'auto',
+                                                    block: 'center',
+                                                    inline: 'nearest'
+                                                })
+                                            }
+                                            return true;
+                                        });
+
+                                    } else if (key === 27) {
+                                        await setShowLengthDropdownItems(false);
+                                        props.setEquipmentInformation({
+                                            ...props.equipmentInformation,
+                                            equipment_length_unit: ''
+                                        })
+                                    } else if (key === 13) {
+                                        if (showLengthDropdownItems && lengthDropdownItems.findIndex(item => item.selected) > -1) {
+                                            await props.setEquipmentInformation({
+                                                ...props.equipmentInformation,
+                                                equipment_length_unit: lengthDropdownItems[lengthDropdownItems.findIndex(item => item.selected)].value
                                             });
-                                            break;
-
-                                        case 27: // escape
                                             await setShowLengthDropdownItems(false);
-                                            break;
+                                            refLength.current.focus();
+                                        }
+                                    } else if (key === 9) {
+                                        if (showLengthDropdownItems) {
+                                            e.preventDefault();
+                                            await props.setEquipmentInformation({
+                                                ...props.equipmentInformation,
+                                                equipment_length_unit: lengthDropdownItems[lengthDropdownItems.findIndex(item => item.selected)].value
+                                            });
+                                            await setShowLengthDropdownItems(false);
+                                            refLength.current.focus();
+                                        }
+                                    } else if ((key >= 48 && key <= 57) || (key >= 96 && key <= 105)) {
 
-                                        case 13: // enter
-                                            if (showLengthDropdownItems && lengthDropdownItems.findIndex(item => item.selected) > -1) {
-                                                await props.setEquipmentInformation({
-                                                    ...props.equipmentInformation,
-                                                    equipment_length_unit: lengthDropdownItems[lengthDropdownItems.findIndex(item => item.selected)].value
-                                                });
-                                                await setShowLengthDropdownItems(false);
-                                                refLength.current.inputElement.focus();
-                                            }
-                                            break;
+                                    } else if (key === 8 || key === 46) {
 
-                                        case 9: // tab
-                                            if (showLengthDropdownItems) {
-                                                e.preventDefault();
-                                                await props.setEquipmentInformation({
-                                                    ...props.equipmentInformation,
-                                                    equipment_length_unit: lengthDropdownItems[lengthDropdownItems.findIndex(item => item.selected)].value
-                                                });
-                                                await setShowLengthDropdownItems(false);
-                                                refLength.current.inputElement.focus();
-                                            }
-                                            break;
-
-                                        default:
-                                            break;
+                                    } else {
+                                        e.preventDefault();
                                     }
                                 }}
 
@@ -807,7 +812,7 @@ function EquipmentInformation(props) {
                                         }, 0)
                                     }
 
-                                    refLength.current.inputElement.focus();
+                                    refLength.current.focus();
                                 }} />
                             }
                         </div>
@@ -850,7 +855,7 @@ function EquipmentInformation(props) {
                                                                         equipment_length_unit: item.value
                                                                     });
                                                                     setShowLengthDropdownItems(false);
-                                                                    refLength.current.inputElement.focus();
+                                                                    refLength.current.focus();
                                                                 }}
                                                                 ref={ref => refLengthPopupItems.current.push(ref)}
                                                             >
@@ -876,135 +881,141 @@ function EquipmentInformation(props) {
                     <div className="select-box-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div className="select-box-wrapper">
                             <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Width</div>
-                            <MaskedInput style={{
+                            <input style={{
                                 textAlign: 'right',
                                 fontWeight: 'bold',
                                 paddingRight: (props.equipmentInformation?.equipment_width || '').trim().length > 0 ? 25 : 0
                             }}
                                 tabIndex={6 + props.tabTimes} type="text"
-                                mask={createNumberMask({
-                                    prefix: '',
-                                    suffix: '',
-                                    includeThousandsSeparator: false,
-                                    allowDecimal: true
-                                })}
                                 guide={false}
                                 ref={refWidth}
                                 onKeyDown={async (e) => {
                                     let key = e.keyCode || e.which;
 
-                                    switch (key) {
-                                        case 38: // arrow left | arrow up
-                                            e.preventDefault();
-                                            if (showWidthDropdownItems) {
-                                                let selectedIndex = widthDropdownItems.findIndex(item => item.selected);
+                                    if (key === 70) {
+                                        e.preventDefault();
 
-                                                if (selectedIndex === -1) {
-                                                    await setWidthDropdownItems(widthDropdownItems.map((item, index) => {
-                                                        item.selected = index === 0;
-                                                        return item;
-                                                    }))
-                                                } else {
-                                                    await setWidthDropdownItems(widthDropdownItems.map((item, index) => {
-                                                        if (selectedIndex === 0) {
-                                                            item.selected = index === (widthDropdownItems.length - 1);
-                                                        } else {
-                                                            item.selected = index === (selectedIndex - 1)
-                                                        }
-                                                        return item;
-                                                    }))
-                                                }
-                                            } else {
+                                        props.setEquipmentInformation({
+                                            ...props.equipmentInformation,
+                                            equipment_width_unit: 'ft'
+                                        })
+                                    } else if (key === 73) {
+                                        e.preventDefault();
+                                        props.setEquipmentInformation({
+                                            ...props.equipmentInformation,
+                                            equipment_width_unit: 'in'
+                                        })
+                                    } else if (key === 38) {
+                                        e.preventDefault();
+                                        if (showWidthDropdownItems) {
+                                            let selectedIndex = widthDropdownItems.findIndex(item => item.selected);
+
+                                            if (selectedIndex === -1) {
                                                 await setWidthDropdownItems(widthDropdownItems.map((item, index) => {
-                                                    item.selected = props.equipmentInformation.equipment_width_unit === item.value
+                                                    item.selected = index === 0;
                                                     return item;
                                                 }))
-
-                                                await setShowWidthDropdownItems(true);
-                                            }
-
-                                            refWidthPopupItems.current.map((r, i) => {
-                                                if (r && r.classList.contains('selected')) {
-                                                    r.scrollIntoView({
-                                                        behavior: 'auto',
-                                                        block: 'center',
-                                                        inline: 'nearest'
-                                                    })
-                                                }
-                                                return true;
-                                            });
-                                            break;
-
-                                        case 40: // arrow right | arrow down
-                                            e.preventDefault();
-                                            if (showWidthDropdownItems) {
-                                                let selectedIndex = widthDropdownItems.findIndex(item => item.selected);
-
-                                                if (selectedIndex === -1) {
-                                                    await setWidthDropdownItems(widthDropdownItems.map((item, index) => {
-                                                        item.selected = index === 0;
-                                                        return item;
-                                                    }))
-                                                } else {
-                                                    await setWidthDropdownItems(widthDropdownItems.map((item, index) => {
-                                                        if (selectedIndex === (widthDropdownItems.length - 1)) {
-                                                            item.selected = index === 0;
-                                                        } else {
-                                                            item.selected = index === (selectedIndex + 1)
-                                                        }
-                                                        return item;
-                                                    }))
-                                                }
                                             } else {
                                                 await setWidthDropdownItems(widthDropdownItems.map((item, index) => {
-                                                    item.selected = props.equipmentInformation.equipment_width_unit === item.value
+                                                    if (selectedIndex === 0) {
+                                                        item.selected = index === (widthDropdownItems.length - 1);
+                                                    } else {
+                                                        item.selected = index === (selectedIndex - 1)
+                                                    }
                                                     return item;
                                                 }))
-
-                                                await setShowWidthDropdownItems(true);
                                             }
+                                        } else {
+                                            await setWidthDropdownItems(widthDropdownItems.map((item, index) => {
+                                                item.selected = props.equipmentInformation.equipment_width_unit === item.value
+                                                return item;
+                                            }))
 
-                                            refWidthPopupItems.current.map((r, i) => {
-                                                if (r && r.classList.contains('selected')) {
-                                                    r.scrollIntoView({
-                                                        behavior: 'auto',
-                                                        block: 'center',
-                                                        inline: 'nearest'
-                                                    })
-                                                }
-                                                return true;
+                                            await setShowWidthDropdownItems(true);
+                                        }
+
+                                        refWidthPopupItems.current.map((r, i) => {
+                                            if (r && r.classList.contains('selected')) {
+                                                r.scrollIntoView({
+                                                    behavior: 'auto',
+                                                    block: 'center',
+                                                    inline: 'nearest'
+                                                })
+                                            }
+                                            return true;
+                                        });
+
+                                    } else if (key === 40) {
+                                        e.preventDefault();
+                                        if (showWidthDropdownItems) {
+                                            let selectedIndex = widthDropdownItems.findIndex(item => item.selected);
+
+                                            if (selectedIndex === -1) {
+                                                await setWidthDropdownItems(widthDropdownItems.map((item, index) => {
+                                                    item.selected = index === 0;
+                                                    return item;
+                                                }))
+                                            } else {
+                                                await setWidthDropdownItems(widthDropdownItems.map((item, index) => {
+                                                    if (selectedIndex === (widthDropdownItems.length - 1)) {
+                                                        item.selected = index === 0;
+                                                    } else {
+                                                        item.selected = index === (selectedIndex + 1)
+                                                    }
+                                                    return item;
+                                                }))
+                                            }
+                                        } else {
+                                            await setWidthDropdownItems(widthDropdownItems.map((item, index) => {
+                                                item.selected = props.equipmentInformation.equipment_width_unit === item.value
+                                                return item;
+                                            }))
+
+                                            await setShowWidthDropdownItems(true);
+                                        }
+
+                                        refWidthPopupItems.current.map((r, i) => {
+                                            if (r && r.classList.contains('selected')) {
+                                                r.scrollIntoView({
+                                                    behavior: 'auto',
+                                                    block: 'center',
+                                                    inline: 'nearest'
+                                                })
+                                            }
+                                            return true;
+                                        });
+
+                                    } else if (key === 27) {
+                                        await setShowWidthDropdownItems(false);
+                                        props.setEquipmentInformation({
+                                            ...props.equipmentInformation,
+                                            equipment_width_unit: ''
+                                        })
+                                    } else if (key === 13) {
+                                        if (showWidthDropdownItems && widthDropdownItems.findIndex(item => item.selected) > -1) {
+                                            await props.setEquipmentInformation({
+                                                ...props.equipmentInformation,
+                                                equipment_width_unit: widthDropdownItems[widthDropdownItems.findIndex(item => item.selected)].value
                                             });
-                                            break;
-
-                                        case 27: // escape
                                             await setShowWidthDropdownItems(false);
-                                            break;
+                                            refWidth.current.focus();
+                                        }
+                                    } else if (key === 9) {
+                                        if (showWidthDropdownItems) {
+                                            e.preventDefault();
+                                            await props.setEquipmentInformation({
+                                                ...props.equipmentInformation,
+                                                equipment_width_unit: widthDropdownItems[widthDropdownItems.findIndex(item => item.selected)].value
+                                            });
+                                            await setShowWidthDropdownItems(false);
+                                            refWidth.current.focus();
+                                        }
+                                    } else if ((key >= 48 && key <= 57) || (key >= 96 && key <= 105)) {
 
-                                        case 13: // enter
-                                            if (showWidthDropdownItems && widthDropdownItems.findIndex(item => item.selected) > -1) {
-                                                await props.setEquipmentInformation({
-                                                    ...props.equipmentInformation,
-                                                    equipment_width_unit: widthDropdownItems[widthDropdownItems.findIndex(item => item.selected)].value
-                                                });
-                                                await setShowWidthDropdownItems(false);
-                                                refWidth.current.inputElement.focus();
-                                            }
-                                            break;
+                                    } else if (key === 8 || key === 46) {
 
-                                        case 9: // tab
-                                            if (showWidthDropdownItems) {
-                                                e.preventDefault();
-                                                await props.setEquipmentInformation({
-                                                    ...props.equipmentInformation,
-                                                    equipment_width_unit: widthDropdownItems[widthDropdownItems.findIndex(item => item.selected)].value
-                                                });
-                                                await setShowWidthDropdownItems(false);
-                                                refWidth.current.inputElement.focus();
-                                            }
-                                            break;
-
-                                        default:
-                                            break;
+                                    } else {
+                                        e.preventDefault();
                                     }
                                 }}
 
@@ -1040,7 +1051,7 @@ function EquipmentInformation(props) {
                                         }, 0)
                                     }
 
-                                    refWidth.current.inputElement.focus();
+                                    refWidth.current.focus();
                                 }} />
                             }
                         </div>
@@ -1083,7 +1094,7 @@ function EquipmentInformation(props) {
                                                                         equipment_width_unit: item.value
                                                                     });
                                                                     setShowWidthDropdownItems(false);
-                                                                    refWidth.current.inputElement.focus();
+                                                                    refWidth.current.focus();
                                                                 }}
                                                                 ref={ref => refWidthPopupItems.current.push(ref)}
                                                             >
@@ -1109,121 +1120,147 @@ function EquipmentInformation(props) {
                     <div className="select-box-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div className="select-box-wrapper">
                             <div style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap' }}>Height</div>
-                            <MaskedInput style={{
+                            <input style={{
                                 textAlign: 'right',
                                 fontWeight: 'bold',
                                 paddingRight: (props.equipmentInformation?.equipment_height || '').trim().length > 0 ? 25 : 0
                             }}
                                 tabIndex={7 + props.tabTimes} type="text"
-                                mask={createNumberMask({
-                                    prefix: '',
-                                    suffix: '',
-                                    includeThousandsSeparator: false,
-                                    allowDecimal: true
-                                })}
                                 guide={false}
                                 ref={refHeight}
                                 onKeyDown={async (e) => {
                                     let key = e.keyCode || e.which;
 
-                                    switch (key) {
-                                        case 38: // arrow left | arrow up
-                                            e.preventDefault();
-                                            if (showHeightDropdownItems) {
-                                                let selectedIndex = heightDropdownItems.findIndex(item => item.selected);
+                                    if (key === 70) {
+                                        e.preventDefault();
 
-                                                if (selectedIndex === -1) {
-                                                    await setHeightDropdownItems(heightDropdownItems.map((item, index) => {
-                                                        item.selected = index === 0;
-                                                        return item;
-                                                    }))
-                                                } else {
-                                                    await setHeightDropdownItems(heightDropdownItems.map((item, index) => {
-                                                        if (selectedIndex === 0) {
-                                                            item.selected = index === (heightDropdownItems.length - 1);
-                                                        } else {
-                                                            item.selected = index === (selectedIndex - 1)
-                                                        }
-                                                        return item;
-                                                    }))
-                                                }
-                                            } else {
+                                        props.setEquipmentInformation({
+                                            ...props.equipmentInformation,
+                                            equipment_height_unit: 'ft'
+                                        })
+                                    } else if (key === 73) {
+                                        e.preventDefault();
+                                        props.setEquipmentInformation({
+                                            ...props.equipmentInformation,
+                                            equipment_height_unit: 'in'
+                                        })
+                                    } else if (key === 38) {
+                                        e.preventDefault();
+                                        if (showHeightDropdownItems) {
+                                            let selectedIndex = heightDropdownItems.findIndex(item => item.selected);
+
+                                            if (selectedIndex === -1) {
                                                 await setHeightDropdownItems(heightDropdownItems.map((item, index) => {
-                                                    item.selected = props.equipmentInformation.equipment_height_unit === item.value
+                                                    item.selected = index === 0;
                                                     return item;
                                                 }))
-
-                                                await setShowHeightDropdownItems(true);
-                                            }
-
-                                            refHeightPopupItems.current.map((r, i) => {
-                                                if (r && r.classList.contains('selected')) {
-                                                    r.scrollIntoView({
-                                                        behavior: 'auto',
-                                                        block: 'center',
-                                                        inline: 'nearest'
-                                                    })
-                                                }
-                                                return true;
-                                            });
-                                            break;
-
-                                        case 40: // arrow right | arrow down
-                                            e.preventDefault();
-                                            if (showHeightDropdownItems) {
-                                                let selectedIndex = heightDropdownItems.findIndex(item => item.selected);
-
-                                                if (selectedIndex === -1) {
-                                                    await setHeightDropdownItems(heightDropdownItems.map((item, index) => {
-                                                        item.selected = index === 0;
-                                                        return item;
-                                                    }))
-                                                } else {
-                                                    await setHeightDropdownItems(heightDropdownItems.map((item, index) => {
-                                                        if (selectedIndex === (heightDropdownItems.length - 1)) {
-                                                            item.selected = index === 0;
-                                                        } else {
-                                                            item.selected = index === (selectedIndex + 1)
-                                                        }
-                                                        return item;
-                                                    }))
-                                                }
                                             } else {
                                                 await setHeightDropdownItems(heightDropdownItems.map((item, index) => {
-                                                    item.selected = props.equipmentInformation.equipment_height_unit === item.value
+                                                    if (selectedIndex === 0) {
+                                                        item.selected = index === (heightDropdownItems.length - 1);
+                                                    } else {
+                                                        item.selected = index === (selectedIndex - 1)
+                                                    }
                                                     return item;
                                                 }))
-
-                                                await setShowHeightDropdownItems(true);
                                             }
+                                        } else {
+                                            await setHeightDropdownItems(heightDropdownItems.map((item, index) => {
+                                                item.selected = props.equipmentInformation.equipment_height_unit === item.value
+                                                return item;
+                                            }))
 
-                                            refHeightPopupItems.current.map((r, i) => {
-                                                if (r && r.classList.contains('selected')) {
-                                                    r.scrollIntoView({
-                                                        behavior: 'auto',
-                                                        block: 'center',
-                                                        inline: 'nearest'
-                                                    })
-                                                }
-                                                return true;
+                                            await setShowHeightDropdownItems(true);
+                                        }
+
+                                        refHeightPopupItems.current.map((r, i) => {
+                                            if (r && r.classList.contains('selected')) {
+                                                r.scrollIntoView({
+                                                    behavior: 'auto',
+                                                    block: 'center',
+                                                    inline: 'nearest'
+                                                })
+                                            }
+                                            return true;
+                                        });
+
+                                    } else if (key === 40) {
+                                        e.preventDefault();
+                                        if (showHeightDropdownItems) {
+                                            let selectedIndex = heightDropdownItems.findIndex(item => item.selected);
+
+                                            if (selectedIndex === -1) {
+                                                await setHeightDropdownItems(heightDropdownItems.map((item, index) => {
+                                                    item.selected = index === 0;
+                                                    return item;
+                                                }))
+                                            } else {
+                                                await setHeightDropdownItems(heightDropdownItems.map((item, index) => {
+                                                    if (selectedIndex === (heightDropdownItems.length - 1)) {
+                                                        item.selected = index === 0;
+                                                    } else {
+                                                        item.selected = index === (selectedIndex + 1)
+                                                    }
+                                                    return item;
+                                                }))
+                                            }
+                                        } else {
+                                            await setHeightDropdownItems(heightDropdownItems.map((item, index) => {
+                                                item.selected = props.equipmentInformation.equipment_height_unit === item.value
+                                                return item;
+                                            }))
+
+                                            await setShowHeightDropdownItems(true);
+                                        }
+
+                                        refHeightPopupItems.current.map((r, i) => {
+                                            if (r && r.classList.contains('selected')) {
+                                                r.scrollIntoView({
+                                                    behavior: 'auto',
+                                                    block: 'center',
+                                                    inline: 'nearest'
+                                                })
+                                            }
+                                            return true;
+                                        });
+
+                                    } else if (key === 27) {
+                                        await setShowHeightDropdownItems(false);
+                                        props.setEquipmentInformation({
+                                            ...props.equipmentInformation,
+                                            equipment_height_unit: ''
+                                        })
+                                    } else if (key === 13) {
+                                        if (showHeightDropdownItems && heightDropdownItems.findIndex(item => item.selected) > -1) {
+                                            await props.setEquipmentInformation({
+                                                ...props.equipmentInformation,
+                                                equipment_height_unit: heightDropdownItems[heightDropdownItems.findIndex(item => item.selected)].value
                                             });
-                                            break;
-
-                                        case 27: // escape
                                             await setShowHeightDropdownItems(false);
-                                            break;
+                                            refHeight.current.focus();
+                                        }
+                                    } else if (key === 9) {
+                                        e.preventDefault();
 
-                                        case 13: // enter
-                                            if (showHeightDropdownItems && heightDropdownItems.findIndex(item => item.selected) > -1) {
-                                                await props.setEquipmentInformation({
-                                                    ...props.equipmentInformation,
-                                                    equipment_height_unit: heightDropdownItems[heightDropdownItems.findIndex(item => item.selected)].value
-                                                });
-                                                await setShowHeightDropdownItems(false);
-                                                refHeight.current.inputElement.focus();
-                                            }
-                                            break;
+                                        if (showHeightDropdownItems) {
+                                            await props.setEquipmentInformation({
+                                                ...props.equipmentInformation,
+                                                equipment_height_unit: heightDropdownItems[heightDropdownItems.findIndex(item => item.selected)].value
+                                            });
+                                            await setShowHeightDropdownItems(false);
+                                            refHeight.current.focus();
+                                        }
 
+                                        validateEquipmentForSaving(e);
+                                    } else if ((key >= 48 && key <= 57) || (key >= 96 && key <= 105)) {
+
+                                    } else if (key === 8 || key === 46) {
+
+                                    } else {
+                                        e.preventDefault();
+                                    }
+
+                                    switch (key) {
                                         case 9: // tab
                                             e.preventDefault();
                                             if (showHeightDropdownItems) {
@@ -1232,7 +1269,7 @@ function EquipmentInformation(props) {
                                                     equipment_height_unit: heightDropdownItems[heightDropdownItems.findIndex(item => item.selected)].value
                                                 });
                                                 await setShowHeightDropdownItems(false);
-                                                refHeight.current.inputElement.focus();
+                                                refHeight.current.focus();
                                             }
 
                                             validateEquipmentForSaving(e);
@@ -1275,7 +1312,7 @@ function EquipmentInformation(props) {
                                         }, 0)
                                     }
 
-                                    refHeight.current.inputElement.focus();
+                                    refHeight.current.focus();
                                 }} />
                             }
                         </div>
@@ -1318,7 +1355,7 @@ function EquipmentInformation(props) {
                                                                         equipment_height_unit: item.value
                                                                     });
                                                                     setShowHeightDropdownItems(false);
-                                                                    refHeight.current.inputElement.focus();
+                                                                    refHeight.current.focus();
                                                                 }}
                                                                 ref={ref => refHeightPopupItems.current.push(ref)}
                                                             >
@@ -1355,7 +1392,7 @@ function EquipmentInformation(props) {
                         (props.equipmentInformation?.carrier?.equipments_information || []).length > 0 &&
                         <div className="equipment-list-header">
                             <div className="equipment-list-col tcol equipment">Equipment</div>
-                            <div className="equipment-list-col tcol units">Number of Units</div>
+                            <div className="equipment-list-col tcol units">Unit</div>
                             <div className="equipment-list-col tcol equipment_length">Length</div>
                             <div className="equipment-list-col tcol equipment_width">Width</div>
                             <div className="equipment-list-col tcol equipment_height">Height</div>
@@ -1389,9 +1426,9 @@ function EquipmentInformation(props) {
                                     }}>
                                         <div className="equipment-list-col tcol equipment">{eq.equipment.name}</div>
                                         <div className="equipment-list-col tcol units">{eq.units}</div>
-                                        <div className="equipment-list-col tcol equipment_length">{eq.equipment_length}</div>
-                                        <div className="equipment-list-col tcol equipment_width">{eq.equipment_width}</div>
-                                        <div className="equipment-list-col tcol equipment_height">{eq.equipment_height}</div>
+                                        <div className="equipment-list-col tcol equipment_length">{(eq.equipment_length || '') === '' ? '' : eq.equipment_length + ((eq.equipment_length_unit || '') === 'ft' ? '\'' : (eq.equipment_length_unit || '') === 'in' ? '"' : '')}</div>
+                                        <div className="equipment-list-col tcol equipment_width">{(eq.equipment_width || '') === '' ? '' : eq.equipment_width + ((eq.equipment_width_unit || '') === 'ft' ? '\'' : (eq.equipment_width_unit || '') === 'in' ? '"' : '')}</div>
+                                        <div className="equipment-list-col tcol equipment_height">{(eq.equipment_height || '') === '' ? '' : eq.equipment_height + ((eq.equipment_height_unit || '') === 'ft' ? '\'' : (eq.equipment_height_unit || '') === 'in' ? '"' : '')}</div>
                                         {
                                             (eq.id === props.equipmentInformation.id) &&
                                             <div className="equipment-list-col tcol equipment-selected">

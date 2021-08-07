@@ -290,35 +290,20 @@ function LoadBoard(props) {
     }
 
     const onOrderClick = (order) => {
-        console.log(order);
         props.setLbSelectedOrder(order);
 
-        props.setLbSelectedBillToCompanyInfo(order.bill_to_company || {})
-        props.setLbSelectedBillToCompanyContact({});
+        props.setLbSelectedBillToCompanyInfo({ ...order.bill_to_company })
+        props.setLbSelectedBillToCompanyContact({ ...(order.bill_to_company?.contacts || []).find(c => c.is_primary === 1) });
 
-        order.bill_to_company?.contacts.map(c => {
-            if (c.is_primary === 1) {
-                props.setLbSelectedBillToCompanyContact(c);
-            }
-            return true;
+        props.setSelectedLbCarrierInfoCarrier({ ...order.carrier })
+        props.setSelectedLbCarrierInfoContact({ ...(order.carrier?.contacts || []).find(c => c.is_primary === 1) })
+        props.setSelectedLbCarrierInfoDriver({
+            ...order.driver,
+            name: (order.driver?.first_name || '') + ((order.driver?.last_name || '').trim() === '' ? '' : ' ' + (order.driver?.last_name || ''))
         });
-
-        props.setSelectedLbCarrierInfoCarrier(order.carrier || {})
-        props.setSelectedLbCarrierInfoContact({})
-
-        order.carrier?.contacts.map(c => {
-            if (c.is_primary === 1) {
-                props.setSelectedLbCarrierInfoContact(c);
-            }
-            return true;
-        });
-
-        props.setSelectedLbCarrierInfoDriver(order.driver || {});
-
-
 
         let pickup_id = (order.routing || []).find(r => r.type === 'pickup')?.pickup_id || 0;
-        let pickup = (order.pickups || []).find(p => p.id === pickup_id);
+        let pickup = { ...((order.pickups || []).find(p => p.id === pickup_id) || (order.pickups || [])[0]) };
 
         props.setLbSelectedShipperCompanyInfo(pickup === undefined ? {} : {
             ...pickup.customer,
@@ -334,29 +319,22 @@ function LoadBoard(props) {
             special_instructions: pickup.special_instructions,
             type: pickup.type,
         });
-        
-        props.setLbSelectedShipperCompanyContact(pickup === undefined ? {} : (pickup.contacts || []).find(c => c.is_primary === 1) || {});
-
+        props.setLbSelectedShipperCompanyContact({ ...(pickup.contacts || []).find(c => c.is_primary === 1) });
 
         let delivery_id = (order.routing || []).find(r => r.type === 'delivery')?.delivery_id || 0;
-        let delivery = (order.deliveries || []).find(d => d.id === delivery_id);
+        let delivery = { ...((order.deliveries || []).find(d => d.id === delivery_id) || (order.deliveries || [])[0]) };
 
         props.setLbSelectedConsigneeCompanyInfo(delivery === undefined ? {} : {
             ...delivery.customer,
             delivery_id: delivery.id,
-            pu_date1: delivery.pu_date1,
-            pu_date2: delivery.pu_date2,
-            pu_time1: delivery.pu_time1,
-            pu_time2: delivery.pu_time2,
-            bol_numbers: delivery.bol_numbers,
-            po_numbers: delivery.po_numbers,
-            ref_numbers: delivery.ref_numbers,
-            seal_number: delivery.seal_number,
+            delivery_date1: delivery.delivery_date1,
+            delivery_date2: delivery.delivery_date2,
+            delivery_time1: delivery.delivery_time1,
+            delivery_time2: delivery.delivery_time2,
             special_instructions: delivery.special_instructions,
             type: delivery.type,
         });
-        
-        props.setLbSelectedConsigneeCompanyContact(delivery === undefined ? {} : (delivery.contacts || []).find(c => c.is_primary === 1) || {});
+        props.setLbSelectedConsigneeCompanyContact({ ...(delivery.contacts || []).find(c => c.is_primary === 1) });
     }
 
     const getPickupsOnRouting = () => {
@@ -766,7 +744,7 @@ function LoadBoard(props) {
                 </div>
             </div>
 
-            <div className="fields-container-col grow">
+            <div className="fields-container-col grow" style={{ minWidth: '800px' }}>
                 <div className="form-borderless-box" style={{ marginBottom: 15 }}>
                     <div className="form-row">
                         <div className="mochi-button" onClick={onRefreshBtnClick}>
@@ -980,7 +958,8 @@ function LoadBoard(props) {
                                         <div className="input-box-container input-code">
                                             <input tabIndex={6 + props.tabTimes} type="text" placeholder="Code" maxLength="8"
                                                 readOnly={true}
-                                                value={(props.selectedLbBillToCompanyInfo.code || '') + ((props.selectedLbBillToCompanyInfo.code_number || 0) === 0 ? '' : props.selectedLbBillToCompanyInfo.code_number)}
+                                                value={(props.selectedLbBillToCompanyInfo.code_number || 0) === 0 ? (props.selectedLbBillToCompanyInfo.code || '') : props.selectedLbBillToCompanyInfo.code + props.selectedLbBillToCompanyInfo.code_number}
+
                                             />
                                         </div>
                                         <div className="form-h-sep"></div>
@@ -1037,24 +1016,56 @@ function LoadBoard(props) {
                                         <div className="input-box-container grow">
                                             <input tabIndex={13 + props.tabTimes} type="text" placeholder="Contact Name"
                                                 readOnly={true}
-                                                value={(props.selectedLbBillToCompanyContact.first_name || '') + ((props.selectedLbBillToCompanyContact.last_name || '').trim() === '' ? '' : ' ' + props.selectedLbBillToCompanyContact.last_name)}
+                                                value={
+                                                    (props.selectedLbBillToCompanyInfo?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                                        ? (props.selectedLbBillToCompanyInfo?.contact_name || '')
+                                                        : props.selectedLbBillToCompanyInfo?.contacts.find(c => c.is_primary === 1).first_name + ' ' + props.selectedLbBillToCompanyInfo?.contacts.find(c => c.is_primary === 1).last_name
+                                                }
                                             />
                                         </div>
                                         <div className="form-h-sep"></div>
-                                        <div className="input-box-container input-phone">
+                                        <div className="input-box-container input-phone" style={{ position: 'relative' }}>
                                             <MaskedInput tabIndex={14 + props.tabTimes}
                                                 mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                                 guide={true}
                                                 type="text" placeholder="Contact Phone"
                                                 readOnly={true}
-                                                value={props.selectedLbBillToCompanyInfo.contact_phone || ''}
+                                                value={
+                                                    (props.selectedLbBillToCompanyInfo?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                                        ? (props.selectedLbBillToCompanyInfo?.contact_phone || '')
+                                                        : props.selectedLbBillToCompanyInfo?.contacts.find(c => c.is_primary === 1).primary_phone === 'work'
+                                                            ? props.selectedLbBillToCompanyInfo?.contacts.find(c => c.is_primary === 1).phone_work
+                                                            : props.selectedLbBillToCompanyInfo?.contacts.find(c => c.is_primary === 1).primary_phone === 'fax'
+                                                                ? props.selectedLbBillToCompanyInfo?.contacts.find(c => c.is_primary === 1).phone_work_fax
+                                                                : props.selectedLbBillToCompanyInfo?.contacts.find(c => c.is_primary === 1).primary_phone === 'mobile'
+                                                                    ? props.selectedLbBillToCompanyInfo?.contacts.find(c => c.is_primary === 1).phone_mobile
+                                                                    : props.selectedLbBillToCompanyInfo?.contacts.find(c => c.is_primary === 1).primary_phone === 'direct'
+                                                                        ? props.selectedLbBillToCompanyInfo?.contacts.find(c => c.is_primary === 1).phone_direct
+                                                                        : props.selectedLbBillToCompanyInfo?.contacts.find(c => c.is_primary === 1).primary_phone === 'other'
+                                                                            ? props.selectedLbBillToCompanyInfo?.contacts.find(c => c.is_primary === 1).phone_other
+                                                                            : ''
+                                                }
                                             />
+                                            {
+                                                ((props.selectedLbBillToCompanyInfo?.contacts || []).find(c => c.is_primary === 1) !== undefined) &&
+                                                <div
+                                                    className={classnames({
+                                                        'selected-customer-contact-primary-phone': true,
+                                                        'pushed': false
+                                                    })}>
+                                                    {props.selectedLbBillToCompanyInfo?.contacts.find(c => c.is_primary === 1).primary_phone}
+                                                </div>
+                                            }
                                         </div>
                                         <div className="form-h-sep"></div>
                                         <div className="input-box-container input-phone-ext">
                                             <input tabIndex={15 + props.tabTimes} type="text" placeholder="Ext"
                                                 readOnly={true}
-                                                value={props.selectedLbBillToCompanyInfo.ext || ''}
+                                                value={
+                                                    (props.selectedLbBillToCompanyInfo?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                                        ? (props.selectedLbBillToCompanyInfo?.ext || '')
+                                                        : props.selectedLbBillToCompanyInfo?.contacts.find(c => c.is_primary === 1).phone_ext
+                                                }
                                             />
                                         </div>
                                     </div>
@@ -1083,7 +1094,7 @@ function LoadBoard(props) {
                                         <div className="input-box-container input-code">
                                             <input tabIndex={50 + props.tabTimes} type="text" placeholder="Code" maxLength="8"
                                                 readOnly={true}
-                                                value={(props.selectedLbCarrierInfoCarrier.code || '') + ((props.selectedLbCarrierInfoCarrier.code_number || 0) === 0 ? '' : props.selectedLbCarrierInfoCarrier.code_number)}
+                                                value={(props.selectedLbCarrierInfoCarrier.code_number || 0) === 0 ? (props.selectedLbCarrierInfoCarrier.code || '') : props.selectedLbCarrierInfoCarrier.code + props.selectedLbCarrierInfoCarrier.code_number}
                                             />
                                         </div>
                                         <div className="form-h-sep"></div>
@@ -1104,9 +1115,17 @@ function LoadBoard(props) {
                                             <input tabIndex={52 + props.tabTimes} type="text" placeholder="Carrier Load - Starting City State - Destination City State"
                                                 readOnly={true}
                                                 value={
-                                                    ((props.selected_order.carrier || {}).id !== undefined && (props.selected_order.pickups || []).length > 0 && (props.selected_order.deliveries || []).length > 0)
-                                                        ? props.selected_order.pickups[0].city + ', ' + props.selected_order.pickups[0].state +
-                                                        ' - ' + props.selected_order.deliveries[props.selected_order.deliveries.length - 1].city + ', ' + props.selected_order.deliveries[props.selected_order.deliveries.length - 1].state
+                                                    ((props.selected_order?.routing || []).length >= 2 && (props.selected_order?.carrier?.id || 0) > 0)
+                                                        ? props.selected_order.routing[0].type === 'pickup'
+                                                            ? ((props.selected_order.pickups.find(p => p.id === props.selected_order.routing[0].pickup_id).customer?.city || '') + ', ' + (props.selected_order.pickups.find(p => p.id === props.selected_order.routing[0].pickup_id).customer?.state || '') +
+                                                                ' - ' + (props.selected_order.routing[props.selected_order.routing.length - 1].type === 'pickup'
+                                                                    ? (props.selected_order.pickups.find(p => p.id === props.selected_order.routing[props.selected_order.routing.length - 1].pickup_id).customer?.city || '') + ', ' + (props.selected_order.pickups.find(p => p.id === props.selected_order.routing[props.selected_order.routing.length - 1].pickup_id).customer?.state || '') :
+                                                                    (props.selected_order.deliveries.find(d => d.id === props.selected_order.routing[props.selected_order.routing.length - 1].delivery_id).customer?.city || '') + ', ' + (props.selected_order.deliveries.find(d => d.id === props.selected_order.routing[props.selected_order.routing.length - 1].delivery_id).customer?.state || '')))
+
+                                                            : ((props.selected_order.deliveries.find(d => d.id === props.selected_order.routing[0].delivery_id).customer?.city || '') + ', ' + (props.selected_order.deliveries.find(d => d.id === props.selected_order.routing[0].delivery_id).customer?.state || '') +
+                                                                ' - ' + (props.selected_order.routing[props.selected_order.routing.length - 1].type === 'pickup'
+                                                                    ? (props.selected_order.pickups.find(p => p.id === props.selected_order.routing[props.selected_order.routing.length - 1].pickup_id).customer?.city || '') + ', ' + (props.selected_order.pickups.find(p => p.id === props.selected_order.routing[props.selected_order.routing.length - 1].pickup_id).customer?.state || '') :
+                                                                    (props.selected_order.deliveries.find(d => d.id === props.selected_order.routing[props.selected_order.routing.length - 1].delivery_id).customer?.city || '') + ', ' + (props.selected_order.deliveries.find(d => d.id === props.selected_order.routing[props.selected_order.routing.length - 1].delivery_id).customer?.state || '')))
                                                         : ''
                                                 }
                                             />
@@ -1117,24 +1136,56 @@ function LoadBoard(props) {
                                         <div className="input-box-container grow">
                                             <input tabIndex={53 + props.tabTimes} type="text" placeholder="Contact Name"
                                                 readOnly={true}
-                                                value={(props.selectedLbCarrierInfoContact.first_name || '') + ((props.selectedLbCarrierInfoContact.last_name || '').trim() === '' ? '' : ' ' + props.selectedLbCarrierInfoContact.last_name)}
+                                                value={
+                                                    (props.selectedLbCarrierInfoCarrier?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                                        ? (props.selectedLbCarrierInfoCarrier?.contact_name || '')
+                                                        : props.selectedLbCarrierInfoCarrier?.contacts.find(c => c.is_primary === 1).first_name + ' ' + props.selectedLbCarrierInfoCarrier?.contacts.find(c => c.is_primary === 1).last_name
+                                                }
                                             />
                                         </div>
                                         <div className="form-h-sep"></div>
-                                        <div className="input-box-container grow">
+                                        <div className="input-box-container grow" style={{ position: 'relative' }}>
                                             <MaskedInput tabIndex={54 + props.tabTimes}
                                                 mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                                 guide={true}
                                                 type="text" placeholder="Contact Phone"
                                                 readOnly={true}
-                                                value={props.selectedLbCarrierInfoContact.phone_work || ''}
+                                                value={
+                                                    (props.selectedLbCarrierInfoCarrier?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                                        ? (props.selectedLbCarrierInfoCarrier?.contact_phone || '')
+                                                        : props.selectedLbCarrierInfoCarrier?.contacts.find(c => c.is_primary === 1).primary_phone === 'work'
+                                                            ? props.selectedLbCarrierInfoCarrier?.contacts.find(c => c.is_primary === 1).phone_work
+                                                            : props.selectedLbCarrierInfoCarrier?.contacts.find(c => c.is_primary === 1).primary_phone === 'fax'
+                                                                ? props.selectedLbCarrierInfoCarrier?.contacts.find(c => c.is_primary === 1).phone_work_fax
+                                                                : props.selectedLbCarrierInfoCarrier?.contacts.find(c => c.is_primary === 1).primary_phone === 'mobile'
+                                                                    ? props.selectedLbCarrierInfoCarrier?.contacts.find(c => c.is_primary === 1).phone_mobile
+                                                                    : props.selectedLbCarrierInfoCarrier?.contacts.find(c => c.is_primary === 1).primary_phone === 'direct'
+                                                                        ? props.selectedLbCarrierInfoCarrier?.contacts.find(c => c.is_primary === 1).phone_direct
+                                                                        : props.selectedLbCarrierInfoCarrier?.contacts.find(c => c.is_primary === 1).primary_phone === 'other'
+                                                                            ? props.selectedLbCarrierInfoCarrier?.contacts.find(c => c.is_primary === 1).phone_other
+                                                                            : ''
+                                                }
                                             />
+                                            {
+                                                ((props.selectedLbCarrierInfoCarrier?.contacts || []).find(c => c.is_primary === 1) !== undefined) &&
+                                                <div
+                                                    className={classnames({
+                                                        'selected-carrier-contact-primary-phone': true,
+                                                        'pushed': false
+                                                    })}>
+                                                    {props.selectedLbCarrierInfoCarrier?.contacts.find(c => c.is_primary === 1).primary_phone}
+                                                </div>
+                                            }
                                         </div>
                                         <div className="form-h-sep"></div>
                                         <div className="input-box-container input-phone-ext">
                                             <input tabIndex={55 + props.tabTimes} type="text" placeholder="Ext"
                                                 readOnly={true}
-                                                value={props.selectedLbCarrierInfoContact.phone_ext || ''}
+                                                value={
+                                                    (props.selectedLbCarrierInfoCarrier?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                                        ? (props.selectedLbCarrierInfoCarrier?.ext || '')
+                                                        : props.selectedLbCarrierInfoCarrier?.contacts.find(c => c.is_primary === 1).phone_ext
+                                                }
                                             />
                                         </div>
                                         <div className="form-h-sep"></div>
@@ -1150,7 +1201,7 @@ function LoadBoard(props) {
                                         <div className="input-box-container grow" style={{ position: 'relative' }}>
                                             <input tabIndex={57 + props.tabTimes} type="text" placeholder="Driver Name"
                                                 readOnly={true}
-                                                value={(props.selectedLbCarrierInfoDriver?.first_name || '') + ((props.selectedLbCarrierInfoDriver?.last_name || '').trim() === '' ? '' : ' ' + props.selectedLbCarrierInfoDriver?.last_name)}
+                                                value={props.selectedLbCarrierInfoDriver.first_name + ((props.selectedLbCarrierInfoDriver.last_name || '').trim() === '' ? '' : ' ' + props.selectedLbCarrierInfoDriver.last_name)}
                                             />
                                         </div>
                                         <div className="form-h-sep"></div>
@@ -1417,7 +1468,7 @@ function LoadBoard(props) {
                                         <div className="input-box-container input-code">
                                             <input tabIndex={16 + props.tabTimes} type="text" placeholder="Code" maxLength="8"
                                                 readOnly={true}
-                                                value={(props.selectedLbShipperCompanyInfo.code || '') + ((props.selectedLbShipperCompanyInfo.code_number || 0) === 0 ? '' : props.selectedLbShipperCompanyInfo.code_number)}
+                                                value={(props.selectedLbShipperCompanyInfo.code_number || 0) === 0 ? (props.selectedLbShipperCompanyInfo.code || '') : props.selectedLbShipperCompanyInfo.code + props.selectedLbShipperCompanyInfo.code_number}
                                             />
                                         </div>
                                         <div className="form-h-sep"></div>
@@ -1477,24 +1528,56 @@ function LoadBoard(props) {
                                                     <div className="input-box-container grow">
                                                         <input tabIndex={23 + props.tabTimes} type="text" placeholder="Contact Name"
                                                             readOnly={true}
-                                                            value={(props.selectedLbShipperCompanyContact?.first_name || '') + ((props.selectedLbShipperCompanyContact?.last_name || '').trim() === '' ? '' : ' ' + props.selectedLbShipperCompanyContact?.last_name)}
+                                                            value={
+                                                                (props.selectedLbShipperCompanyInfo?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                                                    ? (props.selectedLbShipperCompanyInfo?.contact_name || '')
+                                                                    : props.selectedLbShipperCompanyInfo?.contacts.find(c => c.is_primary === 1).first_name + ' ' + props.selectedLbShipperCompanyInfo?.contacts.find(c => c.is_primary === 1).last_name
+                                                            }
                                                         />
                                                     </div>
                                                     <div className="form-h-sep"></div>
-                                                    <div className="input-box-container input-phone">
+                                                    <div className="input-box-container input-phone" style={{ position: 'relative' }}>
                                                         <MaskedInput tabIndex={24 + props.tabTimes}
                                                             mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                                             guide={true}
                                                             type="text" placeholder="Contact Phone"
                                                             readOnly={true}
-                                                            value={props.selectedLbShipperCompanyInfo.contact_phone || ''}
+                                                            value={
+                                                                (props.selectedLbShipperCompanyInfo?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                                                    ? (props.selectedLbShipperCompanyInfo?.contact_phone || '')
+                                                                    : props.selectedLbShipperCompanyInfo?.contacts.find(c => c.is_primary === 1).primary_phone === 'work'
+                                                                        ? props.selectedLbShipperCompanyInfo?.contacts.find(c => c.is_primary === 1).phone_work
+                                                                        : props.selectedLbShipperCompanyInfo?.contacts.find(c => c.is_primary === 1).primary_phone === 'fax'
+                                                                            ? props.selectedLbShipperCompanyInfo?.contacts.find(c => c.is_primary === 1).phone_work_fax
+                                                                            : props.selectedLbShipperCompanyInfo?.contacts.find(c => c.is_primary === 1).primary_phone === 'mobile'
+                                                                                ? props.selectedLbShipperCompanyInfo?.contacts.find(c => c.is_primary === 1).phone_mobile
+                                                                                : props.selectedLbShipperCompanyInfo?.contacts.find(c => c.is_primary === 1).primary_phone === 'direct'
+                                                                                    ? props.selectedLbShipperCompanyInfo?.contacts.find(c => c.is_primary === 1).phone_direct
+                                                                                    : props.selectedLbShipperCompanyInfo?.contacts.find(c => c.is_primary === 1).primary_phone === 'other'
+                                                                                        ? props.selectedLbShipperCompanyInfo?.contacts.find(c => c.is_primary === 1).phone_other
+                                                                                        : ''
+                                                            }
                                                         />
+                                                        {
+                                                            ((props.selectedLbShipperCompanyInfo?.contacts || []).find(c => c.is_primary === 1) !== undefined) &&
+                                                            <div
+                                                                className={classnames({
+                                                                    'selected-customer-contact-primary-phone': true,
+                                                                    'pushed': false
+                                                                })}>
+                                                                {props.selectedLbShipperCompanyInfo?.contacts.find(c => c.is_primary === 1).primary_phone}
+                                                            </div>
+                                                        }
                                                     </div>
                                                     <div className="form-h-sep"></div>
                                                     <div className="input-box-container input-phone-ext">
                                                         <input tabIndex={25 + props.tabTimes} type="text" placeholder="Ext"
                                                             readOnly={true}
-                                                            value={props.selectedLbShipperCompanyInfo.ext || ''}
+                                                            value={
+                                                                (props.selectedLbShipperCompanyInfo?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                                                    ? (props.selectedLbShipperCompanyInfo?.ext || '')
+                                                                    : props.selectedLbShipperCompanyInfo?.contacts.find(c => c.is_primary === 1).phone_ext
+                                                            }
                                                         />
                                                     </div>
                                                 </div>
@@ -1687,7 +1770,7 @@ function LoadBoard(props) {
                                         <div className="input-box-container input-code">
                                             <input tabIndex={35 + props.tabTimes} type="text" placeholder="Code" maxLength="8"
                                                 readOnly={true}
-                                                value={(props.selectedLbConsigneeCompanyInfo.code || '') + ((props.selectedLbConsigneeCompanyInfo.code_number || 0) === 0 ? '' : props.selectedLbConsigneeCompanyInfo.code_number)}
+                                                value={(props.selectedLbConsigneeCompanyInfo.code_number || 0) === 0 ? (props.selectedLbConsigneeCompanyInfo.code || '') : props.selectedLbConsigneeCompanyInfo.code + props.selectedLbConsigneeCompanyInfo.code_number}
                                             />
                                         </div>
                                         <div className="form-h-sep"></div>
@@ -1747,24 +1830,57 @@ function LoadBoard(props) {
                                                     <div className="input-box-container grow">
                                                         <input tabIndex={42 + props.tabTimes} type="text" placeholder="Contact Name"
                                                             readOnly={true}
-                                                            value={(props.selectedLbConsigneeCompanyContact?.first_name || '') + ((props.selectedLbConsigneeCompanyContact?.last_name || '').trim() === '' ? '' : ' ' + props.selectedLbConsigneeCompanyContact?.last_name)}
+                                                            value={
+                                                                (props.selectedLbConsigneeCompanyInfo?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                                                    ? (props.selectedLbConsigneeCompanyInfo?.contact_name || '')
+                                                                    : props.selectedLbConsigneeCompanyInfo?.contacts.find(c => c.is_primary === 1).first_name + ' ' + props.selectedLbConsigneeCompanyInfo?.contacts.find(c => c.is_primary === 1).last_name
+                                                            }
                                                         />
                                                     </div>
                                                     <div className="form-h-sep"></div>
-                                                    <div className="input-box-container input-phone">
+                                                    <div className="input-box-container input-phone" style={{ position: 'relative' }}>
                                                         <MaskedInput tabIndex={43 + props.tabTimes}
                                                             mask={[/[0-9]/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, '-', /\d/, /\d/, /\d/, /\d/]}
                                                             guide={true}
                                                             type="text" placeholder="Contact Phone"
                                                             readOnly={true}
-                                                            value={props.selectedLbConsigneeCompanyInfo.contact_phone || ''}
+                                                            value={
+                                                                (props.selectedLbConsigneeCompanyInfo?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                                                    ? (props.selectedLbConsigneeCompanyInfo?.contact_phone || '')
+                                                                    : props.selectedLbConsigneeCompanyInfo?.contacts.find(c => c.is_primary === 1).primary_phone === 'work'
+                                                                        ? props.selectedLbConsigneeCompanyInfo?.contacts.find(c => c.is_primary === 1).phone_work
+                                                                        : props.selectedLbConsigneeCompanyInfo?.contacts.find(c => c.is_primary === 1).primary_phone === 'fax'
+                                                                            ? props.selectedLbConsigneeCompanyInfo?.contacts.find(c => c.is_primary === 1).phone_work_fax
+                                                                            : props.selectedLbConsigneeCompanyInfo?.contacts.find(c => c.is_primary === 1).primary_phone === 'mobile'
+                                                                                ? props.selectedLbConsigneeCompanyInfo?.contacts.find(c => c.is_primary === 1).phone_mobile
+                                                                                : props.selectedLbConsigneeCompanyInfo?.contacts.find(c => c.is_primary === 1).primary_phone === 'direct'
+                                                                                    ? props.selectedLbConsigneeCompanyInfo?.contacts.find(c => c.is_primary === 1).phone_direct
+                                                                                    : props.selectedLbConsigneeCompanyInfo?.contacts.find(c => c.is_primary === 1).primary_phone === 'other'
+                                                                                        ? props.selectedLbConsigneeCompanyInfo?.contacts.find(c => c.is_primary === 1).phone_other
+                                                                                        : ''
+                                                            }
                                                         />
+
+                                                        {
+                                                            ((props.selectedLbConsigneeCompanyInfo?.contacts || []).find(c => c.is_primary === 1) !== undefined) &&
+                                                            <div
+                                                                className={classnames({
+                                                                    'selected-customer-contact-primary-phone': true,
+                                                                    'pushed': false
+                                                                })}>
+                                                                {props.selectedLbConsigneeCompanyInfo?.contacts.find(c => c.is_primary === 1).primary_phone}
+                                                            </div>
+                                                        }
                                                     </div>
                                                     <div className="form-h-sep"></div>
                                                     <div className="input-box-container input-phone-ext">
                                                         <input tabIndex={44 + props.tabTimes} type="text" placeholder="Ext"
                                                             readOnly={true}
-                                                            value={props.selectedLbConsigneeCompanyInfo.ext || ''}
+                                                            value={
+                                                                (props.selectedLbConsigneeCompanyInfo?.contacts || []).find(c => c.is_primary === 1) === undefined
+                                                                    ? (props.selectedLbConsigneeCompanyInfo?.ext || '')
+                                                                    : props.selectedLbConsigneeCompanyInfo?.contacts.find(c => c.is_primary === 1).phone_ext
+                                                            }
                                                         />
                                                     </div>
                                                 </div>

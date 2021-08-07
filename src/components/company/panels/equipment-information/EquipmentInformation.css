@@ -17,20 +17,24 @@
   max-width: 8rem;
 }
 .equipment-list-box .tcol.units {
-  min-width: 6rem;
-  max-width: 6rem;
+  min-width: 5rem;
+  max-width: 5rem;
+  text-align: center;
 }
 .equipment-list-box .tcol.equipment_length {
-  min-width: 4rem;
-  max-width: 4rem;
+  min-width: 5rem;
+  max-width: 5rem;
+  text-align: center;
 }
 .equipment-list-box .tcol.equipment_width {
-  min-width: 4rem;
-  max-width: 4rem;
+  min-width: 5rem;
+  max-width: 5rem;
+  text-align: center;
 }
 .equipment-list-box .tcol.equipment_height {
-  min-width: 4rem;
-  max-width: 4rem;
+  min-width: 5rem;
+  max-width: 5rem;
+  text-align: center;
 }
 .equipment-list-box .tcol.equipment-selected {
   flex-grow: 1;

@@ -32,6 +32,7 @@ import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
 import ChangeCarrier from './../panels/change-carrier/ChangeCarrier.jsx';
 
 function Dispatch(props) {
+    const [selectedOrder, setSelectedOrder] = useState({});
     const [tempPickups, setTempPickups] = useState([]);
     const [tempDeliveries, setTempDeliveries] = useState([]);
     const [tempRouting, setTempRouting] = useState([]);
@@ -46,6 +47,8 @@ function Dispatch(props) {
         refOrderNumber.current.focus({
             preventScroll: true
         });
+
+        setSelectedOrder(props.selected_order);
 
         updateSystemDateTime();
     }, [])
@@ -430,7 +433,11 @@ function Dispatch(props) {
                                                     props.setSelectedOrder({
                                                         ...props.selected_order,
                                                         ae_number: (props.selected_order?.ae_number || '') === '' ? getRandomInt(1, 100) : props.selected_order.ae_number,
-                                                        bill_to_customer_id: res.data.customers[0].id
+                                                        bill_to_customer_id: res.data.customers[0].id,
+                                                        pickups: (props.selected_order?.pickups || []).map((pickup) => {
+                                                            pickup.toSave = pickup.id === 0;
+                                                            return pickup;
+                                                        })
                                                     });
 
                                                     validateOrderForSaving({ keyCode: 9 });
@@ -2236,28 +2243,21 @@ function Dispatch(props) {
             if ((props.order_number || '') !== '') {
                 axios.post(props.serverUrl + '/getOrderByOrderNumber', { order_number: props.order_number }).then(async res => {
                     if (res.data.result === 'OK') {
+                        let order = JSON.parse(JSON.stringify(res.data.order));
+
                         await props.setSelectedOrder({});
-                        await props.setSelectedOrder(res.data.order);
-                        await setTempRouting(res.data.order.routing);
-                        await props.setOrderNumber(res.data.order.order_number);
-                        await props.setTripNumber(res.data.order.trip_number === 0 ? '' : res.data.order.trip_number);
-                        await props.setSelectedBillToCompanyInfo(res.data.order.bill_to_company || {});
+                        await props.setSelectedOrder(order);
+                        await setTempRouting(order.routing);
+                        await props.setOrderNumber(order.order_number);
+                        await props.setTripNumber(order.trip_number === 0 ? '' : order.trip_number);
 
-                        if (res.data.order.bill_to_company) {
-                            (res.data.order.bill_to_company.contacts || []).map(async (contact, index) => {
-                                if (contact.is_primary === 1) {
-                                    await props.setSelectedBillToCompanyContact(contact);
-                                }
-                                return true;
-                            })
-                        }
-
-                        let order = res.data.order;
+                        await props.setSelectedBillToCompanyInfo({ ...order.bill_to_company });
+                        await props.setSelectedBillToCompanyContact({ ...(order.bill_to_company?.contacts || []).find(c => c.is_primary === 1) });
 
                         let pickup_id = (order.routing || []).find(r => r.type === 'pickup')?.pickup_id || 0;
-                        let pickup = (order.pickups || []).find(p => p.id === pickup_id);
+                        let pickup = { ...((order.pickups || []).find(p => p.id === pickup_id) || (order.pickups || [])[0]) };
 
-                        props.setSelectedShipperCompanyInfo(pickup === undefined ? {} : {
+                        await props.setSelectedShipperCompanyInfo(pickup.id === undefined ? {} : {
                             ...pickup.customer,
                             pickup_id: pickup.id,
                             pu_date1: pickup.pu_date1,
@@ -2271,51 +2271,35 @@ function Dispatch(props) {
                             special_instructions: pickup.special_instructions,
                             type: pickup.type,
                         });
-
-                        props.setSelectedShipperCompanyContact(pickup === undefined ? {} : (pickup.contacts || []).find(c => c.is_primary === 1) || {});
-
+                        await props.setSelectedShipperCompanyContact({ ...(pickup.contacts || []).find(c => c.is_primary === 1) });
 
                         let delivery_id = (order.routing || []).find(r => r.type === 'delivery')?.delivery_id || 0;
-                        let delivery = (order.deliveries || []).find(d => d.id === delivery_id);
+                        let delivery = { ...((order.deliveries || []).find(d => d.id === delivery_id) || (order.deliveries || [])[0]) };
 
-                        props.setSelectedConsigneeCompanyInfo(delivery === undefined ? {} : {
+                        await props.setSelectedConsigneeCompanyInfo(delivery.id === undefined ? {} : {
                             ...delivery.customer,
                             delivery_id: delivery.id,
-                            pu_date1: delivery.pu_date1,
-                            pu_date2: delivery.pu_date2,
-                            pu_time1: delivery.pu_time1,
-                            pu_time2: delivery.pu_time2,
-                            bol_numbers: delivery.bol_numbers,
-                            po_numbers: delivery.po_numbers,
-                            ref_numbers: delivery.ref_numbers,
-                            seal_number: delivery.seal_number,
+                            delivery_date1: delivery.pu_date1,
+                            delivery_date2: delivery.pu_date2,
+                            delivery_time1: delivery.pu_time1,
+                            delivery_time2: delivery.pu_time2,
                             special_instructions: delivery.special_instructions,
                             type: delivery.type,
                         });
+                        await props.setSelectedConsigneeCompanyContact({ ...(delivery.contacts || []).find(c => c.is_primary === 1) });
 
-                        props.setSelectedConsigneeCompanyContact(delivery === undefined ? {} : (delivery.contacts || []).find(c => c.is_primary === 1) || {});
+                        await props.setSelectedDispatchCarrierInfoCarrier({ ...order.carrier });
+                        await props.setSelectedDispatchCarrierInfoContact({ ...(order.carrier?.contacts || []).find(c => c.is_primary === 1) });
+                        await props.setSelectedDispatchCarrierInfoDriver({
+                            ...order.driver,
+                            name: (order.driver?.first_name || '') + ((order.driver?.last_name || '').trim() === '' ? '' : ' ' + (order.driver?.last_name || ''))
+                        });
 
-                        await props.setSelectedDispatchCarrierInfoCarrier(res.data.order.carrier || {});
-
-                        if (res.data.order.carrier) {
-                            (res.data.order.carrier?.contacts || []).map(async (contact, index) => {
-                                if (contact.is_primary === 1) {
-                                    await props.setSelectedDispatchCarrierInfoContact(contact);
-                                }
-                                return true;
-                            })
-                        }
-
-                        await props.setSelectedDispatchCarrierInfoDriver(res.data.order.driver ? {
-                            ...res.data.order.driver,
-                            name: res.data.order.driver.first_name + (res.data.order.driver.last_name.trim() === '' ? '' : ' ' + res.data.order.driver.last_name)
-                        } : { name: '' });
-
-                        await props.setDivision({ name: res.data.order.division });
-                        await props.setLoadType({ name: res.data.order.load_type });
-                        await props.setTemplate({ name: res.data.order.template });
+                        await props.setDivision({ name: order.division });
+                        await props.setLoadType({ name: order.load_type });
+                        await props.setTemplate({ name: order.template });
                     } else {
-                        props.setOrderNumber(props.selected_order?.order_number || '');
+                        await props.setOrderNumber(props.selected_order?.order_number || '');
                     }
                 }).catch(e => {
                     console.log('error getting order by order number', e);
@@ -2335,28 +2319,22 @@ function Dispatch(props) {
             if ((props.trip_number || '') !== '') {
                 axios.post(props.serverUrl + '/getOrderByTripNumber', { trip_number: props.trip_number }).then(async res => {
                     if (res.data.result === 'OK') {
+                        let order = JSON.parse(JSON.stringify(res.data.order));
+
                         await props.setSelectedOrder({});
-                        await props.setSelectedOrder(res.data.order);
-                        await setTempRouting(res.data.order.routing);
-                        await props.setOrderNumber(res.data.order.order_number);
-                        await props.setTripNumber(res.data.order.trip_number === 0 ? '' : res.data.order.trip_number);
-                        await props.setSelectedBillToCompanyInfo(res.data.order.bill_to_company || {});
+                        await props.setSelectedOrder(order);
+                        await setTempRouting(order.routing);
+                        await props.setOrderNumber(order.order_number);
+                        await props.setTripNumber(order.trip_number === 0 ? '' : order.trip_number);
 
-                        if (res.data.order.bill_to_company) {
-                            (res.data.order.bill_to_company.contacts || []).map(async (contact, index) => {
-                                if (contact.is_primary === 1) {
-                                    await props.setSelectedBillToCompanyContact(contact);
-                                }
-                                return true;
-                            })
-                        }
+                        await props.setSelectedBillToCompanyInfo({ ...order.bill_to_company });
 
-                        let order = res.data.order;
+                        await props.setSelectedBillToCompanyContact({ ...(order.bill_to_company?.contacts || []).find(c => c.is_primary === 1) });
 
                         let pickup_id = (order.routing || []).find(r => r.type === 'pickup')?.pickup_id || 0;
-                        let pickup = (order.pickups || []).find(p => p.id === pickup_id);
+                        let pickup = { ...((order.pickups || []).find(p => p.id === pickup_id) || (order.pickups || [])[0]) };
 
-                        props.setSelectedShipperCompanyInfo(pickup === undefined ? {} : {
+                        await props.setSelectedShipperCompanyInfo(pickup.id === undefined ? {} : {
                             ...pickup.customer,
                             pickup_id: pickup.id,
                             pu_date1: pickup.pu_date1,
@@ -2371,48 +2349,39 @@ function Dispatch(props) {
                             type: pickup.type,
                         });
 
-                        props.setSelectedShipperCompanyContact(pickup === undefined ? {} : (pickup.contacts || []).find(c => c.is_primary === 1) || {});
+                        await props.setSelectedShipperCompanyContact({ ...(pickup.contacts || []).find(c => c.is_primary === 1) });
 
 
                         let delivery_id = (order.routing || []).find(r => r.type === 'delivery')?.delivery_id || 0;
-                        let delivery = (order.deliveries || []).find(d => d.id === delivery_id);
+                        let delivery = { ...((order.deliveries || []).find(d => d.id === delivery_id) || (order.deliveries || [])[0]) };
 
-                        props.setSelectedConsigneeCompanyInfo(delivery === undefined ? {} : {
+                        await props.setSelectedConsigneeCompanyInfo(delivery.id === undefined ? {} : {
                             ...delivery.customer,
                             delivery_id: delivery.id,
-                            pu_date1: delivery.pu_date1,
-                            pu_date2: delivery.pu_date2,
-                            pu_time1: delivery.pu_time1,
-                            pu_time2: delivery.pu_time2,
-                            bol_numbers: delivery.bol_numbers,
-                            po_numbers: delivery.po_numbers,
-                            ref_numbers: delivery.ref_numbers,
-                            seal_number: delivery.seal_number,
+                            delivery_date1: delivery.pu_date1,
+                            delivery_date2: delivery.pu_date2,
+                            delivery_time1: delivery.pu_time1,
+                            delivery_time2: delivery.pu_time2,
                             special_instructions: delivery.special_instructions,
                             type: delivery.type,
                         });
 
-                        await props.setSelectedDispatchCarrierInfoCarrier(res.data.order.carrier || {});
+                        await props.setSelectedConsigneeCompanyContact({ ...(delivery.contacts || []).find(c => c.is_primary === 1) });
 
-                        if (res.data.order.carrier) {
-                            (res.data.order.carrier.contacts || []).map(async (contact, index) => {
-                                if (contact.is_primary === 1) {
-                                    await props.setSelectedDispatchCarrierInfoContact(contact);
-                                }
-                                return true;
-                            })
-                        }
+                        await props.setSelectedDispatchCarrierInfoCarrier({ ...order.carrier });
+                        await props.setSelectedDispatchCarrierInfoContact({ ...(order.carrier?.contacts || []).find(c => c.is_primary === 1) });
 
-                        await props.setSelectedDispatchCarrierInfoDriver(res.data.order.driver ? {
-                            ...res.data.order.driver,
-                            name: res.data.order.driver.first_name + (res.data.order.driver.last_name.trim() === '' ? '' : ' ' + res.data.order.driver.last_name)
-                        } : { name: '' });
 
-                        await props.setDivision({ name: res.data.order.division });
-                        await props.setLoadType({ name: res.data.order.load_type });
-                        await props.setTemplate({ name: res.data.order.template });
+                        await props.setSelectedDispatchCarrierInfoDriver({
+                            ...order.driver,
+                            name: (order.driver?.first_name || '') + ((order.driver?.last_name || '').trim() === '' ? '' : ' ' + (order.driver?.last_name || ''))
+                        });
+
+                        await props.setDivision({ name: order.division });
+                        await props.setLoadType({ name: order.load_type });
+                        await props.setTemplate({ name: order.template });
                     } else {
-                        props.setTripNumber(props.selected_order?.trip_number || '');
+                        await props.setOrderNumber(props.selected_order?.trip_number || '');
                     }
                 }).catch(e => {
                     console.log('error getting order by trip number', e);
@@ -2994,11 +2963,14 @@ function Dispatch(props) {
                                                                                 key={index}
                                                                                 className={mochiItemClasses}
                                                                                 id={item.id}
-                                                                                onClick={async () => {
-                                                                                    await props.setSelectedOrder({ ...props.selected_order, division: item });
-                                                                                    validateOrderForSaving({ keyCode: 9 });
-                                                                                    setDivisionItems([]);
-                                                                                    refDivision.current.focus();
+                                                                                onClick={() => {
+                                                                                    props.setSelectedOrder({ ...props.selected_order, division: item });
+
+                                                                                    window.setTimeout(() => {
+                                                                                        validateOrderForSaving({ keyCode: 9 });
+                                                                                        setDivisionItems([]);
+                                                                                        refDivision.current.focus();
+                                                                                    }, 0);
                                                                                 }}
                                                                                 ref={ref => refDivisionPopupItems.current.push(ref)}
                                                                             >
@@ -3324,11 +3296,14 @@ function Dispatch(props) {
                                                                                 key={index}
                                                                                 className={mochiItemClasses}
                                                                                 id={item.id}
-                                                                                onClick={async () => {
-                                                                                    await props.setSelectedOrder({ ...props.selected_order, load_type: item });
-                                                                                    validateOrderForSaving({ keyCode: 9 });
-                                                                                    setLoadTypeItems([]);
-                                                                                    refLoadType.current.focus();
+                                                                                onClick={() => {
+                                                                                    props.setSelectedOrder({ ...props.selected_order, load_type: item });
+
+                                                                                    window.setTimeout(() => {
+                                                                                        validateOrderForSaving({ keyCode: 9 });
+                                                                                        setLoadTypeItems([]);
+                                                                                        refLoadType.current.focus();
+                                                                                    },0);
                                                                                 }}
                                                                                 ref={ref => refLoadTypePopupItems.current.push(ref)}
                                                                             >
@@ -3654,11 +3629,14 @@ function Dispatch(props) {
                                                                                 key={index}
                                                                                 className={mochiItemClasses}
                                                                                 id={item.id}
-                                                                                onClick={async () => {
-                                                                                    await props.setSelectedOrder({ ...props.selected_order, template: item });
-                                                                                    validateOrderForSaving({ keyCode: 9 });
-                                                                                    setTemplateItems([]);
-                                                                                    refTemplate.current.focus();
+                                                                                onClick={() => {
+                                                                                    props.setSelectedOrder({ ...props.selected_order, template: item });
+
+                                                                                    window.setTimeout(() => {
+                                                                                        validateOrderForSaving({ keyCode: 9 });
+                                                                                        setTemplateItems([]);
+                                                                                        refTemplate.current.focus();
+                                                                                    });
                                                                                 }}
                                                                                 ref={ref => refTemplatePopupItems.current.push(ref)}
                                                                             >
@@ -3749,9 +3727,21 @@ function Dispatch(props) {
                                 <div className="input-box-container input-code">
                                     <input tabIndex={6 + props.tabTimes} type="text" placeholder="Code" maxLength="8"
                                         onKeyDown={getBillToCompanyByCode}
-                                        onInput={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, code: e.target.value }) }}
-                                        onChange={(e) => { props.setSelectedBillToCompanyInfo({ ...props.selectedBillToCompanyInfo, code: e.target.value }) }}
-                                        value={props.selectedBillToCompanyInfo.code || ''}
+                                        onInput={e => {
+                                            props.setSelectedBillToCompanyInfo({
+                                                ...props.selectedBillToCompanyInfo,
+                                                code: e.target.value,
+                                                code_number: 0
+                                            })
+                                        }}
+                                        onChange={e => {
+                                            props.setSelectedBillToCompanyInfo({
+                                                ...props.selectedBillToCompanyInfo,
+                                                code: e.target.value,
+                                                code_number: 0
+                                            })
+                                        }}
+                                        value={(props.selectedBillToCompanyInfo.code_number || 0) === 0 ? (props.selectedBillToCompanyInfo.code || '') : props.selectedBillToCompanyInfo.code + props.selectedBillToCompanyInfo.code_number}
                                     />
                                 </div>
                                 <div className="form-h-sep"></div>
@@ -3981,20 +3971,20 @@ function Dispatch(props) {
                                         onKeyDown={getCarrierInfoByCode}
 
                                         onInput={e => {
-                                            props.setSelectedDispatchCarrierInfoCarrier({ 
-                                                ...props.selectedDispatchCarrierInfoCarrier, 
+                                            props.setSelectedDispatchCarrierInfoCarrier({
+                                                ...props.selectedDispatchCarrierInfoCarrier,
                                                 code: e.target.value,
-                                                code_number: 0 
+                                                code_number: 0
                                             })
                                         }}
                                         onChange={e => {
-                                            props.setSelectedDispatchCarrierInfoCarrier({ 
-                                                ...props.selectedDispatchCarrierInfoCarrier, 
+                                            props.setSelectedDispatchCarrierInfoCarrier({
+                                                ...props.selectedDispatchCarrierInfoCarrier,
                                                 code: e.target.value,
-                                                code_number: 0 
+                                                code_number: 0
                                             })
                                         }}
-                                        value={(props.selectedDispatchCarrierInfoCarrier.code_number || 0) === 0 ? (props.selectedDispatchCarrierInfoCarrier.code || '') : props.selectedDispatchCarrierInfoCarrier.code + props.selectedDispatchCarrierInfoCarrier.code_number} 
+                                        value={(props.selectedDispatchCarrierInfoCarrier.code_number || 0) === 0 ? (props.selectedDispatchCarrierInfoCarrier.code || '') : props.selectedDispatchCarrierInfoCarrier.code + props.selectedDispatchCarrierInfoCarrier.code_number}
                                     />
                                 </div>
                                 <div className="form-h-sep"></div>
@@ -4015,11 +4005,19 @@ function Dispatch(props) {
                             <div className="form-row">
                                 <div className="input-box-container grow">
                                     <input tabIndex={52 + props.tabTimes} type="text" placeholder="Carrier Load - Starting City State - Destination City State"
-                                        readOnly={true}                                        
+                                        readOnly={true}
                                         value={
-                                            ((props.selected_order?.carrier?.id || 0) > 0 && (props.selected_order?.pickups || []).length > 0 && (props.selected_order?.deliveries || []).length > 0)
-                                                ? props.selected_order?.pickups[0].customer?.city + ', ' + props.selected_order?.pickups[0].customer?.state +
-                                                ' - ' + (props.selected_order?.deliveries[props.selected_order?.deliveries.length - 1].customer?.city || '') + ', ' + (props.selected_order?.deliveries[props.selected_order?.deliveries.length - 1].customer?.state || '')
+                                            ((props.selected_order?.routing || []).length >= 2 && (props.selected_order?.carrier?.id || 0) > 0)
+                                                ? props.selected_order.routing[0].type === 'pickup'
+                                                    ? ((props.selected_order.pickups.find(p => p.id === props.selected_order.routing[0].pickup_id).customer?.city || '') + ', ' + (props.selected_order.pickups.find(p => p.id === props.selected_order.routing[0].pickup_id).customer?.state || '') +
+                                                        ' - ' + (props.selected_order.routing[props.selected_order.routing.length - 1].type === 'pickup'
+                                                            ? (props.selected_order.pickups.find(p => p.id === props.selected_order.routing[props.selected_order.routing.length - 1].pickup_id).customer?.city || '') + ', ' + (props.selected_order.pickups.find(p => p.id === props.selected_order.routing[props.selected_order.routing.length - 1].pickup_id).customer?.state || '') :
+                                                            (props.selected_order.deliveries.find(d => d.id === props.selected_order.routing[props.selected_order.routing.length - 1].delivery_id).customer?.city || '') + ', ' + (props.selected_order.deliveries.find(d => d.id === props.selected_order.routing[props.selected_order.routing.length - 1].delivery_id).customer?.state || '')))
+
+                                                    : ((props.selected_order.deliveries.find(d => d.id === props.selected_order.routing[0].delivery_id).customer?.city || '') + ', ' + (props.selected_order.deliveries.find(d => d.id === props.selected_order.routing[0].delivery_id).customer?.state || '') +
+                                                        ' - ' + (props.selected_order.routing[props.selected_order.routing.length - 1].type === 'pickup'
+                                                            ? (props.selected_order.pickups.find(p => p.id === props.selected_order.routing[props.selected_order.routing.length - 1].pickup_id).customer?.city || '') + ', ' + (props.selected_order.pickups.find(p => p.id === props.selected_order.routing[props.selected_order.routing.length - 1].pickup_id).customer?.state || '') :
+                                                            (props.selected_order.deliveries.find(d => d.id === props.selected_order.routing[props.selected_order.routing.length - 1].delivery_id).customer?.city || '') + ', ' + (props.selected_order.deliveries.find(d => d.id === props.selected_order.routing[props.selected_order.routing.length - 1].delivery_id).customer?.state || '')))
                                                 : ''
                                         }
                                     />
@@ -4693,7 +4691,7 @@ function Dispatch(props) {
                                             }}
                                             onBlur={(e) => {
                                                 if ((props.selectedDispatchCarrierInfoDriver?.id || 0) > 0) {
-                                                    if (e.target.value.trim() === ''){
+                                                    if (e.target.value.trim() === '') {
                                                         props.setSelectedDispatchCarrierInfoDriver({ name: '' });
                                                     }
                                                 }
@@ -5152,7 +5150,7 @@ function Dispatch(props) {
                         {
                             [
                                 ...getPickupsOnRouting(),
-                                ...(props.selected_order?.pickups || []).filter(p => props.selected_order?.routing.find(r => r.pickup_id === p.id) === undefined)
+                                ...(props.selected_order?.pickups || []).filter(p => (props.selected_order?.routing || []).find(r => r.pickup_id === p.id) === undefined)
                             ].map((pickup, index) => {
                                 if (pickup === undefined) {
                                     return ''
@@ -5539,7 +5537,7 @@ function Dispatch(props) {
                         {
                             [
                                 ...getDeliveriesOnRouting(),
-                                ...(props.selected_order?.deliveries || []).filter(d => props.selected_order?.routing.find(r => r.delivery_id === d.id) === undefined)
+                                ...(props.selected_order?.deliveries || []).filter(d => (props.selected_order?.routing || []).find(r => r.delivery_id === d.id) === undefined)
                             ].map((delivery, index) => {
                                 if (delivery === undefined) {
                                     return ''
@@ -5979,7 +5977,11 @@ function Dispatch(props) {
                                                     })
                                                 }
 
-                                                props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, id: 0, code: e.target.value.toUpperCase() })
+                                                props.setSelectedShipperCompanyInfo({
+                                                    ...props.selectedShipperCompanyInfo,
+                                                    code: e.target.value.toUpperCase(),
+                                                    code_number: 0
+                                                })
                                             } else {
                                                 props.setSelectedOrder({
                                                     ...props.selected_order,
@@ -5994,7 +5996,11 @@ function Dispatch(props) {
                                                     })
                                                 })
 
-                                                props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, code: e.target.value.toUpperCase() })
+                                                props.setSelectedShipperCompanyInfo({
+                                                    ...props.selectedShipperCompanyInfo,
+                                                    code: e.target.value.toUpperCase(),
+                                                    code_number: 0
+                                                })
                                             }
                                         }}
                                         onChange={(e) => {
@@ -6028,7 +6034,11 @@ function Dispatch(props) {
                                                     })
                                                 }
 
-                                                props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, id: 0, code: e.target.value.toUpperCase() })
+                                                props.setSelectedShipperCompanyInfo({
+                                                    ...props.selectedShipperCompanyInfo,
+                                                    code: e.target.value.toUpperCase(),
+                                                    code_number: 0
+                                                })
                                             } else {
                                                 props.setSelectedOrder({
                                                     ...props.selected_order,
@@ -6043,10 +6053,14 @@ function Dispatch(props) {
                                                     })
                                                 })
 
-                                                props.setSelectedShipperCompanyInfo({ ...props.selectedShipperCompanyInfo, code: e.target.value.toUpperCase() })
+                                                props.setSelectedShipperCompanyInfo({
+                                                    ...props.selectedShipperCompanyInfo,
+                                                    code: e.target.value.toUpperCase(),
+                                                    code_number: 0
+                                                })
                                             }
                                         }}
-                                        value={(props.selectedShipperCompanyInfo?.code || '') + ((props.selectedShipperCompanyInfo?.code_number || 0) === 0 ? '' : props.selectedShipperCompanyInfo?.code_number)}
+                                        value={(props.selectedShipperCompanyInfo.code_number || 0) === 0 ? (props.selectedShipperCompanyInfo.code || '') : props.selectedShipperCompanyInfo.code + props.selectedShipperCompanyInfo.code_number}
                                     />
                                 </div>
                                 <div className="form-h-sep"></div>
@@ -7928,7 +7942,11 @@ function Dispatch(props) {
                                                     })
                                                 }
 
-                                                props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, id: 0, code: e.target.value.toUpperCase() })
+                                                props.setSelectedConsigneeCompanyInfo({
+                                                    ...props.selectedConsigneeCompanyInfo,
+                                                    code: e.target.value.toUpperCase(),
+                                                    code_number: 0
+                                                })
                                             } else {
                                                 props.setSelectedOrder({
                                                     ...props.selected_order,
@@ -7943,7 +7961,11 @@ function Dispatch(props) {
                                                     })
                                                 })
 
-                                                props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, code: e.target.value.toUpperCase() })
+                                                props.setSelectedConsigneeCompanyInfo({
+                                                    ...props.selectedConsigneeCompanyInfo,
+                                                    code: e.target.value.toUpperCase(),
+                                                    code_number: 0
+                                                })
                                             }
                                         }}
                                         onChange={(e) => {
@@ -7977,7 +7999,11 @@ function Dispatch(props) {
                                                     })
                                                 }
 
-                                                props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, id: 0, code: e.target.value.toUpperCase() })
+                                                props.setSelectedConsigneeCompanyInfo({
+                                                    ...props.selectedConsigneeCompanyInfo,
+                                                    code: e.target.value.toUpperCase(),
+                                                    code_number: 0
+                                                })
                                             } else {
                                                 props.setSelectedOrder({
                                                     ...props.selected_order,
@@ -7992,10 +8018,14 @@ function Dispatch(props) {
                                                     })
                                                 })
 
-                                                props.setSelectedConsigneeCompanyInfo({ ...props.selectedConsigneeCompanyInfo, code: e.target.value.toUpperCase() })
+                                                props.setSelectedConsigneeCompanyInfo({
+                                                    ...props.selectedConsigneeCompanyInfo,
+                                                    code: e.target.value.toUpperCase(),
+                                                    code_number: 0
+                                                })
                                             }
                                         }}
-                                        value={(props.selectedConsigneeCompanyInfo?.code || '') + ((props.selectedConsigneeCompanyInfo?.code_number || 0) === 0 ? '' : props.selectedConsigneeCompanyInfo?.code_number)}
+                                        value={(props.selectedConsigneeCompanyInfo.code_number || 0) === 0 ? (props.selectedConsigneeCompanyInfo.code || '') : props.selectedConsigneeCompanyInfo.code + props.selectedConsigneeCompanyInfo.code_number}
                                     />
                                 </div>
                                 <div className="form-h-sep"></div>
@@ -9744,25 +9774,38 @@ function Dispatch(props) {
                                                 }
                                             } else {
                                                 await setDispatchEventItems(dispatchEventItems.map((item, index) => {
-                                                    item.selected = (props.dispatchEvent?.id || 0) === 0
-                                                        ? index === 0
-                                                        : item.id === props.dispatchEvent.id
+                                                    if (item.name.toLowerCase().includes((props.dispatchEvent?.name || '').trim().toLowerCase())) {
+                                                        item.hidden = false;
+                                                        item.selected = (props.dispatchEvent?.id || 0) === 0
+                                                            ? index === 0
+                                                            : item.id === props.dispatchEvent.id
+                                                    } else {
+                                                        item.selected = false;
+                                                        item.hidden = true;
+                                                    }
+
                                                     return item;
                                                 }));
 
-                                                window.setTimeout(async () => {
-                                                    await setShowDispatchEventItems(true);
+                                                window.setTimeout(() => {
+                                                    if (dispatchEventItems.find(i => !i.hidden) !== undefined) {
+                                                        if (!showDispatchEventItems) {
+                                                            setShowDispatchEventItems(true);
 
-                                                    refDispatchEventPopupItems.current.map((r, i) => {
-                                                        if (r && r.classList.contains('selected')) {
-                                                            r.scrollIntoView({
-                                                                behavior: 'auto',
-                                                                block: 'center',
-                                                                inline: 'nearest'
-                                                            })
+                                                            refDispatchEventPopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
+                                                            });
                                                         }
-                                                        return true;
-                                                    });
+                                                    } else {
+                                                        setShowDispatchEventItems(false);
+                                                    }
                                                 }, 0);
                                             }
                                             break;
@@ -9838,25 +9881,38 @@ function Dispatch(props) {
 
                                             } else {
                                                 await setDispatchEventItems(dispatchEventItems.map((item, index) => {
-                                                    item.selected = (props.dispatchEvent?.id || 0) === 0
-                                                        ? index === 0
-                                                        : item.id === props.dispatchEvent.id
+                                                    if (item.name.toLowerCase().includes((props.dispatchEvent?.name || '').trim().toLowerCase())) {
+                                                        item.hidden = false;
+                                                        item.selected = (props.dispatchEvent?.id || 0) === 0
+                                                            ? index === 0
+                                                            : item.id === props.dispatchEvent.id
+                                                    } else {
+                                                        item.selected = false;
+                                                        item.hidden = true;
+                                                    }
+
                                                     return item;
                                                 }));
 
-                                                window.setTimeout(async () => {
-                                                    await setShowDispatchEventItems(true);
+                                                window.setTimeout(() => {
+                                                    if (dispatchEventItems.find(i => !i.hidden) !== undefined) {
+                                                        if (!showDispatchEventItems) {
+                                                            setShowDispatchEventItems(true);
 
-                                                    refDispatchEventPopupItems.current.map((r, i) => {
-                                                        if (r && r.classList.contains('selected')) {
-                                                            r.scrollIntoView({
-                                                                behavior: 'auto',
-                                                                block: 'center',
-                                                                inline: 'nearest'
-                                                            })
+                                                            refDispatchEventPopupItems.current.map((r, i) => {
+                                                                if (r && r.classList.contains('selected')) {
+                                                                    r.scrollIntoView({
+                                                                        behavior: 'auto',
+                                                                        block: 'center',
+                                                                        inline: 'nearest'
+                                                                    })
+                                                                }
+                                                                return true;
+                                                            });
                                                         }
-                                                        return true;
-                                                    });
+                                                    } else {
+                                                        setShowDispatchEventItems(false);
+                                                    }
                                                 }, 0);
                                             }
                                             break;
@@ -10413,7 +10469,100 @@ function Dispatch(props) {
                                             break;
                                     }
                                 }}
-                                onChange={() => { }}
+                                onBlur={(e) => {
+                                    if ((props.dispatchEvent?.id || 0) === 0) {
+                                        props.setDispatchEvent({})
+                                    }
+                                }}
+                                onInput={(e) => {
+                                    if (!showDispatchEventSecondPageItems) {
+                                        props.setDispatchEvent({
+                                            ...props.dispatchEvent,
+                                            name: e.target.value,
+                                            id: 0
+                                        })
+
+                                        setDispatchEventItems(dispatchEventItems.map((item, index) => {
+                                            if (item.name.toLowerCase().includes(e.target.value.trim().toLowerCase())) {
+                                                item.hidden = false;
+                                                item.selected = (props.dispatchEvent?.id || 0) === 0
+                                                    ? index === 0
+                                                    : item.id === props.dispatchEvent.id
+                                            } else {
+                                                item.selected = false;
+                                                item.hidden = true;
+                                            }
+
+                                            return item;
+                                        }));
+
+                                        window.setTimeout(() => {
+                                            if (dispatchEventItems.find(i => !i.hidden) !== undefined) {
+                                                if (!showDispatchEventItems) {
+                                                    setShowDispatchEventItems(true);
+
+                                                    refDispatchEventPopupItems.current.map((r, i) => {
+                                                        if (r && r.classList.contains('selected')) {
+                                                            r.scrollIntoView({
+                                                                behavior: 'auto',
+                                                                block: 'center',
+                                                                inline: 'nearest'
+                                                            })
+                                                        }
+                                                        return true;
+                                                    });
+                                                }
+                                            } else {
+                                                setShowDispatchEventItems(false);
+                                            }
+                                        }, 0);
+                                    }
+
+                                }}
+                                onChange={(e) => {
+                                    if (!showDispatchEventSecondPageItems) {
+                                        props.setDispatchEvent({
+                                            ...props.dispatchEvent,
+                                            name: e.target.value,
+                                            id: 0
+                                        })
+
+                                        setDispatchEventItems(dispatchEventItems.map((item, index) => {
+                                            if (item.name.toLowerCase().includes(e.target.value.trim().toLowerCase())) {
+                                                item.hidden = false;
+                                                item.selected = (props.dispatchEvent?.id || 0) === 0
+                                                    ? index === 0
+                                                    : item.id === props.dispatchEvent.id
+                                            } else {
+                                                item.selected = false;
+                                                item.hidden = true;
+                                            }
+
+                                            return item;
+                                        }));
+
+                                        window.setTimeout(() => {
+                                            if (dispatchEventItems.find(i => !i.hidden) !== undefined) {
+                                                if (!showDispatchEventItems) {
+                                                    setShowDispatchEventItems(true);
+
+                                                    refDispatchEventPopupItems.current.map((r, i) => {
+                                                        if (r && r.classList.contains('selected')) {
+                                                            r.scrollIntoView({
+                                                                behavior: 'auto',
+                                                                block: 'center',
+                                                                inline: 'nearest'
+                                                            })
+                                                        }
+                                                        return true;
+                                                    });
+                                                }
+                                            } else {
+                                                setShowDispatchEventItems(false);
+                                            }
+                                        }, 0);
+                                    }
+                                }}
                                 value={(props.dispatchEvent.name || '').toUpperCase()}
 
                             />
@@ -10428,25 +10577,33 @@ function Dispatch(props) {
                                     }
 
                                     await setDispatchEventItems(dispatchEventItems.map((item, index) => {
+                                        item.hidden = false;
                                         item.selected = (props.dispatchEvent?.id || 0) === 0
                                             ? index === 0
                                             : item.id === props.dispatchEvent.id
+
                                         return item;
                                     }));
 
-                                    window.setTimeout(async () => {
-                                        await setShowDispatchEventItems(true);
+                                    window.setTimeout(() => {
+                                        if (dispatchEventItems.find(i => !i.hidden) !== undefined) {
+                                            if (!showDispatchEventItems) {
+                                                setShowDispatchEventItems(true);
 
-                                        refDispatchEventPopupItems.current.map((r, i) => {
-                                            if (r && r.classList.contains('selected')) {
-                                                r.scrollIntoView({
-                                                    behavior: 'auto',
-                                                    block: 'center',
-                                                    inline: 'nearest'
-                                                })
+                                                refDispatchEventPopupItems.current.map((r, i) => {
+                                                    if (r && r.classList.contains('selected')) {
+                                                        r.scrollIntoView({
+                                                            behavior: 'auto',
+                                                            block: 'center',
+                                                            inline: 'nearest'
+                                                        })
+                                                    }
+                                                    return true;
+                                                });
                                             }
-                                            return true;
-                                        });
+                                        } else {
+                                            setShowDispatchEventItems(false);
+                                        }
                                     }, 0);
                                 }
 
@@ -10485,7 +10642,8 @@ function Dispatch(props) {
                                                                 dispatchEventItems.map((item, index) => {
                                                                     const mochiItemClasses = classnames({
                                                                         'mochi-item': true,
-                                                                        'selected': item.selected
+                                                                        'selected': item.selected,
+                                                                        'hidden': item.hidden
                                                                     });
 
                                                                     return (
@@ -11000,18 +11158,18 @@ function Dispatch(props) {
                     <div className="form-h-sep"></div>
                     <div className="input-box-container" style={{ width: '6rem' }}>
                         <input tabIndex={75 + props.tabTimes} type="text" placeholder="Event Time"
-                        ref={refEventTime}
+                            ref={refEventTime}
                             onKeyDown={async (e) => {
                                 let key = e.keyCode || e.which;
 
-                                e.stopPropagation();                                
+                                e.stopPropagation();
 
-                                if (key === 9){
-                                    e.preventDefault();                              
-                                   
+                                if (key === 9) {
+                                    e.preventDefault();
+
                                     let formatted = getFormattedHours(e.target.value);
                                     console.log(e.target.value, formatted);
-                                    await props.setDispatchEventTime(formatted);                                   
+                                    await props.setDispatchEventTime(formatted);
 
                                     if ((props.dispatchEvent?.name || '') === '') {
                                         goToTabindex((1 + props.tabTimes).toString());
@@ -11090,7 +11248,7 @@ function Dispatch(props) {
                                         }
                                     }
                                 }
-                            }}                            
+                            }}
                             onInput={(e) => {
                                 props.setDispatchEventTime(e.target.value);
                             }}
@@ -11107,8 +11265,8 @@ function Dispatch(props) {
                 <div style={{ flexGrow: 1, display: 'grid', gridTemplateColumns: '.8fr 0.1fr 1.3fr 0.1fr 1.3fr 0.1fr 1.3fr 0.1fr .9fr' }}>
                     <div>
                         <div style={{ fontSize: '0.7rem', textDecoration: 'underline', fontWeight: 'bold', whiteSpace: 'nowrap', textAlign: 'center', marginBottom: 1 }}>Miles</div>
-                        <div style={{ fontSize: '0.7rem', position: 'relative', textAlign: 'center' }}>
-                            {props.mileageLoaderVisible ? <div className="loading-container" style={{ right: 'initial', left: 0 }}>
+                        <div style={{ fontSize: '0.7rem', position: 'relative', textAlign: 'center', height: '100%' }}>
+                            {props.mileageLoaderVisible ? <div className="loading-container" style={{ right: 'initial', left: '50%' }}>
                                 <Loader type="ThreeDots" color="#333738" height={20} width={20} visible={props.mileageLoaderVisible} />
                             </div> : ((props.selected_order?.miles || 0) / 1609.34).toFixed(0)}
                         </div>

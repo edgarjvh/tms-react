@@ -89,8 +89,34 @@ function Customers(props) {
     const [tempEmpty, setTempEmpty] = useState(false);
 
     const handledPrintCustomerInformation = useReactToPrint({
-        pageStyle: () => "@media print {@page {size: 8.5in 11in !important; margin: 0} body {margin: 0;padding: 0;} .page-block {page-break-after: auto !important;page-break-beforer: auto !important; page-break-inside: avoid !important;} .no-print{display:none !important;} .container-sheet{box-shadow: initial !important;margin: 0 !important}}",
-        content: () => refPrintCustomerInformation.current,
+        // pageStyle: () => {
+        //     return `
+        //     @media print {@page {size: 8.5in 11in !important; margin: 0} body {margin: 0;padding: 0;} .page-block {page-break-after: auto !important;page-break-beforer: auto !important; page-break-inside: avoid !important;} .no-print{display:none !important;} .container-sheet{box-shadow: initial !important;margin: 0 !important}}
+        //     `
+        // },
+        pageStyle: () => {
+            return `
+                @media print {
+                    @page {
+                        size: 8.5in 11in !important; 
+                        margin: 0;                        
+                    }
+                    .page-block {
+                        page-break-after: auto !important;
+                        page-break-beforer: auto !important; 
+                        page-break-inside: avoid !important;
+                    } 
+                    .no-print{
+                        display:none !important;
+                    } 
+                    .container-sheet{
+                        box-shadow: initial !important;
+                        margin: 0 !important
+                    }
+                }
+            `
+        },
+        content: () => refPrintCustomerInformation.current
     });
 
     useEffect(() => {
@@ -896,8 +922,21 @@ function Customers(props) {
                                     <input tabIndex={1 + props.tabTimes} type="text" placeholder="Code" maxLength="8" id="txt-customer-code"
                                         ref={refCustomerCode}
                                         onKeyDown={searchCustomerByCode}
-                                        onChange={e => { props.setSelectedCustomer({ ...props.selectedCustomer, code: e.target.value }) }}
-                                        value={(props.selectedCustomer?.code || '') + ((props.selectedCustomer?.code_number || 0) === 0 ? '' : props.selectedCustomer.code_number)} />
+                                        onInput={e => {
+                                            props.setSelectedCustomer({ 
+                                                ...props.selectedCustomer, 
+                                                code: e.target.value,
+                                                code_number: 0 
+                                            })
+                                        }}
+                                        onChange={e => {
+                                            props.setSelectedCustomer({ 
+                                                ...props.selectedCustomer, 
+                                                code: e.target.value,
+                                                code_number: 0 
+                                            })
+                                        }}
+                                        value={(props.selectedCustomer.code_number || 0) === 0 ? (props.selectedCustomer.code || '') : props.selectedCustomer.code + props.selectedCustomer.code_number}  />
                                 </div>
                                 <div className="form-h-sep"></div>
                                 <div className="input-box-container grow">

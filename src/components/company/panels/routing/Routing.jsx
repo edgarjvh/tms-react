@@ -978,7 +978,7 @@ function Routing(props) {
                                     <div className="routing-pickup-container" {...provided.droppableProps} ref={provided.innerRef} style={{ flexGrow: 1 }}>
                                         {list.find(grp => grp.title === 'pickup') !== undefined &&
                                             list.find(grp => grp.title === 'pickup').items.map((item, index) => (
-                                                <DraggableDnd key={item.customer.id} draggableId={`${item.customer.id}`} index={index}>
+                                                <DraggableDnd key={item.customer.id} draggableId={`${index}-${item.type}-${item.customer.id}`} index={index}>
                                                     {(provided, snapshot) => {
                                                         if (snapshot.isDragging) {
                                                             provided.draggableProps.style.left = provided.draggableProps.style.offsetLeft;
@@ -1078,9 +1078,17 @@ function Routing(props) {
                                     //     props.setSelectedOrder({ ...props.selected_order, carrier_load: e.target.value });
                                     // }}
                                     value={
-                                        ((props.selected_order?.carrier?.id || 0) > 0 && (props.selected_order?.pickups || []).length > 0 && (props.selected_order?.deliveries || []).length > 0)
-                                            ? props.selected_order?.pickups[0].customer?.city + ', ' + props.selected_order?.pickups[0].customer?.state +
-                                            ' - ' + (props.selected_order?.deliveries[props.selected_order?.deliveries.length - 1].customer?.city || '') + ', ' + (props.selected_order?.deliveries[props.selected_order?.deliveries.length - 1].customer?.state || '')
+                                        ((props.selected_order?.routing || []).length >= 2 && (props.selected_order?.carrier?.id || 0) > 0)
+                                            ? props.selected_order.routing[0].type === 'pickup'
+                                                ? ((props.selected_order.pickups.find(p => p.id === props.selected_order.routing[0].pickup_id).customer?.city || '') + ', ' + (props.selected_order.pickups.find(p => p.id === props.selected_order.routing[0].pickup_id).customer?.state || '') +
+                                                    ' - ' + (props.selected_order.routing[props.selected_order.routing.length - 1].type === 'pickup'
+                                                        ? (props.selected_order.pickups.find(p => p.id === props.selected_order.routing[props.selected_order.routing.length - 1].pickup_id).customer?.city || '') + ', ' + (props.selected_order.pickups.find(p => p.id === props.selected_order.routing[props.selected_order.routing.length - 1].pickup_id).customer?.state || '') :
+                                                        (props.selected_order.deliveries.find(d => d.id === props.selected_order.routing[props.selected_order.routing.length - 1].delivery_id).customer?.city || '') + ', ' + (props.selected_order.deliveries.find(d => d.id === props.selected_order.routing[props.selected_order.routing.length - 1].delivery_id).customer?.state || '')))
+
+                                                : ((props.selected_order.deliveries.find(d => d.id === props.selected_order.routing[0].delivery_id).customer?.city || '') + ', ' + (props.selected_order.deliveries.find(d => d.id === props.selected_order.routing[0].delivery_id).customer?.state || '') +
+                                                    ' - ' + (props.selected_order.routing[props.selected_order.routing.length - 1].type === 'pickup'
+                                                        ? (props.selected_order.pickups.find(p => p.id === props.selected_order.routing[props.selected_order.routing.length - 1].pickup_id).customer?.city || '') + ', ' + (props.selected_order.pickups.find(p => p.id === props.selected_order.routing[props.selected_order.routing.length - 1].pickup_id).customer?.state || '') :
+                                                        (props.selected_order.deliveries.find(d => d.id === props.selected_order.routing[props.selected_order.routing.length - 1].delivery_id).customer?.city || '') + ', ' + (props.selected_order.deliveries.find(d => d.id === props.selected_order.routing[props.selected_order.routing.length - 1].delivery_id).customer?.state || '')))
                                             : ''
                                     }
                                 />
@@ -2069,7 +2077,7 @@ function Routing(props) {
                                 <div className="routing-delivery-container" {...provided.droppableProps} ref={provided.innerRef} style={{ flexGrow: 1 }}>
                                     {list.find(grp => grp.title === 'delivery') !== undefined &&
                                         list.find(grp => grp.title === 'delivery').items.map((item, index) => (
-                                            <DraggableDnd key={item.customer.id} draggableId={`${item.customer.id}`} index={index}>
+                                            <DraggableDnd key={item.customer.id} draggableId={`${index}-${item.type}-${item.customer.id}`} index={index}>
                                                 {(provided, snapshot) => {
                                                     if (snapshot.isDragging) {
                                                         provided.draggableProps.style.left = provided.draggableProps.style.offsetLeft;
@@ -2124,7 +2132,7 @@ function Routing(props) {
                                 <div className="routing-route-container" {...provided.droppableProps} ref={provided.innerRef} style={{ flexGrow: 1 }}>
                                     {list.find(grp => grp.title === 'route') !== undefined &&
                                         list.find(grp => grp.title === 'route').items.map((item, index) => (
-                                            <DraggableDnd key={item.customer.id} draggableId={`${item.customer.id}`} index={index}>
+                                            <DraggableDnd key={item.customer.id} draggableId={`r-${index}-${item.type}-${item.customer.id}`} index={index}>
                                                 {(provided, snapshot) => {
                                                     if (snapshot.isDragging) {
                                                         provided.draggableProps.style.left = provided.draggableProps.style.offsetLeft;

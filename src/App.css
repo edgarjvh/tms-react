@@ -332,6 +332,9 @@ select:focus {
   position: relative;
   cursor: default;
 }
+.select-box-container .mochi-item.hidden {
+  display: none;
+}
 .select-box-container .mochi-item:hover {
   background-color: rgba(0, 0, 0, 0.05);
 }

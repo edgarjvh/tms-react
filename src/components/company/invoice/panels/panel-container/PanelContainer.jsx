@@ -541,7 +541,7 @@ function PanelContainer(props) {
 
                                 origin='customer'
                                 
-                                savingDocumentUrl='/saveDocument'
+                                savingDocumentUrl='/saveCustomerDocument'
                                 deletingDocumentUrl='/deleteCustomerDocument'
                                 savingDocumentNoteUrl='/saveCustomerDocumentNote'
                                 serverDocumentsFolder='/customer-documents/'
